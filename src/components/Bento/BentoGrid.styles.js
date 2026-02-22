@@ -1,4 +1,4 @@
-import { COLORS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS } from '../../theme';
 
 export const styles = {
   searchMeta: {
@@ -6,7 +6,7 @@ export const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     margin: '10px 25px 0',
-    color: '#64748b',
+    color: COLORS.textSecondary,
     fontSize: '0.85rem',
     fontWeight: '600'
   },
@@ -26,13 +26,13 @@ export const styles = {
   masonryItem: {
     breakInside: 'avoid',
     marginBottom: '20px',
-    borderRadius: '20px',
-    backgroundColor: 'white',
+    borderRadius: RADIUS.xl,
+    backgroundColor: COLORS.surface,
     position: 'relative',
     overflow: 'hidden',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+    boxShadow: SHADOWS.md,
     cursor: 'pointer',
-    transition: 'transform 0.2s ease',
+    transition: TRANSITIONS.normal,
     minHeight: '180px',
     display: 'flex',
     flexDirection: 'column',
@@ -46,14 +46,15 @@ export const styles = {
     background: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 100%)'
   },
   miniBtn: {
+    ...GLASS.light,
     background: 'rgba(255,255,255,0.25)',
     border: 'none',
-    borderRadius: '50%',
+    borderRadius: RADIUS.full,
     width: '28px', height: '28px',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     color: 'white',
     cursor: 'pointer',
-    backdropFilter: 'blur(4px)'
+    transition: TRANSITIONS.fast
   },
   bottomContentGlass: {
     padding: '15px',
@@ -63,34 +64,34 @@ export const styles = {
   bottomContentSolid: (color) => ({
     padding: '15px',
     borderTop: `4px solid ${color}`,
-    backgroundColor: 'white',
+    backgroundColor: COLORS.surface,
     marginTop: 'auto'
   }),
   metaRow: (isDark) => ({
     display: 'flex', gap: '12px', alignItems: 'center',
     fontSize: '0.7rem',
-    color: isDark ? 'rgba(255,255,255,0.8)' : '#94a3b8',
+    color: isDark ? 'rgba(255,255,255,0.8)' : COLORS.textSecondary,
     fontWeight: '600'
   }),
   emptyState: {
-    background: 'white',
-    border: '1px dashed #e2e8f0',
-    borderRadius: '20px',
+    background: COLORS.surface,
+    border: `1px dashed ${COLORS.border}`,
+    borderRadius: RADIUS.xl,
     padding: '32px',
     textAlign: 'center',
     color: COLORS.charcoalBlue,
-    boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+    boxShadow: SHADOWS.sm,
     columnSpan: 'all'
   },
   emptyIcon: {
     width: '48px',
     height: '48px',
-    borderRadius: '14px',
-    background: '#f1f5f9',
+    borderRadius: RADIUS.lg,
+    background: COLORS.background,
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#94a3b8',
+    color: COLORS.textSecondary,
     marginBottom: '12px'
   },
   emptyTitle: {
@@ -100,7 +101,7 @@ export const styles = {
   },
   emptyText: {
     margin: 0,
-    color: '#64748b',
+    color: COLORS.textSecondary,
     fontSize: '0.85rem'
   },
   emptyAction: {
@@ -109,25 +110,26 @@ export const styles = {
     background: COLORS.atomicTangerine,
     color: COLORS.linen,
     padding: '8px 14px',
-    borderRadius: '10px',
+    borderRadius: RADIUS.sm,
     fontWeight: '700',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    transition: TRANSITIONS.fast
   },
   emptyStatePrimary: {
     background: `linear-gradient(155deg, ${COLORS.linen} 0%, #ffffff 65%)`,
     border: `1px solid ${COLORS.border}`,
-    borderRadius: '20px',
+    borderRadius: RADIUS.xl,
     padding: '38px 26px',
     textAlign: 'center',
     color: COLORS.charcoalBlue,
-    boxShadow: '0 10px 30px rgba(15,23,42,0.08)',
+    boxShadow: SHADOWS.lg,
     columnSpan: 'all'
   },
   emptyIconPrimary: {
     width: '72px',
     height: '72px',
-    borderRadius: '18px',
-    background: '#ffffff',
+    borderRadius: RADIUS.lg,
+    background: COLORS.surface,
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -151,10 +153,11 @@ export const styles = {
     marginTop: '16px',
     border: 'none',
     background: COLORS.atomicTangerine,
-    color: '#fff',
+    color: COLORS.surface,
     padding: '10px 16px',
-    borderRadius: '12px',
+    borderRadius: RADIUS.md,
     fontWeight: '800',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    transition: TRANSITIONS.fast
   }
 };

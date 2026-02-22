@@ -1,5 +1,5 @@
 import { AlertTriangle, RefreshCcw, Home } from 'lucide-react';
-import { COLORS, SHADOWS, RADIUS } from '../theme';
+import { COLORS, SHADOWS, RADIUS, TRANSITIONS } from '../theme';
 
 /**
  * Componente de fallback mostrado cuando ErrorBoundary captura un error
@@ -127,8 +127,8 @@ const styles = {
     overflow: 'auto',
     margin: 0,
     padding: '8px',
-    backgroundColor: '#FFF',
-    borderRadius: '4px',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xs,
   },
   stackTrace: {
     marginTop: '12px',
@@ -148,8 +148,8 @@ const styles = {
     maxHeight: '200px',
     margin: '8px 0 0',
     padding: '8px',
-    backgroundColor: '#FFF',
-    borderRadius: '4px',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xs,
   },
   actions: {
     display: 'flex',
@@ -169,7 +169,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    transition: 'transform 0.2s',
+    transition: TRANSITIONS.fast,
   },
   secondaryButton: {
     backgroundColor: 'transparent',
@@ -183,7 +183,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    transition: 'transform 0.2s',
+    transition: TRANSITIONS.fast,
   },
   supportText: {
     fontSize: '14px',

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Save, User, Camera, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { COLORS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS } from '../../theme';
 
 const SettingsPage = () => {
   const { usuario, actualizarPerfilUsuario, logout, isAdmin } = useAuth();
@@ -70,8 +70,8 @@ const SettingsPage = () => {
       </div>
 
       <div style={{...styles.card, marginTop:'30px', borderColor: '#fee2e2'}}>
-        <h2 style={{...styles.subtitle, color: '#ef4444'}}>Zona de Peligro</h2>
-        <p style={{marginBottom:'20px', color:'#64748b'}}>Cerrar sesión en este dispositivo.</p>
+        <h2 style={{...styles.subtitle, color: COLORS.danger}}>Zona de Peligro</h2>
+        <p style={{marginBottom:'20px', color:COLORS.textSecondary}}>Cerrar sesión en este dispositivo.</p>
         <button onClick={logout} style={styles.logoutBtn}>
           <LogOut size={18} /> Cerrar Sesión
         </button>
@@ -87,33 +87,33 @@ const styles = {
   title: { fontSize: '2.5rem', fontWeight: '900', color: COLORS.charcoalBlue, marginBottom: '30px' },
   emailBadge: {
     padding: '8px 14px',
-    borderRadius: '999px',
+    borderRadius: RADIUS.full,
     fontSize: '0.78rem',
     fontWeight: '700',
-    border: '1px solid #e2e8f0',
-    background: '#ffffff',
+    border: `1px solid ${COLORS.border}`,
+    background: COLORS.surface,
     color: '#475569'
   },
   adminBadge: (isAdmin) => ({
     padding: '8px 14px',
-    borderRadius: '999px',
+    borderRadius: RADIUS.full,
     fontSize: '0.8rem',
     fontWeight: '800',
-    border: `1px solid ${isAdmin ? '#fde68a' : '#e2e8f0'}`,
-    background: isAdmin ? '#fff7ed' : '#f8fafc',
-    color: isAdmin ? '#c2410c' : '#64748b'
+    border: `1px solid ${isAdmin ? '#fde68a' : COLORS.border}`,
+    background: isAdmin ? '#fff7ed' : COLORS.background,
+    color: isAdmin ? '#c2410c' : COLORS.textSecondary
   }),
-  card: { background: 'white', padding: '40px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' },
-  subtitle: { fontSize: '1.2rem', fontWeight: '800', color: COLORS.charcoalBlue, marginBottom: '20px', borderBottom:'2px solid #f1f5f9', paddingBottom:'10px' },
+  card: { background: COLORS.surface, padding: '40px', borderRadius: RADIUS.xl, boxShadow: SHADOWS.md, border: `1px solid ${COLORS.background}` },
+  subtitle: { fontSize: '1.2rem', fontWeight: '800', color: COLORS.charcoalBlue, marginBottom: '20px', borderBottom:`2px solid ${COLORS.background}`, paddingBottom:'10px' },
   section: { display: 'flex', flexDirection: 'column', gap: '20px' },
   avatarSection: { display: 'flex', gap: '30px', alignItems: 'center', marginBottom: '20px' },
-  avatar: { width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', border: `4px solid ${COLORS.linen}` },
-  label: { fontSize: '0.9rem', fontWeight: '700', color: '#64748b', marginBottom: '8px', display: 'block' },
-  input: { width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '1rem', outline: 'none' },
-  helper: { fontSize: '0.8rem', color: '#94a3b8', marginTop: '6px' },
+  avatar: { width: '100px', height: '100px', borderRadius: RADIUS.full, overflow: 'hidden', border: `4px solid ${COLORS.linen}` },
+  label: { fontSize: '0.9rem', fontWeight: '700', color: COLORS.textSecondary, marginBottom: '8px', display: 'block' },
+  input: { width: '100%', padding: '14px', borderRadius: RADIUS.md, border: `1px solid ${COLORS.border}`, fontSize: '1rem', outline: 'none' },
+  helper: { fontSize: '0.8rem', color: COLORS.textSecondary, marginTop: '6px' },
   actions: { marginTop: '30px', display: 'flex', alignItems: 'center', gap: '20px' },
-  saveBtn: { background: COLORS.atomicTangerine, color: 'white', padding: '14px 28px', borderRadius: '12px', border: 'none', fontWeight: '800', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center', fontSize:'1rem' },
-  logoutBtn: { background: '#fff', border: '2px solid #fee2e2', color: '#ef4444', padding: '12px 24px', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center' },
+  saveBtn: { background: COLORS.atomicTangerine, color: COLORS.surface, padding: '14px 28px', borderRadius: RADIUS.md, border: 'none', fontWeight: '800', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center', fontSize:'1rem' },
+  logoutBtn: { background: COLORS.surface, border: '2px solid #fee2e2', color: COLORS.danger, padding: '12px 24px', borderRadius: RADIUS.md, fontWeight: '700', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center' },
   msg: { color: COLORS.mutedTeal, fontWeight: '700' }
 };
 

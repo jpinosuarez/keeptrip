@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import Map, { Source, Layer } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { COLORS } from '../../theme';
+import { COLORS, RADIUS } from '../../theme';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -18,7 +18,7 @@ const HomeMap = ({ paisesVisitados = [] }) => {
   const listaPaises = paisesVisitados.length > 0 ? paisesVisitados : ['EMPTY_LIST'];
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative', background: '#F8FAFC', borderRadius: '24px', overflow: 'hidden' }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative', background: COLORS.background, borderRadius: RADIUS.xl, overflow: 'hidden' }}>
       <Map
         initialViewState={{
           longitude: 0,
@@ -79,7 +79,7 @@ const HomeMap = ({ paisesVisitados = [] }) => {
             background: 'rgba(30, 41, 59, 0.9)',
             color: 'white',
             padding: '4px 8px',
-            borderRadius: '6px',
+            borderRadius: RADIUS.xs,
             fontSize: '0.75rem',
             fontWeight: '600'
           }}>

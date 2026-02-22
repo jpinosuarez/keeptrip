@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
-import { COLORS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS, Z_INDEX } from '../../theme';
 
 const Sidebar = ({ isMobile = false }) => {
   const { logout, isAdmin } = useAuth();
@@ -186,13 +186,13 @@ const Sidebar = ({ isMobile = false }) => {
 
 const baseSidebar = {
   height: '100vh',
-  backgroundColor: '#FFFFFF',
+  backgroundColor: COLORS.surface,
   display: 'flex',
   flexDirection: 'column',
-  borderRight: '1px solid #E2E8F0',
+  borderRight: `1px solid ${COLORS.border}`,
   top: 0,
   left: 0,
-  boxShadow: '4px 0 24px rgba(0,0,0,0.02)'
+  boxShadow: SHADOWS.sm
 };
 
 const styles = {
@@ -211,8 +211,8 @@ const styles = {
   mobileOverlay: {
     position: 'fixed',
     inset: 0,
-    zIndex: 110,
-    backgroundColor: 'rgba(15, 23, 42, 0.48)'
+    zIndex: Z_INDEX.modal - 10,
+    ...GLASS.overlay
   },
   mobileTopRow: {
     display: 'flex',
@@ -226,15 +226,15 @@ const styles = {
     gap: '10px'
   },
   mobileCloseBtn: {
-    border: '1px solid #E2E8F0',
-    background: '#fff',
-    borderRadius: '10px',
+    border: `1px solid ${COLORS.border}`,
+    background: COLORS.surface,
+    borderRadius: RADIUS.sm,
     width: '32px',
     height: '32px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#64748b',
+    color: COLORS.textSecondary,
     cursor: 'pointer'
   },
   toggleBtn: {
@@ -243,17 +243,17 @@ const styles = {
     right: '-12px',
     width: '24px',
     height: '24px',
-    backgroundColor: '#FFFFFF',
-    border: '1px solid #E2E8F0',
-    borderRadius: '50%',
+    backgroundColor: COLORS.surface,
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: RADIUS.full,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    color: '#64748b',
-    zIndex: 60,
-    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-    transition: 'all 0.2s'
+    color: COLORS.textSecondary,
+    zIndex: Z_INDEX.sticky,
+    boxShadow: SHADOWS.sm,
+    transition: TRANSITIONS.fast
   },
   logoContainer: {
     display: 'flex',
@@ -276,28 +276,28 @@ const styles = {
   navItem: {
     display: 'flex',
     alignItems: 'center',
-    borderRadius: '12px',
+    borderRadius: RADIUS.md,
     border: 'none',
     cursor: 'pointer',
     fontSize: '0.95rem',
-    transition: 'background-color 0.2s ease, color 0.2s ease',
+    transition: TRANSITIONS.fast,
     width: '100%',
     overflow: 'hidden'
   },
   labelSpan: { fontWeight: '600', marginLeft: '12px', whiteSpace: 'nowrap' },
-  footer: { borderTop: '1px solid #F1F5F9', padding: '20px' },
+  footer: { borderTop: `1px solid ${COLORS.background}`, padding: '20px' },
   logoutBtn: {
     display: 'flex',
     alignItems: 'center',
     background: 'none',
     border: 'none',
-    color: '#94a3b8',
+    color: COLORS.textSecondary,
     cursor: 'pointer',
     padding: '10px',
     fontWeight: '600',
     fontSize: '0.9rem',
     width: '100%',
-    borderRadius: '10px'
+    borderRadius: RADIUS.sm
   }
 };
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Navigation2 } from 'lucide-react';
+import { RADIUS } from '../../theme';
 
 const Portada = () => (
   <motion.div 
@@ -28,7 +29,7 @@ const Portada = () => (
     <div style={{ 
       border: '2px solid rgba(212, 175, 55, 0.5)', 
       padding: '35px', 
-      borderRadius: '50%', 
+      borderRadius: RADIUS.full, 
       marginBottom: '30px',
       backgroundColor: 'rgba(0,0,0,0.1)'
     }}>

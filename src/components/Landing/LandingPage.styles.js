@@ -1,11 +1,11 @@
-import { COLORS, FONTS } from '../../theme';
+import { COLORS, FONTS, SHADOWS, RADIUS, TRANSITIONS } from '../../theme';
 
 export const styles = {
   container: {
     minHeight: '100vh',
-    height: '100vh', // Altura fija
-    overflowY: 'auto', // SCROLL HABILITADO
-    background: '#F8FAFC',
+    height: '100vh',
+    overflowY: 'auto',
+    background: COLORS.background,
     position: 'relative',
     fontFamily: FONTS.heading
   },
@@ -25,12 +25,13 @@ export const styles = {
   },
   loginBtn: {
     padding: '10px 24px',
-    borderRadius: '30px',
+    borderRadius: RADIUS['2xl'],
     border: `1px solid ${COLORS.border}`,
-    background: 'white',
+    background: COLORS.surface,
     color: COLORS.charcoalBlue,
     fontWeight: '700',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    transition: TRANSITIONS.fast
   },
   hero: {
     maxWidth: '1200px',
@@ -69,11 +70,10 @@ export const styles = {
     background: COLORS.charcoalBlue,
     color: 'white',
     border: 'none',
-    borderRadius: '50px',
+    borderRadius: RADIUS.full,
     cursor: 'pointer',
-    boxShadow: '0 10px 30px rgba(44, 62, 80, 0.3)',
-    transition: 'transform 0.2s',
-    ':hover': { transform: 'scale(1.05)' }
+    boxShadow: SHADOWS.float,
+    transition: TRANSITIONS.normal
   },
   featuresGrid: {
     display: 'grid',
@@ -83,10 +83,10 @@ export const styles = {
     width: '100%'
   },
   featureCard: {
-    background: 'white',
+    background: COLORS.surface,
     padding: '30px',
-    borderRadius: '24px',
-    boxShadow: '0 10px 40px rgba(0,0,0,0.05)',
+    borderRadius: RADIUS.xl,
+    boxShadow: SHADOWS.md,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',

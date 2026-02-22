@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, MapPin, BookOpen, Star } from 'lucide-react';
+import { COLORS, SHADOWS, RADIUS } from '../../theme';
 
 const StatsBitacora = ({ bitacora = [], bitacoraData = {} }) => {
   
@@ -29,7 +30,7 @@ const StatsBitacora = ({ bitacora = [], bitacoraData = {} }) => {
   };
 
   const statsCrono = [
-    { label: 'Días totales de viaje', value: calcularDiasTotales(), icon: <Calendar size={20} />, color: '#ef4444' },
+    { label: 'Días totales de viaje', value: calcularDiasTotales(), icon: <Calendar size={20} />, color: COLORS.danger },
     { label: 'Ciudades registradas', value: calcularTotalCiudades(), icon: <MapPin size={20} />, color: '#3b82f6' },
     { label: 'Viajes realizados', value: bitacora.length, icon: <BookOpen size={20} />, color: '#10b981' },
     { label: 'Puntaje promedio', value: `${calcularPromedio()} / 5`, icon: <Star size={20} />, color: '#f59e0b' }
@@ -39,15 +40,15 @@ const StatsBitacora = ({ bitacora = [], bitacoraData = {} }) => {
     <section style={{ padding: '25px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
       {statsCrono.map((stat, index) => (
         <div key={index} style={{ 
-          backgroundColor: 'white', padding: '20px', borderRadius: '24px', 
+          backgroundColor: COLORS.surface, padding: '20px', borderRadius: RADIUS.xl, 
           display: 'flex', alignItems: 'center', gap: '15px', border: '1px solid rgba(0,0,0,0.05)',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
+          boxShadow: SHADOWS.sm
         }}>
           <div style={{ backgroundColor: `${stat.color}15`, padding: '12px', borderRadius: '14px', color: stat.color }}>
             {stat.icon}
           </div>
           <div>
-            <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stat.label}</p>
+            <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: '800', color: COLORS.textSecondary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stat.label}</p>
             <p style={{ margin: 0, fontSize: '1.2rem', fontWeight: '900', color: '#1e293b' }}>{stat.value}</p>
           </div>
         </div>

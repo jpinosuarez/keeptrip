@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import Map, { Source, Layer } from 'react-map-gl';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { COLORS } from '../../theme';
+import { COLORS, RADIUS } from '../../theme';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -40,7 +40,7 @@ const MiniMapaRuta = ({ paradas }) => {
   };
 
   return (
-    <div style={{ width: '100%', height: '300px', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+    <div style={{ width: '100%', height: '300px', borderRadius: RADIUS.lg, overflow: 'hidden', border: `1px solid ${COLORS.border}` }}>
       <Map
         ref={mapRef}
         initialViewState={{ longitude: 0, latitude: 0, zoom: 1 }}

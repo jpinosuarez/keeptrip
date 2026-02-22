@@ -1,9 +1,9 @@
-import { COLORS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS } from '../../theme';
 
 export const styles = {
   modalOverlay: (isMobile) => ({
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(44, 62, 80, 0.4)', backdropFilter: 'blur(4px)',
+    ...GLASS.overlay,
     zIndex: 2000,
     display: 'flex',
     alignItems: isMobile ? 'stretch' : 'flex-start',
@@ -15,9 +15,9 @@ export const styles = {
     maxWidth: '100%',
     height: isMobile ? '100vh' : 'auto',
     maxHeight: isMobile ? '100vh' : '80vh',
-    backgroundColor: 'white',
-    borderRadius: isMobile ? 0 : '20px',
-    boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
+    backgroundColor: COLORS.surface,
+    borderRadius: isMobile ? 0 : RADIUS.xl,
+    boxShadow: SHADOWS.float,
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column'
@@ -27,7 +27,7 @@ export const styles = {
 
   searchBox: {
     margin: '0 20px 10px', padding: '12px 16px',
-    backgroundColor: '#F8FAFC', borderRadius: '12px', border: `1px solid ${COLORS.border}`,
+    backgroundColor: COLORS.background, borderRadius: RADIUS.md, border: `1px solid ${COLORS.border}`,
     display: 'flex', alignItems: 'center', gap: '10px'
   },
   inputStyle: { border: 'none', background: 'transparent', fontSize: '1rem', width: '100%', outline: 'none', color: COLORS.charcoalBlue },
@@ -35,26 +35,26 @@ export const styles = {
   listaContainer: (isMobile) => ({ maxHeight: isMobile ? 'none' : '300px', overflowY: 'auto', flex: 1 }),
 
   tagBtn: {
-    background: 'white', border: `1px solid ${COLORS.border}`, padding: '8px 12px',
-    borderRadius: '20px', cursor: 'pointer', fontSize: '0.9rem', color: COLORS.charcoalBlue,
+    background: COLORS.surface, border: `1px solid ${COLORS.border}`, padding: '8px 12px',
+    borderRadius: RADIUS.xl, cursor: 'pointer', fontSize: '0.9rem', color: COLORS.charcoalBlue,
     display: 'flex', alignItems: 'center', gap: '6px',
-    transition: 'all 0.2s'
+    transition: TRANSITIONS.normal
   },
 
   resultItem: {
     padding: '12px 20px', cursor: 'pointer',
     display: 'flex', alignItems: 'center', gap: '15px',
-    transition: 'background 0.1s',
+    transition: TRANSITIONS.fast,
     position: 'relative'
   },
   iconBox: (isCountry) => ({
-    width: '36px', height: '36px', borderRadius: '10px',
+    width: '36px', height: '36px', borderRadius: RADIUS.sm,
     backgroundColor: isCountry ? `${COLORS.atomicTangerine}15` : `${COLORS.mutedTeal}15`,
     color: isCountry ? COLORS.atomicTangerine : COLORS.mutedTeal,
     display: 'flex', alignItems: 'center', justifyContent: 'center'
   }),
   nombrePais: { fontWeight: '700', color: COLORS.charcoalBlue, display: 'block' },
-  subtext: { fontSize: '0.8rem', color: '#94a3b8' },
+  subtext: { fontSize: '0.8rem', color: COLORS.textSecondary },
 
   addLabel: {
     position: 'absolute', right: '20px',

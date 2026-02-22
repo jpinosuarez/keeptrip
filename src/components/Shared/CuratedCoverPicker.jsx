@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Image, LoaderCircle } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { COLORS } from '../../theme';
+import { COLORS, RADIUS } from '../../theme';
 
 const normalizeKey = (value) => {
   if (!value || typeof value !== 'string') return '';
@@ -139,8 +139,8 @@ const styles = {
   card: (disabled) => ({
     minWidth: '140px',
     borderRadius: '14px',
-    border: '1px solid #e2e8f0',
-    background: '#fff',
+    border: `1px solid ${COLORS.border}`,
+    background: COLORS.surface,
     padding: '8px',
     display: 'flex',
     flexDirection: 'column',
@@ -151,15 +151,15 @@ const styles = {
   thumb: {
     width: '100%',
     height: '84px',
-    borderRadius: '10px',
+    borderRadius: RADIUS.sm,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-    backgroundColor: '#f1f5f9'
+    backgroundColor: COLORS.background
   },
   labelRow: { display: 'flex', alignItems: 'center', gap: '6px', color: COLORS.charcoalBlue },
   labelText: { fontSize: '0.78rem', fontWeight: 700 },
-  helperText: { fontSize: '0.85rem', color: '#64748b' },
-  loadingRow: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#64748b' }
+  helperText: { fontSize: '0.85rem', color: COLORS.textSecondary },
+  loadingRow: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: COLORS.textSecondary }
 };
 
 export default CuratedCoverPicker;

@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useUpload } from '../../context/UploadContext';
 import { styles } from './VisorViaje.styles';
-import { COLORS } from '../../theme';
+import { COLORS, RADIUS, SHADOWS, GLASS } from '../../theme';
 import CityManager from '../Shared/CityManager';
 import MiniMapaRuta from '../Shared/MiniMapaRuta';
 import { compressImage } from '../../utils/imageUtils';
@@ -239,8 +239,8 @@ const VisorViaje = ({
                     alt="flag"
                     style={{
                       width: '40px',
-                      borderRadius: '4px',
-                      boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+                      borderRadius: RADIUS.xs,
+                      boxShadow: SHADOWS.md
                     }}
                   />
                 ))
@@ -289,9 +289,9 @@ const VisorViaje = ({
                 data-testid="visor-shared-badge"
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
-                  background: 'rgba(99,102,241,0.25)', padding: '6px 14px',
-                  borderRadius: 8, color: '#e0e7ff', fontSize: '0.85rem',
-                  fontWeight: 600, backdropFilter: 'blur(5px)', marginTop: 6
+                  ...GLASS.medium, padding: '6px 14px',
+                  borderRadius: RADIUS.sm, color: '#e0e7ff', fontSize: '0.85rem',
+                  fontWeight: 600, marginTop: 6
                 }}
               >
                 🤝 Compartido por {ownerDisplayName || '…'}
@@ -302,24 +302,24 @@ const VisorViaje = ({
             <div data-testid="visor-storytelling" style={{ marginTop: 12 }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 {data.presupuesto && (
-                  <span data-testid="visor-presupuesto" style={{ padding: '6px 10px', borderRadius: 16, background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}>{data.presupuesto}</span>
+                  <span data-testid="visor-presupuesto" style={{ padding: '6px 10px', borderRadius: RADIUS.lg, background: COLORS.background, border: `1px solid ${COLORS.border}`, fontSize: '0.85rem' }}>{data.presupuesto}</span>
                 )}
                 {(data.vibe || []).map((v, i) => (
-                  <span key={i} style={{ padding: '6px 10px', borderRadius: 16, background: '#fff7ed', border: '1px solid #fce6c6', fontSize: '0.8rem' }}>{v}</span>
+                  <span key={i} style={{ padding: '6px 10px', borderRadius: RADIUS.lg, background: '#fff7ed', border: '1px solid #fce6c6', fontSize: '0.8rem' }}>{v}</span>
                 ))}
 
                 <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', alignItems: 'center' }}>
                   {(data.companions || []).slice(0,4).map((c, idx) => (
-                    <div key={idx} title={c.name} style={{ width: 28, height: 28, borderRadius: 14, background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', border: '1px solid #e2e8f0' }}>{(c.name || 'U').split(' ').map(s=>s[0]).slice(0,2).join('')}</div>
+                    <div key={idx} title={c.name} style={{ width: 28, height: 28, borderRadius: RADIUS.full, background: COLORS.background, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', border: `1px solid ${COLORS.border}` }}>{(c.name || 'U').split(' ').map(s=>s[0]).slice(0,2).join('')}</div>
                   ))}
-                  {(data.companions || []).length > 4 && <span style={{ color: '#64748b', fontSize: '0.85rem' }}>+{(data.companions || []).length - 4}</span>}
+                  {(data.companions || []).length > 4 && <span style={{ color: COLORS.textSecondary, fontSize: '0.85rem' }}>+{(data.companions || []).length - 4}</span>}
                 </div>
               </div>
 
               <div style={{ display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap' }}>
-                {data.highlights?.topFood && <div style={{ background: '#ffffff', border: '1px solid #e6edf3', padding: '8px 12px', borderRadius: 10 }}>🍽️ {data.highlights.topFood}</div>}
-                {data.highlights?.topView && <div style={{ background: '#ffffff', border: '1px solid #e6edf3', padding: '8px 12px', borderRadius: 10 }}>👀 {data.highlights.topView}</div>}
-                {data.highlights?.topTip && <div style={{ background: '#ffffff', border: '1px solid #e6edf3', padding: '8px 12px', borderRadius: 10 }}>💡 {data.highlights.topTip}</div>}
+                {data.highlights?.topFood && <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}`, padding: '8px 12px', borderRadius: RADIUS.sm }}>🍽️ {data.highlights.topFood}</div>}
+                {data.highlights?.topView && <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}`, padding: '8px 12px', borderRadius: RADIUS.sm }}>👀 {data.highlights.topView}</div>}
+                {data.highlights?.topTip && <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}`, padding: '8px 12px', borderRadius: RADIUS.sm }}>💡 {data.highlights.topTip}</div>}
               </div>
             </div>
 

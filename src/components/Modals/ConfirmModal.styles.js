@@ -1,11 +1,10 @@
-import { COLORS, SHADOWS, RADIUS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS } from '../../theme';
 
 export const styles = {
   overlay: {
     position: 'fixed',
     inset: 0,
-    backgroundColor: 'rgba(15, 23, 42, 0.45)',
-    backdropFilter: 'blur(4px)',
+    ...GLASS.overlay,
     zIndex: 12000,
     display: 'flex',
     alignItems: 'center',
@@ -16,7 +15,7 @@ export const styles = {
     width: '100%',
     maxWidth: '520px',
     backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.xl,
     boxShadow: SHADOWS.md,
     border: `1px solid ${COLORS.border}`,
     overflow: 'hidden'
@@ -63,7 +62,8 @@ export const styles = {
     fontWeight: 700,
     padding: '10px 18px',
     cursor: disabled ? 'not-allowed' : 'pointer',
-    opacity: disabled ? 0.65 : 1
+    opacity: disabled ? 0.65 : 1,
+    transition: TRANSITIONS.fast
   }),
   confirmBtn: (disabled = false) => ({
     border: 'none',
@@ -77,6 +77,7 @@ export const styles = {
     gap: '8px',
     boxShadow: SHADOWS.sm,
     cursor: disabled ? 'not-allowed' : 'pointer',
-    opacity: disabled ? 0.8 : 1
+    opacity: disabled ? 0.8 : 1,
+    transition: TRANSITIONS.fast
   })
 };

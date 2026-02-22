@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Save } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { COLORS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS, GLASS } from '../../theme';
 
 const PerfilModal = ({ isOpen, onClose }) => {
   const { usuario, actualizarPerfilUsuario } = useAuth();
@@ -66,16 +66,16 @@ const PerfilModal = ({ isOpen, onClose }) => {
 };
 
 const styles = {
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 11000, backdropFilter: 'blur(4px)' },
-  content: { background: 'white', borderRadius: '24px', padding: '30px', width: '400px', maxWidth: '90%' },
+  overlay: { position: 'fixed', inset: 0, ...GLASS.overlay, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 11000 },
+  content: { background: COLORS.surface, borderRadius: RADIUS.xl, padding: '30px', width: '400px', maxWidth: '90%', boxShadow: SHADOWS.float },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', color: COLORS.charcoalBlue, fontWeight: '800' },
   closeBtn: { background: 'none', border: 'none', cursor: 'pointer' },
   form: { display: 'flex', flexDirection: 'column', gap: '15px' },
-  avatarPreview: { width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', alignSelf: 'center', marginBottom: '10px', border: `2px solid ${COLORS.atomicTangerine}` },
+  avatarPreview: { width: '80px', height: '80px', borderRadius: RADIUS.full, overflow: 'hidden', alignSelf: 'center', marginBottom: '10px', border: `2px solid ${COLORS.atomicTangerine}` },
   avatarImg: { width: '100%', height: '100%', objectFit: 'cover' },
   label: { fontSize: '0.8rem', fontWeight: '700', color: COLORS.charcoalBlue, textTransform: 'uppercase' },
-  input: { padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '1rem' },
-  saveBtn: { background: COLORS.atomicTangerine, color: 'white', padding: '14px', borderRadius: '12px', border: 'none', fontWeight: '800', cursor: 'pointer', display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center' }
+  input: { padding: '12px', borderRadius: RADIUS.sm, border: `1px solid ${COLORS.border}`, fontSize: '1rem' },
+  saveBtn: { background: COLORS.atomicTangerine, color: 'white', padding: '14px', borderRadius: RADIUS.md, border: 'none', fontWeight: '800', cursor: 'pointer', display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center' }
 };
 
 export default PerfilModal;

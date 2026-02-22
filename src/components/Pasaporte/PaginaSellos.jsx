@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
+import { COLORS, RADIUS } from '../../theme';
 
 const PaginaSellos = ({ region, paises, MAPA_SELLOS, manejarEliminar }) => {
   
@@ -55,7 +56,7 @@ const PaginaSellos = ({ region, paises, MAPA_SELLOS, manejarEliminar }) => {
                   width: '110px',
                   height: '110px',
                   border: `3px solid ${colorTinta}`,
-                  borderRadius: '12px',
+                  borderRadius: RADIUS.md,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -94,7 +95,7 @@ const PaginaSellos = ({ region, paises, MAPA_SELLOS, manejarEliminar }) => {
                   position: 'absolute', 
                   top: -5, 
                   right: -5, 
-                  color: '#ef4444', 
+                  color: COLORS.danger, 
                   cursor: 'pointer', 
                   opacity: 0.3 
                 }} 

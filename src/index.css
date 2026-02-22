@@ -1,5 +1,5 @@
 :root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.5;
   font-weight: 400;
   
@@ -21,6 +21,11 @@ html, body, #root {
   padding: 0;
   overflow: hidden; /* Bloqueamos scroll en la raíz */
   background-color: #F8FAFC;
+}
+
+::selection {
+  background-color: rgba(255, 107, 53, 0.15);
+  color: #1E293B;
 }
 
 /* Scrollbars personalizadas y bonitas */

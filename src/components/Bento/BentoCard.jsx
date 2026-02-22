@@ -1,17 +1,17 @@
 import React from 'react';
 import { Calendar, MapPin, Trash2 } from 'lucide-react';
-import { COLORS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS } from '../../theme';
 
 const styles = {
   card: {
-    backgroundColor: 'white',
-    borderRadius: '24px',
-    border: '1px solid rgba(241, 245, 249, 0.8)',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    border: `1px solid ${COLORS.border}`,
     position: 'relative',
     overflow: 'hidden',
     cursor: 'pointer',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+    boxShadow: SHADOWS.md,
+    transition: TRANSITIONS.normal,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
@@ -38,18 +38,18 @@ const styles = {
   flagImg: {
     width: '32px',
     height: '24px',
-    borderRadius: '4px',
+    borderRadius: RADIUS.xs,
     objectFit: 'cover',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+    boxShadow: SHADOWS.sm,
     border: '1px solid rgba(255,255,255,0.3)'
   },
   footer: { marginTop: 'auto' },
   title: { fontSize: '1.3rem', fontWeight: '800', margin: '0 0 8px 0', lineHeight: 1.1 },
   meta: { display: 'flex', gap: '12px', fontSize: '0.85rem', fontWeight: '600', alignItems: 'center' },
   deleteBtn: {
-    background: 'rgba(255, 255, 255, 0.2)',
+    ...GLASS.dark,
     border: 'none',
-    borderRadius: '50%',
+    borderRadius: RADIUS.full,
     width: '32px',
     height: '32px',
     display: 'flex',
@@ -57,9 +57,8 @@ const styles = {
     justifyContent: 'center',
     cursor: 'pointer',
     color: 'white',
-    backdropFilter: 'blur(4px)',
-    transition: 'background 0.2s',
-    ':hover': { background: '#ef4444' }
+    transition: TRANSITIONS.fast,
+    ':hover': { background: COLORS.danger }
   }
 };
 
@@ -102,7 +101,7 @@ const BentoCard = ({ viaje, onClick, manejarEliminar }) => {
           <h3 style={{ ...styles.title, color: foto ? 'white' : COLORS.charcoalBlue, textShadow: foto ? '0 2px 10px rgba(0,0,0,0.5)' : 'none' }}>
             {titulo}
           </h3>
-          <div style={{ ...styles.meta, color: foto ? 'rgba(255,255,255,0.9)' : '#64748b' }}>
+          <div style={{ ...styles.meta, color: foto ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={14} /> {viaje.fechaInicio?.split('-')[0]}</span>
             {viaje.ciudades && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={14} /> {viaje.ciudades.split(',').length}</span>}
           </div>

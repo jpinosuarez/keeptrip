@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Star, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
-import { COLORS, RADIUS, SHADOWS } from '../../theme';
+import { COLORS, RADIUS, SHADOWS, GLASS, TRANSITIONS } from '../../theme';
 
 /**
  * Hook para lazy loading de imágenes con Intersection Observer
@@ -449,14 +449,13 @@ const styles = {
     width: '48px',
     height: '48px',
     border: 'none',
-    borderRadius: '50%',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: RADIUS.full,
+    ...GLASS.medium,
     color: 'white',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    backdropFilter: 'blur(10px)',
     zIndex: 10001,
   },
   counter: {
@@ -464,13 +463,12 @@ const styles = {
     top: '20px',
     left: '50%',
     transform: 'translateX(-50%)',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    ...GLASS.medium,
     color: 'white',
     padding: '8px 16px',
     borderRadius: RADIUS.full,
     fontSize: '14px',
     fontWeight: '600',
-    backdropFilter: 'blur(10px)',
     zIndex: 10001,
   },
   navBtn: {
@@ -480,14 +478,13 @@ const styles = {
     width: '56px',
     height: '56px',
     border: 'none',
-    borderRadius: '50%',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: RADIUS.full,
+    ...GLASS.medium,
     color: 'white',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    backdropFilter: 'blur(10px)',
     zIndex: 10001,
   },
 
@@ -547,7 +544,7 @@ const styles = {
     fontSize: '11px',
     fontWeight: '600',
     cursor: 'pointer',
-    transition: 'background-color 0.2s ease',
+    transition: TRANSITIONS.fast,
     marginTop: '4px',
   },
   successOverlay: {

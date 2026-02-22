@@ -6,6 +6,7 @@ import useInvitations from '../../hooks/useInvitations';
 import { styles as headerStyles } from '../Header/Header.styles';
 import { useUI } from '../../context/UIContext';
 import { useToast } from '../../context/ToastContext';
+import { COLORS, RADIUS } from '../../theme';
 
 /**
  * Resuelve displayName del inviter y título del viaje para cada invitación.
@@ -92,14 +93,14 @@ export default function InvitationsList({ compact = false, hook = null }) {
                       pushToast('No se pudo aceptar la invitación', 'error');
                     }
                   }}
-                  style={{ background: '#10b981', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: 6 }}
+                  style={{ background: '#10b981', color: COLORS.surface, border: 'none', padding: '6px 10px', borderRadius: RADIUS.xs }}
                 >Aceptar</button>
 
                 <button
                   data-testid={`inv-decline-${inv.id}`}
                   aria-label={`Rechazar invitación de ${inviterLabel}`}
                   onClick={async () => { const ok = await declineInvitation(inv.id); if (ok) pushToast('Invitación rechazada', 'warning'); }}
-                  style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: 6 }}
+                  style={{ background: COLORS.danger, color: COLORS.surface, border: 'none', padding: '6px 10px', borderRadius: RADIUS.xs }}
                 >Rechazar</button>
               </>
             ) : (

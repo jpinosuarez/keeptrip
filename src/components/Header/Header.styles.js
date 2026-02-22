@@ -1,5 +1,5 @@
 // src/components/Header/Header.styles.js
-import { COLORS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS, TRANSITIONS } from '../../theme';
 
 export const styles = {
   header: (isMobile) => ({
@@ -11,11 +11,11 @@ export const styles = {
     gap: isMobile ? '8px' : '16px',
     backgroundColor: 'transparent',
     zIndex: 100,
-    transition: 'padding 0.25s ease'
+    transition: TRANSITIONS.normal
   }),
   leftSide: { display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 },
-  breadcrumb: { color: '#94a3b8', fontSize: '0.85rem', fontWeight: '500' },
-  separator: { color: '#94a3b8', opacity: 0.5 },
+  breadcrumb: { color: COLORS.textSecondary, fontSize: '0.85rem', fontWeight: '500' },
+  separator: { color: COLORS.textSecondary, opacity: 0.5 },
   titulo: (isMobile) => ({
     fontSize: isMobile ? '1rem' : '1.2rem',
     color: COLORS.charcoalBlue,
@@ -29,15 +29,16 @@ export const styles = {
   menuButton: {
     width: '38px',
     height: '38px',
-    borderRadius: '12px',
+    borderRadius: RADIUS.md,
     border: '1px solid rgba(0,0,0,0.08)',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     color: COLORS.charcoalBlue,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    flexShrink: 0
+    flexShrink: 0,
+    transition: TRANSITIONS.fast
   },
   rightSide: (isMobile) => ({
     display: 'flex',
@@ -51,7 +52,7 @@ export const styles = {
     gap: '10px',
     backgroundColor: 'rgba(0,0,0,0.04)',
     padding: '8px 12px',
-    borderRadius: '12px',
+    borderRadius: RADIUS.md,
     border: '1px solid rgba(0,0,0,0.02)',
     minWidth: isMobile ? '0' : '280px',
     width: isMobile ? '44vw' : 'auto'
@@ -61,7 +62,7 @@ export const styles = {
     border: 'none',
     background: 'transparent',
     cursor: 'pointer',
-    color: '#94a3b8',
+    color: COLORS.textSecondary,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -72,14 +73,15 @@ export const styles = {
     color: COLORS.linen,
     border: 'none',
     padding: isMobile ? '10px' : '10px 20px',
-    borderRadius: '12px',
+    borderRadius: RADIUS.md,
     fontWeight: '800',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     gap: isMobile ? '0' : '8px',
     boxShadow: `0 4px 12px ${COLORS.atomicTangerine}40`,
-    whiteSpace: 'nowrap'
+    whiteSpace: 'nowrap',
+    transition: TRANSITIONS.fast
   }),
   addButtonLabel: {
     display: 'inline-flex',
@@ -88,10 +90,10 @@ export const styles = {
   avatar: {
     width: '40px',
     height: '40px',
-    borderRadius: '50%',
+    borderRadius: RADIUS.full,
     backgroundColor: COLORS.sandyBrown,
-    border: '2px solid white',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    border: `2px solid ${COLORS.surface}`,
+    boxShadow: SHADOWS.sm,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

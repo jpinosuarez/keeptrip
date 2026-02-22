@@ -2,7 +2,7 @@ import React, { useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Map, { Source, Layer, NavigationControl, FullscreenControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { COLORS } from '../../theme';
+import { COLORS, RADIUS, SHADOWS, GLASS } from '../../theme';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -33,7 +33,7 @@ function MapaView({ paises = [], paradas = [] }) {
   const isEmptyMap = paises.length === 0;
 
   return (
-    <div style={{ width: '100%', height: '100%', borderRadius: '24px', overflow: 'hidden', background: '#e0f2fe', position: 'relative' }}>
+    <div style={{ width: '100%', height: '100%', borderRadius: RADIUS.xl, overflow: 'hidden', background: '#e0f2fe', position: 'relative' }}>
       <Map
         ref={mapRef}
         {...viewState}
@@ -105,15 +105,14 @@ function MapaView({ paises = [], paradas = [] }) {
               left: '50%',
               bottom: '18px',
               transform: 'translateX(-50%)',
-              background: 'rgba(44, 62, 80, 0.88)',
+              ...GLASS.dark,
               color: '#fff',
               border: '1px solid rgba(255,255,255,0.18)',
-              borderRadius: '9999px',
+              borderRadius: RADIUS.full,
               padding: '10px 16px',
               fontSize: '0.86rem',
               fontWeight: '700',
-              backdropFilter: 'blur(6px)',
-              boxShadow: '0 8px 22px rgba(15, 23, 42, 0.25)',
+              boxShadow: SHADOWS.lg,
               pointerEvents: 'none',
               zIndex: 3,
               whiteSpace: 'nowrap',

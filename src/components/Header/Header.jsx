@@ -3,6 +3,7 @@ import { Search, Plus, LogOut, User, X, Menu, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSearch, useUI } from '../../context/UIContext';
 import { styles } from './Header.styles';
+import { COLORS, RADIUS } from '../../theme';
 import useInvitations from '../../hooks/useInvitations';
 
 const Header = ({ isMobile = false }) => {
@@ -40,7 +41,7 @@ const Header = ({ isMobile = false }) => {
       <div style={styles.rightSide(isMobile)}>
         {mostrarBusqueda && (
           <div style={styles.searchContainer(isMobile)}>
-            <Search size={16} color="#94a3b8" />
+            <Search size={16} color={COLORS.textSecondary} />
             <input
               type="text"
               placeholder={searchPlaceholder}
@@ -74,11 +75,11 @@ const Header = ({ isMobile = false }) => {
               onClick={() => setVistaActiva('invitations')}
               aria-label={`Invitaciones (${invitations?.length || 0})`}
               title="Invitaciones"
-              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center' }}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: COLORS.textSecondary, display: 'flex', alignItems: 'center' }}
             >
               <Bell size={18} />
               {invitations?.length > 0 && (
-                <span data-testid="header-invitations-count" aria-live="polite" style={{ background: '#ef4444', color: '#fff', borderRadius: 10, padding: '2px 6px', fontSize: 11, marginLeft: 6 }}>
+                <span data-testid="header-invitations-count" aria-live="polite" style={{ background: COLORS.danger, color: COLORS.surface, borderRadius: RADIUS.sm, padding: '2px 6px', fontSize: 11, marginLeft: 6 }}>
                   {invitations.length}
                 </span>
               )}
@@ -95,7 +96,7 @@ const Header = ({ isMobile = false }) => {
                 <img
                   src={usuario.photoURL}
                   alt={`Foto de ${usuario.displayName || 'usuario'}`}
-                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                  style={{ width: '100%', height: '100%', borderRadius: RADIUS.full, objectFit: 'cover' }}
                   onError={() => setAvatarError(true)}
                 />
               ) : iniciales ? (
@@ -109,7 +110,7 @@ const Header = ({ isMobile = false }) => {
               <button
                 data-testid="header-logout-button"
                 onClick={logout}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.textSecondary }}
                 title="Cerrar Sesion"
               >
                 <LogOut size={18} />

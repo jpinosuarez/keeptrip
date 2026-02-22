@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, CircleAlert, Info, X } from 'lucide-react';
+import { SHADOWS, RADIUS, Z_INDEX } from '../theme';
 
 const ToastContext = createContext(null);
 
@@ -84,7 +85,7 @@ const styles = {
     position: 'fixed',
     bottom: '20px',
     right: '20px',
-    zIndex: 20000,
+    zIndex: Z_INDEX.toast,
     display: 'flex',
     flexDirection: 'column',
     gap: '10px',
@@ -95,12 +96,12 @@ const styles = {
     maxWidth: '360px',
     color: 'white',
     border: '1px solid transparent',
-    borderRadius: '12px',
+    borderRadius: RADIUS.md,
     padding: '12px 12px',
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    boxShadow: '0 10px 25px rgba(15, 23, 42, 0.35)',
+    boxShadow: SHADOWS.lg,
     pointerEvents: 'auto'
   },
   message: {
@@ -113,7 +114,7 @@ const styles = {
     border: 'none',
     color: 'white',
     background: 'rgba(255,255,255,0.15)',
-    borderRadius: '999px',
+    borderRadius: RADIUS.full,
     width: '22px',
     height: '22px',
     display: 'inline-flex',

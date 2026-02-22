@@ -5,7 +5,7 @@ import { Globe, Image, LoaderCircle, MapPin, Save, Search, Trash2, X } from 'luc
 import { db, storage } from '../../firebase';
 import { getFlagUrl } from '../../utils/countryUtils';
 import { compressImage } from '../../utils/imageUtils';
-import { COLORS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS } from '../../theme';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -327,7 +327,7 @@ const CuracionPage = () => {
         <div style={styles.row}>
           <label style={styles.label}>Pais</label>
           <div style={styles.searchBox}>
-            <Search size={16} color="#94a3b8" />
+            <Search size={16} color={COLORS.textSecondary} />
             <input
               style={styles.searchInput}
               value={countryQuery}
@@ -401,7 +401,7 @@ const CuracionPage = () => {
           <div>
             <label style={styles.label}>Ciudad (opcional)</label>
             <div style={styles.searchBox}>
-              <MapPin size={16} color="#94a3b8" />
+              <MapPin size={16} color={COLORS.textSecondary} />
               <input
                 style={styles.searchInput}
                 value={cityQuery}
@@ -587,32 +587,32 @@ const styles = {
   container: { padding: '40px', maxWidth: '1100px', margin: '0 auto', fontFamily: '"Plus Jakarta Sans", sans-serif' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
   title: { fontSize: '2.3rem', fontWeight: 900, color: COLORS.charcoalBlue, marginBottom: '8px' },
-  subtitle: { color: '#64748b' },
-  card: { background: 'white', borderRadius: '20px', padding: '26px', border: '1px solid #f1f5f9', boxShadow: '0 8px 24px rgba(15,23,42,0.04)', marginBottom: '22px' },
+  subtitle: { color: COLORS.textSecondary },
+  card: { background: COLORS.surface, borderRadius: RADIUS.xl, padding: '26px', border: `1px solid ${COLORS.background}`, boxShadow: SHADOWS.md, marginBottom: '22px' },
   row: { display: 'flex', flexDirection: 'column', gap: '10px' },
-  label: { fontSize: '0.85rem', fontWeight: 700, color: '#64748b' },
+  label: { fontSize: '0.85rem', fontWeight: 700, color: COLORS.textSecondary },
   helper: { marginTop: '12px', color: COLORS.charcoalBlue, fontWeight: 600 },
-  helperText: { fontSize: '0.8rem', color: '#94a3b8' },
+  helperText: { fontSize: '0.8rem', color: COLORS.textSecondary },
   formGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginTop: '20px' },
-  input: { padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '1rem' },
+  input: { padding: '12px', borderRadius: RADIUS.md, border: `1px solid ${COLORS.border}`, fontSize: '1rem' },
   uploadBox: {
     padding: '12px',
-    borderRadius: '12px',
+    borderRadius: RADIUS.md,
     border: '1px dashed #cbd5f5',
-    background: '#f8fafc',
+    background: COLORS.background,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between'
   },
-  uploadStatus: { display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '0.8rem' },
-  preview: { marginTop: '12px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0' },
+  uploadStatus: { display: 'flex', alignItems: 'center', gap: '8px', color: COLORS.textSecondary, fontSize: '0.8rem' },
+  preview: { marginTop: '12px', borderRadius: RADIUS.md, overflow: 'hidden', border: `1px solid ${COLORS.border}` },
   previewImg: { width: '100%', height: '140px', objectFit: 'cover', display: 'block' },
   actions: { display: 'flex', alignItems: 'center', gap: '16px', marginTop: '18px' },
   saveBtn: (disabled) => ({
     background: disabled ? '#cbd5f5' : COLORS.atomicTangerine,
-    color: 'white',
+    color: COLORS.surface,
     padding: '12px 20px',
-    borderRadius: '12px',
+    borderRadius: RADIUS.md,
     border: 'none',
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontWeight: 700,
@@ -622,39 +622,39 @@ const styles = {
   }),
   message: { color: COLORS.mutedTeal, fontWeight: 700 },
   sectionTitle: { fontWeight: 800, color: COLORS.charcoalBlue, marginBottom: '12px' },
-  empty: { color: '#94a3b8' },
-  loadingRow: { display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8' },
+  empty: { color: COLORS.textSecondary },
+  loadingRow: { display: 'flex', alignItems: 'center', gap: '8px', color: COLORS.textSecondary },
   searchBox: {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
     padding: '10px 12px',
-    borderRadius: '12px',
-    border: '1px solid #e2e8f0',
-    background: '#f8fafc'
+    borderRadius: RADIUS.md,
+    border: `1px solid ${COLORS.border}`,
+    background: COLORS.background
   },
   searchInput: { border: 'none', background: 'transparent', width: '100%', outline: 'none', fontSize: '0.95rem' },
   clearBtn: {
     border: 'none',
     background: 'transparent',
     cursor: 'pointer',
-    color: '#94a3b8',
+    color: COLORS.textSecondary,
     display: 'flex',
     alignItems: 'center'
   },
   resultsList: {
     marginTop: '8px',
-    border: '1px solid #e2e8f0',
-    borderRadius: '12px',
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: RADIUS.md,
     overflow: 'hidden',
-    background: '#fff',
+    background: COLORS.surface,
     maxHeight: '220px',
     overflowY: 'auto'
   },
   resultItem: {
     width: '100%',
     border: 'none',
-    background: 'white',
+    background: COLORS.surface,
     textAlign: 'left',
     padding: '10px 12px',
     display: 'grid',
@@ -666,8 +666,8 @@ const styles = {
   resultIcon: {
     width: '24px',
     height: '24px',
-    borderRadius: '8px',
-    background: '#f1f5f9',
+    borderRadius: RADIUS.sm,
+    background: COLORS.background,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -675,13 +675,13 @@ const styles = {
   },
   flagIcon: { width: '16px', height: '12px', borderRadius: '2px', objectFit: 'cover' },
   resultText: { fontWeight: 700, color: COLORS.charcoalBlue },
-  resultMeta: { fontSize: '0.75rem', color: '#94a3b8' },
+  resultMeta: { fontSize: '0.75rem', color: COLORS.textSecondary },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' },
-  photoCard: { borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', background: '#fff' },
-  thumb: { width: '100%', height: '130px', backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#f1f5f9' },
+  photoCard: { borderRadius: RADIUS.lg, border: `1px solid ${COLORS.border}`, overflow: 'hidden', background: COLORS.surface },
+  thumb: { width: '100%', height: '130px', backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: COLORS.background },
   photoMeta: { padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  tag: { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 700, color: '#64748b' },
-  removeBtn: { background: '#fff1f2', border: '1px solid #fee2e2', color: '#ef4444', padding: '6px 8px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center' },
+  tag: { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 700, color: COLORS.textSecondary },
+  removeBtn: { background: '#fff1f2', border: '1px solid #fee2e2', color: COLORS.danger, padding: '6px 8px', borderRadius: RADIUS.sm, cursor: 'pointer', display: 'flex', alignItems: 'center' },
   cityTitle: { fontWeight: 700, color: COLORS.charcoalBlue, marginBottom: '10px', textTransform: 'capitalize' }
 };
 

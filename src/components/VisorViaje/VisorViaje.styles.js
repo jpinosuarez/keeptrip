@@ -1,22 +1,21 @@
-import { COLORS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS } from '../../theme';
 
 export const styles = {
   expandedOverlay: { 
-    position: 'fixed', inset: 0, backgroundColor: '#fff', zIndex: 10000, overflowY: 'auto' 
+    position: 'fixed', inset: 0, backgroundColor: COLORS.surface, zIndex: 10000, overflowY: 'auto' 
   },
   expandedHeader: (foto) => ({ 
     height: foto ? '50vh' : '35vh', 
     width: '100%', 
     position: 'relative', 
     backgroundImage: foto ? `url(${foto})` : 'none', 
-    backgroundColor: foto ? 'transparent' : '#1e293b', 
+    backgroundColor: foto ? 'transparent' : COLORS.charcoalBlue, 
     backgroundSize: 'cover', 
     backgroundPosition: 'center',
     display: 'flex', 
     flexDirection: 'column', 
     justifyContent: 'flex-end'
   }),
-  // Gradiente más fuerte para legibilidad, y como fallback cuando no hay foto
   fotoOverlay: { 
     position: 'absolute', 
     inset: 0, 
@@ -27,21 +26,22 @@ export const styles = {
     display: 'flex', justifyContent: 'space-between', zIndex: 20
   },
   iconBtn: (disabled = false) => ({ 
-    background: 'rgba(255,255,255,0.2)', border:'none', borderRadius:'50%', width:'40px', height:'40px', 
-    display:'flex', alignItems:'center', justifyContent:'center', color: 'white', backdropFilter:'blur(10px)',
-    opacity: disabled ? 0.6 : 1, cursor: disabled ? 'not-allowed' : 'pointer'
+    ...GLASS.dark, border: 'none', borderRadius: RADIUS.full, width: '40px', height: '40px', 
+    display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white',
+    opacity: disabled ? 0.6 : 1, cursor: disabled ? 'not-allowed' : 'pointer',
+    transition: TRANSITIONS.fast
   }),
   primaryBtn: (isSave, disabled = false) => ({
     background: isSave ? COLORS.atomicTangerine : 'white', 
     color: isSave ? 'white' : COLORS.charcoalBlue,
-    border: 'none', borderRadius: '50px', padding: '10px 20px', 
+    border: 'none', borderRadius: RADIUS.full, padding: '10px 20px', 
     fontWeight: '700', cursor: disabled ? 'not-allowed' : 'pointer', display: 'flex', gap: '8px', alignItems: 'center',
-    opacity: disabled ? 0.7 : 1
+    opacity: disabled ? 0.7 : 1, transition: TRANSITIONS.fast
   }),
   secondaryBtn: (disabled = false) => ({
-    background: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', borderRadius: '50%', width:'40px', height:'40px',
-    display: 'flex', alignItems:'center', justifyContent:'center', cursor: disabled ? 'not-allowed' : 'pointer', backdropFilter:'blur(10px)',
-    opacity: disabled ? 0.6 : 1
+    ...GLASS.dark, color: 'white', border: 'none', borderRadius: RADIUS.full, width: '40px', height: '40px',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.6 : 1, transition: TRANSITIONS.fast
   }),
   headerContent: {
     position: 'relative', zIndex: 10, padding: '0 40px 40px', maxWidth: '1000px', margin: '0 auto', width: '100%'
@@ -68,21 +68,22 @@ export const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '8px',
-    borderRadius: '999px',
+    borderRadius: RADIUS.full,
     border: '1px solid rgba(255,255,255,0.4)',
-    background: 'rgba(0,0,0,0.35)',
+    ...GLASS.dark,
     color: 'white',
     fontSize: '0.8rem',
     fontWeight: '700',
     padding: '8px 14px',
     cursor: disabled ? 'not-allowed' : 'pointer',
     opacity: disabled ? 0.7 : 1,
-    backdropFilter: 'blur(4px)'
+    transition: TRANSITIONS.fast
   }),
   metaBadge: { 
     display: 'inline-flex', alignItems: 'center', gap: '6px', 
-    background: 'rgba(255,255,255,0.15)', padding: '6px 12px', borderRadius: '8px', 
-    color: 'white', fontSize: '0.9rem', fontWeight:'600', backdropFilter:'blur(5px)' 
+    background: 'rgba(255,255,255,0.15)', padding: '6px 12px', borderRadius: RADIUS.sm, 
+    color: 'white', fontSize: '0.9rem', fontWeight: '600',
+    backdropFilter: 'blur(5px)', WebkitBackdropFilter: 'blur(5px)'
   },
   
   bodyContent: {
@@ -105,11 +106,12 @@ export const styles = {
     border: `1px solid ${active ? COLORS.atomicTangerine : COLORS.border}`,
     background: active ? `${COLORS.atomicTangerine}15` : 'white',
     color: active ? COLORS.atomicTangerine : COLORS.textPrimary,
-    borderRadius: '999px',
+    borderRadius: RADIUS.full,
     padding: '6px 12px',
     fontSize: '0.75rem',
     fontWeight: '700',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    transition: TRANSITIONS.fast
   }),
   gallerySubtitle: {
     marginTop: '-6px',
@@ -119,8 +121,9 @@ export const styles = {
   },
   readText: { fontSize: '1.1rem', lineHeight: 1.7, color: COLORS.charcoalBlue, whiteSpace: 'pre-wrap' },
   textArea: { 
-    width: '100%', minHeight: '200px', padding: '20px', borderRadius: '16px', 
-    border: '2px solid #e2e8f0', fontSize: '1rem', outline: 'none',
+    width: '100%', minHeight: '200px', padding: '20px', borderRadius: RADIUS.lg, 
+    border: `2px solid ${COLORS.border}`, fontSize: '1rem', outline: 'none',
+    boxShadow: SHADOWS.inner,
     ':focus': { borderColor: COLORS.atomicTangerine } 
   },
   galleryManageBlock: {
@@ -131,10 +134,10 @@ export const styles = {
   },
   galleryManageCard: (isPortada) => ({
     border: `1px solid ${isPortada ? COLORS.atomicTangerine : COLORS.border}`,
-    borderRadius: '12px',
+    borderRadius: RADIUS.md,
     overflow: 'hidden',
-    background: 'white',
-    boxShadow: isPortada ? '0 6px 14px rgba(15, 23, 42, 0.12)' : '0 4px 10px rgba(15, 23, 42, 0.08)',
+    background: COLORS.surface,
+    boxShadow: isPortada ? SHADOWS.md : SHADOWS.sm,
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
@@ -144,12 +147,12 @@ export const styles = {
     width: '100%',
     height: '120px',
     objectFit: 'cover',
-    borderRadius: '10px'
+    borderRadius: RADIUS.sm
   },
   captionInput: {
     width: '100%',
     border: `1px solid ${COLORS.border}`,
-    borderRadius: '10px',
+    borderRadius: RADIUS.sm,
     padding: '6px 8px',
     fontSize: '0.85rem',
     color: COLORS.textPrimary,
@@ -165,63 +168,65 @@ export const styles = {
     border: `1px solid ${isPortada ? COLORS.atomicTangerine : COLORS.border}`,
     background: isPortada ? `${COLORS.atomicTangerine}15` : 'white',
     color: isPortada ? COLORS.atomicTangerine : COLORS.textPrimary,
-    borderRadius: '999px',
+    borderRadius: RADIUS.full,
     padding: '6px 10px',
     fontSize: '0.75rem',
     fontWeight: '700',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    transition: TRANSITIONS.fast
   }),
   galleryDangerBtn: {
     border: `1px solid ${COLORS.border}`,
-    background: 'white',
+    background: COLORS.surface,
     color: COLORS.danger,
-    borderRadius: '999px',
+    borderRadius: RADIUS.full,
     padding: '6px 10px',
     fontSize: '0.75rem',
     fontWeight: '700',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    transition: TRANSITIONS.fast
   },
   
-  timeline: { borderLeft: `2px solid #e2e8f0`, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '20px' },
+  timeline: { borderLeft: `2px solid ${COLORS.border}`, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '20px' },
   timelineItem: { position: 'relative' },
-  timelineDot: { position: 'absolute', left: '-25px', top: '6px', width: '8px', height: '8px', borderRadius: '50%', background: COLORS.atomicTangerine, border: '2px solid white' },
-  stopCard: { background: 'white', padding: '12px', borderRadius: '12px', border: '1px solid #f1f5f9' },
-  emptyState: { fontStyle: 'italic', color: '#94a3b8' },
+  timelineDot: { position: 'absolute', left: '-25px', top: '6px', width: '8px', height: '8px', borderRadius: RADIUS.full, background: COLORS.atomicTangerine, border: '2px solid white' },
+  stopCard: { background: COLORS.surface, padding: '12px', borderRadius: RADIUS.md, border: `1px solid ${COLORS.background}` },
+  emptyState: { fontStyle: 'italic', color: COLORS.textSecondary },
   weatherNote: {
     marginTop: '8px',
     fontSize: '0.9rem',
-    color: '#475569',
+    color: COLORS.textTertiary,
     fontStyle: 'italic',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    background: '#F1F5F9',
+    background: COLORS.background,
     padding: '8px 12px',
-    borderRadius: '8px'
+    borderRadius: RADIUS.sm
   },
   verifiedBadge: {
     fontSize: '0.65rem',
     textTransform: 'uppercase',
     fontWeight: '800',
     color: COLORS.mutedTeal,
-    background: 'white',
+    background: COLORS.surface,
     padding: '2px 6px',
-    borderRadius: '4px'
+    borderRadius: RADIUS.xs
   },
   creditLink: {
     position: 'absolute', bottom: 15, right: 20,
-    color: 'rgba(255,255,255,0.8)', // Blanco semitransparente, no azul
+    color: 'rgba(255,255,255,0.8)',
     fontSize: '0.75rem', textDecoration: 'none',
-    background: 'rgba(0,0,0,0.4)', padding: '4px 10px', borderRadius: '20px',
-    backdropFilter: 'blur(4px)', display: 'flex', gap: '6px', alignItems: 'center',
+    ...GLASS.dark, padding: '4px 10px', borderRadius: RADIUS.lg,
+    display: 'flex', gap: '6px', alignItems: 'center',
     zIndex: 20,
     border: '1px solid rgba(255,255,255,0.2)'
-}
+  }
 };
 

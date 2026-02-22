@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, Camera, Calendar, LoaderCircle, Star, Trash2 } from 'lucide-react';
 import { styles } from './EdicionModal.styles';
+import { COLORS, RADIUS } from '../../theme';
 import { db } from '../../firebase';
 import { createInvitation as createInvitationService } from '../../services/invitationsService';
 import { collection, getDocs } from 'firebase/firestore';
@@ -491,7 +492,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                   aria-label="Fecha de inicio"
                   title="Fecha de inicio del viaje"
                 />
-                <span style={{color:'#94a3b8'}}>hasta</span>
+                <span style={{color:COLORS.textSecondary}}>hasta</span>
                 <input
                   type="date"
                   value={formData.fechaFin || ''}
@@ -520,7 +521,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
 
               <div style={{display:'flex', gap:12, alignItems:'center', flexWrap:'wrap'}}>
                 <div style={{display:'flex', flexDirection:'column', gap:8}}>
-                  <label style={{fontSize:'0.75rem', color:'#94a3b8'}}>Presupuesto</label>
+                  <label style={{fontSize:'0.75rem', color:COLORS.textSecondary}}>Presupuesto</label>
                   <select
                     value={formData.presupuesto || ''}
                     onChange={e => setFormData({...formData, presupuesto: e.target.value || null})}
@@ -535,7 +536,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                 </div>
 
                 <div style={{flex:1}}>
-                  <label style={{fontSize:'0.75rem', color:'#94a3b8'}}>Vibe</label>
+                  <label style={{fontSize:'0.75rem', color:COLORS.textSecondary}}>Vibe</label>
                   <div style={{display:'flex', gap:8, flexWrap:'wrap', marginTop:6}}>
                     {['Gastronómico','Aventura','Relax','Roadtrip','Cultural'].map(v => {
                       const selected = (formData.vibe || []).includes(v);
@@ -544,7 +545,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                           key={v}
                           type="button"
                           onClick={() => setFormData(prev => ({...prev, vibe: prev.vibe.includes(v) ? prev.vibe.filter(x => x !== v) : [...prev.vibe, v]}))}
-                          style={{padding:'6px 10px', borderRadius:12, border:selected ? '1px solid #f59e0b' : '1px solid #e2e8f0', background: selected ? '#fffbf0' : '#fff', cursor:'pointer'}}
+                          style={{padding:'6px 10px', borderRadius:RADIUS.md, border:selected ? '1px solid #f59e0b' : `1px solid ${COLORS.border}`, background: selected ? '#fffbf0' : COLORS.surface, cursor:'pointer'}}
                         >
                           {v}
                         </button>
@@ -555,13 +556,13 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
               </div>
 
               <div style={{marginTop:12}}>
-                <label style={{fontSize:'0.75rem', color:'#94a3b8'}}>Compañeros</label>
+                <label style={{fontSize:'0.75rem', color:COLORS.textSecondary}}>Compañeros</label>
                 <div style={{display:'flex', gap:8, alignItems:'center', marginTop:8}}>
                   <input
                     placeholder='Nombre o email'
                     value={companionDraft || ''}
                     onChange={e=> handleCompanionSearch(e.target.value)}
-                    style={{flex:1, padding:8, borderRadius:8, border:'1px solid #e2e8f0'}}
+                    style={{flex:1, padding:8, borderRadius:RADIUS.sm, border:`1px solid ${COLORS.border}`}}
                   />
                   <button
                     type='button'
@@ -571,14 +572,14 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                 </div>
 
                 {companionResults.length > 0 && (
-                  <div style={{border:'1px solid #e2e8f0', borderRadius:8, marginTop:8, maxHeight:160, overflowY:'auto', background:'#fff'}}>
+                  <div style={{border:`1px solid ${COLORS.border}`, borderRadius:RADIUS.sm, marginTop:8, maxHeight:160, overflowY:'auto', background:COLORS.surface}}>
                     {companionResults.map(u => (
                       <div key={u.uid} style={{padding:8, display:'flex', justifyContent:'space-between', alignItems:'center', cursor:'pointer'}} onClick={() => handleAddCompanionFromResult(u)}>
                         <div>
                           <strong style={{display:'block'}}>{u.displayName || u.email}</strong>
-                          <div style={{fontSize:'0.75rem', color:'#94a3b8'}}>{u.email}</div>
+                          <div style={{fontSize:'0.75rem', color:COLORS.textSecondary}}>{u.email}</div>
                         </div>
-                        <button onClick={(e) => { e.stopPropagation(); handleAddCompanionFromResult(u); }} style={{padding:'6px 10px', borderRadius:8, border:'1px solid #e2e8f0', background:'#fff'}}>Agregar</button>
+                        <button onClick={(e) => { e.stopPropagation(); handleAddCompanionFromResult(u); }} style={{padding:'6px 10px', borderRadius:RADIUS.sm, border:`1px solid ${COLORS.border}`, background:COLORS.surface}}>Agregar</button>
                       </div>
                     ))}
                   </div>
@@ -587,16 +588,16 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                 {/* Si no hay resultados y el usuario escribió un email, ofrecer invitar */}
                 {companionResults.length === 0 && companionDraft && companionDraft.includes('@') && (
                   <div style={{marginTop:8}}>
-                    <button type="button" style={{padding:'8px 12px', borderRadius:8, border:'1px dashed #94a3b8', background:'#fff'}} onClick={() => handleAddCompanionFreeform(companionDraft)}>
+                    <button type="button" style={{padding:'8px 12px', borderRadius:RADIUS.sm, border:`1px dashed ${COLORS.textSecondary}`, background:COLORS.surface}} onClick={() => handleAddCompanionFreeform(companionDraft)}>
                       ✉️ Invitar por email: {companionDraft}
                     </button>
                   </div>
                 )}
                 <div style={{display:'flex', gap:8, marginTop:8, flexWrap:'wrap'}}>
                   {(formData.companions || []).map((c, idx) => (
-                    <div key={idx} style={{padding:'6px 10px', borderRadius:12, background:'#f8fafc', border:'1px solid #e2e8f0', display:'flex', gap:8, alignItems:'center'}}>
+                    <div key={idx} style={{padding:'6px 10px', borderRadius:RADIUS.md, background:COLORS.background, border:`1px solid ${COLORS.border}`, display:'flex', gap:8, alignItems:'center'}}>
                       <span style={{fontSize:'0.9rem'}}>{c.name}</span>
-                      <button type='button' onClick={() => setFormData(prev => ({...prev, companions: prev.companions.filter((_,i)=>i!==idx)}))} style={{background:'transparent', border:'none', color:'#ef4444'}}>x</button>
+                      <button type='button' onClick={() => setFormData(prev => ({...prev, companions: prev.companions.filter((_,i)=>i!==idx)}))} style={{background:'transparent', border:'none', color:COLORS.danger}}>x</button>
                     </div>
                   ))}
                 </div>
@@ -608,7 +609,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
               <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10}}>
                 <input placeholder='🍽️ El Plato' value={(formData.highlights?.topFood) || ''} onChange={e => setFormData(prev => ({...prev, highlights: {...(prev.highlights||{}), topFood: e.target.value}}))} style={styles.dateInput} />
                 <input placeholder='👀 La Vista' value={(formData.highlights?.topView) || ''} onChange={e => setFormData(prev => ({...prev, highlights: {...(prev.highlights||{}), topView: e.target.value}}))} style={styles.dateInput} />
-                <input placeholder='💡 El Tip' value={(formData.highlights?.topTip) || ''} onChange={e => setFormData(prev => ({...prev, highlights: {...(prev.highlights||{}), topTip: e.target.value}}))} style={{gridColumn:'1 / -1', padding:8, borderRadius:8, border:'1px solid #e2e8f0'}} />
+                <input placeholder='💡 El Tip' value={(formData.highlights?.topTip) || ''} onChange={e => setFormData(prev => ({...prev, highlights: {...(prev.highlights||{}), topTip: e.target.value}}))} style={{gridColumn:'1 / -1', padding:8, borderRadius:RADIUS.sm, border:`1px solid ${COLORS.border}`}} />
               </div>
             </div>
 

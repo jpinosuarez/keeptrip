@@ -1,4 +1,4 @@
-import { COLORS, SHADOWS, RADIUS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS, TRANSITIONS } from '../../theme';
 
 export const styles = {
   dashboardContainer: (isMobile) => ({
@@ -26,11 +26,11 @@ export const styles = {
   headerStatsRow: { display: 'flex', gap: '12px', flexWrap: 'wrap' },
   statPill: {
     display: 'flex', alignItems: 'center', gap: '10px',
-    backgroundColor: 'white', padding: '8px 14px', borderRadius: '16px',
+    backgroundColor: COLORS.surface, padding: '8px 14px', borderRadius: RADIUS.lg,
     boxShadow: SHADOWS.sm, border: `1px solid ${COLORS.border}`
   },
   pillIcon: (color) => ({
-    width: '28px', height: '28px', borderRadius: '8px',
+    width: '28px', height: '28px', borderRadius: RADIUS.sm,
     backgroundColor: color, display: 'flex', alignItems: 'center', justifyContent: 'center'
   }),
   pillValue: { fontSize: '1rem', fontWeight: '800', color: COLORS.charcoalBlue, lineHeight: 1 },
@@ -42,12 +42,12 @@ export const styles = {
     gap: isMobile ? '14px' : '24px',
     flex: 1,
     minHeight: 0,
-    transition: 'grid-template-columns 0.25s ease, gap 0.25s ease'
+    transition: TRANSITIONS.normal
   }),
 
   mapCard: (isMobile) => ({
-    backgroundColor: '#F8FAFC',
-    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.background,
+    borderRadius: RADIUS.xl,
     border: `1px solid ${COLORS.border}`,
     boxShadow: SHADOWS.md,
     overflow: 'hidden',
@@ -82,19 +82,19 @@ export const styles = {
   travelCard: {
     position: 'relative',
     height: '140px',
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.xl,
     overflow: 'hidden',
     cursor: 'pointer',
     boxShadow: SHADOWS.sm,
     border: `1px solid ${COLORS.border}`,
-    transition: 'transform 0.2s, box-shadow 0.2s',
+    transition: TRANSITIONS.normal,
     flexShrink: 0
   },
   cardBackground: {
     position: 'absolute', inset: 0,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-    transition: 'transform 0.5s'
+    transition: TRANSITIONS.slow
   },
   cardGradient: {
     position: 'absolute', inset: 0,
@@ -109,7 +109,7 @@ export const styles = {
     justifyContent: 'space-between'
   },
   cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
-  flagImg: { width: '28px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' },
+  flagImg: { width: '28px', borderRadius: RADIUS.xs, boxShadow: SHADOWS.sm },
   cardBottom: { color: 'white' },
   cardTitle: { margin: '0 0 6px 0', fontSize: '1.1rem', fontWeight: '800', textShadow: '0 2px 4px rgba(0,0,0,0.5)' },
   cardMeta: { display: 'flex', gap: '12px', fontSize: '0.8rem', opacity: 0.9, fontWeight: '500' },
@@ -118,11 +118,11 @@ export const styles = {
   welcomeCard: {
     width: '100%',
     minHeight: '260px',
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.xl,
     border: `1px solid ${COLORS.border}`,
     boxShadow: SHADOWS.md,
     padding: '24px',
-    background: `linear-gradient(145deg, ${COLORS.linen} 0%, #fff 60%)`,
+    background: `linear-gradient(145deg, ${COLORS.linen} 0%, ${COLORS.surface} 60%)`,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -134,7 +134,7 @@ export const styles = {
     width: '116px',
     height: '116px',
     borderRadius: RADIUS.full,
-    background: 'white',
+    background: COLORS.surface,
     border: `1px solid ${COLORS.border}`,
     display: 'flex',
     alignItems: 'center',
@@ -171,12 +171,13 @@ export const styles = {
   welcomeCta: {
     marginTop: '6px',
     border: 'none',
-    borderRadius: '12px',
+    borderRadius: RADIUS.md,
     padding: '10px 16px',
     background: COLORS.atomicTangerine,
     color: 'white',
     fontWeight: '800',
     cursor: 'pointer',
-    boxShadow: SHADOWS.sm
+    boxShadow: SHADOWS.sm,
+    transition: TRANSITIONS.fast
   }
 };

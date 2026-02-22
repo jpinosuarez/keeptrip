@@ -1,6 +1,6 @@
 import React from 'react';
 import { Globe, Compass, Clock, Map, Percent } from 'lucide-react';
-import { COLORS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS } from '../../theme';
 
 const StatsMapa = ({ bitacora = [], paisesVisitados = [] }) => {
   const totalPaisesMundo = 195;
@@ -51,14 +51,14 @@ const StatsMapa = ({ bitacora = [], paisesVisitados = [] }) => {
     }}>
       {statsGeo.map((stat, index) => (
         <div key={index} style={{ 
-          backgroundColor: 'white', 
+          backgroundColor: COLORS.surface, 
           padding: '20px', 
-          borderRadius: '20px', // Coincide con miniCard
+          borderRadius: RADIUS.xl,
           display: 'flex', 
           alignItems: 'center', 
           gap: '16px', 
           border: '1px solid rgba(44, 62, 80, 0.05)', 
-          boxShadow: '0 4px 15px rgba(0,0,0,0.02)'
+          boxShadow: SHADOWS.sm
         }}>
           <div style={{ 
             backgroundColor: `${stat.color}15`, 
@@ -72,7 +72,7 @@ const StatsMapa = ({ bitacora = [], paisesVisitados = [] }) => {
             {stat.icon}
           </div>
           <div>
-            <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: '800', color: COLORS.textSecondary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               {stat.label}
             </p>
             <p style={{ margin: '4px 0 0', fontSize: '1.2rem', fontWeight: '900', color: COLORS.charcoalBlue }}>

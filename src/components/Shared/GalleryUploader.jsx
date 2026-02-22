@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon, Star } from 'lucide-react';
-import { COLORS, RADIUS, SHADOWS } from '../../theme';
+import { COLORS, RADIUS, SHADOWS, TRANSITIONS } from '../../theme';
 import { useToast } from '../../context/ToastContext';
 
 /**
@@ -253,7 +253,7 @@ const styles = {
     textAlign: 'center',
     backgroundColor: isDragging ? `${COLORS.atomicTangerine}10` : COLORS.background,
     cursor: disabled ? 'not-allowed' : 'pointer',
-    transition: 'all 0.3s ease',
+    transition: TRANSITIONS.normal,
     opacity: disabled ? 0.5 : 1,
   }),
   dropText: {
@@ -280,7 +280,7 @@ const styles = {
     overflow: 'hidden',
     backgroundColor: COLORS.surface,
     boxShadow: isPortada ? SHADOWS.md : SHADOWS.sm,
-    transition: 'all 0.2s ease',
+    transition: TRANSITIONS.fast,
   }),
   previewImage: {
     position: 'relative',
@@ -310,15 +310,15 @@ const styles = {
     display: 'flex',
     gap: '4px',
     opacity: 1,
-    transition: 'opacity 0.2s ease',
+    transition: TRANSITIONS.fast,
   }),
   actionBtn: {
     width: '30px',
     height: '30px',
     border: 'none',
-    borderRadius: '50%',
+    borderRadius: RADIUS.full,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    color: 'white',
+    color: COLORS.surface,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

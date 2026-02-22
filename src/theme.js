@@ -1,17 +1,22 @@
 export const COLORS = {
   // Paleta Principal
-  linen: '#F4EDE4',          // Fondo cálido/papel
-  atomicTangerine: '#FF6B35', // Acento principal
-  charcoalBlue: '#2C3E50',    // Textos y fondos oscuros
-  mutedTeal: '#45B0A8',       // Acento secundario/éxito
-  
+  linen: '#F4EDE4',              // Fondo cálido/papel
+  atomicTangerine: '#FF6B35',    // Acento principal
+  charcoalBlue: '#2C3E50',       // Textos y fondos oscuros
+  mutedTeal: '#45B0A8',          // Acento secundario/éxito
+
   // Neutrales UI
-  background: '#F8FAFC',      // Fondo general app (Slate 50)
-  surface: '#FFFFFF',         // Tarjetas
-  textPrimary: '#1E293B',     // Slate 800
-  textSecondary: '#64748B',   // Slate 500
-  border: '#E2E8F0',          // Slate 200
-  
+  background: '#F8FAFC',         // Fondo general app (Slate 50)
+  surface: '#FFFFFF',            // Tarjetas
+  surfaceGlass: 'rgba(255, 255, 255, 0.7)',   // Fondo glass claro
+  surfaceGlassStrong: 'rgba(255, 255, 255, 0.85)', // Fondo glass fuerte
+  textPrimary: '#1E293B',        // Slate 800
+  textSecondary: '#64748B',      // Slate 500
+  textTertiary: '#475569',       // Slate 600
+  border: '#E2E8F0',             // Slate 200
+  borderLight: '#CBD5E1',        // Slate 300
+  overlay: 'rgba(15, 23, 42, 0.4)', // Overlay oscuro
+
   // Estados
   danger: '#EF4444',
   success: '#10B981',
@@ -19,21 +24,74 @@ export const COLORS = {
 };
 
 export const SHADOWS = {
-  sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-  md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-  lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-  float: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-  glow: `0 0 15px ${COLORS.atomicTangerine}40`
+  sm: '0 2px 8px rgba(0, 0, 0, 0.04)',
+  md: '0 4px 20px rgba(0, 0, 0, 0.06)',
+  lg: '0 8px 30px rgba(0, 0, 0, 0.08)',
+  float: '0 16px 40px rgba(0, 0, 0, 0.1)',
+  glow: `0 0 20px ${COLORS.atomicTangerine}30`,
+  inner: 'inset 0 2px 4px rgba(0, 0, 0, 0.04)'
 };
 
 export const RADIUS = {
-  sm: '8px',
-  md: '16px',
-  lg: '24px',
-  full: '9999px'
+  xs: '4px',        // Flags, micro-badges
+  sm: '8px',        // Inputs, chips pequeños
+  md: '12px',       // Tarjetas secundarias, items
+  lg: '16px',       // Tarjetas medianas, modales mobile
+  xl: '24px',       // Tarjetas Bento principales, modales desktop
+  '2xl': '32px',    // Hero sections, cards destacadas
+  full: '9999px'    // Pills, avatares
 };
 
 export const FONTS = {
   heading: '"Plus Jakarta Sans", sans-serif',
-  body: '"Inter", sans-serif'
+  body: '"Inter", sans-serif',
+  mono: '"JetBrains Mono", monospace'
+};
+
+export const GLASS = {
+  light: {
+    background: 'rgba(255, 255, 255, 0.6)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+  },
+  medium: {
+    background: 'rgba(255, 255, 255, 0.75)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+  },
+  dark: {
+    background: 'rgba(0, 0, 0, 0.3)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+  },
+  overlay: {
+    background: 'rgba(15, 23, 42, 0.4)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+  }
+};
+
+export const SPACING = {
+  xs: '4px',
+  sm: '8px',
+  md: '16px',
+  lg: '24px',
+  xl: '32px',
+  '2xl': '48px',
+  '3xl': '64px'
+};
+
+export const Z_INDEX = {
+  base: 0,
+  dropdown: 100,
+  sticky: 200,
+  modal: 300,
+  overlay: 400,
+  toast: 500
+};
+
+export const TRANSITIONS = {
+  fast: 'all 0.15s ease',
+  normal: 'all 0.25s ease',
+  slow: 'all 0.4s ease'
 };

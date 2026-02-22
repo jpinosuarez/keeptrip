@@ -1,9 +1,9 @@
-import { COLORS, SHADOWS, RADIUS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS } from '../../theme';
 
 export const styles = {
   overlay: (isMobile) => ({
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)',
+    ...GLASS.overlay, backgroundColor: undefined,
     zIndex: 2000, display: 'flex', alignItems: isMobile ? 'stretch' : 'center', justifyContent: 'center',
     padding: isMobile ? 0 : '20px'
   }),
@@ -11,8 +11,8 @@ export const styles = {
     width: isMobile ? '100%' : 'min(600px, 100%)',
     maxWidth: '100%',
     maxHeight: isMobile ? '100vh' : '90vh',
-    backgroundColor: 'white',
-    borderRadius: isMobile ? 0 : RADIUS.lg,
+    backgroundColor: COLORS.surface,
+    borderRadius: isMobile ? 0 : RADIUS.xl,
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
@@ -34,8 +34,8 @@ export const styles = {
     display: 'flex', alignItems: 'center', gap: '15px'
   },
   flagImg: {
-    width: '50px', height: 'auto', borderRadius: '4px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+    width: '50px', height: 'auto', borderRadius: RADIUS.xs,
+    boxShadow: SHADOWS.md,
     border: '2px solid rgba(255,255,255,0.3)'
   },
   titleInput: {
@@ -53,22 +53,22 @@ export const styles = {
     fontSize: '0.7rem', fontWeight: '800', letterSpacing: '0.5px',
     background: isAuto ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)',
     color: 'white',
-    padding: '4px 8px', borderRadius: '999px', textTransform: 'uppercase',
+    padding: '4px 8px', borderRadius: RADIUS.full, textTransform: 'uppercase',
     border: '1px solid rgba(255,255,255,0.2)',
-    cursor: 'pointer'
+    cursor: 'pointer', transition: TRANSITIONS.fast
   }),
   cameraBtn: (disabled = false) => ({
     position: 'absolute', top: '15px', right: '15px', zIndex: 10,
-    background: 'rgba(0,0,0,0.4)', color: 'white',
-    padding: '8px', borderRadius: '50%', cursor: disabled ? 'not-allowed' : 'pointer',
-    display: 'flex', alignItems: 'center', backdropFilter: 'blur(4px)',
-    opacity: disabled ? 0.6 : 1
+    ...GLASS.dark, color: 'white',
+    padding: '8px', borderRadius: RADIUS.full, cursor: disabled ? 'not-allowed' : 'pointer',
+    display: 'flex', alignItems: 'center',
+    opacity: disabled ? 0.6 : 1, transition: TRANSITIONS.fast
   }),
   processingBadge: {
     position: 'absolute', top: '18px', right: '64px', zIndex: 10,
-    background: 'rgba(0,0,0,0.55)', color: 'white', borderRadius: '999px',
+    ...GLASS.dark, color: 'white', borderRadius: RADIUS.full,
     padding: '6px 10px', fontSize: '0.75rem', fontWeight: '700',
-    display: 'flex', alignItems: 'center', gap: '6px', backdropFilter: 'blur(4px)'
+    display: 'flex', alignItems: 'center', gap: '6px'
   },
   body: { padding: '25px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 },
   section: { display: 'flex', flexDirection: 'column', gap: '8px' },
@@ -78,13 +78,13 @@ export const styles = {
   dateInput: {
     border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.sm,
     padding: '10px', fontSize: '0.9rem', color: COLORS.charcoalBlue,
-    outline: 'none', background: '#F8FAFC'
+    outline: 'none', background: COLORS.background, boxShadow: SHADOWS.inner
   },
   textarea: {
     width: '100%', minHeight: '100px', padding: '12px',
     border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.sm,
     resize: 'vertical', fontFamily: 'inherit', fontSize: '0.9rem',
-    outline: 'none'
+    outline: 'none', boxShadow: SHADOWS.inner
   },
   inlineError: {
     fontSize: '0.8rem', fontWeight: '600', color: '#b91c1c'
@@ -140,7 +140,7 @@ export const styles = {
   },
   galleryActionBtn: (isPortada) => ({
     border: `1px solid ${isPortada ? COLORS.atomicTangerine : COLORS.border}`,
-    background: isPortada ? `${COLORS.atomicTangerine}15` : 'white',
+    background: isPortada ? `${COLORS.atomicTangerine}15` : COLORS.surface,
     color: isPortada ? COLORS.atomicTangerine : COLORS.textPrimary,
     borderRadius: RADIUS.full,
     padding: '6px 10px',
@@ -149,11 +149,12 @@ export const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    transition: TRANSITIONS.fast
   }),
   galleryDangerBtn: {
     border: `1px solid ${COLORS.border}`,
-    background: 'white',
+    background: COLORS.surface,
     color: COLORS.danger,
     borderRadius: RADIUS.full,
     padding: '6px 10px',
@@ -162,7 +163,8 @@ export const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    transition: TRANSITIONS.fast
   },
   footer: {
     borderTop: `1px solid ${COLORS.border}`, padding: '20px',
@@ -171,12 +173,12 @@ export const styles = {
   cancelBtn: (disabled = false) => ({
     background: 'transparent', border: 'none', color: COLORS.textSecondary,
     fontWeight: '600', cursor: disabled ? 'not-allowed' : 'pointer', padding: '10px 20px',
-    opacity: disabled ? 0.6 : 1
+    opacity: disabled ? 0.6 : 1, transition: TRANSITIONS.fast
   }),
   saveBtn: (disabled = false) => ({
     background: COLORS.atomicTangerine, color: 'white', border: 'none',
-    padding: '10px 24px', borderRadius: '30px', fontWeight: '700',
+    padding: '10px 24px', borderRadius: RADIUS['2xl'], fontWeight: '700',
     cursor: disabled ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-    boxShadow: SHADOWS.sm, opacity: disabled ? 0.7 : 1
+    boxShadow: SHADOWS.sm, opacity: disabled ? 0.7 : 1, transition: TRANSITIONS.fast
   })
 };

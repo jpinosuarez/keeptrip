@@ -193,7 +193,7 @@ const BuscadorModal = ({
             )}
 
             {cargando && (
-              <div style={{ textAlign: "center", padding: "30px", color: "#94a3b8", fontStyle: "italic" }}>
+              <div style={{ textAlign: "center", padding: "30px", color: COLORS.textSecondary, fontStyle: "italic" }}>
                 Buscando en el mapa... 🌍
               </div>
             )}
@@ -207,7 +207,7 @@ const BuscadorModal = ({
                   onClick={() => manejarSeleccion(item)}
                   className="result-item-hover"
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#F8FAFC";
+                    e.currentTarget.style.backgroundColor = COLORS.background;
                     const label = e.currentTarget.querySelector(".add-label");
                     if (label) label.style.opacity = "1";
                   }}
