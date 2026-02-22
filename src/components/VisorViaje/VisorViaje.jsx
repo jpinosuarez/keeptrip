@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useUpload } from '../../context/UploadContext';
 import { styles } from './VisorViaje.styles';
-import { COLORS, RADIUS, SHADOWS, GLASS } from '../../theme';
+import { COLORS, RADIUS, SHADOWS, GLASS, FONTS } from '../../theme';
 import CityManager from '../Shared/CityManager';
 import MiniMapaRuta from '../Shared/MiniMapaRuta';
 import { compressImage } from '../../utils/imageUtils';
@@ -457,67 +457,55 @@ const VisorViaje = ({
         transition={{ type: 'spring', damping: 25 }}
         style={styles.expandedOverlay}
       >
-        <div style={styles.expandedHeader(fotoMostrada)}>
-          <div style={styles.fotoOverlay} />
+        {/* ========== HERO INMERSIVO ========== */}
+        <div style={styles.heroWrapper}>
+          <div style={styles.heroImage(fotoMostrada)}>
+            <div style={styles.heroGradient} />
 
-          <div style={styles.navBar}>
-            <button onClick={onClose} style={styles.iconBtn(isBusy)} disabled={isBusy}><ArrowLeft size={24} /></button>
+            {/* Floating NavBar */}
+            <div style={styles.navBar}>
+              <button onClick={onClose} style={styles.iconBtn(isBusy)} disabled={isBusy}>
+                <ArrowLeft size={22} />
+              </button>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
-              {!modoEdicion ? (
-                <>
-                  {!isSharedTrip && (
-                    <button onClick={eliminarEsteViaje} style={styles.secondaryBtn(isBusy)} disabled={isBusy}>
-                      {isDeleting ? <LoaderCircle size={16} className="spin" /> : <Trash2 size={16} color="#ff6b6b" />}
+              <div style={styles.navActions}>
+                {!modoEdicion ? (
+                  <>
+                    {!isSharedTrip && (
+                      <button onClick={eliminarEsteViaje} style={styles.secondaryBtn(isBusy)} disabled={isBusy}>
+                        {isDeleting ? <LoaderCircle size={16} className="spin" /> : <Trash2 size={16} color="#ff6b6b" />}
+                      </button>
+                    )}
+                    {!isSharedTrip && (
+                      <button onClick={iniciarEdicion} style={styles.primaryBtn(false, isBusy)} disabled={isBusy}>
+                        <Edit3 size={15} /> Editar
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => setModoEdicion(false)} style={styles.secondaryBtn(isBusy)} disabled={isBusy}>
+                      <X size={16} />
                     </button>
-                  )}
-                  {!isSharedTrip && (
-                    <button onClick={iniciarEdicion} style={styles.primaryBtn(false, isBusy)} disabled={isBusy}>
-                      <Edit3 size={16} /> Editar
+                    <button onClick={guardarCambios} style={styles.primaryBtn(true, isBusy)} disabled={isBusy}>
+                      {isBusy ? <LoaderCircle size={16} className="spin" /> : <Check size={16} />}
+                      {isProcessingImage ? 'Optimizando...' : (isSaving ? 'Guardando...' : 'Guardar')}
                     </button>
-                  )}
-                </>
-              ) : (
-                <>
-                  <button onClick={() => setModoEdicion(false)} style={styles.secondaryBtn(isBusy)} disabled={isBusy}><X size={16} /></button>
-                  <button onClick={guardarCambios} style={styles.primaryBtn(true, isBusy)} disabled={isBusy}>
-                    {isBusy ? <LoaderCircle size={16} className="spin" /> : <Check size={16} />}
-                    {isProcessingImage ? 'Optimizando...' : (isSaving ? 'Guardando...' : 'Guardar')}
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div style={styles.headerContent}>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-              {data.banderas && data.banderas.length > 0 ? (
-                data.banderas.map((b, i) => (
-                  <img
-                    key={i}
-                    src={b}
-                    alt="flag"
-                    style={{
-                      width: '40px',
-                      borderRadius: RADIUS.xs,
-                      boxShadow: SHADOWS.md
-                    }}
-                  />
-                ))
-              ) : (
-                <span style={styles.flagIcon}>viaje</span>
-              )}
+                  </>
+                )}
+              </div>
             </div>
 
+            {/* Hero Content — anclado abajo */}
             {modoEdicion ? (
-              <div style={styles.editHeaderStack}>
+              <div style={styles.editOverlay}>
                 <input
                   style={styles.titleInput}
                   value={formTemp.titulo || ''}
                   onChange={(e) => setFormTemp({ ...formTemp, titulo: e.target.value })}
-                  placeholder="Titulo del viaje"
+                  placeholder="Título del viaje"
                 />
-                <div style={styles.imageActionsRow}>
+                <div style={styles.editActionsRow}>
                   <label style={styles.imageReplaceBtn(isProcessingImage)}>
                     <Camera size={14} />
                     {isProcessingImage ? 'Optimizando...' : 'Reemplazar portada'}
@@ -532,68 +520,87 @@ const VisorViaje = ({
                 </div>
               </div>
             ) : (
-              <h1 style={styles.titleDisplay}>
-                {data.titulo || viajeBase?.nombreEspanol || ''}
-              </h1>
-            )}
-
-            <div style={styles.metaBadge}>
-              <Calendar size={14} /> {data.fechaInicio}{' '}
-              {data.fechaFin && data.fechaFin !== data.fechaInicio
-                ? ` - ${data.fechaFin}`
-                : ''}
-            </div>
-
-            {isSharedTrip && (
-              <div
-                data-testid="visor-shared-badge"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  ...GLASS.medium, padding: '6px 14px',
-                  borderRadius: RADIUS.sm, color: '#e0e7ff', fontSize: '0.85rem',
-                  fontWeight: 600, marginTop: 6
-                }}
-              >
-                🤝 Compartido por {ownerDisplayName || '…'}
-              </div>
-            )}
-
-            {/* Trip summary — solo en Modo Ruta (en Modo Destino se mueve a ContextCards) */}
-            {isRouteMode && (
-            <div data-testid="visor-storytelling" style={{ marginTop: 12 }}>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                {data.presupuesto && (
-                  <span data-testid="visor-presupuesto" style={{ padding: '6px 10px', borderRadius: RADIUS.lg, background: COLORS.background, border: `1px solid ${COLORS.border}`, fontSize: '0.85rem' }}>{data.presupuesto}</span>
-                )}
-                {(data.vibe || []).map((v, i) => (
-                  <span key={i} style={{ padding: '6px 10px', borderRadius: RADIUS.lg, background: '#fff7ed', border: '1px solid #fce6c6', fontSize: '0.8rem' }}>{v}</span>
-                ))}
-
-                <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', alignItems: 'center' }}>
-                  {(data.companions || []).slice(0,4).map((c, idx) => (
-                    <div key={idx} title={c.name} style={{ width: 28, height: 28, borderRadius: RADIUS.full, background: COLORS.background, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', border: `1px solid ${COLORS.border}` }}>{(c.name || 'U').split(' ').map(s=>s[0]).slice(0,2).join('')}</div>
-                  ))}
-                  {(data.companions || []).length > 4 && <span style={{ color: COLORS.textSecondary, fontSize: '0.85rem' }}>+{(data.companions || []).length - 4}</span>}
+              <div style={styles.heroContent}>
+                {/* Flags */}
+                <div style={styles.flagRow}>
+                  {data.banderas && data.banderas.length > 0 ? (
+                    data.banderas.map((b, i) => (
+                      <img key={i} src={b} alt="flag" style={styles.flagImg} />
+                    ))
+                  ) : (
+                    <span style={styles.flagIcon}>✈️</span>
+                  )}
                 </div>
-              </div>
 
-              <div style={{ display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap' }}>
-                {data.highlights?.topFood && <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}`, padding: '8px 12px', borderRadius: RADIUS.sm }}>🍽️ {data.highlights.topFood}</div>}
-                {data.highlights?.topView && <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}`, padding: '8px 12px', borderRadius: RADIUS.sm }}>👀 {data.highlights.topView}</div>}
-                {data.highlights?.topTip && <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}`, padding: '8px 12px', borderRadius: RADIUS.sm }}>💡 {data.highlights.topTip}</div>}
-              </div>
-            </div>
-            )}
+                {/* Título grande */}
+                <h1 style={styles.titleDisplay}>
+                  {data.titulo || viajeBase?.nombreEspanol || ''}
+                </h1>
 
-            {!modoEdicion && fotoMostrada && data.fotoCredito && (
-              <a
-                href={`${data.fotoCredito.link}?utm_source=keeptrip&utm_medium=referral`}
-                target="_blank"
-                rel="noreferrer"
-                style={styles.creditLink}
-              >
-                <Camera size={12} /> Foto por {data.fotoCredito.nombre} / Pexels
-              </a>
+                {/* Meta row: fecha + shared badge */}
+                <div style={styles.metaRow}>
+                  <span style={styles.metaBadge}>
+                    <Calendar size={13} /> {data.fechaInicio}{' '}
+                    {data.fechaFin && data.fechaFin !== data.fechaInicio
+                      ? ` – ${data.fechaFin}`
+                      : ''}
+                  </span>
+
+                  {isSharedTrip && (
+                    <span data-testid="visor-shared-badge" style={styles.sharedBadge}>
+                      🤝 Compartido por {ownerDisplayName || '…'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Storytelling — solo Modo Ruta */}
+                {isRouteMode && (
+                  <div data-testid="visor-storytelling">
+                    <div style={styles.storytellingRow}>
+                      {data.presupuesto && (
+                        <span data-testid="visor-presupuesto" style={styles.storytellingChip}>
+                          💰 {data.presupuesto}
+                        </span>
+                      )}
+                      {(data.vibe || []).map((v, i) => (
+                        <span key={i} style={styles.storytellingVibeChip}>{v}</span>
+                      ))}
+                      <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto', alignItems: 'center' }}>
+                        {(data.companions || []).slice(0, 4).map((c, idx) => (
+                          <div key={idx} title={c.name} style={styles.companionDot}>
+                            {(c.name || 'U').split(' ').map(s => s[0]).slice(0, 2).join('')}
+                          </div>
+                        ))}
+                        {(data.companions || []).length > 4 && (
+                          <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.78rem' }}>
+                            +{(data.companions || []).length - 4}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {(data.highlights?.topFood || data.highlights?.topView || data.highlights?.topTip) && (
+                      <div style={{ ...styles.storytellingRow, marginTop: '6px' }}>
+                        {data.highlights?.topFood && <span style={styles.highlightTag}>🍽️ {data.highlights.topFood}</span>}
+                        {data.highlights?.topView && <span style={styles.highlightTag}>👀 {data.highlights.topView}</span>}
+                        {data.highlights?.topTip && <span style={styles.highlightTag}>💡 {data.highlights.topTip}</span>}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Foto crédito */}
+                {fotoMostrada && data.fotoCredito && (
+                  <a
+                    href={`${data.fotoCredito.link}?utm_source=keeptrip&utm_medium=referral`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={styles.creditLink}
+                  >
+                    <Camera size={11} /> {data.fotoCredito.nombre} / Pexels
+                  </a>
+                )}
+              </div>
             )}
           </div>
         </div>

@@ -1,89 +1,314 @@
-import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS, SPACING } from '../../theme';
+import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS, SPACING, FONTS } from '../../theme';
 
 export const styles = {
+  // ==========================================================
+  //  OVERLAY BASE
+  // ==========================================================
   expandedOverlay: { 
-    position: 'fixed', inset: 0, backgroundColor: COLORS.surface, zIndex: 10000, overflowY: 'auto' 
+    position: 'fixed', inset: 0, backgroundColor: COLORS.background, zIndex: 10000, overflowY: 'auto' 
   },
-  expandedHeader: (foto) => ({ 
-    height: foto ? '50vh' : '35vh', 
-    width: '100%', 
-    position: 'relative', 
-    backgroundImage: foto ? `url(${foto})` : 'none', 
-    backgroundColor: foto ? 'transparent' : COLORS.charcoalBlue, 
-    backgroundSize: 'cover', 
+
+  // ==========================================================
+  //  HERO — Rediseño inmersivo Bento/Glassmorphism
+  // ==========================================================
+  heroWrapper: {
+    position: 'relative',
+    width: '100%',
+    overflow: 'hidden',
+  },
+  heroImage: (foto) => ({
+    width: '100%',
+    height: foto ? '60vh' : '40vh',
+    minHeight: '320px',
+    position: 'relative',
+    backgroundImage: foto ? `url(${foto})` : 'none',
+    backgroundColor: foto ? 'transparent' : COLORS.charcoalBlue,
+    backgroundSize: 'cover',
     backgroundPosition: 'center',
-    display: 'flex', 
-    flexDirection: 'column', 
-    justifyContent: 'flex-end'
-  }),
-  fotoOverlay: { 
-    position: 'absolute', 
-    inset: 0, 
-    background: 'linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.8))' 
-  },
-  navBar: {
-    position: 'absolute', top: 20, left: 20, right: 20,
-    display: 'flex', justifyContent: 'space-between', zIndex: 20
-  },
-  iconBtn: (disabled = false) => ({ 
-    ...GLASS.dark, border: 'none', borderRadius: RADIUS.full, width: '40px', height: '40px', 
-    display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white',
-    opacity: disabled ? 0.6 : 1, cursor: disabled ? 'not-allowed' : 'pointer',
-    transition: TRANSITIONS.fast
-  }),
-  primaryBtn: (isSave, disabled = false) => ({
-    background: isSave ? COLORS.atomicTangerine : 'white', 
-    color: isSave ? 'white' : COLORS.charcoalBlue,
-    border: 'none', borderRadius: RADIUS.full, padding: '10px 20px', 
-    fontWeight: '700', cursor: disabled ? 'not-allowed' : 'pointer', display: 'flex', gap: '8px', alignItems: 'center',
-    opacity: disabled ? 0.7 : 1, transition: TRANSITIONS.fast
-  }),
-  secondaryBtn: (disabled = false) => ({
-    ...GLASS.dark, color: 'white', border: 'none', borderRadius: RADIUS.full, width: '40px', height: '40px',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: disabled ? 'not-allowed' : 'pointer',
-    opacity: disabled ? 0.6 : 1, transition: TRANSITIONS.fast
-  }),
-  headerContent: {
-    position: 'relative', zIndex: 10, padding: '0 40px 40px', maxWidth: '1000px', margin: '0 auto', width: '100%'
-  },
-  flagIcon: { fontSize: '3rem', textShadow: '0 4px 10px rgba(0,0,0,0.3)' },
-  titleDisplay: { 
-    color: 'white', fontSize: '3.5rem', fontWeight: '900', margin: '10px 0', lineHeight: 1.1,
-    textShadow: '0 4px 20px rgba(0,0,0,0.5)' 
-  },
-  titleInput: { 
-    fontSize: '2.5rem', fontWeight: '900', background: 'rgba(255,255,255,0.1)', border: 'none', 
-    borderBottom: '2px solid white', color: 'white', width: '100%', outline: 'none' 
-  },
-  editHeaderStack: {
+    borderRadius: `0 0 ${RADIUS['2xl']} ${RADIUS['2xl']}`,
     display: 'flex',
     flexDirection: 'column',
-    gap: '12px'
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+  }),
+  heroGradient: {
+    position: 'absolute',
+    inset: 0,
+    borderRadius: `0 0 ${RADIUS['2xl']} ${RADIUS['2xl']}`,
+    background: `linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.08) 0%,
+      rgba(0, 0, 0, 0.02) 30%,
+      rgba(0, 0, 0, 0.25) 60%,
+      rgba(0, 0, 0, 0.7) 85%,
+      rgba(0, 0, 0, 0.85) 100%
+    )`,
+    pointerEvents: 'none',
   },
-  imageActionsRow: {
+
+  // ==========================================================
+  //  FLOATING NAV BAR — Glass pill top
+  // ==========================================================
+  navBar: {
+    position: 'absolute',
+    top: '16px',
+    left: '16px',
+    right: '16px',
     display: 'flex',
-    alignItems: 'center'
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    zIndex: 20,
+  },
+  iconBtn: (disabled = false) => ({ 
+    ...GLASS.dark,
+    border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: RADIUS.full,
+    width: '42px',
+    height: '42px', 
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    opacity: disabled ? 0.5 : 1,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    transition: TRANSITIONS.fast,
+    boxShadow: SHADOWS.md,
+  }),
+  navActions: {
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center',
+  },
+  primaryBtn: (isSave, disabled = false) => ({
+    ...GLASS.dark,
+    background: isSave
+      ? COLORS.atomicTangerine
+      : 'rgba(255, 255, 255, 0.9)',
+    color: isSave ? 'white' : COLORS.charcoalBlue,
+    border: isSave ? 'none' : '1px solid rgba(255,255,255,0.3)',
+    borderRadius: RADIUS.full,
+    padding: '10px 22px', 
+    fontFamily: FONTS.body,
+    fontWeight: '700',
+    fontSize: '0.85rem',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center',
+    opacity: disabled ? 0.6 : 1,
+    transition: TRANSITIONS.fast,
+    boxShadow: isSave ? SHADOWS.glow : SHADOWS.md,
+    backdropFilter: isSave ? 'none' : 'blur(10px)',
+    WebkitBackdropFilter: isSave ? 'none' : 'blur(10px)',
+  }),
+  secondaryBtn: (disabled = false) => ({
+    ...GLASS.dark,
+    color: 'white',
+    border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: RADIUS.full,
+    width: '42px',
+    height: '42px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.5 : 1,
+    transition: TRANSITIONS.fast,
+    boxShadow: SHADOWS.md,
+  }),
+
+  // ==========================================================
+  //  HERO CONTENT — anclado abajo del hero
+  // ==========================================================
+  heroContent: {
+    position: 'relative',
+    zIndex: 10,
+    padding: '0 32px 32px',
+    maxWidth: '1100px',
+    margin: '0 auto',
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  flagRow: {
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center',
+  },
+  flagImg: {
+    width: '36px',
+    height: 'auto',
+    borderRadius: RADIUS.xs,
+    boxShadow: SHADOWS.md,
+    border: '1px solid rgba(255,255,255,0.2)',
+  },
+  flagIcon: {
+    fontSize: '2.4rem',
+    textShadow: '0 4px 10px rgba(0,0,0,0.3)',
+  },
+  titleDisplay: { 
+    color: 'white',
+    fontFamily: FONTS.heading,
+    fontSize: 'clamp(2rem, 5vw, 3.8rem)',
+    fontWeight: '900',
+    margin: '4px 0',
+    lineHeight: 1.05,
+    letterSpacing: '-0.02em',
+    textShadow: '0 2px 30px rgba(0,0,0,0.4)',
+  },
+  metaRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    flexWrap: 'wrap',
+    marginTop: '2px',
+  },
+  metaBadge: { 
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px', 
+    ...GLASS.dark,
+    padding: '7px 14px',
+    borderRadius: RADIUS.full,
+    color: 'white',
+    fontSize: '0.82rem',
+    fontWeight: '600',
+    border: '1px solid rgba(255,255,255,0.1)',
+  },
+  sharedBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    ...GLASS.dark,
+    padding: '7px 14px',
+    borderRadius: RADIUS.full,
+    color: '#e0e7ff',
+    fontSize: '0.82rem',
+    fontWeight: '600',
+    border: '1px solid rgba(255,255,255,0.1)',
+  },
+
+  // ==========================================================
+  //  EDIT MODE — dentro del hero, integrado con glass
+  // ==========================================================
+  editOverlay: {
+    position: 'relative',
+    zIndex: 10,
+    padding: '0 32px 32px',
+    maxWidth: '1100px',
+    margin: '0 auto',
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '14px',
+  },
+  titleInput: {
+    fontFamily: FONTS.heading,
+    fontSize: 'clamp(1.6rem, 4vw, 2.8rem)',
+    fontWeight: '900',
+    letterSpacing: '-0.02em',
+    background: 'rgba(255,255,255,0.08)',
+    border: 'none',
+    borderBottom: '2px solid rgba(255,255,255,0.5)',
+    color: 'white',
+    width: '100%',
+    outline: 'none',
+    padding: '4px 0',
+    transition: TRANSITIONS.fast,
+  },
+  editActionsRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    flexWrap: 'wrap',
   },
   imageReplaceBtn: (disabled = false) => ({
     display: 'inline-flex',
     alignItems: 'center',
     gap: '8px',
     borderRadius: RADIUS.full,
-    border: '1px solid rgba(255,255,255,0.4)',
     ...GLASS.dark,
+    border: '1px solid rgba(255,255,255,0.2)',
     color: 'white',
     fontSize: '0.8rem',
     fontWeight: '700',
-    padding: '8px 14px',
+    padding: '9px 16px',
     cursor: disabled ? 'not-allowed' : 'pointer',
-    opacity: disabled ? 0.7 : 1,
-    transition: TRANSITIONS.fast
+    opacity: disabled ? 0.6 : 1,
+    transition: TRANSITIONS.fast,
+    boxShadow: SHADOWS.sm,
   }),
-  metaBadge: { 
-    display: 'inline-flex', alignItems: 'center', gap: '6px', 
-    background: 'rgba(255,255,255,0.15)', padding: '6px 12px', borderRadius: RADIUS.sm, 
-    color: 'white', fontSize: '0.9rem', fontWeight: '600',
-    backdropFilter: 'blur(5px)', WebkitBackdropFilter: 'blur(5px)'
+
+  // ==========================================================
+  //  STORYTELLING (Modo Ruta — dentro del hero)
+  // ==========================================================
+  storytellingRow: {
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: '4px',
+  },
+  storytellingChip: {
+    padding: '5px 10px',
+    borderRadius: RADIUS.full,
+    ...GLASS.dark,
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: '0.78rem',
+    fontWeight: '600',
+    border: '1px solid rgba(255,255,255,0.1)',
+  },
+  storytellingVibeChip: {
+    padding: '5px 10px',
+    borderRadius: RADIUS.full,
+    background: 'rgba(255, 107, 53, 0.2)',
+    color: '#ffd4b8',
+    fontSize: '0.78rem',
+    fontWeight: '600',
+    border: '1px solid rgba(255, 107, 53, 0.25)',
+  },
+  companionDot: {
+    width: '26px',
+    height: '26px',
+    borderRadius: RADIUS.full,
+    ...GLASS.dark,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '0.65rem',
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.9)',
+    border: '1px solid rgba(255,255,255,0.15)',
+  },
+  highlightTag: {
+    ...GLASS.dark,
+    padding: '6px 12px',
+    borderRadius: RADIUS.full,
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: '0.78rem',
+    fontWeight: '600',
+    border: '1px solid rgba(255,255,255,0.1)',
+  },
+
+  // ==========================================================
+  //  FOTO CREDITO
+  // ==========================================================
+  creditLink: {
+    position: 'absolute',
+    bottom: '16px',
+    right: '20px',
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: '0.72rem',
+    textDecoration: 'none',
+    ...GLASS.dark,
+    padding: '5px 12px',
+    borderRadius: RADIUS.full,
+    display: 'flex',
+    gap: '6px',
+    alignItems: 'center',
+    zIndex: 20,
+    border: '1px solid rgba(255,255,255,0.12)',
   },
   
   bodyContent: {
@@ -218,15 +443,6 @@ export const styles = {
     background: COLORS.surface,
     padding: '2px 6px',
     borderRadius: RADIUS.xs
-  },
-  creditLink: {
-    position: 'absolute', bottom: 15, right: 20,
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: '0.75rem', textDecoration: 'none',
-    ...GLASS.dark, padding: '4px 10px', borderRadius: RADIUS.lg,
-    display: 'flex', gap: '6px', alignItems: 'center',
-    zIndex: 20,
-    border: '1px solid rgba(255,255,255,0.2)'
   },
 
   // ==========================================================
