@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Edit3, Calendar, Check, X, Camera, Trash2, LoaderCircle, Star } from 'lucide-react';
+import { ArrowLeft, Edit3, Calendar, Check, X, Camera, Trash2, LoaderCircle, Star, MapPin } from 'lucide-react';
 import { db } from '../../firebase';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
@@ -15,6 +15,9 @@ import { compressImage } from '../../utils/imageUtils';
 import { useGaleriaViaje } from '../../hooks/useGaleriaViaje';
 import { GalleryGrid } from '../Shared/GalleryGrid';
 import { useWindowSize } from '../../hooks/useWindowSize';
+import { useActiveParada } from '../../hooks/useActiveParada';
+import RouteMap from './RouteMap';
+import ContextCard from './ContextCard';
 
 const VisorViaje = ({
   viajeId,
@@ -40,8 +43,22 @@ const VisorViaje = ({
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [captionDrafts, setCaptionDrafts] = useState({});
   const [showGalleryTools, setShowGalleryTools] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
 
-  // Detectar si el viaje es compartido (owner ≠ usuario actual)
+  // Refs para IntersectionObserver en stop cards
+  const paradaRefs = useRef([]);
+
+  // Limpiar refs cuando paradas mutan (ej. salir de edición)
+  useEffect(() => {
+    paradaRefs.current = paradaRefs.current.slice(0, paradas.length);
+  }, [paradas]);
+
+  // Derivados del layout
+  const isRouteMode = paradas.length > 1;
+  const { activeIndex: activeParadaIndex, setParadaRef } = useActiveParada(
+    paradaRefs,
+    isRouteMode && !isMobile && !modoEdicion
+  );
   const isSharedTrip = data.ownerId && usuario && data.ownerId !== usuario.uid;
   const [ownerDisplayName, setOwnerDisplayName] = useState(null);
 
@@ -190,6 +207,249 @@ const VisorViaje = ({
       : (viajeBase?.foto && typeof viajeBase.foto === 'string' && viajeBase.foto.trim() ? viajeBase.foto : null));
   const isBusy = isSaving || isDeleting || isProcessingImage;
 
+  // ========== Render helpers (reutilizados en ambos modos) ==========
+
+  const renderBitacora = () => (
+    <>
+      <h3 style={styles.sectionTitle}>Bitácora</h3>
+      {modoEdicion ? (
+        <textarea
+          style={styles.textArea}
+          value={formTemp.texto || ''}
+          onChange={(e) => setFormTemp({ ...formTemp, texto: e.target.value })}
+          placeholder="Escribe aqui tu relato..."
+        />
+      ) : (
+        <p style={styles.readText}>{data.texto || 'Sin relato aun...'}</p>
+      )}
+    </>
+  );
+
+  const renderGallery = () => (
+    <div style={{ marginTop: '32px' }}>
+      <div style={styles.galleryHeaderRow}>
+        <h3 style={styles.sectionTitle}>Galería de fotos</h3>
+        {!isSharedTrip && (
+          <button
+            type="button"
+            style={styles.galleryToggleBtn(showGalleryTools)}
+            onClick={() => setShowGalleryTools((prev) => !prev)}
+          >
+            {showGalleryTools ? 'Ocultar edicion' : 'Editar galeria'}
+          </button>
+        )}
+      </div>
+      <p style={styles.gallerySubtitle}>Tus recuerdos, listos para contar la historia.</p>
+      <GalleryGrid
+        fotos={galeria.fotos}
+        fotosSubiendo={fotosSubiendo}
+        onReintentarFoto={(fotoTempId) => reintentarFoto(viajeId, fotoTempId)}
+        isMobile={isMobile}
+      />
+      {showGalleryTools && galeria.fotos.length > 0 && (
+        <div style={styles.galleryManageBlock}>
+          {galeria.fotos.map((f) => (
+            <div key={f.id} style={styles.galleryManageCard(f.esPortada)}>
+              <img src={f.url} alt={f.caption || 'foto'} style={styles.galleryManageImg} />
+              <input
+                type="text"
+                value={captionDrafts[f.id] ?? (f.caption || '')}
+                onChange={(e) => handleCaptionChange(f.id, e.target.value)}
+                onBlur={() => handleCaptionSave(f)}
+                onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+                placeholder="Agregar caption..."
+                style={styles.captionInput}
+              />
+              <div style={styles.galleryActionsRow}>
+                <button
+                  type="button"
+                  style={styles.galleryActionBtn(f.esPortada)}
+                  onClick={() => handleSetPortadaExistente(f.id)}
+                  disabled={isBusy}
+                  title="Marcar como portada"
+                  aria-label="Marcar como portada"
+                >
+                  <Star size={14} />
+                  {f.esPortada ? 'Portada' : 'Hacer portada'}
+                </button>
+                <button
+                  type="button"
+                  style={styles.galleryDangerBtn}
+                  onClick={() => handleEliminarFoto(f.id)}
+                  disabled={isBusy}
+                  title="Eliminar foto"
+                  aria-label="Eliminar foto"
+                >
+                  <Trash2 size={14} />
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderEnrichedStopCard = (p, i) => (
+    <div
+      key={p.id || i}
+      ref={(node) => setParadaRef(i, node)}
+      style={{
+        ...styles.enrichedStopCard,
+        ...(activeParadaIndex === i && !isMobile ? styles.enrichedStopCardActive : {}),
+      }}
+    >
+      <div style={styles.stopCardHeader}>
+        <span style={styles.stopCardName}>{p.nombre}</span>
+        <span style={styles.stopCardDate}>
+          {p.fechaLlegada && p.fechaSalida && p.fechaLlegada !== p.fechaSalida
+            ? `${p.fechaLlegada} → ${p.fechaSalida}`
+            : p.fechaLlegada || p.fecha}
+        </span>
+      </div>
+      {p.transporte && (
+        <span style={styles.transportBadge}>{p.transporte}</span>
+      )}
+      {p.notaCorta && (
+        <p style={styles.notaCorta}>{p.notaCorta}</p>
+      )}
+      {p.clima && (
+        <div style={styles.weatherNote}>
+          {getClimaTexto(p.clima.desc, p.clima.max)}
+          <span style={styles.verifiedBadge}>Historico</span>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderItinerario = () => (
+    <>
+      <h3 style={styles.sectionTitle}>Itinerario</h3>
+      {modoEdicion ? (
+        <CityManager paradas={paradas} setParadas={setParadas} />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {paradas.map((p, i) => renderEnrichedStopCard(p, i))}
+        </div>
+      )}
+    </>
+  );
+
+  // ========== Body Layout Render ==========
+
+  const renderRouteBody = () => {
+    if (isMobile) {
+      return (
+        <>
+          <div style={styles.mobileColumn}>
+            {renderItinerario()}
+            <div style={{ marginTop: '32px' }}>{renderBitacora()}</div>
+            {renderGallery()}
+          </div>
+
+          {/* FAB para abrir mapa */}
+          <button
+            type="button"
+            style={styles.fab}
+            onClick={() => setShowMapModal(true)}
+            aria-label="Ver mapa de ruta"
+          >
+            <MapPin size={24} />
+          </button>
+
+          {/* Modal fullscreen mapa — montaje condicional estricto para evitar bug de canvas 0px */}
+          {showMapModal && (
+            <div style={styles.mapModal}>
+              <button
+                type="button"
+                style={styles.mapModalClose}
+                onClick={() => setShowMapModal(false)}
+                aria-label="Cerrar mapa"
+              >
+                <X size={20} />
+              </button>
+              <RouteMap paradas={paradas} activeIndex={activeParadaIndex} isModal />
+            </div>
+          )}
+        </>
+      );
+    }
+
+    // Desktop: split layout
+    return (
+      <div style={styles.routeLayout}>
+        <div style={styles.scrollColumn}>
+          {renderItinerario()}
+          <div style={{ marginTop: '32px' }}>{renderBitacora()}</div>
+          {renderGallery()}
+        </div>
+        <div style={styles.mapColumn}>
+          <RouteMap paradas={paradas} activeIndex={activeParadaIndex} />
+        </div>
+      </div>
+    );
+  };
+
+  const renderDestinoBody = () => {
+    const hasHighlights = data.highlights?.topFood || data.highlights?.topView || data.highlights?.topTip;
+    const hasCompanions = (data.companions || []).length > 0;
+    const hasVibe = (data.vibe || []).length > 0;
+    const hasContextCards = hasHighlights || hasCompanions || hasVibe || data.presupuesto || paradas.length === 1;
+
+    return (
+      <div style={styles.destinoBody}>
+        {/* Context Grid Bento — storytelling movido del header aquí */}
+        {hasContextCards && (
+          <div style={styles.contextGrid}>
+            {data.highlights?.topFood && (
+              <ContextCard icon="🍽️" label="Top Food" value={data.highlights.topFood} />
+            )}
+            {data.highlights?.topView && (
+              <ContextCard icon="👀" label="Top View" value={data.highlights.topView} />
+            )}
+            {data.highlights?.topTip && (
+              <ContextCard icon="💡" label="Top Tip" value={data.highlights.topTip} />
+            )}
+            {data.presupuesto && (
+              <ContextCard icon="💰" label="Presupuesto" value={data.presupuesto} />
+            )}
+            {hasVibe && (
+              <ContextCard icon="✨" label="Vibe" value={(data.vibe || []).join(', ')} />
+            )}
+            {hasCompanions && (
+              <ContextCard icon="👥" label="Compañeros">
+                <div style={styles.companionsGrid}>
+                  {(data.companions || []).map((c, idx) => (
+                    <div key={idx} title={c.name} style={styles.companionAvatar}>
+                      {(c.name || 'U').split(' ').map(s => s[0]).slice(0, 2).join('')}
+                    </div>
+                  ))}
+                </div>
+              </ContextCard>
+            )}
+            {paradas.length === 1 && (
+              <ContextCard icon="📍" label="Ubicación" style={{ gridColumn: 'span 2' }}>
+                <MiniMapaRuta paradas={paradas} />
+              </ContextCard>
+            )}
+          </div>
+        )}
+
+        {renderBitacora()}
+        {renderGallery()}
+
+        {/* CityManager en modo edición (Destino no muestra itinerario en lectura) */}
+        {modoEdicion && (
+          <div style={{ marginTop: '32px' }}>
+            <h3 style={styles.sectionTitle}>Itinerario</h3>
+            <CityManager paradas={paradas} setParadas={setParadas} />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return createPortal(
     <AnimatePresence>
       <motion.div
@@ -298,7 +558,8 @@ const VisorViaje = ({
               </div>
             )}
 
-            {/* Trip summary (presupuesto, vibe, companions, highlights) */}
+            {/* Trip summary — solo en Modo Ruta (en Modo Destino se mueve a ContextCards) */}
+            {isRouteMode && (
             <div data-testid="visor-storytelling" style={{ marginTop: 12 }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 {data.presupuesto && (
@@ -322,6 +583,7 @@ const VisorViaje = ({
                 {data.highlights?.topTip && <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}`, padding: '8px 12px', borderRadius: RADIUS.sm }}>💡 {data.highlights.topTip}</div>}
               </div>
             </div>
+            )}
 
             {!modoEdicion && fotoMostrada && data.fotoCredito && (
               <a
@@ -336,117 +598,8 @@ const VisorViaje = ({
           </div>
         </div>
 
-        <div style={styles.bodyContent}>
-          <div style={styles.mainColumn}>
-            <h3 style={styles.sectionTitle}>Bitacora</h3>
-            {modoEdicion ? (
-              <textarea
-                style={styles.textArea}
-                value={formTemp.texto || ''}
-                onChange={(e) => setFormTemp({ ...formTemp, texto: e.target.value })}
-                placeholder="Escribe aqui tu relato..."
-              />
-            ) : (
-              <p style={styles.readText}>{data.texto || 'Sin relato aun...'}</p>
-            )}
-
-            {/* Galería de fotos */}
-            <div style={{ marginTop: '32px' }}>
-              <div style={styles.galleryHeaderRow}>
-                <h3 style={styles.sectionTitle}>Galería de fotos</h3>
-                <button
-                  type="button"
-                  style={styles.galleryToggleBtn(showGalleryTools)}
-                  onClick={() => setShowGalleryTools((prev) => !prev)}
-                >
-                  {showGalleryTools ? 'Ocultar edicion' : 'Editar galeria'}
-                </button>
-              </div>
-              <p style={styles.gallerySubtitle}>Tus recuerdos, listos para contar la historia.</p>
-              <GalleryGrid 
-                fotos={galeria.fotos} 
-                fotosSubiendo={fotosSubiendo}
-                onReintentarFoto={(fotoTempId) => reintentarFoto(viajeId, fotoTempId)}
-                isMobile={isMobile} 
-              />
-              {showGalleryTools && galeria.fotos.length > 0 && (
-                <div style={styles.galleryManageBlock}>
-                  {galeria.fotos.map((f) => (
-                    <div key={f.id} style={styles.galleryManageCard(f.esPortada)}>
-                      <img src={f.url} alt={f.caption || 'foto'} style={styles.galleryManageImg} />
-                      <input
-                        type="text"
-                        value={captionDrafts[f.id] ?? (f.caption || '')}
-                        onChange={(e) => handleCaptionChange(f.id, e.target.value)}
-                        onBlur={() => handleCaptionSave(f)}
-                        onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-                        placeholder="Agregar caption..."
-                        style={styles.captionInput}
-                      />
-                      <div style={styles.galleryActionsRow}>
-                        <button
-                          type="button"
-                          style={styles.galleryActionBtn(f.esPortada)}
-                          onClick={() => handleSetPortadaExistente(f.id)}
-                          disabled={isBusy}
-                          title="Marcar como portada"
-                          aria-label="Marcar como portada"
-                        >
-                          <Star size={14} />
-                          {f.esPortada ? 'Portada' : 'Hacer portada'}
-                        </button>
-                        <button
-                          type="button"
-                          style={styles.galleryDangerBtn}
-                          onClick={() => handleEliminarFoto(f.id)}
-                          disabled={isBusy}
-                          title="Eliminar foto"
-                          aria-label="Eliminar foto"
-                        >
-                          <Trash2 size={14} />
-                          Eliminar
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div style={{ marginTop: '40px' }}>
-              <h3 style={styles.sectionTitle}>Ruta</h3>
-              <MiniMapaRuta paradas={paradas} />
-            </div>
-          </div>
-
-          <div style={styles.sideColumn}>
-            <h3 style={styles.sectionTitle}>Itinerario</h3>
-            {modoEdicion ? (
-              <CityManager paradas={paradas} setParadas={setParadas} />
-            ) : (
-              <div style={styles.timeline}>
-                {paradas.map((p, i) => (
-                  <div key={i} style={styles.timelineItem}>
-                    <div style={styles.timelineDot} />
-                    <div style={styles.stopCard}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                        <strong style={{ fontSize: '1rem', color: COLORS.charcoalBlue }}>{p.nombre}</strong>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{p.fecha}</span>
-                      </div>
-                      {p.clima && (
-                        <div style={styles.weatherNote}>
-                          {getClimaTexto(p.clima.desc, p.clima.max)}
-                          <span style={styles.verifiedBadge}>Historico</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {paradas.length === 0 && <p style={styles.emptyState}>No hay paradas registradas.</p>}
-              </div>
-            )}
-          </div>
-        </div>
+        {/* ========== Body: layout condicional ========== */}
+        {isRouteMode ? renderRouteBody() : renderDestinoBody()}
       </motion.div>
     </AnimatePresence>,
     document.body

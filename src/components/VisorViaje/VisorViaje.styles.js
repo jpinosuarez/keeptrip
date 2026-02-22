@@ -1,4 +1,4 @@
-import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS, SPACING } from '../../theme';
 
 export const styles = {
   expandedOverlay: { 
@@ -227,6 +227,190 @@ export const styles = {
     display: 'flex', gap: '6px', alignItems: 'center',
     zIndex: 20,
     border: '1px solid rgba(255,255,255,0.2)'
-  }
+  },
+
+  // ==========================================================
+  //  FIX: sideColumn estaba referenciado en JSX pero no definido
+  // ==========================================================
+  sideColumn: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+
+  // ==========================================================
+  //  MODO RUTA — Desktop: split layout (scroll + sticky map)
+  // ==========================================================
+  routeLayout: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '0',
+    maxWidth: '100%',
+    margin: '0',
+    minHeight: 'calc(100vh - 50vh)', // al menos lo que queda post-hero
+  },
+  scrollColumn: {
+    overflowY: 'auto',
+    maxHeight: 'calc(100vh - 60px)',
+    padding: '40px 40px 40px 40px',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  mapColumn: {
+    position: 'sticky',
+    top: 0,
+    height: '100vh',
+    padding: SPACING.md,
+  },
+
+  // ==========================================================
+  //  MODO RUTA — Mobile: single column + FAB
+  // ==========================================================
+  mobileColumn: {
+    maxWidth: '100%',
+    padding: '24px 20px 100px 20px', // bottom padding para el FAB
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  fab: {
+    position: 'fixed',
+    bottom: '24px',
+    right: '24px',
+    width: '56px',
+    height: '56px',
+    borderRadius: RADIUS.full,
+    background: COLORS.atomicTangerine,
+    color: 'white',
+    border: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: SHADOWS.float,
+    cursor: 'pointer',
+    zIndex: 30,
+    transition: TRANSITIONS.fast,
+  },
+  mapModal: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 10001, // por encima del overlay del visor
+    background: COLORS.charcoalBlue,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  mapModalClose: {
+    position: 'absolute',
+    top: '16px',
+    left: '16px',
+    zIndex: 10,
+    ...GLASS.dark,
+    border: '1px solid rgba(255,255,255,0.2)',
+    borderRadius: RADIUS.full,
+    width: '40px',
+    height: '40px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    cursor: 'pointer',
+    transition: TRANSITIONS.fast,
+  },
+
+  // ==========================================================
+  //  MODO DESTINO — Single column centered
+  // ==========================================================
+  destinoBody: {
+    maxWidth: '800px',
+    margin: '0 auto',
+    padding: '40px',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  contextGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+    gap: SPACING.md,
+    marginBottom: '32px',
+  },
+
+  // ==========================================================
+  //  STOP CARD ENRIQUECIDA (Modo Ruta lectura)
+  // ==========================================================
+  enrichedStopCard: {
+    background: COLORS.surface,
+    padding: '16px',
+    borderRadius: RADIUS.md,
+    border: `1px solid ${COLORS.border}`,
+    boxShadow: SHADOWS.sm,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    transition: TRANSITIONS.fast,
+  },
+  enrichedStopCardActive: {
+    borderColor: COLORS.atomicTangerine,
+    boxShadow: SHADOWS.glow,
+  },
+  stopCardHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    gap: '8px',
+  },
+  stopCardName: {
+    fontSize: '1rem',
+    fontWeight: '700',
+    color: COLORS.charcoalBlue,
+  },
+  stopCardDate: {
+    fontSize: '0.75rem',
+    color: COLORS.textSecondary,
+    whiteSpace: 'nowrap',
+  },
+  transportBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '0.8rem',
+    background: COLORS.background,
+    padding: '2px 8px',
+    borderRadius: RADIUS.full,
+    border: `1px solid ${COLORS.border}`,
+    color: COLORS.textSecondary,
+  },
+  notaCorta: {
+    fontSize: '0.88rem',
+    color: COLORS.textTertiary,
+    lineHeight: 1.4,
+    fontStyle: 'italic',
+  },
+  dateRange: {
+    fontSize: '0.78rem',
+    color: COLORS.textSecondary,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  },
+
+  // ==========================================================
+  //  COMPANIONS GRID (para ContextCard)
+  // ==========================================================
+  companionsGrid: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '6px',
+  },
+  companionAvatar: {
+    width: '30px',
+    height: '30px',
+    borderRadius: RADIUS.full,
+    background: COLORS.background,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '0.7rem',
+    fontWeight: '700',
+    border: `1px solid ${COLORS.border}`,
+    color: COLORS.textPrimary,
+  },
 };
 
