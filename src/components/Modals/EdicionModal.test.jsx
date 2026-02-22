@@ -1,22 +1,48 @@
 // @vitest-environment jsdom
 import { describe, test, expect, vi } from 'vitest';
 
-// Mocks para hooks usados dentro del componente
-vi.mock('../../context/AuthContext', () => ({ useAuth: () => ({ usuario: { uid: 'u1' } }) }));
-vi.mock('../../context/ToastContext', () => ({ useToast: () => ({ pushToast: vi.fn() }) }));
-vi.mock('../../hooks/useWindowSize', () => ({ useWindowSize: () => ({ isMobile: false }) }));
-vi.mock('../../hooks/useGaleriaViaje', () => ({ useGaleriaViaje: () => ({ fotos: [], uploading: false, limpiar: vi.fn(), cambiarPortada: vi.fn(), eliminar: vi.fn(), actualizarCaption: vi.fn() }) }));
-// Mock del módulo firebase para evitar referencias a `window` durante tests
+// lucide-react y framer-motion se mockean globalmente via resolve.alias en vite.config.js
+
+// ── IMPORTANTE: los hooks mockeados deben retornar REFERENCIAS ESTABLES ─────
+// Si devuelven un objeto nuevo en cada llamada, los useEffect que dependen de
+// ellos entran en bucle infinito (re-render → nuevo objeto → efecto → setState
+// → re-render → ...) y el proceso OOM-ea.
+
+const mockUsuario = { uid: 'u1' };
+const mockAuthReturn = { usuario: mockUsuario };
+vi.mock('../../context/AuthContext', () => ({ useAuth: () => mockAuthReturn }));
+
+const mockPushToast = vi.fn();
+const mockToastReturn = { pushToast: mockPushToast };
+vi.mock('../../context/ToastContext', () => ({ useToast: () => mockToastReturn }));
+
+const mockWindowSize = { isMobile: false };
+vi.mock('../../hooks/useWindowSize', () => ({ useWindowSize: () => mockWindowSize }));
+
+const mockGaleria = { fotos: [], uploading: false, limpiar: vi.fn(), cambiarPortada: vi.fn(), eliminar: vi.fn(), actualizarCaption: vi.fn() };
+vi.mock('../../hooks/useGaleriaViaje', () => ({ useGaleriaViaje: () => mockGaleria }));
+
 vi.mock('../../firebase', () => ({ db: {}, storage: {} }));
-// Mock simple para UploadContext (evita necesidad de provider en tests)
-vi.mock('../../context/UploadContext', () => ({ useUpload: () => ({ iniciarSubida: vi.fn(), getEstadoViaje: () => ({}) }) }));
-// Mock simple para UploadContext (evita necesidad de provider en tests)
-vi.mock('../../context/UploadContext', () => ({ useUpload: () => ({ iniciarSubida: vi.fn(), getEstadoViaje: () => ({}) }) }));
+
+const mockUpload = { iniciarSubida: vi.fn(), getEstadoViaje: () => ({}) };
+vi.mock('../../context/UploadContext', () => ({ useUpload: () => mockUpload }));
+
+vi.mock('../../services/invitationsService', () => ({ createInvitation: vi.fn() }));
+
+vi.mock('firebase/firestore', () => ({
+  collection: vi.fn(),
+  getDocs: vi.fn(async () => ({ docs: [] })),
+  query: vi.fn(),
+  where: vi.fn(),
+}));
 
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { afterEach } from 'vitest';
 import EdicionModal from './EdicionModal';
+
+afterEach(() => cleanup());
 
 describe('EdicionModal (borrador)', () => {
   const defaultProps = {
@@ -60,7 +86,12 @@ describe('EdicionModal (borrador)', () => {
 
     await userEvent.type(input, 'Mi título manual');
 
-    // Badge debe indicar Manual
-    expect(screen.getByRole('button', { name: /Usando título manual/i })).toHaveTextContent('Manual');
+    // Badge debe indicar Manual (el nombre accesible viene del texto, no del title)
+    const btn = screen.getByRole('button', { name: /Manual/i });
+    expect(btn).toHaveTextContent('Manual');
+    expect(btn).toHaveAttribute('title', expect.stringMatching(/Usando título manual/i));
   });
 });
+
+// Tests de companion autocomplete e invitaciones se cubren vía E2E (e2e/invitations.spec.ts)
+// ya que requieren integración profunda con firebase/firestore que no es viable mockear unitariamente.

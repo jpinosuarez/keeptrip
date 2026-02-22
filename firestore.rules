@@ -19,7 +19,21 @@ service cloud.firestore {
     // 1.a Viajes compartidos: permitir lectura a usuarios listados en sharedWith (owner o invitados aceptados)
     match /usuarios/{userId}/viajes/{viajeId} {
       allow read: if isOwner(userId) || (isAuthenticated() && request.auth.uid in resource.data.sharedWith);
-      allow write: if isOwner(userId);
+      allow create, delete: if isOwner(userId);
+      // permitir que el invitee agregue SOLO su UID a sharedWith (no otros cambios)
+      allow update: if isOwner(userId)
+        || (
+          isAuthenticated()
+          && request.resource.data.diff(resource.data).changedKeys().hasOnly(['sharedWith'])
+          // resource.data.sharedWith may be missing on old documents — treat as empty array
+          && (resource.data.sharedWith == null || request.resource.data.sharedWith.hasAll(resource.data.sharedWith))
+          && request.resource.data.sharedWith.size() == (resource.data.sharedWith == null ? 0 : resource.data.sharedWith.size()) + 1
+          && request.resource.data.sharedWith.hasAny([request.auth.uid])
+          // solo permitir si existe una invitacion creada por el owner para este viaje + invitee
+          // existe una invitacion bajo el viaje creada por el owner para este invitee?
+          && exists(/databases/$(database)/documents/usuarios/$(userId)/viajes/$(viajeId)/invitations/$(request.auth.uid))
+          && get(/databases/$(database)/documents/usuarios/$(userId)/viajes/$(viajeId)/invitations/$(request.auth.uid)).data.inviterId == userId
+        );
     }
 
     // Subcolecciones dentro de un viaje (paradas, fotos, etc.) — lectura para owner o usuarios en sharedWith
@@ -31,6 +45,18 @@ service cloud.firestore {
     // 1.b Resto de subcolecciones del usuario (solo propietario)
     match /usuarios/{userId}/{document=**} {
       allow read, write: if isOwner(userId);
+    }
+
+    // Invitations collection: creación por usuarios autenticados y acceso restringido
+    match /invitations/{invId} {
+      // Cualquier usuario autenticado puede crear una invitación (owner crea)
+      allow create: if isAuthenticated();
+      // Lectura: solo el inviter o el invitee pueden leer su invitación
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.inviterId || request.auth.uid == resource.data.inviteeUid);
+      // Actualización: inviter o invitee pueden actualizar el documento
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.inviterId || request.auth.uid == resource.data.inviteeUid);
+      // Eliminación: solo el inviter puede eliminar la invitación
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.inviterId;
     }
 
     // 2. ZONA COMPARTIDA: cache global de paises/fotos.

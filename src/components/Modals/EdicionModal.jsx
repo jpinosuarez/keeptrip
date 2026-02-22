@@ -238,38 +238,51 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     pushToast('Caption actualizado.', 'success', 1500);
   };
 
-  // Buscar usuarios por nombre/email (autocomplete simple)
-  const handleCompanionSearch = async (q) => {
-    setCompanionDraft(q);
+  // Buscar usuarios por nombre/email (autocomplete simple) — con debounce
+  const searchTimerRef = useRef(null);
+  useEffect(() => () => clearTimeout(searchTimerRef.current), []);
+
+  const performCompanionQuery = async (q) => {
     if (!q || q.length < 2) {
       setCompanionResults([]);
       return;
     }
 
     try {
-      // Intentar consulta en Firestore si está disponible
-      const { collection, query, where, getDocs, limit } = await import('firebase/firestore');
+      const { collection, query, where, getDocs } = await import('firebase/firestore');
       try {
         const usuariosRef = collection(db, 'usuarios');
-        // Query sencilla por displayName o email (no index complex)
         const qName = query(usuariosRef, where('displayName', '>=', q), where('displayName', '<=', q + '\uf8ff'));
         const snap = await getDocs(qName);
         const results = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
         setCompanionResults(results.slice(0, 8));
         return;
       } catch (err) {
-        // si falla la query por el entorno de tests/emulator, fallback a vacío
         setCompanionResults([]);
         return;
       }
     } catch (err) {
-      // firebase/firestore no disponible en runtime del test — fallback silencioso
       setCompanionResults([]);
     }
   };
 
+  const handleCompanionSearch = (q) => {
+    setCompanionDraft(q);
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    // Debounce 250ms
+    searchTimerRef.current = setTimeout(() => performCompanionQuery(q), 250);
+  };
+
   const handleAddCompanionFromResult = async (user) => {
-    // Añadir companion con userId y crear invitación si el viaje ya existe
+    // Evitar duplicados por userId o email
+    const exists = (formData.companions || []).some(c => c.userId === user.uid || (c.email && user.email && c.email === user.email));
+    if (exists) {
+      pushToast('Este compañero ya está agregado.', 'warning');
+      setCompanionResults([]);
+      setCompanionDraft('');
+      return;
+    }
+
     const next = { name: user.displayName || user.email || 'Invitado', email: user.email || null, userId: user.uid, status: 'pending' };
     setFormData(prev => ({ ...prev, companions: [...(prev.companions || []), next] }));
 
@@ -286,12 +299,20 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
   };
 
   const handleAddCompanionFreeform = async (text) => {
-    const next = { name: text.trim(), email: null, userId: null, status: 'pending' };
+    const trimmed = text.trim();
+    const exists = (formData.companions || []).some(c => (c.email && c.email === trimmed) || (c.name && c.name === trimmed));
+    if (exists) {
+      pushToast('Este compañero ya está agregado.', 'warning');
+      return setCompanionDraft('');
+    }
+
+    const next = { name: trimmed, email: trimmed.includes('@') ? trimmed : null, userId: null, status: 'pending' };
     setFormData(prev => ({ ...prev, companions: [...(prev.companions || []), next] }));
+
     // crear invitation si el viaje existe y parece un email
-    if (viaje?.id && usuario?.uid && text.includes('@')) {
+    if (viaje?.id && usuario?.uid && trimmed.includes('@')) {
       try {
-        await createInvitationService({ db, inviterId: usuario.uid, inviteeEmail: text.trim(), viajeId: viaje.id });
+        await createInvitationService({ db, inviterId: usuario.uid, inviteeEmail: trimmed, viajeId: viaje.id });
         pushToast('Invitación creada.', 'info');
       } catch (err) {
         pushToast('No se pudo crear la invitación.', 'error');
@@ -560,6 +581,15 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                         <button onClick={(e) => { e.stopPropagation(); handleAddCompanionFromResult(u); }} style={{padding:'6px 10px', borderRadius:8, border:'1px solid #e2e8f0', background:'#fff'}}>Agregar</button>
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {/* Si no hay resultados y el usuario escribió un email, ofrecer invitar */}
+                {companionResults.length === 0 && companionDraft && companionDraft.includes('@') && (
+                  <div style={{marginTop:8}}>
+                    <button type="button" style={{padding:'8px 12px', borderRadius:8, border:'1px dashed #94a3b8', background:'#fff'}} onClick={() => handleAddCompanionFreeform(companionDraft)}>
+                      ✉️ Invitar por email: {companionDraft}
+                    </button>
                   </div>
                 )}
                 <div style={{display:'flex', gap:8, marginTop:8, flexWrap:'wrap'}}>

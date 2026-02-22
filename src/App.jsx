@@ -15,6 +15,7 @@ import ConfirmModal from './components/Modals/ConfirmModal';
 import VisorViaje from './components/VisorViaje/VisorViaje';
 import SettingsPage from './pages/Configuracion/SettingsPage';
 import CuracionPage from './pages/Curacion/CuracionPage';
+import InvitationsList from './components/Invitations/InvitationsList';
 
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useViajes } from './hooks/useViajes';
@@ -307,6 +308,22 @@ function App() {
             {vistaActiva === 'config' && (
               <motion.div key="config" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={styles.scrollableContent} className="custom-scroll">
                 <SettingsPage />
+              </motion.div>
+            )}
+
+            {vistaActiva === 'invitations' && (
+              <motion.div key="invitations" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={styles.scrollableContent} className="custom-scroll">
+                <ErrorBoundary>
+                  <div style={{ padding: 20 }}>
+                    <h3>Invitaciones</h3>
+                    <p style={{ color: '#6b7280' }}>Invitaciones recibidas para ver viajes compartidos.</p>
+                    <div style={{ marginTop: 12 }}>
+                      <React.Suspense fallback={<div>Cargando...</div>}>
+                        <InvitationsList />
+                      </React.Suspense>
+                    </div>
+                  </div>
+                </ErrorBoundary>
               </motion.div>
             )}
             {vistaActiva === 'curacion' && isAdmin && (

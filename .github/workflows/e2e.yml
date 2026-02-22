@@ -1,0 +1,30 @@
+name: E2E & CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+      - name: Run unit tests (no emulator needed)
+        run: npm run test:unit
+      - name: Install Firebase CLI
+        run: npm i -g firebase-tools@latest
+      - name: Run Firestore rules tests + Playwright E2E with emulators
+        # emulators:exec ensures emulators are running before tests start
+        run: |
+          npx firebase emulators:exec --only auth,firestore,storage --project keeptrip-app-b06b3 -- \
+            bash -c "npm run test:rules && npx playwright test --reporter=list"

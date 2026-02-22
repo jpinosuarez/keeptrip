@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Edit3, Calendar, Check, X, Camera, Trash2, LoaderCircle, Star } from 'lucide-react';
 import { db } from '../../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useUpload } from '../../context/UploadContext';
@@ -41,6 +41,24 @@ const VisorViaje = ({
   const [captionDrafts, setCaptionDrafts] = useState({});
   const [showGalleryTools, setShowGalleryTools] = useState(false);
 
+  // Detectar si el viaje es compartido (owner ≠ usuario actual)
+  const isSharedTrip = data.ownerId && usuario && data.ownerId !== usuario.uid;
+  const [ownerDisplayName, setOwnerDisplayName] = useState(null);
+
+  useEffect(() => {
+    if (!isSharedTrip) { setOwnerDisplayName(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const perfilSnap = await getDoc(doc(db, 'usuarios', data.ownerId));
+        if (!cancelled && perfilSnap.exists()) {
+          setOwnerDisplayName(perfilSnap.data().displayName || data.ownerId);
+        }
+      } catch (_) { /* no bloquear */ }
+    })();
+    return () => { cancelled = true; };
+  }, [isSharedTrip, data.ownerId]);
+
   useEffect(() => {
     if (viajeId && usuario) {
       const fetchParadas = async () => {
@@ -75,7 +93,7 @@ const VisorViaje = ({
   const iniciarEdicion = () => {
     setFormTemp({
       ...data,
-      titulo: data.titulo || viajeBase.nombreEspanol,
+      titulo: data.titulo || viajeBase?.nombreEspanol || '',
       texto: data.texto || ''
     });
     setModoEdicion(true);
@@ -188,12 +206,16 @@ const VisorViaje = ({
             <div style={{ display: 'flex', gap: '10px' }}>
               {!modoEdicion ? (
                 <>
-                  <button onClick={eliminarEsteViaje} style={styles.secondaryBtn(isBusy)} disabled={isBusy}>
-                    {isDeleting ? <LoaderCircle size={16} className="spin" /> : <Trash2 size={16} color="#ff6b6b" />}
-                  </button>
-                  <button onClick={iniciarEdicion} style={styles.primaryBtn(false, isBusy)} disabled={isBusy}>
-                    <Edit3 size={16} /> Editar
-                  </button>
+                  {!isSharedTrip && (
+                    <button onClick={eliminarEsteViaje} style={styles.secondaryBtn(isBusy)} disabled={isBusy}>
+                      {isDeleting ? <LoaderCircle size={16} className="spin" /> : <Trash2 size={16} color="#ff6b6b" />}
+                    </button>
+                  )}
+                  {!isSharedTrip && (
+                    <button onClick={iniciarEdicion} style={styles.primaryBtn(false, isBusy)} disabled={isBusy}>
+                      <Edit3 size={16} /> Editar
+                    </button>
+                  )}
                 </>
               ) : (
                 <>
@@ -251,7 +273,7 @@ const VisorViaje = ({
               </div>
             ) : (
               <h1 style={styles.titleDisplay}>
-                {data.titulo || viajeBase.nombreEspanol}
+                {data.titulo || viajeBase?.nombreEspanol || ''}
               </h1>
             )}
 
@@ -262,11 +284,25 @@ const VisorViaje = ({
                 : ''}
             </div>
 
+            {isSharedTrip && (
+              <div
+                data-testid="visor-shared-badge"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: 'rgba(99,102,241,0.25)', padding: '6px 14px',
+                  borderRadius: 8, color: '#e0e7ff', fontSize: '0.85rem',
+                  fontWeight: 600, backdropFilter: 'blur(5px)', marginTop: 6
+                }}
+              >
+                🤝 Compartido por {ownerDisplayName || '…'}
+              </div>
+            )}
+
             {/* Trip summary (presupuesto, vibe, companions, highlights) */}
-            <div style={{ marginTop: 12 }}>
+            <div data-testid="visor-storytelling" style={{ marginTop: 12 }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 {data.presupuesto && (
-                  <span style={{ padding: '6px 10px', borderRadius: 16, background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}>{data.presupuesto}</span>
+                  <span data-testid="visor-presupuesto" style={{ padding: '6px 10px', borderRadius: 16, background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}>{data.presupuesto}</span>
                 )}
                 {(data.vibe || []).map((v, i) => (
                   <span key={i} style={{ padding: '6px 10px', borderRadius: 16, background: '#fff7ed', border: '1px solid #fce6c6', fontSize: '0.8rem' }}>{v}</span>

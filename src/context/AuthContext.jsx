@@ -4,7 +4,8 @@ import {
   signInWithPopup, 
   signOut, 
   onAuthStateChanged,
-  updateProfile 
+  updateProfile,
+  signInWithEmailAndPassword
 } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 
@@ -91,6 +92,48 @@ export const AuthProvider = ({ children }) => {
       unsubscribe();
     };
   }, []);
+
+  // Dev/test helpers (exposed only when VITE_ENABLE_TEST_LOGIN === 'true')
+  if (typeof window !== 'undefined' && import.meta.env.VITE_ENABLE_TEST_LOGIN === 'true') {
+    window.__test_signInWithEmail = async ({ email, password }) => {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        return true;
+      } catch (err) {
+        console.error('🧪 test signIn failed', err);
+        return false;
+      }
+    };
+    window.__test_signOut = async () => signOut(auth);
+
+    // Helper to create a Firestore document from the browser (uses current auth session)
+    window.__test_createDoc = async (fullPath, documentData) => {
+      try {
+        const { db } = await import('../firebase');
+        const { doc, setDoc } = await import('firebase/firestore');
+        const ref = doc(db, fullPath);
+        await setDoc(ref, documentData, { merge: true });
+        return true;
+      } catch (err) {
+        console.error('🧪 test createDoc failed', err);
+        return false;
+      }
+    };
+
+    // Helper to read a Firestore document from the browser (uses current auth session)
+    window.__test_readDoc = async (fullPath) => {
+      try {
+        const { db } = await import('../firebase');
+        const { doc, getDoc } = await import('firebase/firestore');
+        const ref = doc(db, fullPath);
+        const snap = await getDoc(ref);
+        return snap.exists() ? snap.data() : null;
+      } catch (err) {
+        console.error('🧪 test readDoc failed', err);
+        return null;
+      }
+    };
+  }
 
   const value = { usuario, login, logout, actualizarPerfilUsuario, cargando, isAdmin };
 

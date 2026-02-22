@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { db, storage } from '../firebase';
+import { collectionGroup, query as fbQuery, where as fbWhere, onSnapshot as fbOnSnapshot, collection as fbCollection, getDocs as fbGetDocs, orderBy as fbOrderBy } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { obtenerClimaHistoricoSeguro } from '../services/external/weatherService';
@@ -137,9 +138,12 @@ export const useViajes = () => {
           totalViajes: viajes.length, 
           totalParadas: paradas.length 
         });
-        setBitacora(viajes);
-        setBitacoraData(construirBitacoraData(viajes));
-        setTodasLasParadas(paradas);
+        // anexar ownerId para mantener consistencia entre viajes personales y compartidos
+        const viajesConOwner = viajes.map((v) => ({ ...v, ownerId: usuario.uid }));
+        const paradasConOwner = paradas.map((p) => ({ ...p, ownerId: usuario.uid }));
+        setBitacora(viajesConOwner);
+        setBitacoraData(construirBitacoraData(viajesConOwner));
+        setTodasLasParadas(paradasConOwner);
         setLoading(false);
       },
       onError: (snapshotError) => {
@@ -153,9 +157,49 @@ export const useViajes = () => {
       }
     });
 
+    // Suscribir a viajes compartidos donde este usuario fue agregado a sharedWith
+    const sharedQ = fbQuery(collectionGroup(db, 'viajes'), fbWhere('sharedWith', 'array-contains', usuario.uid));
+    const unsubShared = fbOnSnapshot(sharedQ, async (snap) => {
+      try {
+        const sharedViajes = snap.docs.map((d) => ({ id: d.id, ownerId: d.ref.parent.parent?.id, ...d.data() }));
+        // buscar paradas para cada viaje compartido
+        const paradasPromises = sharedViajes.map(async (v) => {
+          const paradasRef = fbCollection(db, `usuarios/${v.ownerId}/viajes/${v.id}/paradas`);
+          const psnap = await fbGetDocs(paradasRef);
+          return psnap.docs.map((p) => ({ id: p.id, viajeId: v.id, ownerId: v.ownerId, ...p.data() }));
+        });
+        const paradasCompartidas = (await Promise.all(paradasPromises)).flat();
+
+        setBitacora((prev) => {
+          const personales = prev.filter((p) => p.ownerId === usuario.uid);
+          const merged = [...personales, ...sharedViajes];
+          // dedupe por ownerId/id
+          const mapa = {};
+          merged.forEach((v) => { mapa[`${v.ownerId}/${v.id}`] = v; });
+          return Object.values(mapa);
+        });
+
+        setTodasLasParadas((prev) => {
+          const personales = prev.filter((p) => p.ownerId === usuario.uid);
+          const mapaP = {};
+          [...personales, ...paradasCompartidas].forEach((p) => { mapaP[`${p.ownerId}/${p.viajeId}/${p.id}`] = p; });
+          return Object.values(mapaP);
+        });
+
+        setBitacoraData((prevData) => {
+          // reconstruir bitacoraData simple para incluir sharedViajes
+          const combined = [...(prevData ? Object.values(prevData) : []), ...sharedViajes];
+          return construirBitacoraData(combined);
+        });
+      } catch (err) {
+        logger.error('Error al obtener paradas de viajes compartidos', { error: err.message });
+      }
+    });
+
     return () => {
       logger.debug('Desuscribiendo de viajes del usuario');
       unsubscribe();
+      unsubShared();
     };
   }, [usuario]);
 
