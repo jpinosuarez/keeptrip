@@ -17,9 +17,6 @@
     "test:e2e": "playwright test",
     "test:ci": "vitest run && playwright test"
   },
-  "vitest": {
-    "exclude": ["e2e/**"]
-  },
 
   "dependencies": {
     "firebase": "^12.8.0",
