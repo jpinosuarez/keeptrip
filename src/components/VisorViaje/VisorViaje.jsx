@@ -14,6 +14,7 @@ import { useGaleriaViaje } from '../../hooks/useGaleriaViaje';
 import { GalleryGrid } from '../Shared/GalleryGrid';
 import { useWindowSize } from '../../hooks/useWindowSize';
 import { useActiveParada } from '../../hooks/useActiveParada';
+import { formatDateRange } from '../../utils/viajeUtils';
 import RouteMap from './RouteMap';
 import ContextCard from './ContextCard';
 import EdicionModal from '../Modals/EdicionModal';
@@ -258,17 +259,6 @@ const VisorViaje = ({
   // ─── Transporte emoji map ───
   const transporteEmoji = { avion: '✈️', tren: '🚆', auto: '🚗', bus: '🚌', otro: '🚶' };
 
-  // ─── Humanize date range ───
-  const humanizeDate = (start, end) => {
-    const fmt = (d) => {
-      const date = new Date(d + 'T12:00:00');
-      return new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' }).format(date);
-    };
-    if (!start) return '';
-    if (!end || start === end) return fmt(start);
-    return `${fmt(start)} – ${fmt(end)}`;
-  };
-
   // ─── Clima emoji ───
   const climaEmoji = (desc) => {
     if (!desc) return '🌡️';
@@ -307,7 +297,7 @@ const VisorViaje = ({
           <div style={styles.stopCardHeader}>
             <span style={styles.stopCardName}>{p.nombre}</span>
             <span style={styles.stopCardDate}>
-              {humanizeDate(p.fechaLlegada || p.fecha, p.fechaSalida)}
+              {formatDateRange(p.fechaLlegada || p.fecha, p.fechaSalida)}
             </span>
           </div>
           {p.clima && (
@@ -546,10 +536,7 @@ const VisorViaje = ({
               {/* Meta row: fecha + shared badge */}
               <div style={styles.metaRow}>
                 <span style={styles.metaBadge}>
-                  <Calendar size={13} /> {data.fechaInicio}{' '}
-                  {data.fechaFin && data.fechaFin !== data.fechaInicio
-                    ? ` – ${data.fechaFin}`
-                    : ''}
+                  <Calendar size={13} /> {formatDateRange(data.fechaInicio, data.fechaFin)}
                 </span>
 
                 {isSharedTrip && (
@@ -595,8 +582,8 @@ const VisorViaje = ({
                 </div>
               )}
 
-              {/* Foto crédito */}
-              {fotoMostrada && data.fotoCredito && (
+              {/* Foto crédito — solo Pexels, oculto si el usuario subió fotos propias */}
+              {fotoMostrada && data.fotoCredito && galeria.fotos.length === 0 && (
                 <a
                   href={`${data.fotoCredito.link}?utm_source=keeptrip&utm_medium=referral`}
                   target="_blank"

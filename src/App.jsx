@@ -165,6 +165,9 @@ function App() {
         return id; // Retornar el ID aunque haya error parcial
       }
       return null;
+    } catch (err) {
+      pushToast('Error al guardar el viaje', 'error');
+      return null;
     } finally {
       setIsSavingModal(false);
     }

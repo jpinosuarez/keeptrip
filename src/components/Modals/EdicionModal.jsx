@@ -13,6 +13,7 @@ import { useWindowSize } from '../../hooks/useWindowSize';
 import CityManager from '../Shared/CityManager';
 import { compressImage } from '../../utils/imageUtils';
 import { generarTituloInteligente } from '../../utils/viajeUtils';
+import { parseFlexibleDate, formatDateRange } from '../../utils/viajeUtils';
 import { GalleryUploader } from '../Shared/GalleryUploader';
 import { useGaleriaViaje } from '../../hooks/useGaleriaViaje';
 
@@ -173,11 +174,27 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     if (titlePulseRef.current) clearTimeout(titlePulseRef.current);
   }, []);
 
-  // Validación cruzada fechas/paradas
-  const paradasFueraDeRango = paradas.some(p =>
-    (formData.fechaInicio && new Date(p.fecha) < new Date(formData.fechaInicio)) ||
-    (formData.fechaFin && new Date(p.fecha) > new Date(formData.fechaFin))
-  );
+  // Auto-derivar fechas del viaje a partir de las paradas
+  useEffect(() => {
+    if (paradas.length === 0) return;
+    const fechasIso = paradas
+      .map(p => parseFlexibleDate(p.fechaLlegada) || p.fecha)
+      .filter(Boolean)
+      .sort();
+    const fechasSalidaIso = paradas
+      .map(p => parseFlexibleDate(p.fechaSalida))
+      .filter(Boolean);
+    const allDates = [...fechasIso, ...fechasSalidaIso].filter(Boolean).sort();
+    if (allDates.length > 0) {
+      const inicio = allDates[0];
+      const fin = allDates[allDates.length - 1];
+      setFormData(prev => ({
+        ...prev,
+        fechaInicio: inicio,
+        fechaFin: fin >= inicio ? fin : inicio,
+      }));
+    }
+  }, [paradas]);
 
   const limpiarEstado = () => {
     setFormData({});
@@ -192,19 +209,23 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
   const handleSave = async () => {
     if (!formData.nombreEspanol || isProcessingImage || isSaving) return;
 
-    // Guardar viaje (retorna el viajeId o null)
-    const savedViajeId = await onSave(viaje.id, { ...formData, paradasNuevas: paradas });
+    try {
+      // Guardar viaje (retorna el viajeId o null)
+      const savedViajeId = await onSave(viaje.id, { ...formData, paradasNuevas: paradas });
 
-    if (savedViajeId) {
-      // Iniciar subida de fotos en background (no bloquea)
-      if (galleryFiles.length > 0) {
-        // iniciarSubida envía las fotos al contexto global
-        // la subida continúa incluso después de cerrar el modal
-        iniciarSubida(savedViajeId, galleryFiles, galleryPortada);
-        pushToast('Subiendo fotos en segundo plano...', 'info');
+      if (savedViajeId) {
+        // Iniciar subida de fotos en background (no bloquea)
+        if (galleryFiles.length > 0) {
+          iniciarSubida(savedViajeId, galleryFiles, galleryPortada);
+          pushToast('Subiendo fotos en segundo plano...', 'info');
+        }
+        limpiarEstado();
+        onClose();
+      } else {
+        pushToast('No se pudo guardar el viaje. Revisa los datos e intenta de nuevo.', 'error');
       }
-      limpiarEstado();
-      onClose();
+    } catch (err) {
+      pushToast('Error inesperado al guardar. Intenta de nuevo.', 'error');
     }
   };
 
@@ -357,15 +378,12 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
   if (!viaje) return null;
 
   const isBusy = isSaving || isProcessingImage;
-  const fechasInvalidas =
-    formData.fechaInicio &&
-    formData.fechaFin &&
-    new Date(formData.fechaInicio) > new Date(formData.fechaFin);
   const sinParadas = paradas.length === 0;
+  const fechaRangoDisplay = formatDateRange(formData.fechaInicio, formData.fechaFin);
 
   return (
     <AnimatePresence>
-      <motion.div style={styles.overlay(isMobile)} onClick={onClose} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
+      <motion.div style={styles.overlay(isMobile)} onClick={isBusy ? undefined : onClose} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
         <motion.div style={styles.modal(isMobile)} onClick={e => e.stopPropagation()} initial={{y:50}} animate={{y:0}} exit={{y:50}}>
           <div style={styles.header(formData.foto, isMobile)}>
             <div style={styles.headerOverlay} />
@@ -479,39 +497,17 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                 </div>
               )}
             </div>
-            {/* Fechas y ciudades agrupadas visualmente */}
+            {/* Paradas — fechas se derivan automáticamente */}
             <div style={styles.section}>
-              <label style={styles.label}><Calendar size={14}/> Fechas y Paradas</label>
-              <div style={styles.row}>
-                <input
-                  type="date"
-                  value={formData.fechaInicio || ''}
-                  onChange={e => setFormData({...formData, fechaInicio: e.target.value})}
-                  style={styles.dateInput}
-                  disabled={isBusy}
-                  aria-label="Fecha de inicio"
-                  title="Fecha de inicio del viaje"
-                />
-                <span style={{color:COLORS.textSecondary}}>hasta</span>
-                <input
-                  type="date"
-                  value={formData.fechaFin || ''}
-                  onChange={e => setFormData({...formData, fechaFin: e.target.value})}
-                  style={styles.dateInput}
-                  disabled={isBusy}
-                  aria-label="Fecha de fin"
-                  title="Fecha de fin del viaje"
-                />
-              </div>
-              {fechasInvalidas && (
-                <span style={styles.inlineError}>La fecha de fin no puede ser anterior al inicio.</span>
+              <label style={styles.label}><Calendar size={14}/> Paradas</label>
+              {fechaRangoDisplay && (
+                <span style={{fontSize:'0.82rem', color:COLORS.textSecondary, marginBottom:6, display:'block'}}>
+                  📅 {fechaRangoDisplay}
+                </span>
               )}
-              <CityManager paradas={paradas} setParadas={setParadas} rango={{inicio: formData.fechaInicio, fin: formData.fechaFin}} />
+              <CityManager paradas={paradas} setParadas={setParadas} />
               {sinParadas && (
                 <span style={styles.inlineError}>Agrega al menos una ciudad para continuar.</span>
-              )}
-              {paradasFueraDeRango && (
-                <span style={styles.inlineError}>Hay paradas fuera del rango de fechas del viaje.</span>
               )}
             </div>
 

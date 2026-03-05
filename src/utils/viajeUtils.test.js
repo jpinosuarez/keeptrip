@@ -6,7 +6,10 @@ import {
   construirCiudadesViaje,
   construirParadaPayload,
   construirViajePayload,
-  obtenerPaisesVisitados
+  obtenerPaisesVisitados,
+  parseFlexibleDate,
+  formatDateSlash,
+  formatDateRange
 } from './viajeUtils';
 
 describe('viajeUtils', () => {
@@ -141,5 +144,86 @@ describe('viajeUtils', () => {
     );
     expect(paises).toEqual(expect.arrayContaining(['ARG', 'ESP', 'FRA']));
     expect(paises.length).toBe(3);
+  });
+
+  // ─── parseFlexibleDate ───
+  describe('parseFlexibleDate', () => {
+    it('parsea ISO directo', () => {
+      expect(parseFlexibleDate('2024-03-15')).toBe('2024-03-15');
+    });
+
+    it('parsea dd/mm/yyyy', () => {
+      expect(parseFlexibleDate('15/03/2024')).toBe('2024-03-15');
+    });
+
+    it('parsea dd-mm-yyyy', () => {
+      expect(parseFlexibleDate('15-03-2024')).toBe('2024-03-15');
+    });
+
+    it('parsea dd.mm.yyyy', () => {
+      expect(parseFlexibleDate('15.03.2024')).toBe('2024-03-15');
+    });
+
+    it('parsea texto "15 Mar 2024"', () => {
+      expect(parseFlexibleDate('15 Mar 2024')).toBe('2024-03-15');
+    });
+
+    it('parsea texto en español "15 Dic 2023"', () => {
+      expect(parseFlexibleDate('15 Dic 2023')).toBe('2023-12-15');
+    });
+
+    it('retorna null para input vacío', () => {
+      expect(parseFlexibleDate('')).toBeNull();
+      expect(parseFlexibleDate(null)).toBeNull();
+    });
+
+    it('retorna null para texto no parseable', () => {
+      expect(parseFlexibleDate('hola mundo')).toBeNull();
+    });
+  });
+
+  // ─── formatDateSlash ───
+  describe('formatDateSlash', () => {
+    it('formatea ISO a dd/mm/yyyy', () => {
+      expect(formatDateSlash('2024-03-15')).toBe('15/03/2024');
+    });
+
+    it('formatea con padding de ceros', () => {
+      expect(formatDateSlash('2024-01-05')).toBe('05/01/2024');
+    });
+
+    it('retorna vacío para null', () => {
+      expect(formatDateSlash(null)).toBe('');
+    });
+  });
+
+  // ─── formatDateRange ───
+  describe('formatDateRange', () => {
+    it('muestra solo fecha cuando inicio = fin', () => {
+      const result = formatDateRange('2024-03-15', '2024-03-15');
+      expect(result).toContain('15');
+      expect(result).toContain('2024');
+    });
+
+    it('muestra rango compacto para mismo mes', () => {
+      const result = formatDateRange('2024-03-15', '2024-03-20');
+      expect(result).toMatch(/15.20/);
+      expect(result).toContain('2024');
+    });
+
+    it('muestra rango extendido para distinto mes', () => {
+      const result = formatDateRange('2024-03-15', '2024-04-03');
+      expect(result).toContain('15');
+      expect(result).toContain('2024');
+    });
+
+    it('acepta formato dd/mm/yyyy como input', () => {
+      const result = formatDateRange('15/03/2024', '20/03/2024');
+      expect(result).toMatch(/15.20/);
+    });
+
+    it('retorna vacío para null', () => {
+      expect(formatDateRange(null, null)).toBe('');
+    });
   });
 });

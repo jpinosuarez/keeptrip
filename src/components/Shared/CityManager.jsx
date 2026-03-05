@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, ArrowUp, ArrowDown, Plus, Search, Trash2 } from 'lucide-react';
 import { COLORS, RADIUS, SHADOWS } from '../../theme';
 import { getFlagUrl } from '../../utils/countryUtils';
+import { parseFlexibleDate, formatDateSlash } from '../../utils/viajeUtils';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -56,7 +57,11 @@ const CityManager = ({ paradas, setParadas }) => {
   const actualizarDato = (index, campo, valor) => {
     const nuevas = [...paradas];
     nuevas[index][campo] = valor;
-    if(campo === 'fechaLlegada') nuevas[index].fecha = valor;
+    // Sincronizar fecha canónica: parsear texto flexible → ISO, actualizar .fecha
+    if (campo === 'fechaLlegada') {
+      const iso = parseFlexibleDate(valor);
+      if (iso) nuevas[index].fecha = iso;
+    }
     setParadas(nuevas);
   };
 
@@ -119,11 +124,11 @@ const CityManager = ({ paradas, setParadas }) => {
             <div style={styles.datesRow}>
                 <div style={styles.dateGroup}>
                     <label style={styles.label}>Llegada</label>
-                    <input type="date" value={p.fechaLlegada} onChange={e => actualizarDato(index, 'fechaLlegada', e.target.value)} style={styles.dateInput} />
+                    <input type="text" value={p.fechaLlegada} onChange={e => actualizarDato(index, 'fechaLlegada', e.target.value)} onBlur={e => { const iso = parseFlexibleDate(e.target.value); if (iso) actualizarDato(index, 'fechaLlegada', formatDateSlash(iso)); }} placeholder="dd/mm/aaaa" style={styles.dateInput} />
                 </div>
                 <div style={styles.dateGroup}>
                     <label style={styles.label}>Salida</label>
-                    <input type="date" value={p.fechaSalida} onChange={e => actualizarDato(index, 'fechaSalida', e.target.value)} style={styles.dateInput} />
+                    <input type="text" value={p.fechaSalida} onChange={e => actualizarDato(index, 'fechaSalida', e.target.value)} onBlur={e => { const iso = parseFlexibleDate(e.target.value); if (iso) actualizarDato(index, 'fechaSalida', formatDateSlash(iso)); }} placeholder="dd/mm/aaaa" style={styles.dateInput} />
                 </div>
             </div>
 

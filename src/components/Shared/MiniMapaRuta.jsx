@@ -52,9 +52,9 @@ const MiniMapaRuta = ({ paradas }) => {
 
     if (!bounds.isEmpty()) {
       mapRef.current.fitBounds(bounds, {
-        padding: { top: 50, bottom: 50, left: 40, right: 40 },
+        padding: { top: 60, bottom: 60, left: 50, right: 50 },
         duration: 1000,
-        maxZoom: 12,
+        maxZoom: 6,
       });
     }
   }, [mapLoaded, paradas]);

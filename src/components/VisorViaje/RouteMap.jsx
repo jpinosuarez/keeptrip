@@ -71,9 +71,9 @@ const RouteMap = ({ paradas, activeIndex = 0, hoveredIndex = null, onMarkerHover
 
     if (!bounds.isEmpty()) {
       map.fitBounds(bounds, {
-        padding: { top: 80, bottom: 80, left: 60, right: 60 },
+        padding: { top: 100, bottom: 100, left: 80, right: 80 },
         duration: 1000,
-        maxZoom: 12,
+        maxZoom: 6,
       });
     }
   }, [mapLoaded, paradas]);

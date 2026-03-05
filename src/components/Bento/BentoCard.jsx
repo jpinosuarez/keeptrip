@@ -1,6 +1,7 @@
 import React from 'react';
 import { Calendar, MapPin, Trash2 } from 'lucide-react';
 import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS } from '../../theme';
+import { formatDateRange } from '../../utils/viajeUtils';
 
 const styles = {
   card: {
@@ -102,7 +103,7 @@ const BentoCard = ({ viaje, onClick, manejarEliminar }) => {
             {titulo}
           </h3>
           <div style={{ ...styles.meta, color: foto ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={14} /> {viaje.fechaInicio?.split('-')[0]}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={14} /> {formatDateRange(viaje.fechaInicio, viaje.fechaFin)}</span>
             {viaje.ciudades && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={14} /> {viaje.ciudades.split(',').length}</span>}
           </div>
         </div>
