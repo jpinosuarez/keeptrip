@@ -75,16 +75,26 @@ function App() {
 
   // ── Level-up detection ──
   const [levelUpData, setLevelUpData] = useState(null);
-  const prevCountriesRef = useRef(paisesVisitados.length);
+  const prevCountriesRef = useRef(null); // null = not yet initialized
+  const isInitialLoadRef = useRef(true);
 
   useEffect(() => {
-    const prev = prevCountriesRef.current;
     const curr = paisesVisitados.length;
-    if (prev !== curr) {
+
+    // Skip the first emission (Firestore onSnapshot initial load).
+    // Without this guard, going from 0 → N on mount triggers a false level-up.
+    if (isInitialLoadRef.current) {
+      isInitialLoadRef.current = false;
+      prevCountriesRef.current = curr;
+      return;
+    }
+
+    const prev = prevCountriesRef.current;
+    if (prev !== null && prev !== curr) {
       const { leveledUp, newLevel } = checkLevelUp(prev, curr);
       if (leveledUp) setLevelUpData(newLevel);
-      prevCountriesRef.current = curr;
     }
+    prevCountriesRef.current = curr;
   }, [paisesVisitados.length]);
 
   const isDeletingViaje = (id) => viajesEliminando.has(id);

@@ -27,14 +27,27 @@ const base = {
 };
 
 // ── Classic Variant ──
+// Uses an <img> tag instead of CSS backgroundImage so dom-to-image-more
+// can negotiate CORS headers via the crossOrigin attribute.
 const ClassicStory = ({ data }) => (
   <div style={{
     ...base,
-    backgroundImage: data.foto ? `url(${data.foto})` : 'none',
     backgroundColor: COLORS.charcoalBlue,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
+    position: 'relative',
   }}>
+    {/* Hero photo — <img> for CORS-safe canvas capture */}
+    {data.foto && (
+      <img
+        src={data.foto}
+        alt=""
+        crossOrigin="anonymous"
+        style={{
+          position: 'absolute', inset: 0,
+          width: '100%', height: '100%',
+          objectFit: 'cover',
+        }}
+      />
+    )}
     {/* Gradient overlay */}
     <div style={{
       position: 'absolute', inset: 0,
@@ -85,7 +98,7 @@ const StatsStory = ({ data }) => (
     boxSizing: 'border-box',
   }}>
     <p style={{ fontSize: '28px', fontWeight: '600', opacity: 0.6, margin: '0 0 12px 0', letterSpacing: '4px', textTransform: 'uppercase' }}>
-      Mi viaje a
+      ✈ BITÁCORA DE VIAJE
     </p>
     <h1 style={{ fontSize: '64px', fontWeight: '900', margin: '0 0 60px 0', lineHeight: 1.1 }}>
       {data.titulo || 'Destino'}
@@ -140,8 +153,10 @@ const StampStory = ({ data }) => (
   <div style={{
     ...base,
     backgroundColor: '#F4EDE4',
-    backgroundImage: 'url("https://www.transparenttextures.com/patterns/old-mathematics.png")',
-    backgroundSize: '300px',
+    // Inline SVG dot-grid pattern (~124 bytes) — replaces the 52KB external texture
+    // to eliminate CORS canvas-taint risk in dom-to-image-more export.
+    backgroundImage: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyMCcgaGVpZ2h0PScyMCc+PGNpcmNsZSBjeD0nMScgY3k9JzEnIHI9JzAuNicgZmlsbD0ncmdiYSgwLDAsMCwwLjA2KScvPjwvc3ZnPg==")`,
+    backgroundSize: '20px',
     padding: '80px 72px',
     display: 'flex',
     flexDirection: 'column',
