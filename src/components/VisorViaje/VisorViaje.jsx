@@ -14,10 +14,11 @@ import { useGaleriaViaje } from '../../hooks/useGaleriaViaje';
 import { GalleryGrid } from '../Shared/GalleryGrid';
 import { useWindowSize } from '../../hooks/useWindowSize';
 import { useActiveParada } from '../../hooks/useActiveParada';
-import { formatDateRange } from '../../utils/viajeUtils';
+import { formatDateRange, getInitials } from '../../utils/viajeUtils';
 import RouteMap from './RouteMap';
 import ContextCard from './ContextCard';
 import EdicionModal from '../Modals/EdicionModal';
+import ShareStoryButton from '../Share/ShareStoryButton';
 
 const VisorViaje = ({
   viajeId,
@@ -176,6 +177,24 @@ const VisorViaje = ({
     : (viajeBase?.foto && typeof viajeBase.foto === 'string' && viajeBase.foto.trim() ? viajeBase.foto : null));
   const isBusy = isSaving || isDeleting;
 
+  // ─── Story share data ───
+  const storyData = {
+    titulo: data.titulo || viajeBase?.nombreEspanol || 'Mi viaje',
+    fechas: formatDateRange(data.fechaInicio, data.fechaFin),
+    foto: fotoMostrada,
+    banderas: data.banderas || [],
+    paisesCount: [...new Set((paradas || []).map(p => p.paisCodigo).filter(Boolean))].length || 1,
+    paradasCount: paradas.length,
+    diasCount: (() => {
+      if (!data.fechaInicio || !data.fechaFin) return '—';
+      const d1 = new Date(data.fechaInicio);
+      const d2 = new Date(data.fechaFin);
+      return isNaN(d1) || isNaN(d2) ? '—' : Math.max(1, Math.round((d2 - d1) / 86400000) + 1);
+    })(),
+    presupuesto: data.presupuesto || null,
+    vibes: data.vibe || [],
+  };
+
   // ========== Render helpers (reutilizados en ambos modos) ==========
 
   const renderBitacora = () => {
@@ -276,8 +295,24 @@ const VisorViaje = ({
     const isHovered = hoveredIndex === i && !isMobile;
     const highlighted = isActive || isHovered;
 
+    // Staggered entrance animation — cada card entra con un delay incremental
+    const cardVariants = {
+      hidden: { opacity: 0, y: 24, scale: 0.97 },
+      visible: {
+        opacity: 1, y: 0, scale: 1,
+        transition: { duration: 0.4, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }
+      },
+    };
+
     return (
-      <div key={p.id || i} style={styles.timelineRow}>
+      <motion.div
+        key={p.id || i}
+        style={styles.timelineRow}
+        variants={cardVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
         {/* Timeline column: dot + line */}
         <div style={styles.timelineTrack}>
           <div style={highlighted ? styles.timelineDotActive : styles.timelineDotInactive} />
@@ -324,7 +359,7 @@ const VisorViaje = ({
             {transporteEmoji[paradas[i + 1].transporte] || '🚶'}
           </div>
         )}
-      </div>
+      </motion.div>
     );
   };
 
@@ -338,6 +373,18 @@ const VisorViaje = ({
   );
 
   // ========== Context Section — reutilizable en ambos modos ==========
+  // Ref y estado para el carrusel mobile de context cards
+  const carouselRef = useRef(null);
+  const [activeCarouselDot, setActiveCarouselDot] = useState(0);
+
+  const handleCarouselScroll = useCallback(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const cardWidth = 220 + 16; // minWidth + gap
+    const idx = Math.round(el.scrollLeft / cardWidth);
+    setActiveCarouselDot(idx);
+  }, []);
+
   const renderContextSection = () => {
     const hasHighlights = data.highlights?.topFood || data.highlights?.topView || data.highlights?.topTip;
     const hasCompanions = (data.companions || []).length > 0;
@@ -353,37 +400,74 @@ const VisorViaje = ({
       data.highlights?.topTip && { icon: '💡', text: data.highlights.topTip },
     ].filter(Boolean);
 
+    // Construir las cards como array para contar y renderizar dots
+    const cards = [];
+    if (highlightItems.length > 0) {
+      cards.push(
+        <ContextCard key="highlights" icon="⭐" label="Highlights" style={isMobile ? styles.contextCarouselCard : undefined}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {highlightItems.map((h, i) => (
+              <div key={i} style={styles.highlightListItem}>
+                <span>{h.icon}</span>
+                <span style={{ fontSize: '0.9rem', color: COLORS.textPrimary }}>{h.text}</span>
+              </div>
+            ))}
+          </div>
+        </ContextCard>
+      );
+    }
+    if (data.presupuesto) {
+      cards.push(
+        <ContextCard key="presupuesto" icon="💰" label="Presupuesto" value={data.presupuesto} style={isMobile ? styles.contextCarouselCard : undefined} />
+      );
+    }
+    if (hasVibe) {
+      cards.push(
+        <ContextCard key="vibe" icon="✨" label="Vibe" value={(data.vibe || []).join(', ')} style={isMobile ? styles.contextCarouselCard : undefined} />
+      );
+    }
+    if (hasCompanions) {
+      cards.push(
+        <ContextCard key="companions" icon="👥" label="Compañeros" style={isMobile ? styles.contextCarouselCard : undefined}>
+          <div style={styles.companionsGrid}>
+            {(data.companions || []).map((c, idx) => (
+              <div key={idx} title={c.name || c.email || ''} style={styles.companionAvatar}>
+                {getInitials(c.name || c.email)}
+              </div>
+            ))}
+          </div>
+        </ContextCard>
+      );
+    }
+
+    // Mobile → carrusel horizontal con scroll-snap + peek + dots
+    if (isMobile) {
+      return (
+        <div style={styles.contextCarouselWrapper}>
+          <div
+            ref={carouselRef}
+            className="hide-scrollbar"
+            style={styles.contextCarousel}
+            onScroll={handleCarouselScroll}
+          >
+            {cards}
+          </div>
+          {cards.length > 1 && <div style={styles.contextCarouselPeek} />}
+          {cards.length > 1 && (
+            <div style={styles.contextCarouselDots}>
+              {cards.map((_, i) => (
+                <div key={i} style={styles.contextCarouselDot(i === activeCarouselDot)} />
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Desktop → grid clásico
     return (
       <div style={styles.contextGrid}>
-        {highlightItems.length > 0 && (
-          <ContextCard icon="⭐" label="Highlights">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {highlightItems.map((h, i) => (
-                <div key={i} style={styles.highlightListItem}>
-                  <span>{h.icon}</span>
-                  <span style={{ fontSize: '0.9rem', color: COLORS.textPrimary }}>{h.text}</span>
-                </div>
-              ))}
-            </div>
-          </ContextCard>
-        )}
-        {data.presupuesto && (
-          <ContextCard icon="💰" label="Presupuesto" value={data.presupuesto} />
-        )}
-        {hasVibe && (
-          <ContextCard icon="✨" label="Vibe" value={(data.vibe || []).join(', ')} />
-        )}
-        {hasCompanions && (
-          <ContextCard icon="👥" label="Compañeros">
-            <div style={styles.companionsGrid}>
-              {(data.companions || []).map((c, idx) => (
-                <div key={idx} title={c.name} style={styles.companionAvatar}>
-                  {(c.name || 'U').split(' ').map(s => s[0]).slice(0, 2).join('')}
-                </div>
-              ))}
-            </div>
-          </ContextCard>
-        )}
+        {cards}
       </div>
     );
   };
@@ -502,6 +586,7 @@ const VisorViaje = ({
               </button>
 
               <div style={styles.navActions}>
+                <ShareStoryButton data={storyData} />
                 {!isSharedTrip && (
                   <button onClick={eliminarEsteViaje} style={styles.secondaryBtn(isBusy)} disabled={isBusy}>
                     {isDeleting ? <LoaderCircle size={16} className="spin" /> : <Trash2 size={16} color="#ff6b6b" />}
@@ -560,8 +645,8 @@ const VisorViaje = ({
                     ))}
                     <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto', alignItems: 'center' }}>
                       {(data.companions || []).slice(0, 4).map((c, idx) => (
-                        <div key={idx} title={c.name} style={styles.companionDot}>
-                          {(c.name || 'U').split(' ').map(s => s[0]).slice(0, 2).join('')}
+                        <div key={idx} title={c.name || c.email || ''} style={styles.companionDot}>
+                          {getInitials(c.name || c.email)}
                         </div>
                       ))}
                       {(data.companions || []).length > 4 && (

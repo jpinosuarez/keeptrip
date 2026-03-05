@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import Sidebar from './components/Layout/Sidebar';
@@ -16,6 +16,7 @@ import VisorViaje from './components/VisorViaje/VisorViaje';
 import SettingsPage from './pages/Configuracion/SettingsPage';
 import CuracionPage from './pages/Curacion/CuracionPage';
 import InvitationsList from './components/Invitations/InvitationsList';
+import LevelUpModal from './components/Shared/LevelUpModal';
 
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useViajes } from './hooks/useViajes';
@@ -25,6 +26,7 @@ import { useToast } from './context/ToastContext';
 import { useSearch, useUI } from './context/UIContext';
 import { styles } from './App.styles';
 import { COUNTRIES_DATA, getFlagUrl } from './utils/countryUtils';
+import { checkLevelUp } from './utils/travelerLevel';
 
 function App() {
   const { usuario, cargando, isAdmin } = useAuth();
@@ -70,6 +72,20 @@ function App() {
   const [isSavingModal, setIsSavingModal] = useState(false);
   const [isSavingViewer, setIsSavingViewer] = useState(false);
   const [viajesEliminando, setViajesEliminando] = useState(new Set());
+
+  // ── Level-up detection ──
+  const [levelUpData, setLevelUpData] = useState(null);
+  const prevCountriesRef = useRef(paisesVisitados.length);
+
+  useEffect(() => {
+    const prev = prevCountriesRef.current;
+    const curr = paisesVisitados.length;
+    if (prev !== curr) {
+      const { leveledUp, newLevel } = checkLevelUp(prev, curr);
+      if (leveledUp) setLevelUpData(newLevel);
+      prevCountriesRef.current = curr;
+    }
+  }, [paisesVisitados.length]);
 
   const isDeletingViaje = (id) => viajesEliminando.has(id);
 
@@ -397,6 +413,12 @@ function App() {
         onConfirm={handleDeleteViaje}
         onClose={() => setConfirmarEliminacion(null)}
         isLoading={!!(confirmarEliminacion && viajesEliminando.has(confirmarEliminacion))}
+      />
+
+      <LevelUpModal
+        show={!!levelUpData}
+        level={levelUpData}
+        onClose={() => setLevelUpData(null)}
       />
     </div>
   );

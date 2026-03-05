@@ -5,7 +5,7 @@ import { Globe, Image, LoaderCircle, MapPin, Save, Search, Trash2, X } from 'luc
 import { db, storage } from '../../firebase';
 import { getFlagUrl } from '../../utils/countryUtils';
 import { compressImage } from '../../utils/imageUtils';
-import { COLORS, SHADOWS, RADIUS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS, FONTS } from '../../theme';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -584,7 +584,7 @@ const CuracionPage = () => {
 };
 
 const styles = {
-  container: { padding: '40px', maxWidth: '1100px', margin: '0 auto', fontFamily: '"Plus Jakarta Sans", sans-serif' },
+  container: { padding: '40px', maxWidth: '1100px', margin: '0 auto', fontFamily: FONTS.heading },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
   title: { fontSize: '2.3rem', fontWeight: 900, color: COLORS.charcoalBlue, marginBottom: '8px' },
   subtitle: { color: COLORS.textSecondary },

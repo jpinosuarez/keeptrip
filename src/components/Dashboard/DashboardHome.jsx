@@ -1,11 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Compass, Calendar, Flag, TrendingUp, MapPin, ArrowRight, Trophy, Sparkles } from 'lucide-react';
+import { Compass, Calendar, Flag, TrendingUp, MapPin, ArrowRight, Trophy, Sparkles, Stamp } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
 import { COLORS } from '../../theme';
 import { styles } from './DashboardHome.styles';
 import HomeMap from '../Mapa/HomeMap';
+import { getTravelerLevel, getNextLevel } from '../../utils/travelerLevel';
 
 const DashboardHome = ({ paisesVisitados, bitacora, isMobile = false }) => {
   const { usuario } = useAuth();
@@ -21,12 +22,22 @@ const DashboardHome = ({ paisesVisitados, bitacora, isMobile = false }) => {
   const viajesCountLabel = bitacora.length > 0 ? bitacora.length : '--';
   const paisesCountLabel = visitadosCount > 0 ? visitadosCount : '--';
 
+  const level = getTravelerLevel(visitadosCount);
+  const next = getNextLevel(visitadosCount);
+
   return (
     <div style={styles.dashboardContainer(isMobile)}>
       <div style={styles.welcomeArea}>
         <div>
           <h1 style={styles.title}>Hola, {nombre}</h1>
-          <p style={styles.subtitle}>Tu bitacora de viaje en un solo lugar.</p>
+          <p style={styles.subtitle}>
+            {level.icon} {level.label}
+            {next.level && (
+              <span style={{ opacity: 0.6, fontSize: '0.8rem', marginLeft: '8px' }}>
+                · {next.remaining} país{next.remaining !== 1 ? 'es' : ''} para {next.level.label}
+              </span>
+            )}
+          </p>
         </div>
 
         <div style={styles.headerStatsRow}>
@@ -122,14 +133,14 @@ const DashboardHome = ({ paisesVisitados, bitacora, isMobile = false }) => {
                   <div style={styles.welcomeArtOrbit}>
                     <Sparkles size={24} color={COLORS.atomicTangerine} />
                   </div>
-                  <Compass size={64} color={COLORS.charcoalBlue} />
+                  <Stamp size={64} color={COLORS.charcoalBlue} />
                 </div>
-                <h3 style={styles.welcomeTitle}>Empieza tu aventura</h3>
+                <h3 style={styles.welcomeTitle}>Tu pasaporte está en blanco</h3>
                 <p style={styles.welcomeText}>
-                  Registra tu primera parada para activar tu bitacora, tus estadisticas y tu mapa de viajes.
+                  Cada gran viajero empezó con un primer sello. ¿Cuál será el tuyo?
                 </p>
                 <button type="button" style={styles.welcomeCta} onClick={openBuscador}>
-                  Registrar primera parada
+                  Estampar mi primer destino ✈️
                 </button>
               </motion.div>
             )}

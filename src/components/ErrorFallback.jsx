@@ -1,5 +1,5 @@
 import { AlertTriangle, RefreshCcw, Home } from 'lucide-react';
-import { COLORS, SHADOWS, RADIUS, TRANSITIONS } from '../theme';
+import { COLORS, SHADOWS, RADIUS, TRANSITIONS, FONTS } from '../theme';
 
 /**
  * Componente de fallback mostrado cuando ErrorBoundary captura un error
@@ -123,7 +123,7 @@ const styles = {
   errorMessage: {
     fontSize: '13px',
     color: '#991B1B',
-    fontFamily: 'monospace',
+    fontFamily: FONTS.mono,
     overflow: 'auto',
     margin: 0,
     padding: '8px',
@@ -143,7 +143,7 @@ const styles = {
   stackCode: {
     fontSize: '12px',
     color: COLORS.textSecondary,
-    fontFamily: 'monospace',
+    fontFamily: FONTS.mono,
     overflow: 'auto',
     maxHeight: '200px',
     margin: '8px 0 0',

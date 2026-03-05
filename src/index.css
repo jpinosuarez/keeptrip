@@ -51,6 +51,15 @@ html, body, #root {
   background-color: #94A3B8;
 }
 
+/* Carrusel horizontal sin scrollbar visible */
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Utilidad para inputs sin estilo */
 input:focus, textarea:focus, button:focus {
   outline: none;

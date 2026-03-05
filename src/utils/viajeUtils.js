@@ -191,6 +191,30 @@ export const construirBanderasViaje = (codigoPaisBase, paradas = []) => {
 
 export const construirCiudadesViaje = (paradas = []) => [...new Set(paradas.map((p) => p.nombre))].join(', ');
 
+/**
+ * Obtiene iniciales (máx 2 caracteres) de un nombre o email.
+ * - Nombre: "Juan Pérez" → "JP"
+ * - Email: "juan@gmail.com" → "J"
+ * - Vacío/null: "?"
+ */
+export const getInitials = (nameOrEmail) => {
+  if (!nameOrEmail || typeof nameOrEmail !== 'string') return '?';
+  const trimmed = nameOrEmail.trim();
+  if (!trimmed) return '?';
+  // Es email → primera letra del local-part
+  if (trimmed.includes('@')) {
+    return trimmed.split('@')[0][0]?.toUpperCase() || '?';
+  }
+  // Es nombre → primeras letras de cada palabra (máx 2)
+  return trimmed
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || '?';
+};
+
 export const construirParadaPayload = (parada, fechaUso, climaInfo) => ({
   nombre: parada.nombre,
   coordenadas: parada.coordenadas,

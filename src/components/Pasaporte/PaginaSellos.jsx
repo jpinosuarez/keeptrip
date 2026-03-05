@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
-import { COLORS, RADIUS } from '../../theme';
+import { COLORS, RADIUS, FONTS } from '../../theme';
 
 const PaginaSellos = ({ region, paises, MAPA_SELLOS, manejarEliminar }) => {
   
@@ -65,7 +65,7 @@ const PaginaSellos = ({ region, paises, MAPA_SELLOS, manejarEliminar }) => {
                   color: colorTinta,
                   opacity: 0.8,
                   maskImage: 'url("https://www.transparenttextures.com/patterns/stardust.png")',
-                  fontFamily: '"Courier New", Courier, monospace',
+                  fontFamily: FONTS.mono,
                   textTransform: 'uppercase',
                   borderStyle: 'double',
                   borderWidth: '4px'

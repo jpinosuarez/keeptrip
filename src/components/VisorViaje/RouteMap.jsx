@@ -59,24 +59,35 @@ const RouteMap = ({ paradas, activeIndex = 0, hoveredIndex = null, onMarkerHover
     setMapLoaded(true);
   }, []);
 
-  // ─── fitBounds inicial (espera a que el mapa cargue) ───
-  useEffect(() => {
-    if (!mapLoaded || paradas.length === 0 || !mapRef.current) return;
-
+  // ─── fitBounds helper — reutilizado en load y en modal resize ───
+  const fitMapToBounds = useCallback(() => {
+    if (paradas.length === 0 || !mapRef.current) return;
     const map = mapRef.current;
     const bounds = new mapboxgl.LngLatBounds();
     paradas.forEach((p) => {
       if (p.coordenadas) bounds.extend(p.coordenadas);
     });
-
     if (!bounds.isEmpty()) {
+      map.resize(); // fuerza recalcular dimensiones del contenedor
       map.fitBounds(bounds, {
         padding: { top: 100, bottom: 100, left: 80, right: 80 },
         duration: 1000,
         maxZoom: 6,
       });
     }
-  }, [mapLoaded, paradas]);
+  }, [paradas]);
+
+  // ─── fitBounds inicial (espera a que el mapa cargue) ───
+  useEffect(() => {
+    if (!mapLoaded) return;
+    // En modal (mobile fullscreen) el contenedor tarda en tener dimensiones finales.
+    // Demoramos fitBounds para que mapbox calcule bounds sobre geometría real.
+    if (isModal) {
+      const timer = setTimeout(fitMapToBounds, 350);
+      return () => clearTimeout(timer);
+    }
+    fitMapToBounds();
+  }, [mapLoaded, fitMapToBounds, isModal]);
 
   // ─── GeoJSON: ruta curvada ───
   const rutaGeoJSON = useMemo(() => {

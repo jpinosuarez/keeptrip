@@ -347,12 +347,6 @@ export const styles = {
     border: '1px solid rgba(255,255,255,0.12)',
   },
   
-  bodyContent: {
-    maxWidth: '1000px', margin: '0 auto', padding: '40px',
-    display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '60px',
-    '@media (max-width: 900px)': { gridTemplateColumns: '1fr', gap: '30px' }
-  },
-  mainColumn: { display: 'flex', flexDirection: 'column' },
   sectionTitle: { 
     fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', 
     color: COLORS.mutedTeal, marginBottom: '15px', fontWeight: '800' 
@@ -381,12 +375,6 @@ export const styles = {
     fontSize: '0.9rem'
   },
   readText: { fontSize: '1.1rem', lineHeight: 1.7, color: COLORS.charcoalBlue, whiteSpace: 'pre-wrap' },
-  textArea: { 
-    width: '100%', minHeight: '200px', padding: '20px', borderRadius: RADIUS.lg, 
-    border: `2px solid ${COLORS.border}`, fontSize: '1rem', outline: 'none',
-    boxShadow: SHADOWS.inner,
-    ':focus': { borderColor: COLORS.atomicTangerine } 
-  },
   galleryManageBlock: {
     marginTop: '16px',
     display: 'grid',
@@ -476,14 +464,6 @@ export const styles = {
     background: COLORS.surface,
     padding: '2px 6px',
     borderRadius: RADIUS.xs
-  },
-
-  // ==========================================================
-  //  FIX: sideColumn estaba referenciado en JSX pero no definido
-  // ==========================================================
-  sideColumn: {
-    display: 'flex',
-    flexDirection: 'column',
   },
 
   // ==========================================================
@@ -581,6 +561,55 @@ export const styles = {
     marginBottom: '32px',
   },
 
+  // ─── Carrusel horizontal (mobile) con scroll-snap ───
+  contextCarouselWrapper: {
+    position: 'relative',
+    marginBottom: '32px',
+  },
+  contextCarousel: {
+    display: 'flex',
+    gap: SPACING.md,
+    overflowX: 'auto',
+    scrollSnapType: 'x mandatory',
+    WebkitOverflowScrolling: 'touch',
+    paddingBottom: '12px',
+    // Ocultar scrollbar nativo (CSS se pone en index.css para ::-webkit-scrollbar)
+    scrollbarWidth: 'none',
+    msOverflowStyle: 'none',
+  },
+  contextCarouselCard: {
+    minWidth: '220px',
+    maxWidth: '280px',
+    flex: '0 0 auto',
+    scrollSnapAlign: 'start',
+  },
+  // Gradiente "peek" — indica que hay más cards a la derecha
+  contextCarouselPeek: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: '12px',
+    width: '48px',
+    background: 'linear-gradient(to right, transparent, rgba(248,250,252,0.95))',
+    pointerEvents: 'none',
+    zIndex: 2,
+    borderRadius: `0 ${RADIUS.lg} ${RADIUS.lg} 0`,
+  },
+  // Dot indicators
+  contextCarouselDots: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '6px',
+    marginTop: '4px',
+  },
+  contextCarouselDot: (isActive) => ({
+    width: isActive ? '16px' : '6px',
+    height: '6px',
+    borderRadius: RADIUS.full,
+    background: isActive ? COLORS.atomicTangerine : COLORS.border,
+    transition: TRANSITIONS.fast,
+  }),
+
   // ==========================================================
   //  STOP CARD ENRIQUECIDA (Modo Ruta lectura)
   // ==========================================================
@@ -615,29 +644,11 @@ export const styles = {
     color: COLORS.textSecondary,
     whiteSpace: 'nowrap',
   },
-  transportBadge: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '4px',
-    fontSize: '0.8rem',
-    background: COLORS.background,
-    padding: '2px 8px',
-    borderRadius: RADIUS.full,
-    border: `1px solid ${COLORS.border}`,
-    color: COLORS.textSecondary,
-  },
   notaCorta: {
     fontSize: '0.88rem',
     color: COLORS.textTertiary,
     lineHeight: 1.4,
     fontStyle: 'italic',
-  },
-  dateRange: {
-    fontSize: '0.78rem',
-    color: COLORS.textSecondary,
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
   },
 
   // ==========================================================

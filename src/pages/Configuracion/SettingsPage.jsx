@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Save, User, Camera, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { COLORS, SHADOWS, RADIUS } from '../../theme';
+import { COLORS, SHADOWS, RADIUS, FONTS } from '../../theme';
 
 const SettingsPage = () => {
   const { usuario, actualizarPerfilUsuario, logout, isAdmin } = useAuth();
@@ -81,7 +81,7 @@ const SettingsPage = () => {
 };
 
 const styles = {
-  container: { padding: '40px', maxWidth: '800px', margin: '0 auto', fontFamily: '"Plus Jakarta Sans", sans-serif' },
+  container: { padding: '40px', maxWidth: '800px', margin: '0 auto', fontFamily: FONTS.heading },
   titleRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' },
   badgeGroup: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' },
   title: { fontSize: '2.5rem', fontWeight: '900', color: COLORS.charcoalBlue, marginBottom: '30px' },
