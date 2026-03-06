@@ -63,7 +63,7 @@ const LevelUpModal = ({ show, level, onClose }) => {
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: Z_INDEX.toast + 10,
+            zIndex: Z_INDEX.celebration,
             cursor: 'pointer',
           }}
         >

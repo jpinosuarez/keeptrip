@@ -85,7 +85,7 @@ function UploadingImage({ preview, status, esPortada, error, onRetry }) {
         alt="Subiendo..."
         style={{ 
           ...styles.image, 
-          opacity: isFailed ? 0.4 : 0.7,
+          opacity: isFailed ? 0.4 : isSuccess ? 1 : 0.7,
           filter: isLoading ? 'blur(2px)' : 'none'
         }}
       />
@@ -261,8 +261,15 @@ export function GalleryGrid({ fotos = [], fotosSubiendo = [], onReintentarFoto, 
     }
   };
 
-  // Filtrar fotos que están subiendo (no completadas)
-  const fotosEnProceso = fotosSubiendo.filter(f => f.status !== 'success');
+  // Mantener fotos 'success' visibles hasta que Firestore las confirme en el array fotos.
+  // Esto evita el parpadeo (gap) que ocurre entre el éxito de la subida y el onSnapshot.
+  const fotosEnProceso = fotosSubiendo.filter(f => {
+    if (f.status === 'success') {
+      // Sólo ocultar cuando el ID real ya aparece en fotos (Firestore sincronizó)
+      return !fotos.some(foto => foto.id === f.fotoId);
+    }
+    return true;
+  });
   const totalVisible = fotos.length + fotosEnProceso.length;
 
   if (totalVisible === 0) {
