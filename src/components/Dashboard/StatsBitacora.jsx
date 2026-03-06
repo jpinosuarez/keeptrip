@@ -1,8 +1,10 @@
 import React from 'react';
 import { Calendar, MapPin, BookOpen, Star } from 'lucide-react';
 import { COLORS, SHADOWS, RADIUS } from '../../theme';
+import { useTranslation } from 'react-i18next';
 
 const StatsBitacora = ({ bitacora = [], bitacoraData = {} }) => {
+  const { t } = useTranslation('dashboard');
   
   // 1. Días totales (Suma de todas las duraciones)
   const calcularDiasTotales = () => {
@@ -30,10 +32,10 @@ const StatsBitacora = ({ bitacora = [], bitacoraData = {} }) => {
   };
 
   const statsCrono = [
-    { label: 'Días totales de viaje', value: calcularDiasTotales(), icon: <Calendar size={20} />, color: COLORS.danger },
-    { label: 'Ciudades registradas', value: calcularTotalCiudades(), icon: <MapPin size={20} />, color: '#3b82f6' },
-    { label: 'Viajes realizados', value: bitacora.length, icon: <BookOpen size={20} />, color: '#10b981' },
-    { label: 'Puntaje promedio', value: `${calcularPromedio()} / 5`, icon: <Star size={20} />, color: '#f59e0b' }
+    { label: t('stats.totalDays'), value: calcularDiasTotales(), icon: <Calendar size={20} />, color: COLORS.danger },
+    { label: t('stats.registeredCities'), value: calcularTotalCiudades(), icon: <MapPin size={20} />, color: '#3b82f6' },
+    { label: t('stats.tripsCompleted'), value: bitacora.length, icon: <BookOpen size={20} />, color: '#10b981' },
+    { label: t('stats.averageRating'), value: `${calcularPromedio()} / 5`, icon: <Star size={20} />, color: '#f59e0b' }
   ];
 
   return (

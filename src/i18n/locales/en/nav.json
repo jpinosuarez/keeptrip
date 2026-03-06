@@ -7,5 +7,10 @@
   "map": "Mapa",
   "journal": "Bitácora",
   "curation": "Curación",
-  "exit": "Salir"
+  "exit": "Salir",
+  "hub": "Hub",
+  "adjust": "Ajustes",
+  "addTrip": "Añadir Viaje",
+  "searchJournal": "Buscar en la bitácora",
+  "clearSearch": "Limpiar búsqueda"
 }

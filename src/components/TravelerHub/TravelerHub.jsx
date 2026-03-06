@@ -6,6 +6,7 @@ import { useWindowSize } from '../../hooks/useWindowSize';
 import AchievementCard from './AchievementCard';
 import { styles } from './TravelerHub.styles';
 import { COLORS } from '../../theme';
+import { useTranslation } from 'react-i18next';
 
 /**
  * TravelerHub — the gamification hub with a Bento-style layout.
@@ -13,6 +14,7 @@ import { COLORS } from '../../theme';
  */
 const TravelerHub = ({ paisesVisitados, bitacora, achievementsWithProgress, stats }) => {
   const { isMobile } = useWindowSize(768);
+  const { t } = useTranslation('hub');
 
   const countryCount = paisesVisitados.length;
   const level = getTravelerLevel(countryCount);
@@ -48,8 +50,8 @@ const TravelerHub = ({ paisesVisitados, bitacora, achievementsWithProgress, stat
             <h2 style={styles.heroLabel}>{level.label}</h2>
             <p style={styles.heroSublabel}>
               {next.level
-                ? `${next.remaining} país${next.remaining !== 1 ? 'es' : ''} para ${next.level.label}`
-                : '🏆 Nivel máximo alcanzado'}
+                ? `${next.remaining} ${next.remaining !== 1 ? t('goals.units.countries_other') : t('goals.units.countries_one')} para ${next.level.label}`
+                : t('biometric.maxLevel')}
             </p>
             {next.level && (
               <div style={styles.heroProgressOuter}>
@@ -66,15 +68,15 @@ const TravelerHub = ({ paisesVisitados, bitacora, achievementsWithProgress, stat
           <div style={styles.heroRight}>
             <div style={styles.heroStat}>
               <span style={styles.heroStatValue}>{countryCount}</span>
-              <span style={styles.heroStatLabel}>Países</span>
+              <span style={styles.heroStatLabel}>{t('stats.countries')}</span>
             </div>
             <div style={styles.heroStat}>
               <span style={styles.heroStatValue}>{bitacora.length}</span>
-              <span style={styles.heroStatLabel}>Viajes</span>
+              <span style={styles.heroStatLabel}>{t('stats.trips')}</span>
             </div>
             <div style={styles.heroStat}>
               <span style={styles.heroStatValue}>{stats.continents}</span>
-              <span style={styles.heroStatLabel}>Continentes</span>
+              <span style={styles.heroStatLabel}>{t('stats.continents')}</span>
             </div>
           </div>
         </motion.div>
@@ -87,17 +89,17 @@ const TravelerHub = ({ paisesVisitados, bitacora, achievementsWithProgress, stat
             transition={{ duration: 0.35, delay: 0.1 }}
           >
             <div style={styles.sectionHeader}>
-              <h3 style={styles.sectionTitle}><Target size={16} /> Próximos Objetivos</h3>
+              <h3 style={styles.sectionTitle}><Target size={16} /> {t('achievements.nextGoals')}</h3>
             </div>
             <div style={styles.goalsCard}>
               {nextGoals.map((goal, i) => {
                 const isLast = i === nextGoals.length - 1;
                 const remaining = goal.criteria.threshold - goal.current;
                 const unitMap = {
-                  countries: remaining === 1 ? 'país' : 'países',
-                  trips: remaining === 1 ? 'viaje' : 'viajes',
-                  continents: remaining === 1 ? 'continente' : 'continentes',
-                  detailed_trips: remaining === 1 ? 'viaje detallado' : 'viajes detallados',
+                  countries: remaining === 1 ? t('goals.units.countries_one') : t('goals.units.countries_other'),
+                  trips: remaining === 1 ? t('goals.units.trips_one') : t('goals.units.trips_other'),
+                  continents: remaining === 1 ? t('goals.units.continents_one') : t('goals.units.continents_other'),
+                  detailed_trips: remaining === 1 ? t('goals.units.detailed_trips_one') : t('goals.units.detailed_trips_other'),
                 };
                 return (
                   <div key={goal.id} style={isLast ? styles.goalRowLast : styles.goalRow}>
@@ -123,7 +125,7 @@ const TravelerHub = ({ paisesVisitados, bitacora, achievementsWithProgress, stat
             transition={{ duration: 0.35, delay: 0.15 }}
           >
             <div style={styles.sectionHeader}>
-              <h3 style={styles.sectionTitle}><Trophy size={16} /> Logros Desbloqueados</h3>
+              <h3 style={styles.sectionTitle}><Trophy size={16} /> {t('achievements.unlockedTitle')}</h3>
               <span style={styles.sectionMeta}>{unlockedCount}/{totalCount}</span>
             </div>
             <div style={styles.achievementsGrid(isMobile)}>
@@ -143,7 +145,7 @@ const TravelerHub = ({ paisesVisitados, bitacora, achievementsWithProgress, stat
           >
             <div style={styles.sectionHeader}>
               <h3 style={styles.sectionTitle}>
-                <Compass size={16} /> Por Descubrir
+                <Compass size={16} /> {t('achievements.lockedTitle')}
               </h3>
             </div>
             <div style={styles.achievementsGrid(isMobile)}>

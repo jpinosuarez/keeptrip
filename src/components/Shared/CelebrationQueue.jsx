@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { COLORS, SHADOWS, RADIUS, FONTS, Z_INDEX } from '../../theme';
 import { TIER_COLORS } from '../../engines/achievementDefinitions';
+import { useTranslation } from 'react-i18next';
 
 const fireConfetti = (color) => {
   if (typeof window === 'undefined') return;
@@ -19,7 +20,7 @@ const fireConfetti = (color) => {
   frame();
 };
 
-const LevelUpCard = ({ level, onNext, isLast }) => (
+const LevelUpCard = ({ level, onNext, isLast, t }) => (
   <motion.div
     initial={{ scale: 0.5, opacity: 0, y: 30 }}
     animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -31,18 +32,18 @@ const LevelUpCard = ({ level, onNext, isLast }) => (
     <div style={{ fontSize: '4rem', marginBottom: '12px', lineHeight: 1 }}>
       {level.icon}
     </div>
-    <h2 style={cardStyles.title}>¡Nuevo nivel!</h2>
+    <h2 style={cardStyles.title}>{t('hub:levelup.title')}</h2>
     <p style={{ ...cardStyles.highlight, color: level.color }}>{level.label}</p>
     <p style={cardStyles.body}>
-      Tu colección de sellos crece. Seguí explorando para alcanzar el siguiente nivel.
+      {t('hub:levelup.message')}
     </p>
     <button type="button" onClick={onNext} style={{ ...cardStyles.btn, background: level.color, boxShadow: `0 4px 14px ${level.color}40` }}>
-      {isLast ? '¡Genial! 🎉' : 'Siguiente →'}
+      {isLast ? t('hub:celebration.great') : t('hub:celebration.next')}
     </button>
   </motion.div>
 );
 
-const AchievementUnlockCard = ({ achievement, onNext, isLast }) => {
+const AchievementUnlockCard = ({ achievement, onNext, isLast, t }) => {
   const tierColor = TIER_COLORS[achievement.tier] || COLORS.atomicTangerine;
   return (
     <motion.div
@@ -60,19 +61,19 @@ const AchievementUnlockCard = ({ achievement, onNext, isLast }) => {
       >
         {achievement.icon}
       </motion.div>
-      <h2 style={cardStyles.title}>¡Logro desbloqueado!</h2>
+      <h2 style={cardStyles.title}>{t('hub:achievements.unlocked')}</h2>
       <p style={{ ...cardStyles.highlight, color: tierColor }}>{achievement.id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}</p>
       <div style={{ ...cardStyles.tierBadge, background: `${tierColor}18`, border: `1px solid ${tierColor}40`, color: tierColor }}>
         {achievement.tier.charAt(0).toUpperCase() + achievement.tier.slice(1)}
       </div>
       <button type="button" onClick={onNext} style={{ ...cardStyles.btn, background: tierColor, boxShadow: `0 4px 14px ${tierColor}40` }}>
-        {isLast ? '¡Genial! 🎉' : 'Siguiente →'}
+        {isLast ? t('hub:celebration.great') : t('hub:celebration.next')}
       </button>
     </motion.div>
   );
 };
 
-const SummaryCard = ({ celebrations, onDismiss }) => (
+const SummaryCard = ({ celebrations, onDismiss, t }) => (
   <motion.div
     initial={{ scale: 0.5, opacity: 0, y: 30 }}
     animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -82,16 +83,16 @@ const SummaryCard = ({ celebrations, onDismiss }) => (
     style={{ ...cardStyles.card, padding: '32px 36px' }}
   >
     <div style={{ fontSize: '2.5rem', marginBottom: '8px', lineHeight: 1 }}>🏆</div>
-    <h2 style={cardStyles.title}>¡Resumen de Expedición!</h2>
+    <h2 style={cardStyles.title}>{t('hub:achievements.summaryTitle')}</h2>
     <p style={{ ...cardStyles.body, marginBottom: '16px' }}>
-      Desbloqueaste {celebrations.length} logros de una vez:
+      {t('hub:achievements.summaryBody', { count: celebrations.length })}
     </p>
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginBottom: '20px' }}>
       {celebrations.map((c, i) => {
         const isLevel = c.type === 'level-up';
         const color = isLevel ? c.data.color : TIER_COLORS[c.data.tier] || COLORS.atomicTangerine;
         const icon = c.data.icon;
-        const label = isLevel ? `Nivel: ${c.data.label}` : c.data.id.replace(/_/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase());
+        const label = isLevel ? t('hub:celebration.levelPrefix', { label: c.data.label }) : c.data.id.replace(/_/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase());
         return (
           <div
             key={`${c.type}-${i}`}
@@ -104,14 +105,14 @@ const SummaryCard = ({ celebrations, onDismiss }) => (
             <span style={{ fontSize: '1.3rem' }}>{icon}</span>
             <span style={{ fontWeight: '700', color: COLORS.charcoalBlue, fontSize: '0.9rem', fontFamily: FONTS.heading }}>{label}</span>
             <span style={{ marginLeft: 'auto', fontSize: '0.7rem', fontWeight: '700', color, textTransform: 'uppercase' }}>
-              {isLevel ? 'Nivel' : c.data.tier}
+              {isLevel ? t('hub:celebration.level') : c.data.tier}
             </span>
           </div>
         );
       })}
     </div>
     <button type="button" onClick={onDismiss} style={{ ...cardStyles.btn, background: COLORS.atomicTangerine, boxShadow: SHADOWS.glow }}>
-      ¡Increíble! 🚀
+      {t('hub:celebration.amazing')}
     </button>
   </motion.div>
 );
@@ -121,6 +122,7 @@ const SummaryCard = ({ celebrations, onDismiss }) => (
  * Renders one celebration at a time, or a summary if 3+ are queued.
  */
 const CelebrationQueue = ({ celebrations, onDismiss, onDismissAll }) => {
+  const { t } = useTranslation('hub');
   const current = celebrations[0];
   const isLast = celebrations.length === 1;
   const showSummary = celebrations.length >= 3;
@@ -154,11 +156,11 @@ const CelebrationQueue = ({ celebrations, onDismiss, onDismissAll }) => {
         }}
       >
         {showSummary ? (
-          <SummaryCard celebrations={celebrations} onDismiss={onDismissAll} />
+          <SummaryCard celebrations={celebrations} onDismiss={onDismissAll} t={t} />
         ) : current.type === 'level-up' ? (
-          <LevelUpCard level={current.data} onNext={onDismiss} isLast={isLast} />
+          <LevelUpCard level={current.data} onNext={onDismiss} isLast={isLast} t={t} />
         ) : (
-          <AchievementUnlockCard achievement={current.data} onNext={onDismiss} isLast={isLast} />
+          <AchievementUnlockCard achievement={current.data} onNext={onDismiss} isLast={isLast} t={t} />
         )}
       </motion.div>
     </AnimatePresence>

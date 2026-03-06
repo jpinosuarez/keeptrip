@@ -68,12 +68,12 @@ describe('EdicionModal (borrador)', () => {
 
     // Esperar que el input del título tenga el título generado
     await waitFor(() => {
-      const input = screen.getByPlaceholderText(/Título del viaje/i);
+      const input = screen.getByPlaceholderText(/tripTitlePlaceholder/i);
       expect(input).toHaveValue('Escapada a Barcelona');
     });
 
     // La galería del servidor no debe mostrarse para borradores
-    expect(screen.queryByText(/Portada/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/labels\.portada/)).not.toBeInTheDocument();
   });
 
   test('cambiar a Manual al tipear en el título', async () => {
@@ -81,9 +81,9 @@ describe('EdicionModal (borrador)', () => {
     const viaje = { id: 'new', nombreEspanol: 'Chile', titulo: '', fechaInicio: '2024-01-01', fechaFin: '2024-01-02' };
     render(<EdicionModal viaje={viaje} esBorrador={true} {...defaultProps} />);
 
-    const input = await screen.findByPlaceholderText(/Título del viaje/i);
+    const input = await screen.findByPlaceholderText(/tripTitlePlaceholder/i);
     // al inicio debe estar en Auto (badge)
-    expect(screen.getByRole('button', { name: /Auto|Manual/ })).toHaveTextContent('Auto');
+    expect(screen.getByRole('button', { name: /autoTitle|manualTitle/ })).toHaveTextContent('autoTitle');
 
     // Limpiar y escribir manualmente
     await user.clear(input);
@@ -91,9 +91,9 @@ describe('EdicionModal (borrador)', () => {
 
     // Badge debe indicar Manual (el nombre accesible viene del texto, no del title)
     await waitFor(() => {
-      const btn = screen.getByRole('button', { name: /Manual/i });
-      expect(btn).toHaveTextContent('Manual');
-      expect(btn).toHaveAttribute('title', expect.stringMatching(/Usando título manual/i));
+      const btn = screen.getByRole('button', { name: /manualTitle/i });
+      expect(btn).toHaveTextContent('manualTitle');
+      expect(btn).toHaveAttribute('title', expect.stringMatching(/tooltip\.manualMode/i));
     });
   });
 });

@@ -16,9 +16,11 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
 import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS, Z_INDEX } from '../../theme';
+import { useTranslation } from 'react-i18next';
 
 const Sidebar = ({ isMobile = false }) => {
   const { logout, isAdmin } = useAuth();
+  const { t } = useTranslation('nav');
   const {
     vistaActiva,
     setVistaActiva,
@@ -29,12 +31,12 @@ const Sidebar = ({ isMobile = false }) => {
   } = useUI();
 
   const menuItems = [
-    { id: 'home', icon: LayoutGrid, label: 'Inicio' },
-    { id: 'mapa', icon: Map, label: 'Mapa' },
-    { id: 'bitacora', icon: BookOpen, label: 'Bitacora' },
-    { id: 'hub', icon: Trophy, label: 'Hub' },
-    { id: 'curacion', icon: Image, label: 'Curacion' },
-    { id: 'config', icon: Settings, label: 'Ajustes' }
+    { id: 'home', icon: LayoutGrid, label: t('home') },
+    { id: 'mapa', icon: Map, label: t('map') },
+    { id: 'bitacora', icon: BookOpen, label: t('journal') },
+    { id: 'hub', icon: Trophy, label: t('hub') },
+    { id: 'curacion', icon: Image, label: t('curation') },
+    { id: 'config', icon: Settings, label: t('adjust') }
   ].filter((item) => item.id !== 'curacion' || isAdmin);
 
   const handleSelect = (id) => {
@@ -134,7 +136,7 @@ const Sidebar = ({ isMobile = false }) => {
                 exit={{ opacity: 0, width: 0 }}
                 style={{ marginLeft: '10px', whiteSpace: 'nowrap' }}
               >
-                Salir
+                {t('exit')}
               </motion.span>
             )}
           </AnimatePresence>

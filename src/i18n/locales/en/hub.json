@@ -1,52 +1,77 @@
 {
   "passport": {
-    "title": "PASSPORT",
+    "title": "PASAPORTE",
     "subtitle": "GLOBAL STAMP",
     "est": "EST. 2026"
   },
   "biometric": {
-    "title": "BIOMETRIC PROFILE",
-    "holder": "HOLDER",
-    "countries": "COUNTRIES",
-    "trips": "TRIPS",
-    "maxLevel": "🏆 Max level reached — you're a legend.",
-    "progressText": "{{remaining}} country(ies) → {{icon}} {{label}}"
+    "title": "PERFIL BIOMÉTRICO",
+    "holder": "TITULAR",
+    "countries": "PAÍSES",
+    "trips": "VIAJES",
+    "maxLevel": "🏆 Nivel máximo alcanzado — eres una leyenda.",
+    "progressText": "{{remaining}} país(es) → {{icon}} {{label}}"
   },
   "stamps": {
     "admitted": "ADMITTED {{year}}",
     "region": "{{region}}"
   },
   "levelup": {
-    "title": "Level Up!",
-    "message": "Your stamp collection grows. Keep exploring to reach the next level.",
-    "button": "Awesome! 🎉"
+    "title": "¡Nuevo nivel!",
+    "message": "Tu colección de sellos crece. Seguí explorando para alcanzar el siguiente nivel.",
+    "button": "¡Genial! 🎉"
   },
   "achievements": {
-    "unlockedTitle": "Unlocked Achievements",
-    "lockedTitle": "Yet to Discover",
-    "nextGoals": "Next Goals",
-    "summaryTitle": "Expedition Summary!",
-    "summaryBody": "You unlocked {{count}} achievements at once:",
-    "unlocked": "Achievement Unlocked!",
-    "first_stamp": "First Stamp",
-    "first_stamp_desc": "Register your first trip",
-    "five_flags": "Five Flags",
-    "five_flags_desc": "Visit 5 countries",
-    "road_warrior": "Road Warrior",
-    "road_warrior_desc": "Register 10 trips",
-    "continent3": "Three Continents",
-    "continent3_desc": "Set foot on 3 continents",
-    "wanderlust": "Wanderlust",
-    "wanderlust_desc": "Visit 10 countries",
-    "storyteller": "Storyteller",
-    "storyteller_desc": "5 trips with 3+ stops",
-    "continent5": "World Citizen",
-    "continent5_desc": "Set foot on 5 continents",
-    "cartographer": "Cartographer",
-    "cartographer_desc": "Visit 25 countries",
-    "centurion": "Centurion",
-    "centurion_desc": "Register 25 trips",
-    "legend": "Living Legend",
-    "legend_desc": "Visit 50 countries"
+    "unlockedTitle": "Logros Desbloqueados",
+    "lockedTitle": "Por Descubrir",
+    "nextGoals": "Próximos Objetivos",
+    "summaryTitle": "¡Resumen de Expedición!",
+    "summaryBody": "Desbloqueaste {{count}} logros de una vez:",
+    "unlocked": "¡Logro desbloqueado!",
+    "first_stamp": "Primer Sello",
+    "first_stamp_desc": "Registrá tu primer viaje",
+    "five_flags": "Cinco Banderas",
+    "five_flags_desc": "Visitá 5 países",
+    "road_warrior": "Viajero Incansable",
+    "road_warrior_desc": "Registrá 10 viajes",
+    "continent3": "Tres Continentes",
+    "continent3_desc": "Pisá 3 continentes",
+    "wanderlust": "Alma Nómada",
+    "wanderlust_desc": "Visitá 10 países",
+    "storyteller": "Cuenta Cuentos",
+    "storyteller_desc": "5 viajes con 3+ paradas",
+    "continent5": "Ciudadano del Mundo",
+    "continent5_desc": "Pisá 5 continentes",
+    "cartographer": "Cartógrafo",
+    "cartographer_desc": "Visitá 25 países",
+    "centurion": "Centenario",
+    "centurion_desc": "Registrá 25 viajes",
+    "legend": "Leyenda Viviente",
+    "legend_desc": "Visitá 50 países"
+  },
+  "stats": {
+    "countries": "Países",
+    "trips": "Viajes",
+    "continents": "Continentes"
+  },
+  "goals": {
+    "remaining": "{{count}} {{unit}} para desbloquear",
+    "units": {
+      "countries_one": "país",
+      "countries_other": "países",
+      "trips_one": "viaje",
+      "trips_other": "viajes",
+      "continents_one": "continente",
+      "continents_other": "continentes",
+      "detailed_trips_one": "viaje detallado",
+      "detailed_trips_other": "viajes detallados"
+    }
+  },
+  "celebration": {
+    "next": "Siguiente →",
+    "great": "¡Genial! 🎉",
+    "amazing": "¡Increíble! 🚀",
+    "level": "Nivel",
+    "levelPrefix": "Nivel: {{label}}"
   }
 }

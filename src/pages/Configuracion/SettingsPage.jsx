@@ -1,59 +1,61 @@
 import React, { useState } from 'react';
-import { Save, User, Camera, LogOut } from 'lucide-react';
+import { Save, User, Camera, LogOut, Globe } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { COLORS, SHADOWS, RADIUS, FONTS } from '../../theme';
+import { useTranslation } from 'react-i18next';
 
 const SettingsPage = () => {
   const { usuario, actualizarPerfilUsuario, logout, isAdmin } = useAuth();
+  const { t, i18n } = useTranslation(['settings', 'common']);
   const [nombre, setNombre] = useState(usuario?.displayName || '');
   const [foto, setFoto] = useState(usuario?.photoURL || '');
   const [msg, setMsg] = useState('');
 
   const handleSave = async (e) => {
     e.preventDefault();
-    setMsg('Guardando...');
+    setMsg(t('settings:saving'));
     const exito = await actualizarPerfilUsuario(nombre, foto);
-    setMsg(exito ? '¡Perfil actualizado con éxito!' : 'Hubo un error.');
+    setMsg(exito ? t('settings:toast.success') : t('settings:toast.error'));
     setTimeout(() => setMsg(''), 3000);
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.titleRow}>
-        <h1 style={styles.title}>Configuración de Cuenta</h1>
+        <h1 style={styles.title}>{t('settings:accountTitle')}</h1>
         <div style={styles.badgeGroup}>
           {usuario?.email && (
             <span style={styles.emailBadge}>{usuario.email}</span>
           )}
           <span style={styles.adminBadge(isAdmin)}>
-            {isAdmin ? 'Administrador' : 'Usuario'}
+            {isAdmin ? t('settings:admin') : t('settings:user')}
           </span>
         </div>
       </div>
       
       <div style={styles.card}>
         <div style={styles.section}>
-          <h2 style={styles.subtitle}>Perfil Público</h2>
+          <h2 style={styles.subtitle}>{t('settings:publicProfile')}</h2>
           
           <div style={styles.avatarSection}>
             <div style={styles.avatar}>
               <img src={foto || 'https://via.placeholder.com/150'} alt="Avatar" style={{width:'100%', height:'100%', objectFit:'cover'}} />
             </div>
             <div style={{flex:1}}>
-              <label style={styles.label}>URL de tu Foto</label>
+              <label style={styles.label}>{t('settings:photoUrl')}</label>
               <div style={{display:'flex', gap:'10px'}}>
                 <input 
                   style={styles.input} 
                   value={foto} 
                   onChange={e => setFoto(e.target.value)} 
-                  placeholder="https://..." 
+                  placeholder={t('settings:urlPlaceholder')} 
                 />
               </div>
-              <p style={styles.helper}>Recomendamos usar una URL de imagen pública.</p>
+              <p style={styles.helper}>{t('settings:photoUrlHelper')}</p>
             </div>
           </div>
 
-          <label style={styles.label}>Nombre de Viajero</label>
+          <label style={styles.label}>{t('settings:travelerName')}</label>
           <input 
             style={styles.input} 
             value={nombre} 
@@ -63,18 +65,49 @@ const SettingsPage = () => {
 
         <div style={styles.actions}>
           <button onClick={handleSave} style={styles.saveBtn}>
-            <Save size={18} /> Guardar Cambios
+            <Save size={18} /> {t('common:saveChanges')}
           </button>
           {msg && <span style={styles.msg}>{msg}</span>}
         </div>
       </div>
 
       <div style={{...styles.card, marginTop:'30px', borderColor: '#fee2e2'}}>
-        <h2 style={{...styles.subtitle, color: COLORS.danger}}>Zona de Peligro</h2>
-        <p style={{marginBottom:'20px', color:COLORS.textSecondary}}>Cerrar sesión en este dispositivo.</p>
+        <h2 style={{...styles.subtitle, color: COLORS.danger}}>{t('settings:dangerZone')}</h2>
+        <p style={{marginBottom:'20px', color:COLORS.textSecondary}}>{t('settings:logoutDescription')}</p>
         <button onClick={logout} style={styles.logoutBtn}>
-          <LogOut size={18} /> Cerrar Sesión
+          <LogOut size={18} /> {t('common:logout')}
         </button>
+      </div>
+
+      {/* Language Selector */}
+      <div style={{...styles.card, marginTop:'30px'}}>
+        <h2 style={styles.subtitle}><Globe size={18} style={{marginRight:'8px', verticalAlign:'middle'}} />{t('settings:language.title')}</h2>
+        <p style={{marginBottom:'16px', color:COLORS.textSecondary}}>{t('settings:language.description')}</p>
+        <div style={{display:'flex', gap:'12px'}}>
+          {[{ code: 'es', label: '🇪🇸 Español' }, { code: 'en', label: '🇺🇸 English' }].map(lang => {
+            const isActive = i18n.language === lang.code;
+            return (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => i18n.changeLanguage(lang.code)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: RADIUS.md,
+                  border: isActive ? `2px solid ${COLORS.atomicTangerine}` : `1px solid ${COLORS.border}`,
+                  background: isActive ? '#fff7ed' : COLORS.surface,
+                  fontWeight: isActive ? '800' : '600',
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  color: isActive ? COLORS.charcoalBlue : COLORS.textSecondary,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {lang.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

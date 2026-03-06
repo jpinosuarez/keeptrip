@@ -1,8 +1,10 @@
 import React from 'react';
 import { Globe, Compass, Clock, Map, Percent } from 'lucide-react';
 import { COLORS, SHADOWS, RADIUS } from '../../theme';
+import { useTranslation } from 'react-i18next';
 
 const StatsMapa = ({ bitacora = [], paisesVisitados = [] }) => {
+  const { t } = useTranslation('dashboard');
   const totalPaisesMundo = 195;
   const countPaises = paisesVisitados.length;
   const porcentajeMundo = ((countPaises / totalPaisesMundo) * 100).toFixed(1);
@@ -19,9 +21,9 @@ const StatsMapa = ({ bitacora = [], paisesVisitados = [] }) => {
     // Diferencia en meses
     const difMeses = (hoy.getFullYear() - ultima.getFullYear()) * 12 + (hoy.getMonth() - ultima.getMonth());
     
-    if (difMeses === 0) return "Este mes";
-    if (difMeses < 12) return `Hace ${difMeses}m`;
-    return `Hace ${Math.floor(difMeses/12)} años`;
+    if (difMeses === 0) return t('stats.thisMonth');
+    if (difMeses < 12) return t('stats.monthsAgo', { count: difMeses });
+    return t('stats.yearsAgo', { count: Math.floor(difMeses/12) });
   };
 
   const obtenerRegionPredominante = () => {
@@ -35,10 +37,10 @@ const StatsMapa = ({ bitacora = [], paisesVisitados = [] }) => {
   };
 
   const statsGeo = [
-    { label: 'Países visitados', value: `${countPaises} / ${totalPaisesMundo}`, icon: <Globe size={20} />, color: COLORS.mutedTeal },
-    { label: 'Mundo Recorrido', value: `${porcentajeMundo}%`, icon: <Percent size={20} />, color: COLORS.atomicTangerine },
-    { label: 'Continentes', value: `${continentesUnicos} de 7`, icon: <Compass size={20} />, color: COLORS.charcoalBlue },
-    { label: 'Región principal', value: obtenerRegionPredominante(), icon: <Map size={20} />, color: COLORS.atomicTangerine }
+    { label: t('stats.countriesVisited'), value: `${countPaises} / ${totalPaisesMundo}`, icon: <Globe size={20} />, color: COLORS.mutedTeal },
+    { label: t('stats.worldCovered'), value: `${porcentajeMundo}%`, icon: <Percent size={20} />, color: COLORS.atomicTangerine },
+    { label: t('stats.continents'), value: `${continentesUnicos} de 7`, icon: <Compass size={20} />, color: COLORS.charcoalBlue },
+    { label: t('stats.mainRegion'), value: obtenerRegionPredominante(), icon: <Map size={20} />, color: COLORS.atomicTangerine }
   ];
 
   return (

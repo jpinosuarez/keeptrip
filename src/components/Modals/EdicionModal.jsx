@@ -11,8 +11,10 @@ import { useToast } from '../../context/ToastContext';
 import { useUpload } from '../../context/UploadContext';
 import { useWindowSize } from '../../hooks/useWindowSize';
 import CityManager from '../Shared/CityManager';
+import InfoTooltip from '../Shared/InfoTooltip';
 import { compressImage } from '../../utils/imageUtils';
 import { generarTituloInteligente } from '../../utils/viajeUtils';
+import { useTranslation } from 'react-i18next';
 import { parseFlexibleDate, formatDateRange } from '../../utils/viajeUtils';
 import { GalleryUploader } from '../Shared/GalleryUploader';
 import { useGaleriaViaje } from '../../hooks/useGaleriaViaje';
@@ -20,6 +22,7 @@ import { useGaleriaViaje } from '../../hooks/useGaleriaViaje';
 const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSaving = false }) => {
   const { usuario } = useAuth();
   const { pushToast } = useToast();
+  const { t } = useTranslation('editor');
   // useUpload puede no estar disponible en tests aislados; usar fallback seguro
   let iniciarSubida = () => {};
   try {
@@ -217,28 +220,28 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
         // Iniciar subida de fotos en background (no bloquea)
         if (galleryFiles.length > 0) {
           iniciarSubida(savedViajeId, galleryFiles, galleryPortada);
-          pushToast('Subiendo fotos en segundo plano...', 'info');
+          pushToast(t('toast.uploadingPhotos'), 'info');
         }
         limpiarEstado();
         onClose();
       } else {
-        pushToast('No se pudo guardar el viaje. Revisa los datos e intenta de nuevo.', 'error');
+        pushToast(t('error.saveFailed'), 'error');
       }
     } catch (err) {
-      pushToast('Error inesperado al guardar. Intenta de nuevo.', 'error');
+      pushToast(t('error.unexpectedError'), 'error');
     }
   };
 
   const handleSetPortadaExistente = async (fotoId) => {
     const ok = await galeria.cambiarPortada(fotoId);
-    if (!ok) pushToast('No se pudo actualizar la portada.', 'error');
+    if (!ok) pushToast(t('error.coverUpdateFailed'), 'error');
   };
 
   const handleEliminarFoto = async (fotoId) => {
-    const confirm = window.confirm('Eliminar esta foto de la galeria?');
+    const confirm = window.confirm(t('confirm.deletePhoto'));
     if (!confirm) return;
     const ok = await galeria.eliminar(fotoId);
-    if (!ok) pushToast('No se pudo eliminar la foto.', 'error');
+    if (!ok) pushToast(t('error.photoDeleteFailed'), 'error');
   };
 
   const handleCaptionChange = (fotoId, value) => {
@@ -254,10 +257,10 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     if (currentCaption === nextCaption) return;
     const ok = await galeria.actualizarCaption(foto.id, nextCaption);
     if (!ok) {
-      pushToast('No se pudo guardar el caption.', 'error');
+      pushToast(t('error.captionSaveFailed'), 'error');
       return;
     }
-    pushToast('Caption actualizado.', 'success', 1500);
+    pushToast(t('toast.captionUpdated'), 'success', 1500);
   };
 
   // Buscar usuarios por nombre/email (autocomplete simple) — con debounce
@@ -299,7 +302,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     // Evitar duplicados por userId o email
     const exists = (formData.companions || []).some(c => c.userId === user.uid || (c.email && user.email && c.email === user.email));
     if (exists) {
-      pushToast('Este compañero ya está agregado.', 'warning');
+      pushToast(t('warning.companionAlreadyAdded'), 'warning');
       setCompanionResults([]);
       setCompanionDraft('');
       return;
@@ -311,9 +314,9 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     if (viaje?.id && usuario?.uid) {
       try {
         await createInvitationService({ db, inviterId: usuario.uid, inviteeUid: user.uid, viajeId: viaje.id });
-        pushToast('Invitación enviada.', 'success');
+        pushToast(t('toast.invitationSent'), 'success');
       } catch (err) {
-        pushToast('No se pudo crear la invitación.', 'error');
+        pushToast(t('error.invitationFailed'), 'error');
       }
     }
     setCompanionResults([]);
@@ -324,7 +327,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     const trimmed = text.trim();
     const exists = (formData.companions || []).some(c => (c.email && c.email === trimmed) || (c.name && c.name === trimmed));
     if (exists) {
-      pushToast('Este compañero ya está agregado.', 'warning');
+      pushToast(t('warning.companionAlreadyAdded'), 'warning');
       return setCompanionDraft('');
     }
 
@@ -335,9 +338,9 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     if (viaje?.id && usuario?.uid && trimmed.includes('@')) {
       try {
         await createInvitationService({ db, inviterId: usuario.uid, inviteeEmail: trimmed, viajeId: viaje.id });
-        pushToast('Invitación creada.', 'info');
+        pushToast(t('toast.invitationCreated'), 'info');
       } catch (err) {
-        pushToast('No se pudo crear la invitación.', 'error');
+        pushToast(t('error.invitationFailed'), 'error');
       }
     }
     setCompanionDraft('');
@@ -352,7 +355,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     }
 
     if (!['image/jpeg', 'image/png'].includes(file.type)) {
-      pushToast('Formato no soportado. Usa JPG o PNG.', 'error');
+      pushToast(t('error.unsupportedFormat'), 'error');
       e.target.value = '';
       setIsProcessingImage(false);
       return;
@@ -368,7 +371,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
       setFormData((prev) => ({ ...prev, foto: dataUrl, fotoFile: optimizedFile, fotoCredito: null }));
     } catch (error) {
       console.error('Error optimizando imagen:', error);
-      pushToast('No se pudo optimizar la imagen seleccionada.', 'error');
+      pushToast(t('error.optimizationFailed'), 'error');
     } finally {
       setIsProcessingImage(false);
       e.target.value = '';
@@ -402,7 +405,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                         if (esBorrador && isTituloAuto) setIsTituloAuto(false);
                       }}
                       style={titlePulse ? styles.titleInputAutoPulse : styles.titleInput}
-                      placeholder="Título del viaje"
+                      placeholder={t('tripTitlePlaceholder')}
                       disabled={isBusy}
                     />
                     {esBorrador && (
@@ -410,15 +413,15 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                         type="button"
                         style={styles.autoBadge(isTituloAuto)}
                         title={isTituloAuto
-                          ? 'Se actualiza al agregar o quitar ciudades'
-                          : 'Usando título manual. Click para volver a auto.'}
+                          ? t('tooltip.autoUpdate')
+                          : t('tooltip.manualMode')}
                         onClick={() => {
                           // Si pasa de manual a auto, regenerar el título
                           setIsTituloAuto((prev) => !prev);
                         }}
                         disabled={isBusy}
                       >
-                        {isTituloAuto ? 'Auto' : 'Manual'}
+                        {isTituloAuto ? t('autoTitle') : t('manualTitle')}
                       </button>
                     )}
                   </div>
@@ -427,7 +430,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
             {isProcessingImage && (
               <div style={styles.processingBadge}>
                 <LoaderCircle size={14} className="spin" />
-                Optimizando...
+                {t('optimizing')}
               </div>
             )}
             <label style={styles.cameraBtn(isBusy)}>
@@ -439,7 +442,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
           <div style={styles.body} className="custom-scroll">
             {/* Galería de fotos (siempre disponible) */}
             <div style={styles.section}>
-              <label style={styles.label}>Galería de fotos</label>
+              <label style={styles.label}>{t('labels.gallery')}</label>
               <GalleryUploader
                 files={galleryFiles}
                 onChange={setGalleryFiles}
@@ -490,7 +493,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                             <Trash2 size={14} />
                           </button>
                         </div>
-                        {f.esPortada && <span style={styles.portadaBadgeMini}>Portada</span>}
+                        {f.esPortada && <span style={styles.portadaBadgeMini}>{t('labels.portada')}</span>}
                       </div>
                     ))}
                   </div>
@@ -499,7 +502,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
             </div>
             {/* Paradas — fechas se derivan automáticamente */}
             <div style={styles.section}>
-              <label style={styles.label}><Calendar size={14}/> Paradas</label>
+              <label style={styles.label}><Calendar size={14}/> {t('labels.paradas')}</label>
               {fechaRangoDisplay && (
                 <span style={{fontSize:'0.82rem', color:COLORS.textSecondary, marginBottom:6, display:'block'}}>
                   📅 {fechaRangoDisplay}
@@ -507,35 +510,36 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
               )}
               <CityManager paradas={paradas} setParadas={setParadas} />
               {sinParadas && (
-                <span style={styles.inlineError}>Agrega al menos una ciudad para continuar.</span>
+                <span style={styles.inlineError}>{t('labels.addCityWarning')}</span>
               )}
             </div>
 
             {/* Contexto del viaje: presupuesto, vibe, companions */}
             <div style={styles.section}>
-              <label style={styles.label}>Contexto del viaje</label>
+              <label style={styles.label}>{t('labels.contexto')}</label>
 
               <div style={{display:'flex', gap:12, alignItems:'center', flexWrap:'wrap'}}>
                 <div style={{display:'flex', flexDirection:'column', gap:8}}>
-                  <label style={{fontSize:'0.75rem', color:COLORS.textSecondary}}>Presupuesto</label>
+                  <label style={{fontSize:'0.75rem', color:COLORS.textSecondary}}>{t('labels.presupuesto')} <InfoTooltip textKey="editor:tooltip.presupuesto" size={13} /></label>
                   <select
                     value={formData.presupuesto || ''}
                     onChange={e => setFormData({...formData, presupuesto: e.target.value || null})}
                     style={styles.dateInput}
                   >
-                    <option value=''>-- seleccionar --</option>
-                    <option value='Mochilero'>Mochilero</option>
-                    <option value='Económico'>Económico</option>
-                    <option value='Confort'>Confort</option>
-                    <option value='Lujo'>Lujo</option>
+                    <option value=''>-- {t('labels.selectDefault')} --</option>
+                    <option value='Mochilero'>{t('budget.mochilero')}</option>
+                    <option value='Económico'>{t('budget.economico')}</option>
+                    <option value='Confort'>{t('budget.confort')}</option>
+                    <option value='Lujo'>{t('budget.lujo')}</option>
                   </select>
                 </div>
 
                 <div style={{flex:1}}>
-                  <label style={{fontSize:'0.75rem', color:COLORS.textSecondary}}>Vibe</label>
+                  <label style={{fontSize:'0.75rem', color:COLORS.textSecondary}}>{t('labels.vibe')} <InfoTooltip textKey="editor:tooltip.vibe" size={13} /></label>
                   <div style={{display:'flex', gap:8, flexWrap:'wrap', marginTop:6}}>
                     {['Gastronómico','Aventura','Relax','Roadtrip','Cultural'].map(v => {
                       const selected = (formData.vibe || []).includes(v);
+                      const vibeKeyMap = { 'Gastronómico': 'gastronomico', 'Aventura': 'aventura', 'Relax': 'relax', 'Roadtrip': 'roadtrip', 'Cultural': 'cultural' };
                       return (
                         <button
                           key={v}
@@ -543,7 +547,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                           onClick={() => setFormData(prev => ({...prev, vibe: prev.vibe.includes(v) ? prev.vibe.filter(x => x !== v) : [...prev.vibe, v]}))}
                           style={{padding:'6px 10px', borderRadius:RADIUS.md, border:selected ? '1px solid #f59e0b' : `1px solid ${COLORS.border}`, background: selected ? '#fffbf0' : COLORS.surface, cursor:'pointer'}}
                         >
-                          {v}
+                          {t(`vibes.${vibeKeyMap[v]}`)}
                         </button>
                       );
                     })}
@@ -552,10 +556,10 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
               </div>
 
               <div style={{marginTop:12}}>
-                <label style={{fontSize:'0.75rem', color:COLORS.textSecondary}}>Compañeros</label>
+                <label style={{fontSize:'0.75rem', color:COLORS.textSecondary}}>{t('labels.companions')}</label>
                 <div style={{display:'flex', gap:8, alignItems:'center', marginTop:8}}>
                   <input
-                    placeholder='Nombre o email'
+                    placeholder={t('labels.nameOrEmail')}
                     value={companionDraft || ''}
                     onChange={e=> handleCompanionSearch(e.target.value)}
                     style={{flex:1, padding:8, borderRadius:RADIUS.sm, border:`1px solid ${COLORS.border}`}}
@@ -564,7 +568,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                     type='button'
                     onClick={() => companionDraft && companionDraft.trim() && handleAddCompanionFreeform(companionDraft)}
                     style={styles.saveBtn(false)}
-                  >Agregar</button>
+                  >{t('labels.addCompanion')}</button>
                 </div>
 
                 {companionResults.length > 0 && (
@@ -575,7 +579,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                           <strong style={{display:'block'}}>{u.displayName || u.email}</strong>
                           <div style={{fontSize:'0.75rem', color:COLORS.textSecondary}}>{u.email}</div>
                         </div>
-                        <button onClick={(e) => { e.stopPropagation(); handleAddCompanionFromResult(u); }} style={{padding:'6px 10px', borderRadius:RADIUS.sm, border:`1px solid ${COLORS.border}`, background:COLORS.surface}}>Agregar</button>
+                        <button onClick={(e) => { e.stopPropagation(); handleAddCompanionFromResult(u); }} style={{padding:'6px 10px', borderRadius:RADIUS.sm, border:`1px solid ${COLORS.border}`, background:COLORS.surface}}>{t('labels.addCompanion')}</button>
                       </div>
                     ))}
                   </div>
@@ -585,7 +589,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                 {companionResults.length === 0 && companionDraft && companionDraft.includes('@') && (
                   <div style={{marginTop:8}}>
                     <button type="button" style={{padding:'8px 12px', borderRadius:RADIUS.sm, border:`1px dashed ${COLORS.textSecondary}`, background:COLORS.surface}} onClick={() => handleAddCompanionFreeform(companionDraft)}>
-                      ✉️ Invitar por email: {companionDraft}
+                      {t('labels.inviteByEmail', { email: companionDraft })}
                     </button>
                   </div>
                 )}
@@ -601,23 +605,23 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
             </div>
 
             <div style={styles.section}>
-              <label style={styles.label}>Highlights</label>
+              <label style={styles.label}>{t('labels.highlights')} <InfoTooltip textKey="editor:tooltip.highlights" size={13} /></label>
               <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10}}>
-                <input placeholder='🍽️ El Plato' value={(formData.highlights?.topFood) || ''} onChange={e => setFormData(prev => ({...prev, highlights: {...(prev.highlights||{}), topFood: e.target.value}}))} style={styles.dateInput} />
-                <input placeholder='👀 La Vista' value={(formData.highlights?.topView) || ''} onChange={e => setFormData(prev => ({...prev, highlights: {...(prev.highlights||{}), topView: e.target.value}}))} style={styles.dateInput} />
-                <input placeholder='💡 El Tip' value={(formData.highlights?.topTip) || ''} onChange={e => setFormData(prev => ({...prev, highlights: {...(prev.highlights||{}), topTip: e.target.value}}))} style={{gridColumn:'1 / -1', padding:8, borderRadius:RADIUS.sm, border:`1px solid ${COLORS.border}`}} />
+                <input placeholder={t('highlightPlaceholders.topFood')} value={(formData.highlights?.topFood) || ''} onChange={e => setFormData(prev => ({...prev, highlights: {...(prev.highlights||{}), topFood: e.target.value}}))} style={styles.dateInput} />
+                <input placeholder={t('highlightPlaceholders.topView')} value={(formData.highlights?.topView) || ''} onChange={e => setFormData(prev => ({...prev, highlights: {...(prev.highlights||{}), topView: e.target.value}}))} style={styles.dateInput} />
+                <input placeholder={t('highlightPlaceholders.topTip')} value={(formData.highlights?.topTip) || ''} onChange={e => setFormData(prev => ({...prev, highlights: {...(prev.highlights||{}), topTip: e.target.value}}))} style={{gridColumn:'1 / -1', padding:8, borderRadius:RADIUS.sm, border:`1px solid ${COLORS.border}`}} />
               </div>
             </div>
 
             <div style={styles.section}>
-              <label style={styles.label}>Notas</label>
-              <textarea value={formData.texto || ''} onChange={e => setFormData({...formData, texto: e.target.value})} style={styles.textarea} placeholder="Escribe tus recuerdos aquí..." disabled={isBusy} />
+              <label style={styles.label}>{t('labels.notas')} <InfoTooltip textKey="editor:tooltip.relato" size={13} /></label>
+              <textarea value={formData.texto || ''} onChange={e => setFormData({...formData, texto: e.target.value})} style={styles.textarea} placeholder={t('labels.notesPlaceholder')} disabled={isBusy} />
             </div>
             <div style={styles.footer}>
-                <button onClick={onClose} style={styles.cancelBtn(isBusy)} disabled={isBusy}>Cancelar</button>
+                <button onClick={onClose} style={styles.cancelBtn(isBusy)} disabled={isBusy}>{t('button.cancel')}</button>
                 <button onClick={handleSave} style={styles.saveBtn(isBusy)} disabled={isBusy}>
                   {isBusy ? <LoaderCircle size={18} className="spin" /> : <Save size={18} />}
-                  {isProcessingImage ? 'Procesando...' : (isSaving ? 'Guardando...' : (esBorrador ? 'Crear Viaje' : 'Guardar'))}
+                  {isProcessingImage ? t('button.processing') : (isSaving ? t('button.saving') : (esBorrador ? t('button.createTrip') : t('button.save')))}
                 </button>
             </div>
           </div>

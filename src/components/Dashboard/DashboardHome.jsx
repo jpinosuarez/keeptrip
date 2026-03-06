@@ -7,10 +7,12 @@ import { COLORS } from '../../theme';
 import { styles } from './DashboardHome.styles';
 import HomeMap from '../Mapa/HomeMap';
 import { getTravelerLevel, getNextLevel } from '../../utils/travelerLevel';
+import { useTranslation } from 'react-i18next';
 
 const DashboardHome = ({ paisesVisitados, bitacora, isMobile = false }) => {
   const { usuario } = useAuth();
   const { setVistaActiva, abrirVisor, openBuscador } = useUI();
+  const { t } = useTranslation('dashboard');
   const nombre = usuario?.displayName ? usuario.displayName.split(' ')[0] : 'Viajero';
 
   const recientes = [...bitacora].sort((a, b) => new Date(b.fechaInicio) - new Date(a.fechaInicio));
@@ -29,39 +31,39 @@ const DashboardHome = ({ paisesVisitados, bitacora, isMobile = false }) => {
     <div style={styles.dashboardContainer(isMobile)}>
       <div style={styles.welcomeArea}>
         <div>
-          <h1 style={styles.title}>Hola, {nombre}</h1>
+          <h1 style={styles.title}>{t('greeting', { name: nombre })}</h1>
           <p style={styles.subtitle}>
             {level.icon} {level.label}
             {next.level && (
               <span style={{ opacity: 0.6, fontSize: '0.8rem', marginLeft: '8px' }}>
-                · {next.remaining} país{next.remaining !== 1 ? 'es' : ''} para {next.level.label}
+                · {next.remaining} {next.remaining !== 1 ? t('stats.countriesPlural') : t('stats.countrySingular')} para {next.level.label}
               </span>
             )}
           </p>
         </div>
 
         <div style={styles.headerStatsRow}>
-          <div style={styles.statPill} title={visitadosCount === 0 ? 'A la espera de tu primer pais visitado.' : undefined}>
+          <div style={styles.statPill} title={visitadosCount === 0 ? t('tooltip.awaitingFirstCountry') : undefined}>
             <div style={styles.pillIcon(COLORS.atomicTangerine)}><Flag size={14} color="white" /></div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span style={styles.pillValue}>{paisesCountLabel} <span style={{ fontSize: '0.7rem', opacity: 0.6, fontWeight: '400' }}>/ 195</span></span>
-              <span style={styles.pillLabel}>Paises</span>
+              <span style={styles.pillLabel}>{t('countries')}</span>
             </div>
           </div>
 
-          <div style={styles.statPill} title={bitacora.length === 0 ? 'A la espera de tu primera parada registrada.' : undefined}>
+          <div style={styles.statPill} title={bitacora.length === 0 ? t('tooltip.awaitingFirstStop') : undefined}>
             <div style={styles.pillIcon(COLORS.charcoalBlue)}><Compass size={14} color="white" /></div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span style={styles.pillValue}>{viajesCountLabel}</span>
-              <span style={styles.pillLabel}>Viajes</span>
+              <span style={styles.pillLabel}>{t('trips')}</span>
             </div>
           </div>
 
-          <div style={styles.statPill} title={visitadosCount === 0 ? 'A la espera de progreso global.' : undefined}>
+          <div style={styles.statPill} title={visitadosCount === 0 ? t('tooltip.awaitingProgress') : undefined}>
             <div style={styles.pillIcon(COLORS.mutedTeal)}><Trophy size={14} color="white" /></div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span style={styles.pillValue}>{porcentaje}%</span>
-              <span style={styles.pillLabel}>Mundo</span>
+              <span style={styles.pillLabel}>{t('world')}</span>
             </div>
           </div>
         </div>
@@ -74,10 +76,10 @@ const DashboardHome = ({ paisesVisitados, bitacora, isMobile = false }) => {
 
         <div style={styles.recentsContainer}>
           <div style={styles.sectionHeader}>
-            <span style={styles.sectionTitle}><TrendingUp size={16} /> Aventuras Recientes</span>
+            <span style={styles.sectionTitle}><TrendingUp size={16} /> {t('recentAdventures')}</span>
             {!isNewTraveler && (
               <button onClick={() => setVistaActiva('bitacora')} style={styles.viewAllBtn}>
-                Ver todas <ArrowRight size={14} />
+                {t('viewAll')} <ArrowRight size={14} />
               </button>
             )}
           </div>
@@ -135,12 +137,12 @@ const DashboardHome = ({ paisesVisitados, bitacora, isMobile = false }) => {
                   </div>
                   <Stamp size={64} color={COLORS.charcoalBlue} />
                 </div>
-                <h3 style={styles.welcomeTitle}>Tu pasaporte está en blanco</h3>
+                <h3 style={styles.welcomeTitle}>{t('emptyPassport')}</h3>
                 <p style={styles.welcomeText}>
-                  Cada gran viajero empezó con un primer sello. ¿Cuál será el tuyo?
+                  {t('firstSealMessage')}
                 </p>
                 <button type="button" style={styles.welcomeCta} onClick={openBuscador}>
-                  Estampar mi primer destino ✈️
+                  {t('stampFirstDestination')}
                 </button>
               </motion.div>
             )}

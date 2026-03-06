@@ -24,6 +24,8 @@
     "mainRegion": "Región principal",
     "thisMonth": "Este mes",
     "monthsAgo": "Hace {{count}}m",
-    "yearsAgo": "Hace {{count}} años"
+    "yearsAgo": "Hace {{count}} años",
+    "countrySingular": "país",
+    "countriesPlural": "países"
   }
 }

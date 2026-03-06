@@ -14,5 +14,9 @@
   "toast": {
     "success": "¡Perfil actualizado con éxito!",
     "error": "Hubo un error."
+  },
+  "language": {
+    "title": "Idioma",
+    "description": "Selecciona el idioma de la interfaz."
   }
 }

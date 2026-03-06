@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Lock } from 'lucide-react';
 import { COLORS, SHADOWS, RADIUS, FONTS, TRANSITIONS } from '../../theme';
 import { TIER_COLORS } from '../../engines/achievementDefinitions';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Individual achievement badge with locked/unlocked states.
@@ -11,36 +12,10 @@ import { TIER_COLORS } from '../../engines/achievementDefinitions';
 const AchievementCard = ({ achievement, isMobile = false }) => {
   const { icon, tier, progress, current, unlocked, criteria } = achievement;
   const tierColor = TIER_COLORS[tier] || COLORS.textSecondary;
+  const { t } = useTranslation('hub');
 
-  // Friendly name from id
-  const nameMap = {
-    first_stamp: 'Primer Sello',
-    five_flags: 'Cinco Banderas',
-    road_warrior: 'Viajero Incansable',
-    continent3: 'Tres Continentes',
-    wanderlust: 'Alma Nómada',
-    storyteller: 'Cuenta Cuentos',
-    continent5: 'Ciudadano del Mundo',
-    cartographer: 'Cartógrafo',
-    centurion: 'Centenario',
-    legend: 'Leyenda Viviente',
-  };
-
-  const descriptionMap = {
-    first_stamp: 'Registrá tu primer viaje',
-    five_flags: 'Visitá 5 países',
-    road_warrior: 'Registrá 10 viajes',
-    continent3: 'Pisá 3 continentes',
-    wanderlust: 'Visitá 10 países',
-    storyteller: '5 viajes con 3+ paradas',
-    continent5: 'Pisá 5 continentes',
-    cartographer: 'Visitá 25 países',
-    centurion: 'Registrá 25 viajes',
-    legend: 'Visitá 50 países',
-  };
-
-  const name = nameMap[achievement.id] || achievement.id;
-  const description = descriptionMap[achievement.id] || '';
+  const name = t(`achievements.${achievement.id}`, achievement.id);
+  const description = t(`achievements.${achievement.id}_desc`, '');
   const tierLabel = tier.charAt(0).toUpperCase() + tier.slice(1);
 
   const progressPct = Math.round(progress * 100);

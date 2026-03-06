@@ -17,7 +17,44 @@
     "vibe": "Vibe",
     "highlights": "Highlights",
     "relato": "Relato de esta parada",
-    "storyPlaceholder": "Cuenta lo que viviste en esta ciudad..."
+    "storyPlaceholder": "Cuenta lo que viviste en esta ciudad...",
+    "gallery": "Galería de fotos",
+    "paradas": "Paradas",
+    "contexto": "Contexto del viaje",
+    "companions": "Compañeros",
+    "notas": "Notas",
+    "addCompanion": "Agregar",
+    "inviteByEmail": "✉️ Invitar por email: {{email}}",
+    "nameOrEmail": "Nombre o email",
+    "selectDefault": "-- seleccionar --",
+    "notesPlaceholder": "Escribe tus recuerdos aquí...",
+    "addCityWarning": "Agrega al menos una ciudad para continuar.",
+    "portada": "Portada"
+  },
+  "budget": {
+    "mochilero": "Mochilero",
+    "economico": "Económico",
+    "confort": "Confort",
+    "lujo": "Lujo"
+  },
+  "vibes": {
+    "gastronomico": "Gastronómico",
+    "aventura": "Aventura",
+    "relax": "Relax",
+    "roadtrip": "Roadtrip",
+    "cultural": "Cultural"
+  },
+  "highlightPlaceholders": {
+    "topFood": "🍽️ El Plato",
+    "topView": "👀 La Vista",
+    "topTip": "💡 El Tip"
+  },
+  "button": {
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "createTrip": "Crear Viaje",
+    "processing": "Procesando...",
+    "saving": "Guardando..."
   },
   "search": {
     "newDestination": "Nuevo Destino",

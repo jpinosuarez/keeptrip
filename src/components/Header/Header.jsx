@@ -5,6 +5,7 @@ import { useSearch, useUI } from '../../context/UIContext';
 import { styles } from './Header.styles';
 import { COLORS, RADIUS } from '../../theme';
 import useInvitations from '../../hooks/useInvitations';
+import { useTranslation } from 'react-i18next';
 
 const Header = ({ isMobile = false }) => {
   const { usuario, login, logout } = useAuth();
@@ -18,6 +19,7 @@ const Header = ({ isMobile = false }) => {
   } = useUI();
   const { busqueda, setBusqueda, limpiarBusqueda } = useSearch();
   const { invitations } = useInvitations();
+  const { t } = useTranslation(['nav', 'common']);
   const [avatarError, setAvatarError] = useState(false);
   const iniciales = useMemo(() => usuario?.displayName?.trim()?.[0]?.toUpperCase() || '', [usuario?.displayName]);
 
@@ -29,7 +31,7 @@ const Header = ({ isMobile = false }) => {
     <header style={styles.header(isMobile)}>
       <div style={styles.leftSide}>
         {isMobile && (
-          <button type="button" style={styles.menuButton} onClick={openMobileDrawer} aria-label="Abrir menu">
+          <button type="button" style={styles.menuButton} onClick={openMobileDrawer} aria-label={t('nav:openMenu')}>
             <Menu size={18} />
           </button>
         )}
@@ -45,7 +47,7 @@ const Header = ({ isMobile = false }) => {
             <input
               type="text"
               placeholder={searchPlaceholder}
-              aria-label="Buscar en la bitacora"
+              aria-label={t('nav:searchJournal')}
               value={busqueda}
               onChange={(event) => setBusqueda(event.target.value)}
               style={styles.searchInput}
@@ -55,7 +57,7 @@ const Header = ({ isMobile = false }) => {
                 type="button"
                 onClick={limpiarBusqueda}
                 style={styles.clearButton}
-                aria-label="Limpiar busqueda"
+                aria-label={t('nav:clearSearch')}
               >
                 <X size={14} />
               </button>
@@ -65,7 +67,7 @@ const Header = ({ isMobile = false }) => {
 
         <button style={styles.addButton(isMobile)} onClick={openBuscador}>
           <Plus size={18} />
-          {!isMobile && <span style={styles.addButtonLabel}>Anadir Viaje</span>}
+          {!isMobile && <span style={styles.addButtonLabel}>{t('nav:addTrip')}</span>}
         </button>
 
         {usuario ? (
@@ -73,7 +75,7 @@ const Header = ({ isMobile = false }) => {
             <button
               data-testid="header-invitations-button"
               onClick={() => setVistaActiva('invitations')}
-              aria-label={`Invitaciones (${invitations?.length || 0})`}
+              aria-label={t('nav:invitations', { count: invitations?.length || 0 })}
               title="Invitaciones"
               style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: COLORS.textSecondary, display: 'flex', alignItems: 'center' }}
             >
@@ -89,7 +91,7 @@ const Header = ({ isMobile = false }) => {
               data-testid="header-avatar"
               style={{ ...styles.avatar, cursor: 'pointer' }}
               onClick={() => setVistaActiva('config')}
-              title="Configurar Perfil"
+              title={t('nav:settings')}
               role="button"
             >
               {usuario.photoURL && !avatarError ? (
@@ -111,7 +113,7 @@ const Header = ({ isMobile = false }) => {
                 data-testid="header-logout-button"
                 onClick={logout}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.textSecondary }}
-                title="Cerrar Sesion"
+                title={t('common:logout')}
               >
                 <LogOut size={18} />
               </button>
@@ -119,7 +121,7 @@ const Header = ({ isMobile = false }) => {
           </div>
         ) : (
           <button data-testid="header-login-button" onClick={login} style={{ ...styles.addButton(isMobile), backgroundColor: '#4285F4' }}>
-            Iniciar Sesion
+            {t('common:login')}
           </button>
         )}
       </div>

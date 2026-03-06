@@ -48,5 +48,30 @@
     "centurion_desc": "Registrá 25 viajes",
     "legend": "Leyenda Viviente",
     "legend_desc": "Visitá 50 países"
+  },
+  "stats": {
+    "countries": "Países",
+    "trips": "Viajes",
+    "continents": "Continentes"
+  },
+  "goals": {
+    "remaining": "{{count}} {{unit}} para desbloquear",
+    "units": {
+      "countries_one": "país",
+      "countries_other": "países",
+      "trips_one": "viaje",
+      "trips_other": "viajes",
+      "continents_one": "continente",
+      "continents_other": "continentes",
+      "detailed_trips_one": "viaje detallado",
+      "detailed_trips_other": "viajes detallados"
+    }
+  },
+  "celebration": {
+    "next": "Siguiente →",
+    "great": "¡Genial! 🎉",
+    "amazing": "¡Increíble! 🚀",
+    "level": "Nivel",
+    "levelPrefix": "Nivel: {{label}}"
   }
 }
