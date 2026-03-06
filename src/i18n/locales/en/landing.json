@@ -1,15 +1,15 @@
 {
-  "title": "Tus viajes merecen ser recordados.",
-  "titleTop": "Tus viajes merecen",
-  "titleHighlight": "ser recordados.",
-  "subtitle": "Deja de perder tus recuerdos en galerías infinitas. Keeptrip transforma tus rutas, fotos y fechas en un pasaporte digital vivo que cuenta tu historia.",
-  "ctaButton": "Comenzar mi Bitácora",
+  "title": "Your travels deserve to be remembered.",
+  "titleTop": "Your travels deserve",
+  "titleHighlight": "to be remembered.",
+  "subtitle": "Stop losing your memories in endless galleries. Keeptrip transforms your routes, photos, and dates into a living digital passport that tells your story.",
+  "ctaButton": "Start My Logbook",
   "feature": {
-    "map": "Mapa Interactivo",
-    "mapDesc": "Visualiza tu conquista del mundo coloreando cada país visitado.",
-    "journal": "Bitácora de Detalles",
-    "journalDesc": "Registra ciudades, clima y sensaciones de cada parada.",
-    "security": "Privado y Seguro",
-    "securityDesc": "Tus recuerdos son tuyos. Almacenamiento seguro en la nube."
+    "map": "Interactive Map",
+    "mapDesc": "Visualize your conquest of the world by coloring each country visited.",
+    "journal": "Detailed Logbook",
+    "journalDesc": "Record cities, weather, and feelings from each stop.",
+    "security": "Private and Secure",
+    "securityDesc": "Your memories are yours. Secure cloud storage."
   }
 }

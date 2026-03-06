@@ -1,103 +1,103 @@
 {
-  "photoGallery": "Galería de fotos",
-  "optimizing": "Optimizando...",
-  "tripTitlePlaceholder": "Título del viaje",
+  "photoGallery": "Photo Gallery",
+  "optimizing": "Optimizing...",
+  "tripTitlePlaceholder": "Trip Title",
   "autoTitle": "Auto",
   "manualTitle": "Manual",
   "tooltip": {
-    "autoUpdate": "Se actualiza al agregar o quitar ciudades",
-    "manualMode": "Usando título manual. Click para volver a auto.",
+    "autoUpdate": "Updates when adding or removing cities",
+    "manualMode": "Using manual title. Click to switch back to auto.",
     "vibe": "Define your trip's energy.",
     "highlights": "Your favorite moments in a few words.",
     "relato": "Tell each stop like a chapter.",
     "presupuesto": "Your approximate spending level."
   },
   "labels": {
-    "presupuesto": "Presupuesto",
+    "presupuesto": "Budget",
     "vibe": "Vibe",
     "highlights": "Highlights",
-    "relato": "Relato de esta parada",
-    "storyPlaceholder": "Cuenta lo que viviste en esta ciudad...",
-    "gallery": "Galería de fotos",
-    "paradas": "Paradas",
-    "contexto": "Contexto del viaje",
-    "companions": "Compañeros",
-    "notas": "Notas",
-    "addCompanion": "Agregar",
-    "inviteByEmail": "✉️ Invitar por email: {{email}}",
-    "nameOrEmail": "Nombre o email",
-    "selectDefault": "-- seleccionar --",
-    "notesPlaceholder": "Escribe tus recuerdos aquí...",
-    "addCityWarning": "Agrega al menos una ciudad para continuar.",
-    "portada": "Portada"
+    "relato": "Story of this stop",
+    "storyPlaceholder": "Share what you experienced in this city...",
+    "gallery": "Photo Gallery",
+    "paradas": "Stops",
+    "contexto": "Trip Context",
+    "companions": "Companions",
+    "notas": "Notes",
+    "addCompanion": "Add",
+    "inviteByEmail": "✉️ Invite by email: {{email}}",
+    "nameOrEmail": "Name or email",
+    "selectDefault": "-- select --",
+    "notesPlaceholder": "Write your memories here...",
+    "addCityWarning": "Add at least one city to continue.",
+    "portada": "Cover"
   },
   "budget": {
-    "mochilero": "Mochilero",
-    "economico": "Económico",
-    "confort": "Confort",
-    "lujo": "Lujo"
+    "mochilero": "Backpacker",
+    "economico": "Economical",
+    "confort": "Comfort",
+    "lujo": "Luxury"
   },
   "vibes": {
-    "gastronomico": "Gastronómico",
-    "aventura": "Aventura",
+    "gastronomico": "Gastronomic",
+    "aventura": "Adventure",
     "relax": "Relax",
     "roadtrip": "Roadtrip",
     "cultural": "Cultural"
   },
   "highlightPlaceholders": {
-    "topFood": "🍽️ El Plato",
-    "topView": "👀 La Vista",
-    "topTip": "💡 El Tip"
+    "topFood": "🍽️ The Dish",
+    "topView": "👀 The View",
+    "topTip": "💡 The Tip"
   },
   "button": {
-    "cancel": "Cancelar",
-    "save": "Guardar",
-    "createTrip": "Crear Viaje",
-    "processing": "Procesando...",
-    "saving": "Guardando..."
+    "cancel": "Cancel",
+    "save": "Save",
+    "createTrip": "Create Trip",
+    "processing": "Processing...",
+    "saving": "Saving..."
   },
   "search": {
-    "newDestination": "Nuevo Destino",
-    "placeholder": "Escribe un país o ciudad...",
-    "searching": "Buscando en el mapa... 🌍",
-    "popularDestinations": "DESTINOS POPULARES",
-    "country": "País",
-    "searchCountry": "Buscar país (min 3 letras)..."
+    "newDestination": "New Destination",
+    "placeholder": "Type a country or city...",
+    "searching": "Searching on the map... 🌍",
+    "popularDestinations": "POPULAR DESTINATIONS",
+    "country": "Country",
+    "searchCountry": "Search country (min 3 letters)..."
   },
   "citymanager": {
-    "searchPlaceholder": "Buscar ciudad (min 3 letras)...",
-    "arrival": "Llegada",
-    "departure": "Salida",
-    "dateFormat": "dd/mm/aaaa",
-    "note": "Nota",
-    "notePlaceholder": "Nota corta (ej: 'Perdí el tren')",
+    "searchPlaceholder": "Search city (min 3 letters)...",
+    "arrival": "Arrival",
+    "departure": "Departure",
+    "dateFormat": "dd/mm/yyyy",
+    "note": "Note",
+    "notePlaceholder": "Short note (e.g., 'Missed the train')",
     "transport": {
-      "plane": "✈️ Avión",
-      "train": "🚆 Tren",
-      "car": "🚗 Auto",
+      "plane": "✈️ Plane",
+      "train": "🚆 Train",
+      "car": "🚗 Car",
       "bus": "🚌 Bus",
-      "other": "🔁 Otro"
+      "other": "🔁 Other"
     }
   },
   "error": {
-    "unsupportedFormat": "Formato no soportado. Usa JPG o PNG.",
-    "optimizationFailed": "No se pudo optimizar la imagen seleccionada.",
-    "saveFailed": "No se pudo guardar el viaje. Revisa los datos e intenta de nuevo.",
-    "unexpectedError": "Error inesperado al guardar. Intenta de nuevo.",
-    "coverUpdateFailed": "No se pudo actualizar la portada.",
-    "photoDeleteFailed": "No se pudo eliminar la foto.",
-    "invitationFailed": "No se pudo crear la invitación."
+    "unsupportedFormat": "Unsupported format. Use JPG or PNG.",
+    "optimizationFailed": "Could not optimize the selected image.",
+    "saveFailed": "Could not save the trip. Check the data and try again.",
+    "unexpectedError": "Unexpected error while saving. Try again.",
+    "coverUpdateFailed": "Could not update the cover.",
+    "photoDeleteFailed": "Could not delete the photo.",
+    "invitationFailed": "Could not create the invitation."
   },
   "toast": {
-    "uploadingPhotos": "Subiendo fotos en segundo plano...",
-    "invitationSent": "Invitación enviada.",
-    "invitationCreated": "Invitación creada.",
-    "captionUpdated": "Caption actualizado."
+    "uploadingPhotos": "Uploading photos in the background...",
+    "invitationSent": "Invitation sent.",
+    "invitationCreated": "Invitation created.",
+    "captionUpdated": "Caption updated."
   },
   "confirm": {
-    "deletePhoto": "¿Eliminar esta foto de la galería?"
+    "deletePhoto": "Delete this photo from the gallery?"
   },
   "warning": {
-    "companionAlreadyAdded": "Este compañero ya está agregado."
+    "companionAlreadyAdded": "This companion is already added."
   }
 }

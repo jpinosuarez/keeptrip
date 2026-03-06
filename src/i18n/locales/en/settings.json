@@ -1,22 +1,22 @@
 {
-  "accountTitle": "Configuración de Cuenta",
-  "admin": "Administrador",
-  "user": "Usuario",
-  "publicProfile": "Perfil Público",
-  "photoUrl": "URL de tu Foto",
-  "photoUrlHelper": "Recomendamos usar una URL de imagen pública.",
+  "accountTitle": "Account Settings",
+  "admin": "Administrator",
+  "user": "User",
+  "publicProfile": "Public Profile",
+  "photoUrl": "Your Photo URL",
+  "photoUrlHelper": "We recommend using a public image URL.",
   "urlPlaceholder": "https://...",
-  "travelerName": "Nombre de Viajero",
-  "dangerZone": "Zona de Peligro",
-  "logoutDescription": "Cerrar sesión en este dispositivo.",
-  "saving": "Guardando...",
-  "editProfile": "Editar Perfil",
+  "travelerName": "Traveler Name",
+  "dangerZone": "Danger Zone",
+  "logoutDescription": "Log out on this device.",
+  "saving": "Saving...",
+  "editProfile": "Edit Profile",
   "toast": {
-    "success": "¡Perfil actualizado con éxito!",
-    "error": "Hubo un error."
+    "success": "Profile updated successfully!",
+    "error": "An error occurred."
   },
   "language": {
-    "title": "Idioma",
-    "description": "Selecciona el idioma de la interfaz."
+    "title": "Language",
+    "description": "Select the interface language."
   }
 }

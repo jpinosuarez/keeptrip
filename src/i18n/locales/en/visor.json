@@ -1,24 +1,24 @@
 {
-  "bitacora": "Bitácora",
-  "noStoryYet": "Sin relato aún...",
-  "photoGallery": "Galería de fotos",
-  "gallerySubtitle": "Tus recuerdos, listos para contar la historia.",
-  "hideEditing": "Ocultar edición",
-  "editGallery": "Editar galería",
-  "itinerary": "Itinerario",
-  "markAsCover": "Marcar como portada",
-  "makeCover": "Hacer portada",
-  "cover": "Portada",
+  "bitacora": "Logbook",
+  "noStoryYet": "No story yet...",
+  "photoGallery": "Photo Gallery",
+  "gallerySubtitle": "Your memories, ready to tell the story.",
+  "hideEditing": "Hide editing",
+  "editGallery": "Edit gallery",
+  "itinerary": "Itinerary",
+  "markAsCover": "Mark as cover",
+  "makeCover": "Make cover",
+  "cover": "Cover",
   "climate": {
-    "cloudy": "Cielo nublado, {{temp}}°C",
-    "sunny": "Día soleado, {{temp}}°C",
-    "rainy": "Llovió, {{temp}}°C"
+    "cloudy": "Cloudy sky, {{temp}}°C",
+    "sunny": "Sunny day, {{temp}}°C",
+    "rainy": "Rainy, {{temp}}°C"
   },
   "aria": {
-    "currentCover": "Imagen actual de portada",
-    "deletePhoto": "Eliminar foto"
+    "currentCover": "Current cover image",
+    "deletePhoto": "Delete photo"
   },
   "error": {
-    "captionSaveFailed": "No se pudo guardar el caption."
+    "captionSaveFailed": "Could not save the caption."
   }
 }

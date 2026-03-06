@@ -1,22 +1,22 @@
 {
-  "shareTrip": "Compartir viaje",
-  "chooseStyle": "Elegí un estilo para tu Historia",
+  "shareTrip": "Share trip",
+  "chooseStyle": "Choose a style for your Story",
   "variant": {
-    "classic": "Clásica",
+    "classic": "Classic",
     "stats": "Stats",
-    "stamp": "Sello"
+    "stamp": "Stamp"
   },
-  "button": "Compartir",
+  "button": "Share",
   "template": {
-    "logTitle": "✈ BITÁCORA DE VIAJE",
-    "immigration": "✈ INMIGRACIÓN ✈",
-    "approved": "APROBADO"
+    "logTitle": "✈ TRAVEL LOGBOOK",
+    "immigration": "✈ IMMIGRATION ✈",
+    "approved": "APPROVED"
   },
   "stats": {
-    "countries": "Países",
-    "stops": "Paradas",
-    "days": "Días",
-    "budget": "Presupuesto"
+    "countries": "Countries",
+    "stops": "Stops",
+    "days": "Days",
+    "budget": "Budget"
   },
   "branding": "KEEPTRIP"
 }
