@@ -1,11 +1,14 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import Map, { Source, Layer } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { COLORS, RADIUS } from '../../theme';
+import { setMapLanguage } from '../../utils/mapLanguage';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 const HomeMap = ({ paisesVisitados = [] }) => {
+  const { i18n } = useTranslation();
   const [hoverInfo, setHoverInfo] = useState(null);
 
   const onHover = useCallback(event => {
@@ -31,7 +34,7 @@ const HomeMap = ({ paisesVisitados = [] }) => {
         scrollZoom={false}
         dragPan={false}
         doubleClickZoom={false}
-        
+        onLoad={(e) => setMapLanguage(e.target, i18n.language)}
         onMouseMove={onHover}
         interactiveLayerIds={['country-fills']} // Solo interactuar con países pintados
         attributionControl={false}
@@ -84,7 +87,7 @@ const HomeMap = ({ paisesVisitados = [] }) => {
             fontWeight: '600'
           }}>
             {/* Mapbox suele tener name_es o name_en */}
-            {hoverInfo.feature.properties.name_es || hoverInfo.feature.properties.name_en || "País"}
+            {hoverInfo.feature.properties[`name_${i18n.language}`] || hoverInfo.feature.properties.name_en || "País"}
           </div>
         )}
       </Map>

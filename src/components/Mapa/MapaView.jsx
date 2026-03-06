@@ -1,12 +1,15 @@
 import React, { useRef, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import Map, { Source, Layer, NavigationControl, FullscreenControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { COLORS, RADIUS, SHADOWS, GLASS } from '../../theme';
+import { setMapLanguage } from '../../utils/mapLanguage';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 function MapaView({ paises = [], paradas = [] }) {
+  const { i18n } = useTranslation();
   const mapRef = useRef(null);
   const [viewState, setViewState] = useState({ longitude: 20, latitude: 20, zoom: 1.5 });
 
@@ -41,6 +44,7 @@ function MapaView({ paises = [], paradas = [] }) {
         mapStyle="mapbox://styles/mapbox/light-v11"
         mapboxAccessToken={MAPBOX_TOKEN}
         projection="globe"
+        onLoad={(e) => setMapLanguage(e.target, i18n.language)}
         reuseMaps
       >
         <Layer id="sky" type="sky" paint={{ 'sky-type': 'atmosphere', 'sky-atmosphere-sun': [0.0, 0.0], 'sky-atmosphere-sun-intensity': 5 }} />

@@ -22,9 +22,9 @@ export const COLORES_CONTINENTE = {
   Antarctic: '#475569' 
 };
 
-// --- 4. LA BASE DE DATOS MAESTRA (MAPA_SELLOS) ---
+// --- 4. LA BASE DE DATOS MAESTRA (COUNTRIES_DB) ---
 // Coordenadas aproximadas [latitud, longitud] para el efecto flyTo
-export const MAPA_SELLOS = [
+export const COUNTRIES_DB = [
   { code: "AFG", nombreEspanol: "Afganistán", name: "Afghanistan", flag: "🇦🇫", continente: "Asia", latlng: [33.9391, 67.71] },
   { code: "ALB", nombreEspanol: "Albania", name: "Albania", flag: "🇦🇱", continente: "Europe", latlng: [41.1533, 20.1683] },
   { code: "DEU", nombreEspanol: "Alemania", name: "Germany", flag: "🇩🇪", continente: "Europe", latlng: [51.1657, 10.4515] },
@@ -219,4 +219,4 @@ export const MAPA_SELLOS = [
 ];
 
 // --- 5. LISTADO ISO (Para lógica de Mapbox) ---
-export const ISO_PAISES = MAPA_SELLOS.map(p => p.code);
+export const ISO_PAISES = COUNTRIES_DB.map(p => p.code);

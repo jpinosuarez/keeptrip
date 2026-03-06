@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, MapPin, Plus, TrendingUp, Globe } from "lucide-react";
 import { COLORS } from "../../theme";
@@ -26,6 +27,7 @@ const BuscadorModal = ({
   onSearchError,
   onNoResults
 }) => {
+  const { i18n } = useTranslation();
   const { isMobile } = useWindowSize(768);
   const [resultados, setResultados] = useState([]);
   const [cargando, setCargando] = useState(false);
@@ -52,7 +54,7 @@ const BuscadorModal = ({
     debounceRef.current = setTimeout(async () => {
       setCargando(true);
       try {
-        const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(filtro)}.json?types=country,place,locality&language=es&access_token=${MAPBOX_TOKEN}`;
+        const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(filtro)}.json?types=country,place,locality&language=${i18n.language}&access_token=${MAPBOX_TOKEN}`;
         const res = await fetch(endpoint);
         const data = await res.json();
 

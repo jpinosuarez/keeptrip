@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HelpCircle } from 'lucide-react';
 import { COLORS, RADIUS, SHADOWS, GLASS, FONTS } from '../../theme';
@@ -16,6 +17,7 @@ import { COLORS, RADIUS, SHADOWS, GLASS, FONTS } from '../../theme';
  *   size     — Tamaño del ícono en px (default: 15)
  */
 export default function InfoTooltip({ text, textKey, size = 15 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [above, setAbove] = useState(true);
   const triggerRef = useRef(null);
@@ -52,8 +54,8 @@ export default function InfoTooltip({ text, textKey, size = 15 }) {
     setOpen((v) => !v);
   };
 
-  // Resolve text: directo o con i18n key (el padre debe pasar el texto resuelto)
-  const displayText = text || textKey || '';
+  // Resolve text: directo o con i18n key
+  const displayText = text || (textKey ? t(textKey) : '');
 
   return (
     <span style={styles.wrapper}>

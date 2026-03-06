@@ -7,10 +7,10 @@
   "tooltip": {
     "autoUpdate": "Se actualiza al agregar o quitar ciudades",
     "manualMode": "Usando título manual. Click para volver a auto.",
-    "vibe": "Etiquetas que capturan la esencia de tu viaje. ¿Fue relajante, aventurero, cultural?",
-    "highlights": "Los momentos que no quieres olvidar: mejor comida, mejor vista, mejor consejo.",
-    "relato": "Escribe la historia de cada parada por separado. Tu viaje se narra paso a paso.",
-    "presupuesto": "Una referencia del nivel de gasto para este viaje."
+    "vibe": "Define your trip's energy.",
+    "highlights": "Your favorite moments in a few words.",
+    "relato": "Tell each stop like a chapter.",
+    "presupuesto": "Your approximate spending level."
   },
   "labels": {
     "presupuesto": "Presupuesto",

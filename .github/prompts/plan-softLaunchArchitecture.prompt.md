@@ -15,7 +15,7 @@
 | PWA | **Nada implementado**. Sin manifest, sin service worker |
 | Seguridad tokens | Mapbox y Pexels expuestos en bundle cliente via `VITE_*` |
 | Offline | Sin manejo. Firestore persistence no habilitada |
-| 195 países | `MAPA_SELLOS` ya tiene `nombreEspanol` + `name` (EN) — base para i18n de países |
+| 195 países | `COUNTRIES_DB` ya tiene `nombreEspanol` + `name` (EN) — base para i18n de países |
 
 ---
 
@@ -26,7 +26,7 @@
 **Nuevo engine**: `src/engines/achievementsEngine.js` — función pura `evaluateAchievements(userData)` que evalúa el historial completo del usuario contra definiciones de logros.
 
 - **Definiciones** en `src/engines/achievementDefinitions.js`: cada logro = `{ id, name_key, icon, category, condition(userData) → { unlocked, progress } }`
-- **Evaluación en cliente**: Compara definiciones vs datos de `useViajes` + `MAPA_SELLOS`
+- **Evaluación en cliente**: Compara definiciones vs datos de `useViajes` + `COUNTRIES_DB`
 - **Persistencia**: `usuarios/{userId}/achievements/{id}` en Firestore (solo logros desbloqueados + timestamp)
 - **Hook**: `useAchievements.js` orquesta engine + Firestore + dispara celebración (reutiliza `LevelUpModal`)
 
@@ -74,7 +74,7 @@ src/i18n/
 
 - **Se traduce**: Labels, botones, placeholders, tooltips, nombres de sección, nombres de logros
 - **NO se traduce**: `titulo`, `texto`, `relato`, `highlights.*`, `notaCorta` — contenido del usuario se renderiza tal cual desde Firestore
-- **Países**: `MAPA_SELLOS` ya tiene `nombreEspanol` + `name` — un helper resuelve según locale activo
+- **Países**: `COUNTRIES_DB` ya tiene `nombreEspanol` + `name` — un helper resuelve según locale activo
 
 ### Detección de idioma
 

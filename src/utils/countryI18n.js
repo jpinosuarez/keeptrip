@@ -1,6 +1,6 @@
-import { MAPA_SELLOS } from '../assets/sellos/index';
+import { COUNTRIES_DB } from '../assets/sellos/index';
 
-const indexByCode = Object.fromEntries(MAPA_SELLOS.map(c => [c.code, c]));
+const indexByCode = Object.fromEntries(COUNTRIES_DB.map(c => [c.code, c]));
 
 /**
  * Returns the localized country name based on language.

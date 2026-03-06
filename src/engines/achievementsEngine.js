@@ -5,13 +5,13 @@
  * No side-effects — all persistence is handled by the useAchievements hook.
  */
 
-import { MAPA_SELLOS } from '../assets/sellos/index';
+import { COUNTRIES_DB } from '../assets/sellos/index';
 import { ACHIEVEMENTS } from './achievementDefinitions';
 
 /** Build a continents Set from an array of ISO-3 country codes. */
 const getContinents = (countryCodes) => {
   const continents = new Set();
-  const lookup = new Map(MAPA_SELLOS.map((s) => [s.code, s.continente]));
+  const lookup = new Map(COUNTRIES_DB.map((s) => [s.code, s.continente]));
   for (const code of countryCodes) {
     const c = lookup.get(code);
     if (c) continents.add(c);

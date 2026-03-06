@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 import { COLORS, RADIUS, FONTS } from '../../theme';
 
-const PaginaSellos = ({ region, paises, MAPA_SELLOS, manejarEliminar }) => {
+const PaginaSellos = ({ region, paises, sellosMap, manejarEliminar }) => {
   
   // Colores de tinta según la región (Efecto de diseño oficial)
   const obtenerColorTinta = (reg) => {
@@ -32,7 +32,7 @@ const PaginaSellos = ({ region, paises, MAPA_SELLOS, manejarEliminar }) => {
         marginTop: '20px' 
       }}>
         {paises.map((p) => {
-          const tieneSello = MAPA_SELLOS[p.code];
+          const tieneSello = sellosMap[p.code];
           // Rotación aleatoria persistente basada en el código del país
           const randomRotate = (p.code.charCodeAt(0) % 12) - 6;
 

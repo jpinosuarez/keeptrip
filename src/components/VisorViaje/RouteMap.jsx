@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import Map, { Source, Layer, NavigationControl, Marker } from 'react-map-gl';
 import mapboxgl from 'mapbox-gl';
 import { motion, AnimatePresence } from 'framer-motion';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { COLORS, RADIUS, SHADOWS, GLASS, FONTS } from '../../theme';
+import { setMapLanguage } from '../../utils/mapLanguage';
 import { routeMapStyles as s } from './RouteMap.styles';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -52,12 +54,14 @@ function generateCurvedRoute(coordinates) {
  * se da únicamente con el highlight del Marker (sin flyTo).
  */
 const RouteMap = ({ paradas, activeIndex = 0, hoveredIndex = null, onMarkerHover, onMarkerHoverEnd, onMarkerClick, isModal = false }) => {
+  const { i18n } = useTranslation();
   const mapRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
   const handleMapLoad = useCallback(() => {
     setMapLoaded(true);
-  }, []);
+    if (mapRef.current) setMapLanguage(mapRef.current, i18n.language);
+  }, [i18n.language]);
 
   // ─── fitBounds helper — reutilizado en load y en modal resize ───
   const fitMapToBounds = useCallback(() => {
