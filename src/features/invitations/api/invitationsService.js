@@ -11,8 +11,8 @@ import {
   arrayUnion,
   orderBy
 } from 'firebase/firestore';
-import { db } from '../firebase';
-import { logger } from '../utils/logger';
+import { db } from '../../../firebase';
+import { logger } from '../../../utils/logger';
 
 /**
  * Invitations service

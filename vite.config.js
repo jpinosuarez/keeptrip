@@ -6,6 +6,11 @@ import process from 'node:process'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const baseAliases = {
+  '@app': path.resolve(__dirname, 'src/app'),
+  '@features': path.resolve(__dirname, 'src/features'),
+  '@shared': path.resolve(__dirname, 'src/shared'),
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -104,13 +109,14 @@ export default defineConfig({
   resolve: {
     alias: process.env.VITEST
       ? {
+          ...baseAliases,
           // En tests, redirigir módulos pesados a stubs livianos para evitar OOM.
           // lucide-react barrel (~2000 iconos) y framer-motion no se tree-shakean
           // en el entorno de Vitest/rolldown-vite.
           'lucide-react': path.resolve(__dirname, '__mocks__/lucide-react.js'),
           'framer-motion': path.resolve(__dirname, '__mocks__/framer-motion.js'),
         }
-      : {},
+      : baseAliases,
   },
   test: {
     // Setup global

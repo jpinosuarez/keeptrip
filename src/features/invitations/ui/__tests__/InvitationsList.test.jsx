@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock the hook used by the component
-vi.mock('../../../hooks/useInvitations', () => {
+vi.mock('../../model/useInvitations', () => {
   const accept = vi.fn().mockResolvedValue(true);
   const decline = vi.fn().mockResolvedValue(true);
   return {
@@ -21,14 +21,14 @@ vi.mock('../../../hooks/useInvitations', () => {
 });
 
 // Mock AuthContext, UIContext and ToastContext used by the component
-vi.mock('../../../context/AuthContext', () => ({ useAuth: () => ({ usuario: { uid: 'user123', email: 'a@b.com' } }) }));
+vi.mock('../../../../context/AuthContext', () => ({ useAuth: () => ({ usuario: { uid: 'user123', email: 'a@b.com' } }) }));
 const abrirVisorMock = vi.fn();
 const setVistaActivaMock = vi.fn();
-vi.mock('../../../context/UIContext', () => ({
+vi.mock('../../../../context/UIContext', () => ({
   useUI: () => ({ abrirVisor: abrirVisorMock, setVistaActiva: setVistaActivaMock })
 }));
 const pushToastMock = vi.fn();
-vi.mock('../../../context/ToastContext', () => ({
+vi.mock('../../../../context/ToastContext', () => ({
   useToast: () => ({ pushToast: pushToastMock })
 }));
 

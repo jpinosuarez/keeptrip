@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
-import * as invitationsService from '../services/invitationsService';
+import { useAuth } from '../../../context/AuthContext';
+import * as invitationsService from '../api/invitationsService';
 
 export default function useInvitations() {
   const { usuario } = useAuth();

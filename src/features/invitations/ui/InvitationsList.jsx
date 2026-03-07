@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
-import useInvitations from '../../hooks/useInvitations';
-import { useUI } from '../../context/UIContext';
-import { useToast } from '../../context/ToastContext';
-import { COLORS, RADIUS } from '../../theme';
+import { db } from '../../../firebase';
+import useInvitations from '../model/useInvitations';
+import { useUI } from '../../../context/UIContext';
+import { useToast } from '../../../context/ToastContext';
+import { COLORS, RADIUS } from '../../../theme';
 
 /**
  * Resuelve displayName del inviter y título del viaje para cada invitación.
@@ -18,7 +18,6 @@ function useInvitationMetadata(invitations) {
 
   useEffect(() => {
     if (!invitations || invitations.length === 0) {
-      setMeta({});
       return;
     }
 
@@ -75,7 +74,7 @@ function useInvitationMetadata(invitations) {
     return () => { cancelled = true; };
   }, [invitations]);
 
-  return meta;
+  return invitations && invitations.length > 0 ? meta : {};
 }
 
 export default function InvitationsList({ compact = false, hook = null }) {

@@ -4,10 +4,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import useInvitations from '../useInvitations';
-import * as invitationsService from '../../services/invitationsService';
-import * as AuthModule from '../../context/AuthContext';
+import * as invitationsService from '../../api/invitationsService';
+import * as AuthModule from '../../../../context/AuthContext';
 
-vi.mock('../../services/invitationsService');
+vi.mock('../../api/invitationsService');
 
 describe('useInvitations (integration via component)', () => {
   const fakeInv = [{ id: 'inv1', status: 'pending', inviterId: 'u1', viajeId: 'v1' }];
