@@ -1,6 +1,6 @@
 import React from 'react';
 
-import LandingPage from '../../components/Landing/LandingPage';
+import LandingPage from '@shared/ui/legacy_components/Landing/LandingPage';
 import AppActiveView from './AppActiveView';
 import AppModalsManager from './AppModalsManager';
 import AppScaffold from './AppScaffold';
@@ -9,9 +9,9 @@ import CelebrationQueue from '@shared/ui/components/CelebrationQueue';
 import PWAUpdatePrompt from '@shared/ui/components/PWAUpdatePrompt';
 import OfflineBanner from '@shared/ui/components/OfflineBanner';
 
-import { useViajes } from '../../hooks/useViajes';
-import { useWindowSize } from '../../hooks/useWindowSize';
-import { useAppShellComposition } from '../../hooks/useAppShellComposition';
+import { useViajes } from '@shared/lib/hooks/useViajes';
+import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
+import { useAppShellComposition } from '@shared/lib/hooks/useAppShellComposition';
 import { useAuth, useToast, useSearch, useUI } from '@app/providers';
 import { useAchievements } from '@features/gamification';
 import { useInvitations } from '@features/invitations';

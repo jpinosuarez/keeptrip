@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../../firebase';
+import { db } from '@shared/firebase';
 import useInvitations from '../model/useInvitations';
-import { useUI } from '../../../context/UIContext';
-import { useToast } from '../../../context/ToastContext';
-import { COLORS, RADIUS } from '../../../theme';
+import { useUI } from '@app/providers/UIContext';
+import { useToast } from '@app/providers/ToastContext';
+import { COLORS, RADIUS } from '@shared/config';
 
 /**
  * Resuelve displayName del inviter y título del viaje para cada invitación.

@@ -1,4 +1,4 @@
-import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS, SPACING, FONTS } from '../../../theme';
+import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS, SPACING, FONTS } from '@shared/config';
 
 export const styles = {
   // ==========================================================

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { formatDateRange } from '../../../../utils/viajeUtils';
+import { formatDateRange } from '@shared/lib/utils/viajeUtils';
 
 export function useVisorViajeStory({ data, viajeBase, paradas }) {
   const fotoMostrada = useMemo(() => {

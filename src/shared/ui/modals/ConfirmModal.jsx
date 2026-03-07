@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, LoaderCircle } from 'lucide-react';
 import { styles } from './ConfirmModal.styles';
-import { useWindowSize } from '../../../hooks/useWindowSize';
-import BottomSheet from '../components/BottomSheet';
+import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
+import BottomSheet from '@shared/ui/components/BottomSheet';
 
 const ConfirmModal = ({
   isOpen,

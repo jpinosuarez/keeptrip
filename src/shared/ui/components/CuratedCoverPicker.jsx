@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, LoaderCircle } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../../firebase';
+import { db } from '@shared/firebase';
 import { COLORS, RADIUS } from '@shared/config';
 
 const normalizeKey = (value) => {

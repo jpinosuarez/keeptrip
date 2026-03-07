@@ -16,7 +16,7 @@ const {
   setDocMock: vi.fn()
 }));
 
-vi.mock('../../../../firebase', () => ({
+vi.mock('@shared/firebase', () => ({
   db: { __db: 'default-db' }
 }));
 

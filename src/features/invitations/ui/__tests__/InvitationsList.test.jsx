@@ -21,14 +21,14 @@ vi.mock('../../model/useInvitations', () => {
 });
 
 // Mock AuthContext, UIContext and ToastContext used by the component
-vi.mock('../../../../context/AuthContext', () => ({ useAuth: () => ({ usuario: { uid: 'user123', email: 'a@b.com' } }) }));
+vi.mock('@app/providers/AuthContext', () => ({ useAuth: () => ({ usuario: { uid: 'user123', email: 'a@b.com' } }) }));
 const abrirVisorMock = vi.fn();
 const setVistaActivaMock = vi.fn();
-vi.mock('../../../../context/UIContext', () => ({
+vi.mock('@app/providers/UIContext', () => ({
   useUI: () => ({ abrirVisor: abrirVisorMock, setVistaActiva: setVistaActivaMock })
 }));
 const pushToastMock = vi.fn();
-vi.mock('../../../../context/ToastContext', () => ({
+vi.mock('@app/providers/ToastContext', () => ({
   useToast: () => ({ pushToast: pushToastMock })
 }));
 

@@ -1,4 +1,4 @@
-import { COLORS, RADIUS, SHADOWS, GLASS } from '../../../theme';
+import { COLORS, RADIUS, SHADOWS, GLASS } from '@shared/config';
 
 export const routeMapStyles = {
   container: {

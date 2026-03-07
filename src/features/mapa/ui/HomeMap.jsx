@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Map, { Source, Layer } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { COLORS, RADIUS } from '../../../theme';
+import { COLORS, RADIUS } from '@shared/config';
 import { setMapLanguage } from '@shared/lib/geo';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;

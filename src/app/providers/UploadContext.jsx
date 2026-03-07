@@ -1,10 +1,10 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
-import { storage, db } from '../../firebase';
+import { storage, db } from '@shared/firebase';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
-import { subirFotoGaleria } from '../../services/viajes/galeriaService';
-import { logger } from '../../utils/logger';
+import { subirFotoGaleria } from '@shared/api/services/viajes/galeriaService';
+import { logger } from '@shared/lib/utils/logger';
 
 /**
  * Estado de una foto en proceso de subida

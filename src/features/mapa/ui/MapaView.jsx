@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import Map, { Source, Layer, NavigationControl, FullscreenControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { COLORS, RADIUS, SHADOWS, GLASS } from '../../../theme';
+import { COLORS, RADIUS, SHADOWS, GLASS } from '@shared/config';
 import { setMapLanguage } from '@shared/lib/geo';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;

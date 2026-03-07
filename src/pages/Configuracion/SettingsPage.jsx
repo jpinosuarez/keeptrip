@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Save, User, Camera, LogOut, Globe } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { COLORS, SHADOWS, RADIUS, FONTS } from '../../theme';
+import { useAuth } from '@app/providers/AuthContext';
+import { COLORS, SHADOWS, RADIUS, FONTS } from '@shared/config';
 import { useTranslation } from 'react-i18next';
 
 const SettingsPage = () => {

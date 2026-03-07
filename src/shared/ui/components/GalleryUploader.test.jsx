@@ -4,7 +4,7 @@ import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { GalleryUploader } from './GalleryUploader';
-import { ToastProvider } from '../../../context/ToastContext';
+import { ToastProvider } from '@app/providers/ToastContext';
 
 describe('GalleryUploader', () => {
   test('muestra previews al seleccionar archivos y se limpian cuando files queda vacío', async () => {

@@ -1,4 +1,4 @@
-import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS, FONTS, SPACING } from '../../../../theme';
+import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS, FONTS, SPACING } from '@shared/config';
 
 export const styles = {
   overlay: (isMobile) => ({

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { db } from '../../../../../firebase';
+import { db } from '@shared/firebase';
 import { createInvitation as createInvitationService } from '../../../../invitations/api/invitationsService';
 
 export function useEdicionCompanions({ formData, setFormData, viaje, usuario, pushToast, t }) {

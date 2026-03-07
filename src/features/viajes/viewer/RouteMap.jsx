@@ -4,7 +4,7 @@ import Map, { Source, Layer, NavigationControl, Marker } from 'react-map-gl';
 import mapboxgl from 'mapbox-gl';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { COLORS, RADIUS, SHADOWS, GLASS, FONTS } from '../../../theme';
+import { COLORS, RADIUS, SHADOWS, GLASS, FONTS } from '@shared/config';
 import { setMapLanguage, generateCurvedRoute } from '@shared/lib/geo';
 import { routeMapStyles as s } from './RouteMap.styles';
 

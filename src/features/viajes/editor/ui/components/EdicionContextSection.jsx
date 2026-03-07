@@ -1,6 +1,6 @@
 import React from 'react';
 import InfoTooltip from '@shared/ui/components/InfoTooltip';
-import { COLORS, RADIUS } from '../../../../../theme';
+import { COLORS, RADIUS } from '@shared/config';
 
 const VIBES = ['Gastronómico', 'Aventura', 'Relax', 'Roadtrip', 'Cultural'];
 const VIBE_KEY_MAP = {

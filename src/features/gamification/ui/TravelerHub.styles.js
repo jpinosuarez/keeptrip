@@ -1,4 +1,4 @@
-import { COLORS, SHADOWS, RADIUS, FONTS, TRANSITIONS } from '../../../theme';
+import { COLORS, SHADOWS, RADIUS, FONTS, TRANSITIONS } from '@shared/config';
 
 export const styles = {
   container: (isMobile) => ({

@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { Globe, Image, LoaderCircle, MapPin, Save, Search, Trash2, X } from 'lucide-react';
-import { db, storage } from '../../firebase';
-import { getFlagUrl } from '../../utils/countryUtils';
-import { compressImage } from '../../utils/imageUtils';
-import { COLORS, SHADOWS, RADIUS, FONTS } from '../../theme';
+import { db, storage } from '@shared/firebase';
+import { getFlagUrl } from '@shared/lib/utils/countryUtils';
+import { compressImage } from '@shared/lib/utils/imageUtils';
+import { COLORS, SHADOWS, RADIUS, FONTS } from '@shared/config';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 

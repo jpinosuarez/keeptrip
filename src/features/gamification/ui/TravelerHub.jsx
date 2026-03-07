@@ -2,10 +2,10 @@ import React, { useMemo } from 'react';
 import { motion as Motion } from 'framer-motion';
 import { Trophy, Target, Compass, Flag, Globe } from 'lucide-react';
 import { getTravelerLevel, getNextLevel } from '../model/travelerLevel';
-import { useWindowSize } from '../../../hooks/useWindowSize';
+import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import AchievementCard from './AchievementCard';
 import { styles } from './TravelerHub.styles';
-import { COLORS } from '../../../theme';
+import { COLORS } from '@shared/config';
 import { useTranslation } from 'react-i18next';
 
 /**

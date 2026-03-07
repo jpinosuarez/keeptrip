@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useGaleriaViaje } from '../../../../hooks/useGaleriaViaje';
+import { useGaleriaViaje } from '@shared/lib/hooks/useGaleriaViaje';
 
 export function useVisorViajeGallery({
   viajeId,

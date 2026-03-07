@@ -1,6 +1,6 @@
 import React from 'react';
-import { COLORS } from '../../../../theme';
-import { getInitials } from '../../../../utils/viajeUtils';
+import { COLORS } from '@shared/config';
+import { getInitials } from '@shared/lib/utils/viajeUtils';
 import ContextCard from '../ContextCard';
 
 const VisorContextSection = ({

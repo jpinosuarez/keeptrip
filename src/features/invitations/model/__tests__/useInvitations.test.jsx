@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import useInvitations from '../useInvitations';
 import * as invitationsService from '../../api/invitationsService';
-import * as AuthModule from '../../../../context/AuthContext';
+import * as AuthModule from '@app/providers/AuthContext';
 
 vi.mock('../../api/invitationsService');
 

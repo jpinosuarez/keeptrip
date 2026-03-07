@@ -10,22 +10,22 @@ import { describe, test, expect, vi } from 'vitest';
 
 const mockUsuario = { uid: 'u1' };
 const mockAuthReturn = { usuario: mockUsuario };
-vi.mock('../../../../../context/AuthContext', () => ({ useAuth: () => mockAuthReturn }));
+vi.mock('@app/providers/AuthContext', () => ({ useAuth: () => mockAuthReturn }));
 
 const mockPushToast = vi.fn();
 const mockToastReturn = { pushToast: mockPushToast };
-vi.mock('../../../../../context/ToastContext', () => ({ useToast: () => mockToastReturn }));
+vi.mock('@app/providers/ToastContext', () => ({ useToast: () => mockToastReturn }));
 
 const mockWindowSize = { isMobile: false };
-vi.mock('../../../../../hooks/useWindowSize', () => ({ useWindowSize: () => mockWindowSize }));
+vi.mock('@shared/lib/hooks/useWindowSize', () => ({ useWindowSize: () => mockWindowSize }));
 
 const mockGaleria = { fotos: [], uploading: false, limpiar: vi.fn(), cambiarPortada: vi.fn(), eliminar: vi.fn(), actualizarCaption: vi.fn() };
-vi.mock('../../../../../hooks/useGaleriaViaje', () => ({ useGaleriaViaje: () => mockGaleria }));
+vi.mock('@shared/lib/hooks/useGaleriaViaje', () => ({ useGaleriaViaje: () => mockGaleria }));
 
-vi.mock('../../../../../firebase', () => ({ db: {}, storage: {} }));
+vi.mock('@shared/firebase', () => ({ db: {}, storage: {} }));
 
 const mockUpload = { iniciarSubida: vi.fn(), getEstadoViaje: () => ({}) };
-vi.mock('../../../../../context/UploadContext', () => ({ useUpload: () => mockUpload }));
+vi.mock('@app/providers/UploadContext', () => ({ useUpload: () => mockUpload }));
 
 vi.mock('../../../../../features/invitations/api/invitationsService', () => ({ createInvitation: vi.fn() }));
 

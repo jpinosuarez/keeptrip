@@ -2,7 +2,7 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { AnimatePresence, motion as Motion } from 'framer-motion';
 import { CheckCircle2, CircleAlert, Info, X } from 'lucide-react';
-import { SHADOWS, RADIUS, Z_INDEX } from '../../theme';
+import { SHADOWS, RADIUS, Z_INDEX } from '@shared/config';
 
 const ToastContext = createContext(null);
 

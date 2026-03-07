@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
-import { db } from '../../../../firebase';
+import { db } from '@shared/firebase';
 
 export function useVisorViajeData({ viajeId, bitacoraData, bitacoraLista, usuario }) {
   const viajeBase = useMemo(

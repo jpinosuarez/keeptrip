@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../../../../firebase';
-import { generarTituloInteligente, parseFlexibleDate } from '../../../../../utils/viajeUtils';
+import { db } from '@shared/firebase';
+import { generarTituloInteligente, parseFlexibleDate } from '@shared/lib/utils/viajeUtils';
 
 export function useEdicionModalLifecycle({
   viaje,

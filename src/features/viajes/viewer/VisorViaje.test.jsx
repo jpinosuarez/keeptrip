@@ -4,19 +4,19 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
 
-vi.mock('../../../context/AuthContext', () => ({
+vi.mock('@app/providers/AuthContext', () => ({
   useAuth: () => ({ usuario: { uid: 'u1' } }),
 }));
 
-vi.mock('../../../context/ToastContext', () => ({
+vi.mock('@app/providers/ToastContext', () => ({
   useToast: () => ({ pushToast: vi.fn() }),
 }));
 
-vi.mock('../../../context/UploadContext', () => ({
+vi.mock('@app/providers/UploadContext', () => ({
   useUpload: () => ({ getEstadoViaje: vi.fn(() => ({})), reintentarFoto: vi.fn() }),
 }));
 
-vi.mock('../../../hooks/useWindowSize', () => ({
+vi.mock('@shared/lib/hooks/useWindowSize', () => ({
   useWindowSize: () => ({ isMobile: false }),
 }));
 

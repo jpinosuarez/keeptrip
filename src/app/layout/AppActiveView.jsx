@@ -1,15 +1,15 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import DashboardHome from '../../components/Dashboard/DashboardHome';
-import StatsMapa from '../../components/Dashboard/StatsMapa';
+import DashboardHome from '@shared/ui/legacy_components/Dashboard/DashboardHome';
+import StatsMapa from '@shared/ui/legacy_components/Dashboard/StatsMapa';
 import { MapaView as MapaViajes } from '@features/mapa';
-import BentoGrid from '../../components/Bento/BentoGrid';
+import BentoGrid from '@shared/ui/legacy_components/Bento/BentoGrid';
 import SettingsPage from '../../pages/Configuracion/SettingsPage';
 import CuracionPage from '../../pages/Curacion/CuracionPage';
 import { InvitationsList } from '@features/invitations';
 import { TravelerHub } from '@features/gamification';
-import { ErrorBoundary } from '../../components/ErrorBoundary';
+import { ErrorBoundary } from '@shared/ui/legacy_components/ErrorBoundary';
 import { styles } from './App.styles';
 
 const Motion = motion;

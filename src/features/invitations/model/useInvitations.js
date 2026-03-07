@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '@app/providers/AuthContext';
 import * as invitationsService from '../api/invitationsService';
 
 export default function useInvitations() {

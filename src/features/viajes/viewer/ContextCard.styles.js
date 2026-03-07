@@ -1,4 +1,4 @@
-import { COLORS, RADIUS, SHADOWS, GLASS, TRANSITIONS } from '../../../theme';
+import { COLORS, RADIUS, SHADOWS, GLASS, TRANSITIONS } from '@shared/config';
 
 export const contextCardStyles = {
   card: {

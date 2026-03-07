@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Upload, X, Image as ImageIcon, Star, LoaderCircle } from 'lucide-react';
 import { COLORS, RADIUS, SHADOWS, TRANSITIONS } from '@shared/config';
-import { useToast } from '../../../context/ToastContext';
+import { useToast } from '@app/providers/ToastContext';
 import { MAX_FILE_SIZE } from '@shared/lib/utils/imageUtils';
 
 /**

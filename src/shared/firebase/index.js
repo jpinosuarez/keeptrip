@@ -22,6 +22,27 @@ const firebaseConfig = {
 
 const useEmulators = import.meta.env.VITE_USE_EMULATORS === "true";
 const isTestEnv = import.meta.env.MODE === 'test';
+const isBrowser = typeof window !== 'undefined';
+const isLocalhost = isBrowser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const clearStaleEmulatorAuthState = () => {
+  if (!isBrowser) return;
+
+  const appName = '[DEFAULT]';
+  const storageKeys = [
+    `firebase:authUser:${firebaseConfig.apiKey}:${appName}`,
+    `firebase:redirectUser:${firebaseConfig.apiKey}:${appName}`,
+  ];
+
+  try {
+    storageKeys.forEach((key) => {
+      window.localStorage.removeItem(key);
+      window.sessionStorage.removeItem(key);
+    });
+  } catch {
+    // Ignore storage access issues (private mode / strict policies).
+  }
+};
 
 // Advertencia si las credenciales son de ejemplo o vacías
 const missingFirebaseConfig = (
@@ -43,6 +64,10 @@ if (missingFirebaseConfig) {
 }
 
 const app = initializeApp(firebaseConfig);
+if (useEmulators && isLocalhost) {
+  // Prevent stale persisted auth sessions from trying to refresh against emulator with demo config.
+  clearStaleEmulatorAuthState();
+}
 const auth = getAuth(app);
 // Inicializar Firestore con caché persistente multi-tab (offline-first).
 // Usa IndexedDB para que queries funcionen sin conexión y escrituras se encolen.
@@ -55,7 +80,7 @@ const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 
 // Detectar localhost/127.0.0.1 y conectar a Emuladores
-if (typeof window !== 'undefined' && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && useEmulators) {
+if (isLocalhost && useEmulators) {
   const EMULATOR_HOST = 'localhost';
   if (!isTestEnv) {
     console.log(`🔧 Conectando a Firebase Emulators (${EMULATOR_HOST})...`);

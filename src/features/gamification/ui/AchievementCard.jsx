@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
 import { Lock } from 'lucide-react';
-import { COLORS, SHADOWS, RADIUS, FONTS, TRANSITIONS } from '../../../theme';
+import { COLORS, SHADOWS, RADIUS, FONTS, TRANSITIONS } from '@shared/config';
 import { TIER_COLORS } from '../model/achievementDefinitions';
 import { useTranslation } from 'react-i18next';
 

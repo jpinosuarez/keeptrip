@@ -8,7 +8,7 @@ import {
   updateProfile,
   signInWithEmailAndPassword
 } from 'firebase/auth';
-import { auth, googleProvider } from '../../firebase';
+import { auth, googleProvider } from '@shared/firebase';
 
 const AuthContext = createContext();
 
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
       if (currentUser && currentUser.uid) {
         try {
           // Import dinámico para evitar side-effects en tests donde firebase está mockeado
-          const { db } = await import('../../firebase');
+          const { db } = await import('@shared/firebase');
           const { doc, setDoc } = await import('firebase/firestore');
           const perfilRef = doc(db, 'usuarios', currentUser.uid);
           await setDoc(perfilRef, {
@@ -110,7 +110,7 @@ export const AuthProvider = ({ children }) => {
     // Helper to create a Firestore document from the browser (uses current auth session)
     window.__test_createDoc = async (fullPath, documentData) => {
       try {
-        const { db } = await import('../../firebase');
+        const { db } = await import('@shared/firebase');
         const { doc, setDoc } = await import('firebase/firestore');
         const ref = doc(db, fullPath);
         await setDoc(ref, documentData, { merge: true });
@@ -124,7 +124,7 @@ export const AuthProvider = ({ children }) => {
     // Helper to read a Firestore document from the browser (uses current auth session)
     window.__test_readDoc = async (fullPath) => {
       try {
-        const { db } = await import('../../firebase');
+        const { db } = await import('@shared/firebase');
         const { doc, getDoc } = await import('firebase/firestore');
         const ref = doc(db, fullPath);
         const snap = await getDoc(ref);

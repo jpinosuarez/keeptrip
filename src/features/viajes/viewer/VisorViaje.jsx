@@ -1,10 +1,10 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../../../context/AuthContext';
-import { useToast } from '../../../context/ToastContext';
-import { useUpload } from '../../../context/UploadContext';
-import { useWindowSize } from '../../../hooks/useWindowSize';
+import { useAuth } from '@app/providers/AuthContext';
+import { useToast } from '@app/providers/ToastContext';
+import { useUpload } from '@app/providers/UploadContext';
+import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { styles } from './VisorViaje.styles';
 import EdicionModal from '@features/viajes/editor/ui/EdicionModal';
 import { useVisorViajeData } from './hooks/useVisorViajeData';

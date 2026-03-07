@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
-import { formatDateRange } from '../../../../utils/viajeUtils';
+import { formatDateRange } from '@shared/lib/utils/viajeUtils';
 
 const transporteEmoji = { avion: '✈️', tren: '🚆', auto: '🚗', bus: '🚌', otro: '🚶' };
 

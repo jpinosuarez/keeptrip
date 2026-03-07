@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { useActiveParada } from '../../../../hooks/useActiveParada';
+import { useActiveParada } from '@shared/lib/hooks/useActiveParada';
 
 export function useVisorViajeUI({ isRouteMode, isMobile }) {
   const [showEditModal, setShowEditModal] = useState(false);

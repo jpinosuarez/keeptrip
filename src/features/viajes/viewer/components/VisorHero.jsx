@@ -1,7 +1,7 @@
 import React from 'react';
 import { Calendar, ArrowLeft, Trash2, LoaderCircle, Edit3 } from 'lucide-react';
-import { formatDateRange, getInitials } from '../../../../utils/viajeUtils';
-import ShareStoryButton from '../../../../components/Share/ShareStoryButton';
+import { formatDateRange, getInitials } from '@shared/lib/utils/viajeUtils';
+import ShareStoryButton from '@shared/ui/legacy_components/Share/ShareStoryButton';
 
 const VisorHero = ({
   styles,
