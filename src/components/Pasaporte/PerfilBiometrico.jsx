@@ -2,7 +2,7 @@ import React from 'react';
 import { motion as Motion } from 'framer-motion';
 import { User } from 'lucide-react';
 import { COLORS, SHADOWS, RADIUS, FONTS, TRANSITIONS } from '../../theme';
-import { getTravelerLevel, getNextLevel } from '../../utils/travelerLevel';
+import { getTravelerLevel, getNextLevel } from '@features/gamification';
 
 /**
  * Perfil biométrico del pasaporte — ahora dinámico.

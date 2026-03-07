@@ -3,7 +3,7 @@ import Map, { Source, Layer, Marker } from 'react-map-gl';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { COLORS, RADIUS, SHADOWS, GLASS } from '../../theme';
-import { generateCurvedRoute } from '../../utils/mapRoutes';
+import { generateCurvedRoute } from '@shared/lib/geo';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 

@@ -1,9 +1,8 @@
 import React from 'react';
 
 import BuscadorModal from '../Buscador/BuscadorModal';
-import EdicionModal from '../Modals/EdicionModal';
 import ConfirmModal from '../Modals/ConfirmModal';
-import VisorViaje from '../VisorViaje/VisorViaje';
+import { EdicionModal, VisorViaje } from '@features/viajes';
 import { ErrorBoundary } from '../ErrorBoundary';
 
 function AppModalsManager({

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { COLORS, SHADOWS, RADIUS, FONTS, Z_INDEX } from '../../theme';
-import { TIER_COLORS } from '../../engines/achievementDefinitions';
+import { TIER_COLORS } from '@features/gamification';
 import { useTranslation } from 'react-i18next';
 
 const fireConfetti = (color) => {

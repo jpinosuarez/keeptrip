@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import DashboardHome from '../Dashboard/DashboardHome';
 import StatsMapa from '../Dashboard/StatsMapa';
-import MapaViajes from '../Mapa/MapaView';
+import { MapaView as MapaViajes } from '@features/mapa';
 import BentoGrid from '../Bento/BentoGrid';
 import SettingsPage from '../../pages/Configuracion/SettingsPage';
 import CuracionPage from '../../pages/Curacion/CuracionPage';
-import InvitationsList from '../Invitations/InvitationsList';
-import TravelerHub from '../TravelerHub/TravelerHub';
+import { InvitationsList } from '@features/invitations';
+import { TravelerHub } from '@features/gamification';
 import { ErrorBoundary } from '../ErrorBoundary';
 import { styles } from '../../App.styles';
 

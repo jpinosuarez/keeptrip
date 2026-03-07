@@ -5,8 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
 import { COLORS } from '../../theme';
 import { styles } from './DashboardHome.styles';
-import HomeMap from '../Mapa/HomeMap';
-import { getTravelerLevel, getNextLevel } from '../../utils/travelerLevel';
+import { HomeMap } from '@features/mapa';
+import { getTravelerLevel, getNextLevel } from '@features/gamification';
 import { useTranslation } from 'react-i18next';
 
 import { SkeletonList, TripCardSkeleton } from '../Shared/Skeletons';

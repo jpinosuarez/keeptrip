@@ -15,8 +15,8 @@ import { useAppShellComposition } from './hooks/useAppShellComposition';
 import { useAuth } from './context/AuthContext';
 import { useToast } from './context/ToastContext';
 import { useSearch, useUI } from './context/UIContext';
-import { useAchievements } from './hooks/useAchievements';
-import useInvitations from './hooks/useInvitations';
+import { useAchievements } from '@features/gamification';
+import { useInvitations } from '@features/invitations';
 
 function App() {
   const { usuario, cargando, isAdmin } = useAuth();
