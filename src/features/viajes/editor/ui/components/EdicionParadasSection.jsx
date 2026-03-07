@@ -1,7 +1,7 @@
 import React from 'react';
 import { Calendar } from 'lucide-react';
 import { COLORS } from '../../../../../theme';
-import CityManager from '../../../../../components/Shared/CityManager';
+import CityManager from '@shared/ui/components/CityManager';
 
 const EdicionParadasSection = ({ styles, t, paradas, setParadas, fechaRangoDisplay, sinParadas }) => {
   return (

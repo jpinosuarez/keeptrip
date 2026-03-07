@@ -1,5 +1,5 @@
 import React from 'react';
-import InfoTooltip from '../../../../../components/Shared/InfoTooltip';
+import InfoTooltip from '@shared/ui/components/InfoTooltip';
 import { COLORS, RADIUS } from '../../../../../theme';
 
 const EdicionHighlightsSection = ({ styles, t, formData, setFormData }) => {

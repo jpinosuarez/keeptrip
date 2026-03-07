@@ -1,6 +1,6 @@
 import React from 'react';
 import { Star, Trash2 } from 'lucide-react';
-import { GalleryGrid } from '../../../../components/Shared/GalleryGrid';
+import { GalleryGrid } from '@shared/ui/components/GalleryGrid';
 
 const VisorGallerySection = ({
   styles,

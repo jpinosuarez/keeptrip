@@ -1,6 +1,6 @@
 import React from 'react';
 import { Star, Trash2 } from 'lucide-react';
-import { GalleryUploader } from '../../../../../components/Shared/GalleryUploader';
+import { GalleryUploader } from '@shared/ui/components/GalleryUploader';
 
 const EdicionGallerySection = ({
   styles,
