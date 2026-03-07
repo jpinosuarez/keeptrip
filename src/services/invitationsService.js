@@ -12,6 +12,7 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { logger } from '../utils/logger';
 
 /**
  * Invitations service
@@ -84,7 +85,7 @@ export const acceptInvitation = async ({ db: _db, invitationId, acceptorUid }) =
       return true;
     });
   } catch (err) {
-    console.error('acceptInvitation error', err);
+    logger.error('acceptInvitation error', { error: err?.message, invitationId, acceptorUid });
     return false;
   }
 };
@@ -97,7 +98,6 @@ export const declineInvitation = async ({ db: _db, invitationId, declinerUid }) 
       const invSnap = await transaction.get(invitationRef);
       if (!invSnap.exists()) throw new Error('Invitation not found');
 
-      const invitationData = invSnap.data() || {};
       const declinedAt = Date.now();
       const invitationUpdate = {
         status: 'declined',
@@ -110,7 +110,7 @@ export const declineInvitation = async ({ db: _db, invitationId, declinerUid }) 
       return true;
     });
   } catch (err) {
-    console.error('declineInvitation error', err);
+    logger.error('declineInvitation error', { error: err?.message, invitationId, declinerUid });
     return false;
   }
 };

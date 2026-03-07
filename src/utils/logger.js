@@ -18,10 +18,12 @@ const LOG_LEVELS = {
   FATAL: 4
 };
 
+const isTestEnv = import.meta.env.MODE === 'test';
+
 // Configuración del logger
 const config = {
   minLevel: import.meta.env.DEV ? LOG_LEVELS.DEBUG : LOG_LEVELS.INFO,
-  enableConsole: true,
+  enableConsole: !isTestEnv,
   enableRemote: false, // Para Sentry u otro servicio futuro
   maxContextDepth: 3, // Profundidad máxima de objetos en contexto
   includeTimestamp: true,

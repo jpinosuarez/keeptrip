@@ -1,6 +1,12 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, connectAuthEmulator, GoogleAuthProvider } from "firebase/auth";
-import { connectFirestoreEmulator, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
+import {
+  connectFirestoreEmulator,
+  initializeFirestore,
+  memoryLocalCache,
+  persistentLocalCache,
+  persistentMultipleTabManager
+} from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
 
 // Configuracion por entorno (con fallback a valores actuales).
@@ -15,6 +21,7 @@ const firebaseConfig = {
 };
 
 const useEmulators = import.meta.env.VITE_USE_EMULATORS === "true";
+const isTestEnv = import.meta.env.MODE === 'test';
 
 // Advertencia si las credenciales son de ejemplo o vacías
 const missingFirebaseConfig = (
@@ -26,7 +33,9 @@ const missingFirebaseConfig = (
 
 if (missingFirebaseConfig) {
   const message = '[Firebase] ⚠️ Las credenciales parecen ser de ejemplo o están vacías. Verifica tu archivo .env y configuración.';
-  if (useEmulators) {
+  if (isTestEnv) {
+    // Evita ruido en test output: la config demo es esperada en suites locales.
+  } else if (useEmulators) {
     console.info(`${message} (Usas emulators, pero el SDK igual requiere config.)`);
   } else {
     console.warn(message);
@@ -38,7 +47,9 @@ const auth = getAuth(app);
 // Inicializar Firestore con caché persistente multi-tab (offline-first).
 // Usa IndexedDB para que queries funcionen sin conexión y escrituras se encolen.
 const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+  localCache: isTestEnv
+    ? memoryLocalCache()
+    : persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
 });
 const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
@@ -46,7 +57,9 @@ export const googleProvider = new GoogleAuthProvider();
 // Detectar localhost/127.0.0.1 y conectar a Emuladores
 if (typeof window !== 'undefined' && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && useEmulators) {
   const EMULATOR_HOST = 'localhost';
-  console.log(`🔧 Conectando a Firebase Emulators (${EMULATOR_HOST})...`);
+  if (!isTestEnv) {
+    console.log(`🔧 Conectando a Firebase Emulators (${EMULATOR_HOST})...`);
+  }
   // Nota: disableWarnings ayuda a limpiar la consola en desarrollo
   connectAuthEmulator(auth, `http://${EMULATOR_HOST}:9099`, { disableWarnings: true });
   connectFirestoreEmulator(db, EMULATOR_HOST, 8080);
