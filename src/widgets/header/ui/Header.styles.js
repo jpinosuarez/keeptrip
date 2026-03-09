@@ -1,4 +1,3 @@
-// src/components/Header/Header.styles.js
 import { COLORS, SHADOWS, RADIUS, TRANSITIONS } from '@shared/config';
 
 export const styles = {
@@ -57,7 +56,14 @@ export const styles = {
     minWidth: isMobile ? '0' : '280px',
     width: isMobile ? '44vw' : 'auto'
   }),
-  searchInput: { border: 'none', background: 'none', outline: 'none', fontSize: '1rem', color: COLORS.charcoalBlue, width: '100%' },
+  searchInput: {
+    border: 'none',
+    background: 'none',
+    outline: 'none',
+    fontSize: '1rem',
+    color: COLORS.charcoalBlue,
+    width: '100%'
+  },
   clearButton: {
     border: 'none',
     background: 'transparent',
@@ -82,7 +88,8 @@ export const styles = {
     gap: isMobile ? '0' : '8px',
     boxShadow: `0 4px 12px ${COLORS.atomicTangerine}40`,
     whiteSpace: 'nowrap',
-    transition: TRANSITIONS.fast
+    transition: TRANSITIONS.fast,
+    minHeight: '44px'
   }),
   addButtonLabel: {
     display: 'inline-flex',

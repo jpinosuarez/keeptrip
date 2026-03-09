@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutGrid,
@@ -15,20 +15,42 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUI } from '@app/providers/UIContext';
-import { COLORS, SHADOWS, RADIUS, GLASS, TRANSITIONS, Z_INDEX } from '@shared/config';
+import { COLORS } from '@shared/config';
 import { useTranslation } from 'react-i18next';
+import { styles } from './Sidebar.styles';
 
 const Sidebar = ({ isMobile = false }) => {
   const { logout, isAdmin } = useAuth();
   const { t } = useTranslation('nav');
   const {
-    vistaActiva,
-    setVistaActiva,
-    sidebarCollapsed,
-    toggleSidebarCollapse,
-    mobileDrawerOpen,
-    setMobileDrawerOpen
+    vistaActiva: activeView,
+    setVistaActiva: setActiveView,
+    sidebarCollapsed: collapsed,
+    toggleSidebarCollapse: toggleCollapse,
+    mobileDrawerOpen: isDrawerOpen,
+    setMobileDrawerOpen: setDrawerOpen
   } = useUI();
+
+  const drawerRef = useRef(null);
+
+  // Focus trap + Escape key for mobile drawer
+  useEffect(() => {
+    if (!isDrawerOpen || !isMobile) return;
+
+    const el = drawerRef.current;
+    if (el) {
+      const focusable = el.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length) focusable[0].focus();
+    }
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setDrawerOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isDrawerOpen, isMobile, setDrawerOpen]);
 
   const menuItems = [
     { id: 'home', icon: LayoutGrid, label: t('home') },
@@ -40,12 +62,12 @@ const Sidebar = ({ isMobile = false }) => {
   ].filter((item) => item.id !== 'curacion' || isAdmin);
 
   const handleSelect = (id) => {
-    setVistaActiva(id);
-    if (isMobile) setMobileDrawerOpen(false);
+    setActiveView(id);
+    if (isMobile) setDrawerOpen(false);
   };
 
   const handleLogout = () => {
-    if (isMobile) setMobileDrawerOpen(false);
+    if (isMobile) setDrawerOpen(false);
     logout();
   };
 
@@ -57,20 +79,25 @@ const Sidebar = ({ isMobile = false }) => {
             <Disc size={28} color={COLORS.atomicTangerine} />
             <h1 style={styles.logoText}>Keeptrip</h1>
           </div>
-          <button type="button" onClick={() => setMobileDrawerOpen(false)} style={styles.mobileCloseBtn}>
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(false)}
+            style={styles.mobileCloseBtn}
+            aria-label={t('closeMenu')}
+          >
             <X size={18} />
           </button>
         </div>
       ) : (
         <>
-          <button onClick={toggleSidebarCollapse} style={styles.toggleBtn}>
-            {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          <button type="button" onClick={toggleCollapse} style={styles.toggleBtn}>
+            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
 
-          <div style={{ ...styles.logoContainer, justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}>
+          <div style={{ ...styles.logoContainer, justifyContent: collapsed ? 'center' : 'flex-start' }}>
             <Disc size={32} color={COLORS.atomicTangerine} />
             <AnimatePresence>
-              {!sidebarCollapsed && (
+              {!collapsed && (
                 <Motion.h1
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -85,28 +112,29 @@ const Sidebar = ({ isMobile = false }) => {
         </>
       )}
 
-      <nav style={styles.nav}>
+      <nav role="navigation" aria-label={t('navLabel')} style={styles.nav}>
         {menuItems.map((item) => {
-          const isActive = vistaActiva === item.id;
+          const isActive = activeView === item.id;
           return (
             <Motion.button
               key={item.id}
+              type="button"
               onClick={() => handleSelect(item.id)}
               whileHover={{ backgroundColor: isActive ? COLORS.charcoalBlue : '#f1f5f9' }}
               whileTap={{ scale: 0.98 }}
+              aria-current={isActive ? 'page' : undefined}
               style={{
                 ...styles.navItem,
                 backgroundColor: isActive ? COLORS.charcoalBlue : 'transparent',
                 color: isActive ? 'white' : '#64748b',
-                justifyContent: isMobile || !sidebarCollapsed ? 'flex-start' : 'center',
-                padding: isMobile || !sidebarCollapsed ? '12px 16px' : '12px'
+                justifyContent: isMobile || !collapsed ? 'flex-start' : 'center',
+                padding: isMobile || !collapsed ? '12px 16px' : '12px'
               }}
-              title={!isMobile && sidebarCollapsed ? item.label : ''}
+              title={!isMobile && collapsed ? item.label : ''}
             >
               <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-
               <AnimatePresence>
-                {(isMobile || !sidebarCollapsed) && (
+                {(isMobile || !collapsed) && (
                   <Motion.span
                     initial={{ opacity: 0, width: 0 }}
                     animate={{ opacity: 1, width: 'auto' }}
@@ -124,12 +152,16 @@ const Sidebar = ({ isMobile = false }) => {
 
       <div style={styles.footer}>
         <button
+          type="button"
           onClick={handleLogout}
-          style={{ ...styles.logoutBtn, justifyContent: isMobile || !sidebarCollapsed ? 'flex-start' : 'center' }}
+          style={{
+            ...styles.logoutBtn,
+            justifyContent: isMobile || !collapsed ? 'flex-start' : 'center'
+          }}
         >
           <LogOut size={20} />
           <AnimatePresence>
-            {(isMobile || !sidebarCollapsed) && (
+            {(isMobile || !collapsed) && (
               <Motion.span
                 initial={{ opacity: 0, width: 0 }}
                 animate={{ opacity: 1, width: 'auto' }}
@@ -148,7 +180,7 @@ const Sidebar = ({ isMobile = false }) => {
   if (isMobile) {
     return (
       <AnimatePresence>
-        {mobileDrawerOpen && (
+        {isDrawerOpen && (
           <>
             <Motion.div
               initial={{ opacity: 0 }}
@@ -156,14 +188,19 @@ const Sidebar = ({ isMobile = false }) => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               style={styles.mobileOverlay}
-              onClick={() => setMobileDrawerOpen(false)}
+              onClick={() => setDrawerOpen(false)}
+              aria-hidden="true"
             />
-
             <Motion.aside
+              ref={drawerRef}
+              id="mobile-sidebar-drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t('navLabel')}
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               style={styles.mobileSidebar}
             >
               {sidebarContent}
@@ -177,132 +214,13 @@ const Sidebar = ({ isMobile = false }) => {
   return (
     <Motion.aside
       initial={false}
-      animate={{
-        width: sidebarCollapsed ? '80px' : '260px'
-      }}
+      animate={{ width: collapsed ? '80px' : '260px' }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
       style={styles.sidebar}
     >
       {sidebarContent}
     </Motion.aside>
   );
-};
-
-const baseSidebar = {
-  height: '100vh',
-  backgroundColor: COLORS.surface,
-  display: 'flex',
-  flexDirection: 'column',
-  borderRight: `1px solid ${COLORS.border}`,
-  top: 0,
-  left: 0,
-  boxShadow: SHADOWS.sm
-};
-
-const styles = {
-  sidebar: {
-    ...baseSidebar,
-    position: 'fixed',
-    zIndex: 60
-  },
-  mobileSidebar: {
-    ...baseSidebar,
-    position: 'fixed',
-    zIndex: 120,
-    width: '280px',
-    maxWidth: '84vw'
-  },
-  mobileOverlay: {
-    position: 'fixed',
-    inset: 0,
-    zIndex: 110,
-    ...GLASS.overlay
-  },
-  mobileTopRow: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '16px 16px 10px'
-  },
-  logoContainerMobile: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px'
-  },
-  mobileCloseBtn: {
-    border: `1px solid ${COLORS.border}`,
-    background: COLORS.surface,
-    borderRadius: RADIUS.sm,
-    width: '44px',
-    height: '44px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: COLORS.textSecondary,
-    cursor: 'pointer'
-  },
-  toggleBtn: {
-    position: 'absolute',
-    top: '32px',
-    right: '-12px',
-    width: '24px',
-    height: '24px',
-    backgroundColor: COLORS.surface,
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: RADIUS.full,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    color: COLORS.textSecondary,
-    zIndex: Z_INDEX.sticky,
-    boxShadow: SHADOWS.sm,
-    transition: TRANSITIONS.fast
-  },
-  logoContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    height: '60px',
-    marginBottom: '30px',
-    padding: '0 20px',
-    overflow: 'hidden'
-  },
-  logoText: {
-    fontSize: '1.4rem',
-    fontWeight: '900',
-    color: COLORS.charcoalBlue,
-    letterSpacing: '-0.5px',
-    margin: 0,
-    whiteSpace: 'nowrap'
-  },
-  nav: { display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, padding: '0 12px' },
-  navItem: {
-    display: 'flex',
-    alignItems: 'center',
-    borderRadius: RADIUS.md,
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: '0.95rem',
-    transition: TRANSITIONS.fast,
-    width: '100%',
-    overflow: 'hidden'
-  },
-  labelSpan: { fontWeight: '600', marginLeft: '12px', whiteSpace: 'nowrap' },
-  footer: { borderTop: `1px solid ${COLORS.background}`, padding: '20px', paddingBottom: 'max(20px, env(safe-area-inset-bottom, 0px))' },
-  logoutBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    background: 'none',
-    border: 'none',
-    color: COLORS.textSecondary,
-    cursor: 'pointer',
-    padding: '10px',
-    fontWeight: '600',
-    fontSize: '0.9rem',
-    width: '100%',
-    borderRadius: RADIUS.sm
-  }
 };
 
 export default Sidebar;

@@ -4,7 +4,8 @@
     "paths": {
       "@app/*": ["src/app/*"],
       "@features/*": ["src/features/*"],
-      "@shared/*": ["src/shared/*"]
+      "@shared/*": ["src/shared/*"],
+      "@widgets/*": ["src/widgets/*"]
     }
   },
   "include": ["src", "vite.config.js", "eslint.config.js"]

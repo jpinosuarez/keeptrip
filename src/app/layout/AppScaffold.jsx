@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-import Sidebar from '@shared/ui/legacy_components/Layout/Sidebar';
-import Header from '@shared/ui/legacy_components/Header/Header';
+import { Sidebar } from '@widgets/sidebar';
+import { Header } from '@widgets/header';
 import { styles } from './App.styles';
 
 const Motion = motion;

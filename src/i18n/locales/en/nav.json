@@ -12,5 +12,8 @@
   "adjust": "Settings",
   "addTrip": "Add Trip",
   "searchJournal": "Search the logbook",
-  "clearSearch": "Clear search"
+  "clearSearch": "Clear search",
+  "avatarAlt": "Photo of {{name}}",
+  "navLabel": "Main navigation",
+  "closeMenu": "Close menu"
 }

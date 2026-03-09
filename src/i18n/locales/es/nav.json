@@ -12,5 +12,8 @@
   "adjust": "Ajustes",
   "addTrip": "Añadir Viaje",
   "searchJournal": "Buscar en la bitácora",
-  "clearSearch": "Limpiar búsqueda"
+  "clearSearch": "Limpiar búsqueda",
+  "avatarAlt": "Foto de {{name}}",
+  "navLabel": "Menú principal",
+  "closeMenu": "Cerrar menú"
 }
