@@ -1,30 +1,29 @@
 import React from 'react';
-import { Globe, Compass, Clock, Map, Percent } from 'lucide-react';
+import { Globe, Compass, Map, Percent } from 'lucide-react';
 import { COLORS, SHADOWS, RADIUS } from '@shared/config';
 import { useTranslation } from 'react-i18next';
 
-const StatsMapa = ({ bitacora = [], paisesVisitados = [] }) => {
+const MapStats = ({ log = [], countriesVisited = [] }) => {
   const { t } = useTranslation('dashboard');
-  const totalPaisesMundo = 195;
-  const countPaises = paisesVisitados.length;
-  const porcentajeMundo = ((countPaises / totalPaisesMundo) * 100).toFixed(1);
-  const continentesUnicos = [...new Set(bitacora.map(v => v.continente))].filter(Boolean).length;
+  const totalCountries = 195;
+  const countCountries = countriesVisited.length;
+  const worldPercent = ((countCountries / totalCountries) * 100).toFixed(1);
+  const uniqueContinents = [...new Set(log.map(v => v.continent))].filter(Boolean).length;
 
-  const obtenerRegionPredominante = () => {
-    if (bitacora.length === 0) return "---";
-    const conteo = bitacora.reduce((acc, v) => {
-      acc[v.continente] = (acc[v.continente] || 0) + 1;
+  const getMainRegion = () => {
+    if (log.length === 0) return "---";
+    const count = log.reduce((acc, v) => {
+      acc[v.continent] = (acc[v.continent] || 0) + 1;
       return acc;
     }, {});
-    // Devuelve la clave con mayor valor
-    return Object.keys(conteo).reduce((a, b) => conteo[a] > conteo[b] ? a : b);
+    return Object.keys(count).reduce((a, b) => count[a] > count[b] ? a : b);
   };
 
-  const statsGeo = [
-    { label: t('stats.countriesVisited'), value: `${countPaises} / ${totalPaisesMundo}`, icon: <Globe size={20} />, color: COLORS.mutedTeal },
-    { label: t('stats.worldCovered'), value: `${porcentajeMundo}%`, icon: <Percent size={20} />, color: COLORS.atomicTangerine },
-    { label: t('stats.continents'), value: `${continentesUnicos} de 7`, icon: <Compass size={20} />, color: COLORS.charcoalBlue },
-    { label: t('stats.mainRegion'), value: obtenerRegionPredominante(), icon: <Map size={20} />, color: COLORS.atomicTangerine }
+  const stats = [
+    { label: t('stats.countriesVisited'), value: `${countCountries} / ${totalCountries}`, icon: <Globe size={20} />, color: COLORS.mutedTeal },
+    { label: t('stats.worldCovered'), value: `${worldPercent}%`, icon: <Percent size={20} />, color: COLORS.atomicTangerine },
+    { label: t('stats.continents'), value: `${uniqueContinents} of 7`, icon: <Compass size={20} />, color: COLORS.charcoalBlue },
+    { label: t('stats.mainRegion'), value: getMainRegion(), icon: <Map size={20} />, color: COLORS.atomicTangerine }
   ];
 
   return (
@@ -33,9 +32,9 @@ const StatsMapa = ({ bitacora = [], paisesVisitados = [] }) => {
       gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
       gap: '20px',
       width: '100%',
-      marginBottom: '20px' // Espacio inferior seguro
+      marginBottom: '20px'
     }}>
-      {statsGeo.map((stat, index) => (
+      {stats.map((stat, index) => (
         <div key={index} style={{ 
           backgroundColor: COLORS.surface, 
           padding: '20px', 
@@ -71,4 +70,4 @@ const StatsMapa = ({ bitacora = [], paisesVisitados = [] }) => {
   );
 };
 
-export default StatsMapa;
+export default MapStats;

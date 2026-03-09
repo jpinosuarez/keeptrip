@@ -1,31 +1,28 @@
 {
-  "greeting": "Hola, {{name}}",
+  "greeting": "¡Hola, {{name}}! Bienvenido a tu Bitácora de Viaje.",
   "countries": "Países",
   "trips": "Viajes",
   "world": "Mundo",
-  "recentAdventures": "Aventuras Recientes",
-  "viewAll": "Ver todas",
-  "emptyPassport": "Tu pasaporte está en blanco",
-  "firstSealMessage": "Cada gran viajero empezó con un primer sello. ¿Cuál será el tuyo?",
-  "stampFirstDestination": "Estampar mi primer destino ✈️",
-  "tooltip": {
-    "awaitingFirstCountry": "A la espera de tu primer país visitado.",
-    "awaitingFirstStop": "A la espera de tu primera parada registrada.",
-    "awaitingProgress": "A la espera de progreso global."
-  },
+  "recentAdventures": "Aventuras recientes",
+  "viewAll": "Ver todo",
+  "emptyPassport": "¡Tu pasaporte está vacío!",
+  "firstSealMessage": "Comienza tu bitácora sellando tu primer destino.",
+  "stampFirstDestination": "Sellar primer destino",
   "stats": {
-    "totalDays": "Días totales de viaje",
+    "totalDays": "Días totales",
     "registeredCities": "Ciudades registradas",
-    "tripsCompleted": "Viajes realizados",
+    "tripsCompleted": "Viajes completados",
     "averageRating": "Puntaje promedio",
     "countriesVisited": "Países visitados",
-    "worldCovered": "Mundo Recorrido",
+    "worldCovered": "% del mundo cubierto",
     "continents": "Continentes",
-    "mainRegion": "Región principal",
-    "thisMonth": "Este mes",
-    "monthsAgo": "Hace {{count}}m",
-    "yearsAgo": "Hace {{count}} años",
-    "countrySingular": "país",
-    "countriesPlural": "países"
+    "mainRegion": "Región predominante",
+    "countriesPlural": "países",
+    "countrySingular": "país"
+  },
+  "tooltip": {
+    "awaitingFirstCountry": "Aún no has registrado ningún país.",
+    "awaitingFirstStop": "Aún no tienes viajes registrados.",
+    "awaitingProgress": "¡Comienza a explorar para ver tu progreso!"
   }
 }

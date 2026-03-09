@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import DashboardHome from '@shared/ui/legacy_components/Dashboard/DashboardHome';
-import StatsMapa from '@shared/ui/legacy_components/Dashboard/StatsMapa';
+import DashboardPage from '@pages/dashboard/ui/DashboardPage';
+import MapStats from '../../pages/dashboard/ui/components/MapStats';
 import { MapaView as MapaViajes } from '@features/mapa';
 import BentoGrid from '@shared/ui/legacy_components/Bento/BentoGrid';
 import SettingsPage from '../../pages/Configuracion/SettingsPage';
@@ -30,9 +30,10 @@ function AppActiveView({
     <AnimatePresence mode="wait">
       {vistaActiva === 'home' && (
         <Motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={styles.scrollableContent} className="custom-scroll">
-          <DashboardHome
-            paisesVisitados={paisesVisitados}
-            bitacora={bitacora}
+          <DashboardPage
+            countriesVisited={paisesVisitados}
+            log={bitacora}
+            logData={bitacoraData}
             isMobile={isMobile}
             loading={loadingViajes}
           />
@@ -40,7 +41,7 @@ function AppActiveView({
       )}
       {vistaActiva === 'mapa' && (
         <Motion.div key="mapa" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={styles.containerMapaStyle(isMobile)}>
-          <div style={styles.mapStatsOverlay(isMobile)}><StatsMapa bitacora={bitacora} paisesVisitados={paisesVisitados} /></div>
+          <div style={styles.mapStatsOverlay(isMobile)}><MapStats log={bitacora} countriesVisited={paisesVisitados} /></div>
           <ErrorBoundary>
             <MapaViajes paises={paisesVisitados} paradas={todasLasParadas} />
           </ErrorBoundary>

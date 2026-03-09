@@ -1,39 +1,38 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
 import { Compass, Calendar, Flag, TrendingUp, MapPin, ArrowRight, Trophy, Sparkles, Stamp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUI } from '@app/providers/UIContext';
 import { COLORS } from '@shared/config';
-import { styles } from './DashboardHome.styles';
+import { styles } from './DashboardPage.styles';
 import { HomeMap } from '@features/mapa';
 import { getTravelerLevel, getNextLevel } from '@features/gamification';
-import { useTranslation } from 'react-i18next';
+import { SkeletonList, TripCardSkeleton } from '@shared/ui/legacy_components/Shared/Skeletons';
 
-import { SkeletonList, TripCardSkeleton } from '../Shared/Skeletons';
-
-const DashboardHome = ({ paisesVisitados, bitacora, isMobile = false, loading = false }) => {
+const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile = false, loading = false }) => {
   const { usuario } = useAuth();
   const { setVistaActiva, abrirVisor, openBuscador } = useUI();
   const { t } = useTranslation('dashboard');
-  const nombre = usuario?.displayName ? usuario.displayName.split(' ')[0] : 'Viajero';
 
-  const recientes = [...bitacora].sort((a, b) => new Date(b.fechaInicio) - new Date(a.fechaInicio));
-  const isNewTraveler = bitacora.length === 0;
+  const name = usuario?.displayName ? usuario.displayName.split(' ')[0] : t('fallbackName', 'Explorer');
+  const recentTrips = [...log].sort((a, b) => new Date(b.fechaInicio) - new Date(a.fechaInicio));
+  const isNewTraveler = log.length === 0;
 
-  const totalPaises = 195;
-  const visitadosCount = paisesVisitados.length;
-  const porcentaje = visitadosCount > 0 ? ((visitadosCount / totalPaises) * 100).toFixed(0) : '--';
-  const viajesCountLabel = bitacora.length > 0 ? bitacora.length : '--';
-  const paisesCountLabel = visitadosCount > 0 ? visitadosCount : '--';
+  const visitedCount = countriesVisited.length;
+  const worldPercent = visitedCount > 0 ? ((visitedCount / 195) * 100).toFixed(0) : '--';
+  const tripsLabel = log.length > 0 ? log.length : '--';
+  const countriesLabel = visitedCount > 0 ? visitedCount : '--';
 
-  const level = getTravelerLevel(visitadosCount);
-  const next = getNextLevel(visitadosCount);
+  const level = getTravelerLevel(visitedCount);
+  const next = getNextLevel(visitedCount);
 
   return (
     <div style={styles.dashboardContainer(isMobile)}>
+      {/* Welcome area */}
       <div style={styles.welcomeArea}>
         <div>
-          <h1 style={styles.title}>{t('greeting', { name: nombre })}</h1>
+          <h1 style={styles.title}>{t('greeting', { name })}</h1>
           <p style={styles.subtitle}>
             {level.icon} {level.label}
             {next.level && (
@@ -45,35 +44,36 @@ const DashboardHome = ({ paisesVisitados, bitacora, isMobile = false, loading = 
         </div>
 
         <div style={styles.headerStatsRow}>
-          <div style={styles.statPill} title={visitadosCount === 0 ? t('tooltip.awaitingFirstCountry') : undefined}>
+          <div style={styles.statPill} title={visitedCount === 0 ? t('tooltip.awaitingFirstCountry') : undefined}>
             <div style={styles.pillIcon(COLORS.atomicTangerine)}><Flag size={14} color="white" /></div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={styles.pillValue}>{paisesCountLabel} <span style={{ fontSize: '0.7rem', opacity: 0.6, fontWeight: '400' }}>/ 195</span></span>
+              <span style={styles.pillValue}>{countriesLabel} <span style={{ fontSize: '0.7rem', opacity: 0.6, fontWeight: '400' }}>/ 195</span></span>
               <span style={styles.pillLabel}>{t('countries')}</span>
             </div>
           </div>
 
-          <div style={styles.statPill} title={bitacora.length === 0 ? t('tooltip.awaitingFirstStop') : undefined}>
+          <div style={styles.statPill} title={log.length === 0 ? t('tooltip.awaitingFirstStop') : undefined}>
             <div style={styles.pillIcon(COLORS.charcoalBlue)}><Compass size={14} color="white" /></div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={styles.pillValue}>{viajesCountLabel}</span>
+              <span style={styles.pillValue}>{tripsLabel}</span>
               <span style={styles.pillLabel}>{t('trips')}</span>
             </div>
           </div>
 
-          <div style={styles.statPill} title={visitadosCount === 0 ? t('tooltip.awaitingProgress') : undefined}>
+          <div style={styles.statPill} title={visitedCount === 0 ? t('tooltip.awaitingProgress') : undefined}>
             <div style={styles.pillIcon(COLORS.mutedTeal)}><Trophy size={14} color="white" /></div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={styles.pillValue}>{porcentaje}%</span>
+              <span style={styles.pillValue}>{worldPercent}%</span>
               <span style={styles.pillLabel}>{t('world')}</span>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Main grid: map + recents */}
       <div style={styles.mainGrid(isMobile)}>
         <div style={styles.mapCard(isMobile)}>
-          <HomeMap paisesVisitados={paisesVisitados} />
+          <HomeMap paisesVisitados={countriesVisited} />
         </div>
 
         <div style={styles.recentsContainer}>
@@ -89,47 +89,47 @@ const DashboardHome = ({ paisesVisitados, bitacora, isMobile = false, loading = 
           <div style={styles.cardsList} className="custom-scroll">
             {loading ? (
               <SkeletonList count={3} Component={TripCardSkeleton} />
-            ) : !isNewTraveler ? recientes.map((viaje) => (
-              <div
-                key={viaje.id}
-                className="tap-scale"
-                style={styles.travelCard}
-                onClick={() => abrirVisor(viaje.id)}
-              >
+            ) : !isNewTraveler ? (
+              recentTrips.map((trip) => (
                 <div
-                  style={{
-                    ...styles.cardBackground,
-                    backgroundImage: viaje.foto ? `url(${viaje.foto})` : 'none',
-                    backgroundColor: viaje.foto ? 'transparent' : COLORS.mutedTeal
-                  }}
-                />
-                <div style={styles.cardGradient} />
-
-                <div style={styles.cardContent}>
-                  <div style={styles.cardTop}>
-                    {viaje.banderas && viaje.banderas.length > 0 ? (
-                      <img src={viaje.banderas[0]} alt="flag" loading="lazy" style={styles.flagImg} />
-                    ) : (
-                      <Compass size={18} color="white" />
-                    )}
-                  </div>
-
-                  <div style={styles.cardBottom}>
-                    <h4 style={styles.cardTitle}>{viaje.titulo || viaje.nombreEspanol}</h4>
-                    <div style={styles.cardMeta}>
-                      <span style={styles.metaItem}>
-                        <Calendar size={12} /> {viaje.fechaInicio}
-                      </span>
-                      {viaje.ciudades && (
-                        <span style={styles.metaItem}>
-                          <MapPin size={12} /> {viaje.ciudades.split(',')[0]}
-                        </span>
+                  key={trip.id}
+                  className="tap-scale"
+                  style={styles.travelCard}
+                  onClick={() => abrirVisor(trip.id)}
+                >
+                  <div
+                    style={{
+                      ...styles.cardBackground,
+                      backgroundImage: trip.foto ? `url(${trip.foto})` : 'none',
+                      backgroundColor: trip.foto ? 'transparent' : COLORS.mutedTeal,
+                    }}
+                  />
+                  <div style={styles.cardGradient} />
+                  <div style={styles.cardContent}>
+                    <div style={styles.cardTop}>
+                      {trip.banderas && trip.banderas.length > 0 ? (
+                        <img src={trip.banderas[0]} alt="flag" loading="lazy" style={styles.flagImg} />
+                      ) : (
+                        <Compass size={18} color="white" />
                       )}
+                    </div>
+                    <div style={styles.cardBottom}>
+                      <h4 style={styles.cardTitle}>{trip.titulo || trip.nombreEspanol}</h4>
+                      <div style={styles.cardMeta}>
+                        <span style={styles.metaItem}>
+                          <Calendar size={12} /> {trip.fechaInicio}
+                        </span>
+                        {trip.ciudades && (
+                          <span style={styles.metaItem}>
+                            <MapPin size={12} /> {trip.ciudades.split(',')[0]}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )) : (
+              ))
+            ) : (
               <Motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -143,9 +143,7 @@ const DashboardHome = ({ paisesVisitados, bitacora, isMobile = false, loading = 
                   <Stamp size={64} color={COLORS.charcoalBlue} />
                 </div>
                 <h3 style={styles.welcomeTitle}>{t('emptyPassport')}</h3>
-                <p style={styles.welcomeText}>
-                  {t('firstSealMessage')}
-                </p>
+                <p style={styles.welcomeText}>{t('firstSealMessage')}</p>
                 <button type="button" className="tap-btn" style={styles.welcomeCta} onClick={openBuscador}>
                   {t('stampFirstDestination')}
                 </button>
@@ -158,4 +156,4 @@ const DashboardHome = ({ paisesVisitados, bitacora, isMobile = false, loading = 
   );
 };
 
-export default DashboardHome;
+export default DashboardPage;

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion as Motion } from 'framer-motion';
-import StatsBitacora from '../Dashboard/StatsBitacora';
+import LogStats from "@pages/dashboard/ui/components/LogStats";
 import { Trash2, Edit3, Calendar, MapPin, Search, LoaderCircle, Map } from 'lucide-react';
 import { useSearch, useUI } from '@app/providers/UIContext';
 import { COLORS } from '@shared/config';
@@ -45,7 +45,7 @@ const BentoGrid = ({
 
   return (
     <div style={{ width: '100%', paddingBottom: '50px' }}>
-      <StatsBitacora bitacora={viajesFiltrados} bitacoraData={bitacoraData} />
+      <LogStats log={viajesFiltrados} logData={bitacoraData} />
       {termino && !hasNoTrips && (
         <div style={styles.searchMeta}>
           <span>

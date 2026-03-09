@@ -5,7 +5,8 @@
       "@app/*": ["src/app/*"],
       "@features/*": ["src/features/*"],
       "@shared/*": ["src/shared/*"],
-      "@widgets/*": ["src/widgets/*"]
+      "@widgets/*": ["src/widgets/*"],
+      "@pages/*": ["src/pages/*"]
     }
   },
   "include": ["src", "vite.config.js", "eslint.config.js"]
