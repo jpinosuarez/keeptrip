@@ -8,7 +8,7 @@ import { COLORS } from '@shared/config';
 import { styles } from './DashboardPage.styles';
 import { HomeMap } from '@features/mapa';
 import { getTravelerLevel, getNextLevel } from '@features/gamification';
-import { SkeletonList, TripCardSkeleton } from '@shared/ui/legacy_components/Shared/Skeletons';
+import { SkeletonList, TripCardSkeleton } from '@shared/ui/components/Skeletons';
 
 const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile = false, loading = false }) => {
   const { usuario } = useAuth();
