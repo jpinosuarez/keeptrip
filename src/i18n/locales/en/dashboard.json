@@ -5,9 +5,9 @@
   "world": "World",
   "recentAdventures": "Recent adventures",
   "viewAll": "View all",
-  "emptyPassport": "Your passport is empty!",
-  "firstSealMessage": "Start your log by stamping your first destination.",
-  "stampFirstDestination": "Stamp first destination",
+  "emptyLog": "Your travel log is empty!",
+  "firstTripMessage": "Start your adventure by registering your first destination.",
+  "addFirstTrip": "Add first trip",
   "stats": {
     "totalDays": "Total days",
     "registeredCities": "Registered cities",

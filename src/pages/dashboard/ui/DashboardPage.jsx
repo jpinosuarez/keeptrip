@@ -142,10 +142,10 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile
                   </div>
                   <Stamp size={64} color={COLORS.charcoalBlue} />
                 </div>
-                <h3 style={styles.welcomeTitle}>{t('emptyPassport')}</h3>
-                <p style={styles.welcomeText}>{t('firstSealMessage')}</p>
+                <h3 style={styles.welcomeTitle}>{t('emptyLog')}</h3>
+                <p style={styles.welcomeText}>{t('firstTripMessage')}</p>
                 <button type="button" className="tap-btn" style={styles.welcomeCta} onClick={openBuscador}>
-                  {t('stampFirstDestination')}
+                  {t('addFirstTrip')}
                 </button>
               </Motion.div>
             )}

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 
-import LandingPage from '@shared/ui/legacy_components/Landing/LandingPage';
+const LandingPage = lazy(() => import('@pages/landing'));
 import AppActiveView from './AppActiveView';
 import AppModalsManager from './AppModalsManager';
 import AppScaffold from './AppScaffold';
@@ -128,7 +128,11 @@ function App() {
     invitations: invitationsHook,
   });
 
-  if (!cargando && !usuario) return <LandingPage />;
+  if (!cargando && !usuario) return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LandingPage />
+    </Suspense>
+  );
 
   return (
     <AppScaffold

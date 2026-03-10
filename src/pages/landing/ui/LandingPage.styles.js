@@ -31,7 +31,9 @@ export const styles = {
     color: COLORS.charcoalBlue,
     fontWeight: '700',
     cursor: 'pointer',
-    transition: TRANSITIONS.fast
+    transition: TRANSITIONS.fast,
+    minHeight: '44px',
+    minWidth: '44px'
   },
   hero: {
     maxWidth: '1200px',
@@ -73,7 +75,8 @@ export const styles = {
     borderRadius: RADIUS.full,
     cursor: 'pointer',
     boxShadow: SHADOWS.float,
-    transition: TRANSITIONS.normal
+    transition: TRANSITIONS.normal,
+    minHeight: '44px'
   },
   featuresGrid: {
     display: 'grid',
@@ -85,20 +88,24 @@ export const styles = {
   featureCard: {
     background: COLORS.surface,
     padding: '30px',
-    borderRadius: 'var(--radius-xl)',
+    borderRadius: RADIUS.xl,
     boxShadow: SHADOWS.md,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '15px'
+    gap: '15px',
+    transition: TRANSITIONS.normal,
+    cursor: 'pointer'
   },
   backgroundMap: {
     position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundImage: 'url("https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg")',
     backgroundSize: 'cover',
     opacity: 0.03,
-    zIndex: 0,
-    pointerEvents: 'none'
+    zIndex: 1
   }
 };

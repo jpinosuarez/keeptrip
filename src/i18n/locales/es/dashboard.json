@@ -5,9 +5,9 @@
   "world": "Mundo",
   "recentAdventures": "Aventuras recientes",
   "viewAll": "Ver todo",
-  "emptyPassport": "¡Tu pasaporte está vacío!",
-  "firstSealMessage": "Comienza tu bitácora sellando tu primer destino.",
-  "stampFirstDestination": "Sellar primer destino",
+  "emptyLog": "¡Tu bitácora está vacía!",
+  "firstTripMessage": "Comienza tu aventura registrando tu primer destino.",
+  "addFirstTrip": "Agregar primer viaje",
   "stats": {
     "totalDays": "Días totales",
     "registeredCities": "Ciudades registradas",

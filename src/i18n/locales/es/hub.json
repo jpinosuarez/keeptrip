@@ -1,20 +1,9 @@
 {
-  "passport": {
-    "title": "PASAPORTE",
-    "subtitle": "GLOBAL STAMP",
-    "est": "EST. 2026"
-  },
-  "biometric": {
-    "title": "PERFIL BIOMÉTRICO",
-    "holder": "TITULAR",
-    "countries": "PAÍSES",
-    "trips": "VIAJES",
-    "maxLevel": "🏆 Nivel máximo alcanzado — eres una leyenda.",
-    "progressText": "{{remaining}} país(es) → {{icon}} {{label}}"
-  },
-  "stamps": {
-    "admitted": "ADMITTED {{year}}",
-    "region": "{{region}}"
+  "progress": {
+    "title": "Perfil del Viajero",
+    "labelName": "VIAJERO",
+    "fallbackName": "Explorador",
+    "maxLevel": "🏆 Nivel máximo alcanzado — eres una leyenda."
   },
   "levelup": {
     "title": "¡Nuevo nivel!",
