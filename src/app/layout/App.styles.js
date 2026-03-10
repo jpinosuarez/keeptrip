@@ -26,8 +26,9 @@ export const styles = {
 
   sectionWrapper: (isMobile) => ({
     flex: 1,
-    padding: isMobile ? '10px' : '20px',
-    overflow: 'hidden',
+    padding: isMobile ? '10px 10px 0' : '20px 20px 0',
+    overflowY: 'auto',
+    overflowX: 'hidden',
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
