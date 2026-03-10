@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Upload, X, Image as ImageIcon, Star, LoaderCircle } from 'lucide-react';
 import { COLORS, RADIUS, SHADOWS, TRANSITIONS } from '@shared/config';
@@ -30,6 +30,13 @@ export function GalleryUploader({
   const [previews, setPreviews] = useState([]);
   const [optimizing, setOptimizing] = useState(0); // count of files being optimized
   const fileInputRef = useRef(null);
+  // Track object URLs created via createObjectURL so we can revoke them on cleanup
+  const objectUrlsRef = useRef(new Set());
+
+  useEffect(() => {
+    const urls = objectUrlsRef.current;
+    return () => urls.forEach((url) => URL.revokeObjectURL(url));
+  }, []);
   const { pushToast } = useToast();
   const { t } = useTranslation('editor');
 
@@ -83,18 +90,21 @@ export function GalleryUploader({
     if (acceptedFiles.length === 0) return;
 
     const updatedFiles = [...files, ...acceptedFiles];
+    // Notify parent immediately so React can re-render with skeleton state
     onChange(updatedFiles);
 
-    // Generar previews (count them for optimizing indicator)
+    // Yield main thread to React's commit phase before generating previews.
+    // URL.createObjectURL is a near-instant pointer into the browser's Blob store
+    // (no base64 encoding, no heap copy) — far less blocking than FileReader.
     setOptimizing(prev => prev + acceptedFiles.length);
-    acceptedFiles.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPreviews(prev => [...prev, { file, url: e.target.result }]);
+    setTimeout(() => {
+      acceptedFiles.forEach(file => {
+        const url = URL.createObjectURL(file);
+        objectUrlsRef.current.add(url);
+        setPreviews(prev => [...prev, { file, url }]);
         setOptimizing(prev => Math.max(0, prev - 1));
-      };
-      reader.readAsDataURL(file);
-    });
+      });
+    }, 0);
   };
 
   const handleDrop = (e) => {
@@ -113,6 +123,13 @@ export function GalleryUploader({
   };
 
   const handleRemoveFile = (index) => {
+    // Revoke the object URL when removing to free memory
+    const removed = previews[index];
+    if (removed) {
+      URL.revokeObjectURL(removed.url);
+      objectUrlsRef.current.delete(removed.url);
+    }
+
     const updatedFiles = files.filter((_, i) => i !== index);
     onChange(updatedFiles);
 

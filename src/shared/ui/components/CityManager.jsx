@@ -6,6 +6,17 @@ import { parseFlexibleDate, formatDateSlash } from '@shared/lib/utils/viajeUtils
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
+/**
+ * Light input mask: auto-inserts `/` separators while typing DD/MM/YYYY.
+ * Strips non-digit characters and limits output to 10 chars.
+ */
+const maskDateInput = (raw) => {
+  const digits = raw.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+};
+
 const CityManager = ({ paradas, setParadas }) => {
   const [busqueda, setBusqueda] = useState('');
   const [resultados, setResultados] = useState([]);
@@ -128,11 +139,11 @@ const CityManager = ({ paradas, setParadas }) => {
             <div style={styles.datesRow}>
                 <div style={styles.dateGroup}>
                     <label style={styles.label}>Llegada</label>
-                    <input type="text" value={p.fechaLlegada} onChange={e => actualizarDato(index, 'fechaLlegada', e.target.value)} onBlur={e => { const iso = parseFlexibleDate(e.target.value); if (iso) actualizarDato(index, 'fechaLlegada', formatDateSlash(iso)); }} placeholder="dd/mm/aaaa" style={styles.dateInput} />
+                    <input type="text" value={p.fechaLlegada} onChange={e => actualizarDato(index, 'fechaLlegada', maskDateInput(e.target.value))} onBlur={e => { const iso = parseFlexibleDate(e.target.value); if (iso) actualizarDato(index, 'fechaLlegada', formatDateSlash(iso)); }} placeholder="dd/mm/aaaa" maxLength={10} style={styles.dateInput} />
                 </div>
                 <div style={styles.dateGroup}>
                     <label style={styles.label}>Salida</label>
-                    <input type="text" value={p.fechaSalida} onChange={e => actualizarDato(index, 'fechaSalida', e.target.value)} onBlur={e => { const iso = parseFlexibleDate(e.target.value); if (iso) actualizarDato(index, 'fechaSalida', formatDateSlash(iso)); }} placeholder="dd/mm/aaaa" style={styles.dateInput} />
+                    <input type="text" value={p.fechaSalida} onChange={e => actualizarDato(index, 'fechaSalida', maskDateInput(e.target.value))} onBlur={e => { const iso = parseFlexibleDate(e.target.value); if (iso) actualizarDato(index, 'fechaSalida', formatDateSlash(iso)); }} placeholder="dd/mm/aaaa" maxLength={10} style={styles.dateInput} />
                 </div>
             </div>
 

@@ -68,6 +68,13 @@ function AppModalsManager({
             isSaving={isSavingModal}
             esBorrador={!!viajeBorrador}
             ciudadInicial={ciudadInicialBorrador}
+            onAfterSave={viajeBorrador ? (savedId) => {
+              setViajeEnEdicionId(null);
+              setViajeBorrador(null);
+              setCiudadInicialBorrador(null);
+              // Small delay to let Firestore snapshot arrive before opening viewer
+              setTimeout(() => setViajeExpandidoId(savedId), 400);
+            } : undefined}
           />
         </ErrorBoundary>
       )}

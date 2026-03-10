@@ -23,6 +23,7 @@ export function useEdicionModalSave({
   t,
   limpiarEstado,
   onClose,
+  onAfterSave,
 }) {
   return useCallback(async () => {
     if (isProcessingImage || isSaving) return;
@@ -67,7 +68,11 @@ export function useEdicionModalSave({
       }
 
       limpiarEstado();
-      onClose();
+      if (onAfterSave) {
+        onAfterSave(savedViajeId);
+      } else {
+        onClose();
+      }
     } catch {
       pushToast(t('error.unexpectedError'), 'error');
     }
@@ -81,6 +86,7 @@ export function useEdicionModalSave({
     isProcessingImage,
     isSaving,
     limpiarEstado,
+    onAfterSave,
     onClose,
     onSave,
     paradas,

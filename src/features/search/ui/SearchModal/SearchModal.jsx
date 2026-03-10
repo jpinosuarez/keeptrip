@@ -180,7 +180,13 @@ const SearchModal = ({
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                   {POPULAR_DESTINATIONS.map((dest) => (
                     <button key={dest.name} onClick={() => handleSelectPopular(dest)} style={styles.tagBtn}>
-                      <span style={{ fontSize: "0.75rem", fontWeight: 700 }}>{dest.icon}</span> {dest.name}
+                      <img
+                        src={`https://flagcdn.com/w40/${dest.code.toLowerCase()}.png`}
+                        alt=""
+                        style={{ width: '20px', height: '14px', objectFit: 'cover', borderRadius: '2px', verticalAlign: 'middle', flexShrink: 0 }}
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                      {dest.name}
                     </button>
                   ))}
                 </div>
