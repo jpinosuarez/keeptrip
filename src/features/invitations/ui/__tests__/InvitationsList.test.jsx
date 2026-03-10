@@ -28,12 +28,8 @@ vi.mock('react-router-dom', async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-// Mock AuthContext, UIContext and ToastContext used by the component
+// Mock AuthContext and ToastContext used by the component
 vi.mock('@app/providers/AuthContext', () => ({ useAuth: () => ({ usuario: { uid: 'user123', email: 'a@b.com' } }) }));
-const abrirVisorMock = vi.fn();
-vi.mock('@app/providers/UIContext', () => ({
-  useUI: () => ({ abrirVisor: abrirVisorMock })
-}));
 const pushToastMock = vi.fn();
 vi.mock('@app/providers/ToastContext', () => ({
   useToast: () => ({ pushToast: pushToastMock })
@@ -65,8 +61,7 @@ describe('InvitationsList', () => {
     await userEvent.click(screen.getByTestId('inv-accept-inv1'));
     expect(accept).toHaveBeenCalledWith('inv1');
     expect(pushToastMock).toHaveBeenCalledWith(expect.stringContaining('Invitación aceptada'), 'success');
-    expect(mockNavigate).toHaveBeenCalledWith('/trips');
-    expect(abrirVisorMock).toHaveBeenCalledWith('viaje-1');
+    expect(mockNavigate).toHaveBeenCalledWith('/trips/viaje-1');
 
     await userEvent.click(screen.getByTestId('inv-decline-inv1'));
     expect(decline).toHaveBeenCalledWith('inv1');

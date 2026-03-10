@@ -331,9 +331,9 @@ test.describe('Invitations flow (E2E)', () => {
     await page.evaluate(({ email, password }) => (window as any).__test_signInWithEmail({ email, password }), { email: inviteeEmail, password });
     await page.waitForSelector('[data-testid="header-avatar"]');
 
-    await page.evaluate(() => (window as any).__test_setVista('bitacora'));
-    await page.waitForSelector(`[data-testid="bitacora-card-${viajeId}"]`, { timeout: 15000, state: 'attached' });
-    await page.evaluate((id) => (window as any).__test_abrirVisor(id), viajeId);
+    await page.evaluate(() => (window as any).__test_navigate('/trips'));
+    await page.waitForSelector(`[data-testid="trip-card-${viajeId}"]`, { timeout: 15000, state: 'attached' });
+    await page.evaluate((id) => (window as any).__test_navigate(`/trips/${id}`), viajeId);
 
     await page.waitForSelector('[data-testid="visor-shared-badge"]', { timeout: 15000 });
 

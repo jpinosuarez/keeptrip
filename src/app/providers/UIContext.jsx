@@ -9,13 +9,11 @@ export const UIProvider = ({ children }) => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [mostrarBuscador, setMostrarBuscador] = useState(false);
 
-  const [viajeEnEdicionId, setViajeEnEdicionId] = useState(null);
-  const [viajeExpandidoId, setViajeExpandidoId] = useState(null);
+  // Modal state para viaje nuevo (borrador no persistido aún)
   const [viajeBorrador, setViajeBorrador] = useState(null);
   const [ciudadInicialBorrador, setCiudadInicialBorrador] = useState(null);
+  // Confirmación de eliminación (no requiere URL — es un diálogo transitorio)
   const [confirmarEliminacion, setConfirmarEliminacion] = useState(null);
-
-  const tituloHeader = null; // eslint-disable-line no-unused-vars
 
   const value = useMemo(
     () => ({
@@ -30,14 +28,6 @@ export const UIProvider = ({ children }) => {
       mostrarBuscador,
       openBuscador: () => setMostrarBuscador(true),
       closeBuscador: () => setMostrarBuscador(false),
-      viajeEnEdicionId,
-      setViajeEnEdicionId,
-      abrirEditor: (viajeId) => setViajeEnEdicionId(viajeId),
-      cerrarEditor: () => setViajeEnEdicionId(null),
-      viajeExpandidoId,
-      setViajeExpandidoId,
-      abrirVisor: (viajeId) => setViajeExpandidoId(viajeId),
-      cerrarVisor: () => setViajeExpandidoId(null),
       viajeBorrador,
       setViajeBorrador,
       ciudadInicialBorrador,
@@ -49,8 +39,6 @@ export const UIProvider = ({ children }) => {
       sidebarCollapsed,
       mobileDrawerOpen,
       mostrarBuscador,
-      viajeEnEdicionId,
-      viajeExpandidoId,
       viajeBorrador,
       ciudadInicialBorrador,
       confirmarEliminacion
@@ -62,13 +50,10 @@ export const UIProvider = ({ children }) => {
       return undefined;
     }
 
-    window.__test_abrirVisor = (viajeId) => setViajeExpandidoId(viajeId);
     window.__test_abrirBuscador = () => setMostrarBuscador(true);
 
-    return () => {
-      delete window.__test_abrirVisor;
-    };
-  }, [setViajeExpandidoId]);
+    return undefined;
+  }, []);
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;
 };

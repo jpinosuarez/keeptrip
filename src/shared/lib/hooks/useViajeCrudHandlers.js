@@ -9,12 +9,10 @@ export function useViajeCrudHandlers({
   ciudadInicialBorrador,
   setViajeBorrador,
   setCiudadInicialBorrador,
-  abrirVisor,
   pushToast,
   confirmarEliminacion,
   setConfirmarEliminacion,
-  setViajeExpandidoId,
-  setViajeEnEdicionId,
+  onAfterDelete,
 }) {
   const [isSavingModal, setIsSavingModal] = useState(false);
   const [isSavingViewer, setIsSavingViewer] = useState(false);
@@ -79,7 +77,6 @@ export function useViajeCrudHandlers({
     guardarNuevoViaje,
     setViajeBorrador,
     setCiudadInicialBorrador,
-    abrirVisor,
     actualizarDetallesViaje,
     agregarParada,
     pushToast,
@@ -139,8 +136,7 @@ export function useViajeCrudHandlers({
     try {
       const ok = await eliminarViaje(id);
       if (!ok) return false;
-      setViajeExpandidoId(null);
-      setViajeEnEdicionId(null);
+      onAfterDelete?.();
       return true;
     } finally {
       setConfirmarEliminacion(null);
@@ -154,8 +150,7 @@ export function useViajeCrudHandlers({
     confirmarEliminacion,
     viajesEliminando,
     eliminarViaje,
-    setViajeExpandidoId,
-    setViajeEnEdicionId,
+    onAfterDelete,
     setConfirmarEliminacion,
   ]);
 

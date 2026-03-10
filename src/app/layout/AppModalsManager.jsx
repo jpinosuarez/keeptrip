@@ -1,4 +1,6 @@
 import React from 'react';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 
 import { SearchModal } from '@features/search/ui/SearchModal';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
@@ -12,15 +14,15 @@ function AppModalsManager({
   onLugarSeleccionado,
   pushToast,
 }) {
+  const { id: tripId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
   const {
     mostrarBuscador,
     closeBuscador,
     filtro,
     setFiltro,
-    viajeEnEdicionId,
-    setViajeEnEdicionId,
-    viajeExpandidoId,
-    setViajeExpandidoId,
     viajeBorrador,
     setViajeBorrador,
     ciudadInicialBorrador,
@@ -40,7 +42,32 @@ function AppModalsManager({
     handleDeleteViaje,
   } = crud;
 
-  const viajeParaEditar = viajeEnEdicionId ? bitacora.find((v) => v.id === viajeEnEdicionId) : viajeBorrador;
+  // ── EdicionModal: ?editing=<id> para viajes existentes, viajeBorrador para nuevos ──
+  const editingId = searchParams.get('editing');
+  const viajeParaEditar = editingId
+    ? bitacora.find((v) => v.id === editingId)
+    : viajeBorrador;
+  const esBorrador = !editingId && !!viajeBorrador;
+
+  const closeEditor = () => {
+    if (editingId) {
+      setSearchParams((prev) => { prev.delete('editing'); return prev; });
+    } else {
+      setViajeBorrador(null);
+      setCiudadInicialBorrador(null);
+    }
+  };
+
+  // Al guardar un nuevo viaje, limpiar borrador y navegar al visor vía URL
+  const handleAfterSave = esBorrador
+    ? (savedId) => {
+        setViajeBorrador(null);
+        setCiudadInicialBorrador(null);
+        setTimeout(() => navigate('/trips/' + savedId), 400);
+      }
+    : undefined;
+
+  // ── ConfirmModal ──────────────────────────────────────────────────────────────
   const viajeAEliminar = confirmarEliminacion
     ? (bitacoraData[confirmarEliminacion] || bitacora.find((v) => v.id === confirmarEliminacion))
     : null;
@@ -63,36 +90,37 @@ function AppModalsManager({
           <EdicionModal
             viaje={viajeParaEditar}
             bitacoraData={bitacoraData}
-            onClose={() => { setViajeEnEdicionId(null); setViajeBorrador(null); setCiudadInicialBorrador(null); }}
+            onClose={closeEditor}
             onSave={handleGuardarModal}
             isSaving={isSavingModal}
-            esBorrador={!!viajeBorrador}
+            esBorrador={esBorrador}
             ciudadInicial={ciudadInicialBorrador}
-            onAfterSave={viajeBorrador ? (savedId) => {
-              setViajeEnEdicionId(null);
-              setViajeBorrador(null);
-              setCiudadInicialBorrador(null);
-              // Small delay to let Firestore snapshot arrive before opening viewer
-              setTimeout(() => setViajeExpandidoId(savedId), 400);
-            } : undefined}
+            onAfterSave={handleAfterSave}
           />
         </ErrorBoundary>
       )}
 
-      {viajeExpandidoId && (
-        <ErrorBoundary>
-          <VisorViaje
-            viajeId={viajeExpandidoId}
-            bitacoraLista={bitacora}
-            bitacoraData={bitacoraData}
-            onClose={() => setViajeExpandidoId(null)}
-            onSave={handleGuardarDesdeVisor}
-            onDelete={solicitarEliminarViaje}
-            isSaving={isSavingViewer}
-            isDeleting={!!(viajeExpandidoId && viajesEliminando.has(viajeExpandidoId))}
-          />
-        </ErrorBoundary>
-      )}
+      {/* VisorViaje: montado/desmontado por la URL /trips/:id
+          AnimatePresence aquí (no dentro de VisorViaje) garantiza las
+          exit animations incluso con createPortal, ya que el PresenceContext
+          propaga a través del árbol de fibras de React. */}
+      <ErrorBoundary>
+        <AnimatePresence>
+          {tripId && (
+            <VisorViaje
+              key={tripId}
+              viajeId={tripId}
+              bitacoraLista={bitacora}
+              bitacoraData={bitacoraData}
+              onClose={() => navigate('/trips')}
+              onSave={handleGuardarDesdeVisor}
+              onDelete={solicitarEliminarViaje}
+              isSaving={isSavingViewer}
+              isDeleting={!!(tripId && viajesEliminando.has(tripId))}
+            />
+          )}
+        </AnimatePresence>
+      </ErrorBoundary>
 
       <ConfirmModal
         isOpen={!!confirmarEliminacion}

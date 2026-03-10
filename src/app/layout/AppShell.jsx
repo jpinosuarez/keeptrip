@@ -23,11 +23,13 @@ import { useAppShellComposition } from '@shared/lib/hooks/useAppShellComposition
 import { useAuth, useToast, useSearch, useUI } from '@app/providers';
 import { useAchievements } from '@features/gamification';
 import { useInvitations } from '@features/invitations';
+import { useNavigate } from 'react-router-dom';
 
 function AppShell() {
   const { isAdmin } = useAuth();
   const { pushToast } = useToast();
   const { isMobile } = useWindowSize(768);
+  const navigate = useNavigate();
 
   const {
     paisesVisitados,
@@ -48,17 +50,12 @@ function AppShell() {
     setMobileDrawerOpen,
     mostrarBuscador,
     closeBuscador,
-    viajeEnEdicionId,
-    setViajeEnEdicionId,
-    viajeExpandidoId,
-    setViajeExpandidoId,
     viajeBorrador,
     setViajeBorrador,
     ciudadInicialBorrador,
     setCiudadInicialBorrador,
     confirmarEliminacion,
     setConfirmarEliminacion,
-    abrirVisor,
   } = useUI();
 
   const { filtro, setFiltro, busqueda, setBusqueda } = useSearch();
@@ -73,6 +70,13 @@ function AppShell() {
 
   const invitationsHook = useInvitations();
 
+  // Helper de E2E: permite a Playwright navegar a cualquier ruta programáticamente
+  React.useEffect(() => {
+    if (import.meta.env.VITE_ENABLE_TEST_LOGIN !== 'true') return undefined;
+    window.__test_navigate = (path) => navigate(path);
+    return () => { delete window.__test_navigate; };
+  }, [navigate]);
+
   const {
     onLugarSeleccionado,
     modalController,
@@ -86,17 +90,12 @@ function AppShell() {
       setMobileDrawerOpen,
       mostrarBuscador,
       closeBuscador,
-      viajeEnEdicionId,
-      setViajeEnEdicionId,
-      viajeExpandidoId,
-      setViajeExpandidoId,
       viajeBorrador,
       setViajeBorrador,
       ciudadInicialBorrador,
       setCiudadInicialBorrador,
       confirmarEliminacion,
       setConfirmarEliminacion,
-      abrirVisor,
     },
     search: {
       busqueda,
@@ -128,6 +127,7 @@ function AppShell() {
       achievementStats,
     },
     invitations: invitationsHook,
+    onAfterDelete: () => navigate('/trips'),
   });
 
   return (

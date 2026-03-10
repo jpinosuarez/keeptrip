@@ -10,23 +10,19 @@ export function useAppShellComposition({
   feedback,
   gamification,
   invitations,
+  onAfterDelete,
 }) {
   const {
     mobileDrawerOpen,
     setMobileDrawerOpen,
     mostrarBuscador,
     closeBuscador,
-    viajeEnEdicionId,
-    setViajeEnEdicionId,
-    viajeExpandidoId,
-    setViajeExpandidoId,
     viajeBorrador,
     setViajeBorrador,
     ciudadInicialBorrador,
     setCiudadInicialBorrador,
     confirmarEliminacion,
     setConfirmarEliminacion,
-    abrirVisor,
   } = ui;
 
   const { busqueda, setBusqueda, filtro, setFiltro } = search;
@@ -66,12 +62,10 @@ export function useAppShellComposition({
     ciudadInicialBorrador,
     setViajeBorrador,
     setCiudadInicialBorrador,
-    abrirVisor,
     pushToast,
     confirmarEliminacion,
     setConfirmarEliminacion,
-    setViajeExpandidoId,
-    setViajeEnEdicionId,
+    onAfterDelete,
   });
 
   const onLugarSeleccionado = useLugarSelectionDraft({
@@ -79,8 +73,6 @@ export function useAppShellComposition({
     setFiltro,
     setViajeBorrador,
     setCiudadInicialBorrador,
-    setViajeEnEdicionId,
-    setViajeExpandidoId,
   });
 
   useAppViewGuards({
@@ -96,10 +88,6 @@ export function useAppShellComposition({
     closeBuscador,
     filtro,
     setFiltro,
-    viajeEnEdicionId,
-    setViajeEnEdicionId,
-    viajeExpandidoId,
-    setViajeExpandidoId,
     viajeBorrador,
     setViajeBorrador,
     ciudadInicialBorrador,

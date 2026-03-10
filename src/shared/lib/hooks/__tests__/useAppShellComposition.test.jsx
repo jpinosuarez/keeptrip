@@ -25,23 +25,16 @@ import { useAppShellComposition } from '../useAppShellComposition';
 function buildInput(overrides = {}) {
   const base = {
     ui: {
-      vistaActiva: 'home',
       mobileDrawerOpen: false,
       setMobileDrawerOpen: vi.fn(),
-      setVistaActiva: vi.fn(),
       mostrarBuscador: true,
       closeBuscador: vi.fn(),
-      viajeEnEdicionId: 'v1',
-      setViajeEnEdicionId: vi.fn(),
-      viajeExpandidoId: 'v2',
-      setViajeExpandidoId: vi.fn(),
       viajeBorrador: { id: 'new' },
       setViajeBorrador: vi.fn(),
       ciudadInicialBorrador: { nombre: 'Madrid' },
       setCiudadInicialBorrador: vi.fn(),
       confirmarEliminacion: 'v3',
       setConfirmarEliminacion: vi.fn(),
-      abrirVisor: vi.fn(),
     },
     search: {
       busqueda: 'roma',
@@ -115,7 +108,7 @@ describe('useAppShellComposition', () => {
     expect(result.current.invitationsCount).toBe(2);
     expect(result.current.modalController).toMatchObject({
       mostrarBuscador: true,
-      viajeEnEdicionId: 'v1',
+      viajeBorrador: { id: 'new' },
       confirmarEliminacion: 'v3',
     });
 
@@ -125,7 +118,6 @@ describe('useAppShellComposition', () => {
     });
 
     expect(result.current.activeViewController.view).toMatchObject({
-      vistaActiva: 'home',
       isAdmin: true,
       isMobile: false,
     });

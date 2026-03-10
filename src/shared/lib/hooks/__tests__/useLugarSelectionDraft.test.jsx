@@ -9,24 +9,20 @@ describe('useLugarSelectionDraft', () => {
     const setFiltro = vi.fn();
     const setViajeBorrador = vi.fn();
     const setCiudadInicialBorrador = vi.fn();
-    const setViajeEnEdicionId = vi.fn();
-    const setViajeExpandidoId = vi.fn();
 
     const { result } = renderHook(() => useLugarSelectionDraft({
       closeBuscador,
       setFiltro,
       setViajeBorrador,
       setCiudadInicialBorrador,
-      setViajeEnEdicionId,
-      setViajeExpandidoId,
     }));
 
     act(() => {
       result.current({
-        esPais: true,
+        isCountry: true,
         code: 'US',
-        nombre: 'Estados Unidos',
-        coordenadas: [37.0902, -95.7129],
+        name: 'United States',
+        coordinates: [37.0902, -95.7129],
       });
     });
 
@@ -40,10 +36,7 @@ describe('useLugarSelectionDraft', () => {
       foto: null,
       latlng: [37.0902, -95.7129],
     });
-    expect(setViajeEnEdicionId).toHaveBeenCalledWith(null);
-    expect(setViajeExpandidoId).toHaveBeenCalledWith(null);
     expect(setCiudadInicialBorrador).toHaveBeenCalledWith(expect.objectContaining({
-      nombre: 'Estados Unidos',
       paisCodigo: 'US',
     }));
   });
@@ -53,25 +46,21 @@ describe('useLugarSelectionDraft', () => {
     const setFiltro = vi.fn();
     const setViajeBorrador = vi.fn();
     const setCiudadInicialBorrador = vi.fn();
-    const setViajeEnEdicionId = vi.fn();
-    const setViajeExpandidoId = vi.fn();
 
     const { result } = renderHook(() => useLugarSelectionDraft({
       closeBuscador,
       setFiltro,
       setViajeBorrador,
       setCiudadInicialBorrador,
-      setViajeEnEdicionId,
-      setViajeExpandidoId,
     }));
 
     act(() => {
       result.current({
-        esPais: false,
-        nombre: 'Madrid',
-        coordenadas: [40.4168, -3.7038],
-        paisCodigo: 'ES',
-        paisNombre: 'Espana',
+        isCountry: false,
+        name: 'Madrid',
+        coordinates: [40.4168, -3.7038],
+        countryCode: 'ES',
+        countryName: 'España',
       });
     });
 

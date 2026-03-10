@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { motion as Motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { useAuth } from '@app/providers/AuthContext';
 import { useToast } from '@app/providers/ToastContext';
 import { useUpload } from '@app/providers/UploadContext';
@@ -119,14 +119,13 @@ const VisorViaje = ({
   };
 
   return createPortal(
-    <AnimatePresence>
-      <Motion.div
-        initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        exit={{ y: '100%' }}
-        transition={{ type: 'spring', damping: 25 }}
-        style={styles.expandedOverlay}
-      >
+    <Motion.div
+      initial={{ y: '100%' }}
+      animate={{ y: 0 }}
+      exit={{ y: '100%' }}
+      transition={{ type: 'spring', damping: 25 }}
+      style={styles.expandedOverlay}
+    >
         <VisorHero
           styles={styles}
           isMobile={isMobile}
@@ -178,8 +177,7 @@ const VisorViaje = ({
             isSaving={isSaving}
           />
         )}
-      </Motion.div>
-    </AnimatePresence>,
+      </Motion.div>,
     document.body
   );
 };

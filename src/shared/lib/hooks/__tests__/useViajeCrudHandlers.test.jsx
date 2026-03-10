@@ -13,20 +13,16 @@ function buildParams(overrides = {}) {
     ciudadInicialBorrador: null,
     setViajeBorrador: vi.fn(),
     setCiudadInicialBorrador: vi.fn(),
-    abrirVisor: vi.fn(),
     pushToast: vi.fn(),
     confirmarEliminacion: null,
     setConfirmarEliminacion: vi.fn(),
-    setViajeExpandidoId: vi.fn(),
-    setViajeEnEdicionId: vi.fn(),
+    onAfterDelete: vi.fn(),
     ...overrides,
   };
 }
 
 describe('useViajeCrudHandlers', () => {
-  test('guarda viaje nuevo, limpia borrador y abre visor', async () => {
-    vi.useFakeTimers();
-
+  test('guarda viaje nuevo, limpia borrador y retorna el id', async () => {
     const params = buildParams({
       ciudadInicialBorrador: { nombre: 'Madrid', paisCodigo: 'ES' },
       guardarNuevoViaje: vi.fn().mockResolvedValue('trip-1'),
@@ -48,17 +44,9 @@ describe('useViajeCrudHandlers', () => {
     expect(params.guardarNuevoViaje.mock.calls[0][1][0]).toMatchObject({ nombre: 'Madrid' });
     expect(params.setViajeBorrador).toHaveBeenCalledWith(null);
     expect(params.setCiudadInicialBorrador).toHaveBeenCalledWith(null);
-
-    expect(params.abrirVisor).not.toHaveBeenCalled();
-    act(() => {
-      vi.advanceTimersByTime(500);
-    });
-    expect(params.abrirVisor).toHaveBeenCalledWith('trip-1');
-
-    vi.useRealTimers();
   });
 
-  test('elimina viaje confirmado y limpia estado UI', async () => {
+  test('elimina viaje confirmado, llama onAfterDelete y limpia confirmación', async () => {
     const params = buildParams({
       confirmarEliminacion: 'trip-42',
       eliminarViaje: vi.fn().mockResolvedValue(true),
@@ -73,8 +61,7 @@ describe('useViajeCrudHandlers', () => {
 
     expect(response).toBe(true);
     expect(params.eliminarViaje).toHaveBeenCalledWith('trip-42');
-    expect(params.setViajeExpandidoId).toHaveBeenCalledWith(null);
-    expect(params.setViajeEnEdicionId).toHaveBeenCalledWith(null);
+    expect(params.onAfterDelete).toHaveBeenCalledTimes(1);
     expect(params.setConfirmarEliminacion).toHaveBeenCalledWith(null);
   });
 });

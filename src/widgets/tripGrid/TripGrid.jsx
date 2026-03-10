@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion as Motion } from 'framer-motion';
+import { useNavigate, Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LogStats from '@pages/dashboard/ui/components/LogStats';
 import { Trash2, Edit3, Calendar, MapPin, LoaderCircle, Globe, Telescope, ArrowRight } from 'lucide-react';
@@ -16,7 +17,8 @@ const TripGrid = ({
 }) => {
   const { t } = useTranslation('gallery');
   const { busqueda, limpiarBusqueda } = useSearch();
-  const { abrirEditor, abrirVisor, openBuscador } = useUI();
+  const { openBuscador } = useUI();
+  const navigate = useNavigate();
   const searchTerm = busqueda.trim().toLowerCase();
 
   const filteredTrips = useMemo(() => {
@@ -82,7 +84,7 @@ const TripGrid = ({
                   backgroundPosition: 'center'
                 } : {})
               }}
-              onClick={() => abrirVisor(trip.id)}
+              onClick={() => navigate('/trips/' + trip.id)}
             >
               <div style={styles.topGradient}>
                 <div style={styles.flagsRow}>
@@ -93,7 +95,7 @@ const TripGrid = ({
                 </div>
 
                 <div style={styles.actionButtons}>
-                  <button className="tap-icon" onClick={(e) => { e.stopPropagation(); abrirEditor(trip.id); }} style={styles.miniBtn}><Edit3 size={14} /></button>
+                  <button className="tap-icon" onClick={(e) => { e.stopPropagation(); navigate('?editing=' + trip.id); }} style={styles.miniBtn}><Edit3 size={14} /></button>
                   <button
                     className="tap-icon"
                     onClick={(e) => { e.stopPropagation(); handleDelete(trip.id); }}
@@ -168,6 +170,8 @@ const TripGrid = ({
           </Motion.div>
         )}
       </div>
+      {/* Outlet para rutas anidadas /trips/:id */}
+      <Outlet />
     </div>
   );
 };

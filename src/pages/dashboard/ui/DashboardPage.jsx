@@ -14,7 +14,7 @@ import { SkeletonList, TripCardSkeleton } from '@shared/ui/components/Skeletons'
 const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile = false, loading = false }) => {
   const { usuario } = useAuth();
   const navigate = useNavigate();
-  const { abrirVisor, openBuscador } = useUI();
+  const { openBuscador } = useUI();
   const { t } = useTranslation('dashboard');
 
   const name = usuario?.displayName ? usuario.displayName.split(' ')[0] : t('fallbackName', 'Explorer');
@@ -97,7 +97,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile
                   key={trip.id}
                   className="tap-scale"
                   style={styles.travelCard}
-                  onClick={() => abrirVisor(trip.id)}
+                  onClick={() => navigate('/trips/' + trip.id)}
                 >
                   <div
                     style={{

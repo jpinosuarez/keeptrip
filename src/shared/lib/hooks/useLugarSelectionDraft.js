@@ -6,8 +6,6 @@ export function useLugarSelectionDraft({
   setFiltro,
   setViajeBorrador,
   setCiudadInicialBorrador,
-  setViajeEnEdicionId,
-  setViajeExpandidoId,
 }) {
   return useCallback((lugar) => {
     let datosPais = null;
@@ -52,8 +50,6 @@ export function useLugarSelectionDraft({
       };
     }
 
-    setViajeEnEdicionId?.(null);
-    setViajeExpandidoId?.(null);
     closeBuscador();
     setFiltro('');
 
@@ -83,7 +79,5 @@ export function useLugarSelectionDraft({
     setFiltro,
     setViajeBorrador,
     setCiudadInicialBorrador,
-    setViajeEnEdicionId,
-    setViajeExpandidoId,
   ]);
 }

@@ -4,7 +4,6 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@shared/firebase';
 import { useNavigate } from 'react-router-dom';
 import useInvitations from '../model/useInvitations';
-import { useUI } from '@app/providers/UIContext';
 import { useToast } from '@app/providers/ToastContext';
 import { COLORS, RADIUS } from '@shared/config';
 
@@ -81,7 +80,6 @@ function useInvitationMetadata(invitations) {
 export default function InvitationsList({ compact = false, hook = null }) {
   const defaultInvitationsHook = useInvitations();
   const { invitations, acceptInvitation, declineInvitation } = hook || defaultInvitationsHook;
-  const { abrirVisor } = useUI();
   const { pushToast } = useToast();
   const navigate = useNavigate();
   const metadata = useInvitationMetadata(invitations);
@@ -119,8 +117,7 @@ export default function InvitationsList({ compact = false, hook = null }) {
                     if (ok) {
                       try { e?.currentTarget?.blur?.(); } catch { /* safe fallback for tests */ }
                       pushToast('Invitación aceptada — ahora puedes ver el viaje', 'success');
-                      navigate('/trips');
-                      abrirVisor(inv.viajeId);
+                      navigate('/trips/' + inv.viajeId);
                     } else {
                       pushToast('No se pudo aceptar la invitación', 'error');
                     }
