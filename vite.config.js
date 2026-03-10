@@ -22,25 +22,30 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['favicon.svg', 'icons/*.png'],
       manifest: {
-        name: 'Keeptrip - Tu Diario de Viajes',
+        id: '/',
+        name: 'Keeptrip — Registra tus aventuras',
         short_name: 'Keeptrip',
-        description: 'Registra, revive y comparte tus aventuras',
+        description: 'Registra, revive y comparte tus aventuras de viaje.',
+        lang: 'es',
         theme_color: '#FF6B35',
-        background_color: '#F4EDE4',
+        background_color: '#F8FAFC',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
         scope: '/',
+        categories: ['travel', 'lifestyle'],
         icons: [
           {
             src: '/icons/icon-192x192.png',
             sizes: '192x192',
             type: 'image/png',
+            purpose: 'any',
           },
           {
             src: '/icons/icon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
+            purpose: 'any',
           },
           {
             src: '/icons/icon-512x512-maskable.png',
@@ -53,6 +58,9 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB — vendor-map (mapbox-gl ~2.5MB raw) necesita margen
+        // Permite que el SW responda a nav requests → requerido para el install prompt en Chrome
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api/, /^\/\/__\/auth/],
         runtimeCaching: [
           {
             // Mapbox tiles

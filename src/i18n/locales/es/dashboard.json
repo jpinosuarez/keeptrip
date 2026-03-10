@@ -1,11 +1,11 @@
 {
-  "greeting": "¡Hola, {{name}}! Bienvenido a tu Bitácora de Viaje.",
+  "greeting": "¡Hola, {{name}}! Bienvenido a tus aventuras.",
   "countries": "Países",
   "trips": "Viajes",
   "world": "Mundo",
   "recentAdventures": "Aventuras recientes",
   "viewAll": "Ver todo",
-  "emptyLog": "¡Tu bitácora está vacía!",
+  "emptyLog": "¡Aún no tienes viajes guardados!",
   "firstTripMessage": "Comienza tu aventura registrando tu primer destino.",
   "addFirstTrip": "Agregar primer viaje",
   "stats": {
@@ -30,7 +30,7 @@
   "stops": "paradas",
   "deleting": "Eliminando...",
   "deleteTrip": "Eliminar viaje",
-  "emptyLogbook": "¡Tu bitácora está vacía!",
+  "emptyLogbook": "¡Aún no tienes viajes guardados!",
   "emptyLogbookMessage": "Comienza tu aventura registrando tu primer viaje. Cada destino cuenta una historia única.",
   "registerFirstStop": "Registrar primer viaje",
   "noResults": "No se encontraron resultados",

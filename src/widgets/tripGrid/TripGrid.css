@@ -1,6 +1,8 @@
 .trip-masonry {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
+  /* min(288px, 100%) garantiza que la columna nunca exceda el contenedor,
+     eliminando el scroll horizontal en pantallas de 320-360px */
+  grid-template-columns: repeat(auto-fill, minmax(min(288px, 100%), 1fr));
   gap: 16px;
   width: 100%;
 }
@@ -71,16 +73,8 @@
   }
 }
 
-@media (max-width: 768px) {
-  .trip-masonry {
-    grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
-    gap: 16px;
-  }
-}
-
 @media (max-width: 480px) {
   .trip-masonry {
-    grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 12px;
   }
 }
