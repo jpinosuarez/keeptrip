@@ -5,7 +5,6 @@ const UIContext = createContext(null);
 const SearchContext = createContext(null);
 
 export const UIProvider = ({ children }) => {
-  const [vistaActiva, setVistaActiva] = useState('home');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [mostrarBuscador, setMostrarBuscador] = useState(false);
@@ -16,30 +15,10 @@ export const UIProvider = ({ children }) => {
   const [ciudadInicialBorrador, setCiudadInicialBorrador] = useState(null);
   const [confirmarEliminacion, setConfirmarEliminacion] = useState(null);
 
-  const tituloHeader = useMemo(() => {
-    switch (vistaActiva) {
-      case 'home':
-        return 'Inicio';
-      case 'mapa':
-        return 'Mapa Mundial';
-      case 'bitacora':
-        return 'Mi Bitacora';
-      case 'config':
-        return 'Ajustes';
-      case 'curacion':
-        return 'Curacion Fotos';      case 'invitations':
-        return 'Invitaciones';      case 'hub':
-        return 'Traveler Hub';      default:
-        return 'Keeptrip';
-    }
-  }, [vistaActiva]);
+  const tituloHeader = null; // eslint-disable-line no-unused-vars
 
   const value = useMemo(
     () => ({
-      vistaActiva,
-      setVistaActiva,
-      tituloHeader,
-      mostrarBusqueda: vistaActiva === 'bitacora',
       searchPlaceholder: 'Buscar viajes, paises o ciudades...',
       sidebarCollapsed,
       setSidebarCollapsed,
@@ -67,8 +46,6 @@ export const UIProvider = ({ children }) => {
       setConfirmarEliminacion
     }),
     [
-      vistaActiva,
-      tituloHeader,
       sidebarCollapsed,
       mobileDrawerOpen,
       mostrarBuscador,
@@ -85,15 +62,13 @@ export const UIProvider = ({ children }) => {
       return undefined;
     }
 
-    window.__test_setVista = (vista) => setVistaActiva(vista);
     window.__test_abrirVisor = (viajeId) => setViajeExpandidoId(viajeId);
     window.__test_abrirBuscador = () => setMostrarBuscador(true);
 
     return () => {
-      delete window.__test_setVista;
       delete window.__test_abrirVisor;
     };
-  }, [setVistaActiva, setViajeExpandidoId]);
+  }, [setViajeExpandidoId]);
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;
 };

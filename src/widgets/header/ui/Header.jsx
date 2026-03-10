@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Plus, LogOut, User, X, Menu, Bell } from 'lucide-react';
 import { useAuth } from '@app/providers/AuthContext';
 import { useSearch, useUI } from '@app/providers/UIContext';
@@ -6,20 +7,35 @@ import { styles } from './Header.styles';
 import { COLORS, RADIUS } from '@shared/config';
 import { useTranslation } from 'react-i18next';
 
+// Título de página derivado de la URL
+const PAGE_TITLES = {
+  '/dashboard':      'Inicio',
+  '/trips':          'Mis Viajes',
+  '/map':            'Mapa Mundial',
+  '/explorer':       'Traveler Hub',
+  '/invitations':    'Invitaciones',
+  '/settings':       'Ajustes',
+  '/admin/curacion': 'Curación de fotos',
+};
+
 const Header = ({ isMobile = false, invitationsCount = 0 }) => {
   const { usuario: user, login, logout } = useAuth();
   const {
-    tituloHeader: headerTitle,
-    mostrarBusqueda: showSearch,
-    searchPlaceholder,
     openBuscador: openTripSearch,
-    setVistaActiva: setActiveView,
     openMobileDrawer,
     mobileDrawerOpen: isDrawerOpen
   } = useUI();
   const { busqueda: query, setBusqueda: setQuery, limpiarBusqueda: clearQuery } = useSearch();
   const { t } = useTranslation(['nav', 'common']);
   const [failedPhoto, setFailedPhoto] = useState(null);
+
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  // Título y visibilidad de buscador derivados de la ruta actual
+  const headerTitle = PAGE_TITLES[pathname] ?? (pathname.startsWith('/trips/') ? 'Mis Viajes' : 'Keeptrip');
+  const showSearch  = pathname === '/trips' || pathname.startsWith('/trips/');
+  const searchPlaceholder = t('nav:searchJournal', 'Buscar en tus viajes...');
 
   const initials = useMemo(
     () => user?.displayName?.trim()?.[0]?.toUpperCase() || '',
@@ -83,7 +99,7 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
             <button
               type="button"
               data-testid="header-invitations-button"
-              onClick={() => setActiveView('invitations')}
+              onClick={() => navigate('/invitations')}
               aria-label={t('nav:invitations', { count: invitationsCount })}
               style={{
                 background: 'transparent',
@@ -119,11 +135,11 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
             <div
               data-testid="header-avatar"
               style={{ ...styles.avatar, cursor: 'pointer' }}
-              onClick={() => setActiveView('config')}
+              onClick={() => navigate('/settings')}
               title={t('nav:settings')}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && setActiveView('config')}
+              onKeyDown={(e) => e.key === 'Enter' && navigate('/settings')}
             >
               {canShowPhoto ? (
                 <img

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutGrid,
   Map,
@@ -19,17 +20,28 @@ import { COLORS } from '@shared/config';
 import { useTranslation } from 'react-i18next';
 import { styles } from './Sidebar.styles';
 
+// Mapeo de item id → URL de React Router
+const URL_MAP = {
+  home:     '/dashboard',
+  mapa:     '/map',
+  bitacora: '/trips',
+  hub:      '/explorer',
+  config:   '/settings',
+  curacion: '/admin/curacion',
+};
+
 const Sidebar = ({ isMobile = false }) => {
   const { logout, isAdmin } = useAuth();
   const { t } = useTranslation('nav');
   const {
-    vistaActiva: activeView,
-    setVistaActiva: setActiveView,
     sidebarCollapsed: collapsed,
     toggleSidebarCollapse: toggleCollapse,
     mobileDrawerOpen: isDrawerOpen,
     setMobileDrawerOpen: setDrawerOpen
   } = useUI();
+
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const drawerRef = useRef(null);
 
@@ -62,7 +74,7 @@ const Sidebar = ({ isMobile = false }) => {
   ].filter((item) => item.id !== 'curacion' || isAdmin);
 
   const handleSelect = (id) => {
-    setActiveView(id);
+    navigate(URL_MAP[id] || '/dashboard');
     if (isMobile) setDrawerOpen(false);
   };
 
@@ -114,7 +126,8 @@ const Sidebar = ({ isMobile = false }) => {
 
       <nav role="navigation" aria-label={t('navLabel')} style={styles.nav}>
         {menuItems.map((item) => {
-          const isActive = activeView === item.id;
+          const itemUrl = URL_MAP[item.id] || '';
+          const isActive = pathname === itemUrl || (itemUrl.length > 1 && pathname.startsWith(itemUrl + '/'));
           return (
             <Motion.button
               key={item.id}

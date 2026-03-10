@@ -1,18 +1,15 @@
 /**
  * AppShell — Capa de orquestación del shell autenticado.
  *
- * Fase 1 (Estado Actual):
- *   Contiene toda la lógica de datos y composición extraída de App.jsx.
- *   Sigue usando vistaActiva (state-based) para el cambio de vistas.
- *   AppActiveView se mantiene operativo durante la migración a React Router.
- *
- * Fase 2 (Próxima):
- *   AppActiveView será reemplazado por <Outlet /> cuando cada página
- *   tenga su propia ruta declarada en AppRouter.jsx.
+ * Fase 2 (Actual):
+ *   - Renderiza el layout con Sidebar + Header + contenido de página.
+ *   - El contenido de página se inyecta via <Outlet context={activeViewController} />.
+ *   - Los adaptadores de ruta en AppRouter.jsx extraen lo que necesita cada página.
+ *   - Los modales siguen siendo overlays globales gestionados por AppModalsManager.
  */
 import React from 'react';
+import { Outlet } from 'react-router-dom';
 
-import AppActiveView from './AppActiveView';
 import AppModalsManager from './AppModalsManager';
 import AppScaffold from './AppScaffold';
 
@@ -46,7 +43,6 @@ function AppShell() {
   } = useViajes();
 
   const {
-    vistaActiva,
     sidebarCollapsed,
     mobileDrawerOpen,
     setMobileDrawerOpen,
@@ -63,7 +59,6 @@ function AppShell() {
     confirmarEliminacion,
     setConfirmarEliminacion,
     abrirVisor,
-    setVistaActiva,
   } = useUI();
 
   const { filtro, setFiltro, busqueda, setBusqueda } = useSearch();
@@ -87,10 +82,8 @@ function AppShell() {
     invitationsCount,
   } = useAppShellComposition({
     ui: {
-      vistaActiva,
       mobileDrawerOpen,
       setMobileDrawerOpen,
-      setVistaActiva,
       mostrarBuscador,
       closeBuscador,
       viajeEnEdicionId,
@@ -142,7 +135,7 @@ function AppShell() {
       isMobile={isMobile}
       sidebarCollapsed={sidebarCollapsed}
       invitationsCount={invitationsCount}
-      content={<AppActiveView {...activeViewController} />}
+      content={<Outlet context={activeViewController} />}
       overlays={(
         <>
           <AppModalsManager
@@ -166,3 +159,5 @@ function AppShell() {
 }
 
 export default AppShell;
+
+

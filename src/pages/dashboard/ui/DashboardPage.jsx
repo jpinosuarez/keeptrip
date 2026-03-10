@@ -2,6 +2,7 @@ import React from 'react';
 import { motion as Motion } from 'framer-motion';
 import { Compass, Calendar, Flag, TrendingUp, MapPin, ArrowRight, Trophy, Sparkles, Stamp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUI } from '@app/providers/UIContext';
 import { COLORS } from '@shared/config';
@@ -12,7 +13,8 @@ import { SkeletonList, TripCardSkeleton } from '@shared/ui/components/Skeletons'
 
 const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile = false, loading = false }) => {
   const { usuario } = useAuth();
-  const { setVistaActiva, abrirVisor, openBuscador } = useUI();
+  const navigate = useNavigate();
+  const { abrirVisor, openBuscador } = useUI();
   const { t } = useTranslation('dashboard');
 
   const name = usuario?.displayName ? usuario.displayName.split(' ')[0] : t('fallbackName', 'Explorer');
@@ -80,7 +82,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile
           <div style={styles.sectionHeader}>
             <span style={styles.sectionTitle}><TrendingUp size={16} /> {t('recentAdventures')}</span>
             {!isNewTraveler && (
-              <button onClick={() => setVistaActiva('bitacora')} style={styles.viewAllBtn}>
+              <button onClick={() => navigate('/trips')} style={styles.viewAllBtn}>
                 {t('viewAll')} <ArrowRight size={14} />
               </button>
             )}

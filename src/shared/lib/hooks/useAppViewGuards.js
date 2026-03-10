@@ -1,40 +1,45 @@
 import { useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 
+/**
+ * Efectos de guard reactivos a la ruta actual.
+ * - Limpia la búsqueda al salir de /trips
+ * - Cierra el drawer móvil en cada cambio de ruta
+ * - Cierra el drawer al hacer resize a desktop
+ *
+ * El guard de admin está delegado al componente AdminGuard en el router.
+ */
 export function useAppViewGuards({
-  vistaActiva,
   busqueda,
   setBusqueda,
   isMobile,
   mobileDrawerOpen,
   setMobileDrawerOpen,
-  isAdmin,
-  setVistaActiva,
 }) {
+  const { pathname } = useLocation();
+
+  // Limpiar búsqueda al salir de la vista de trips
   useEffect(() => {
-    if (vistaActiva !== 'bitacora' && busqueda) {
+    if (!pathname.startsWith('/trips') && busqueda) {
       setBusqueda('');
     }
-  }, [vistaActiva, busqueda, setBusqueda]);
+  }, [pathname, busqueda, setBusqueda]);
 
-  const prevVistaRef = useRef(vistaActiva);
+  // Cerrar drawer móvil en cada cambio de ruta
+  const prevPathnameRef = useRef(pathname);
   useEffect(() => {
-    if (prevVistaRef.current !== vistaActiva) {
+    if (prevPathnameRef.current !== pathname) {
       if (isMobile && mobileDrawerOpen) {
         setMobileDrawerOpen(false);
       }
-      prevVistaRef.current = vistaActiva;
+      prevPathnameRef.current = pathname;
     }
-  }, [vistaActiva, isMobile, mobileDrawerOpen, setMobileDrawerOpen]);
+  }, [pathname, isMobile, mobileDrawerOpen, setMobileDrawerOpen]);
 
+  // Cerrar drawer al hacer resize a desktop
   useEffect(() => {
     if (!isMobile && mobileDrawerOpen) {
       setMobileDrawerOpen(false);
     }
   }, [isMobile, mobileDrawerOpen, setMobileDrawerOpen]);
-
-  useEffect(() => {
-    if (vistaActiva === 'curacion' && !isAdmin) {
-      setVistaActiva('home');
-    }
-  }, [vistaActiva, isAdmin, setVistaActiva]);
 }

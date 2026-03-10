@@ -12,10 +12,8 @@ export function useAppShellComposition({
   invitations,
 }) {
   const {
-    vistaActiva,
     mobileDrawerOpen,
     setMobileDrawerOpen,
-    setVistaActiva,
     mostrarBuscador,
     closeBuscador,
     viajeEnEdicionId,
@@ -86,14 +84,11 @@ export function useAppShellComposition({
   });
 
   useAppViewGuards({
-    vistaActiva,
     busqueda,
     setBusqueda,
     isMobile,
     mobileDrawerOpen,
     setMobileDrawerOpen,
-    isAdmin,
-    setVistaActiva,
   });
 
   const modalController = {
@@ -130,7 +125,6 @@ export function useAppShellComposition({
 
   const activeViewController = {
     view: {
-      vistaActiva,
       isAdmin,
       isMobile,
     },
