@@ -133,9 +133,13 @@ test.describe('Invitations flow (E2E)', () => {
       { timeout: 15000 }
     );
 
+    // Navegar a /trips sin recargar la página para preservar los listeners de Firestore
+    await page.evaluate(() => (window as any).__test_navigate('/trips'));
+    await page.waitForURL('**/trips');
+
     // invitee should see the shared trip card in Bitacora after accepting
-    await page.waitForSelector(`[data-testid="bitacora-card-${viajeId}"]`, { timeout: 15000 });
-    await expect(page.locator(`[data-testid="bitacora-card-title-${viajeId}"]`)).toContainText('Viaje de prueba E2E');
+    await page.waitForSelector(`[data-testid="trip-card-${viajeId}"]`, { timeout: 15000 });
+    await expect(page.locator(`[data-testid="trip-card-title-${viajeId}"]`)).toContainText('Viaje de prueba E2E');
 
     // verify invitation status and viaje ownership docs as owner (owner-protected paths)
     await page.evaluate(({ email, password }) => (window as any).__test_signInWithEmail({ email, password }), { email: ownerEmail, password });
@@ -250,8 +254,10 @@ test.describe('Invitations flow (E2E)', () => {
     await page.evaluate(({ email, password }) => (window as any).__test_signInWithEmail({ email, password }), { email: attackerEmail, password });
     await page.waitForSelector('[data-testid="header-avatar"]');
 
-    // navigate to Bitacora deterministically
-    await page.evaluate(() => (window as any).__test_setVista('bitacora'));
+    // Navegar a /trips
+    await page.goto('/trips');
+    await page.waitForURL('**/trips');
+    await page.waitForTimeout(2000); // dar tiempo a TripGrid para renderizar y Firestore para confirmar permisos
 
     // the trip title should NOT be visible for the attacker
     await expect(page.locator('text=Viaje privado compartido')).toHaveCount(0);
@@ -332,8 +338,13 @@ test.describe('Invitations flow (E2E)', () => {
     await page.waitForSelector('[data-testid="header-avatar"]');
 
     await page.evaluate(() => (window as any).__test_navigate('/trips'));
-    await page.waitForSelector(`[data-testid="trip-card-${viajeId}"]`, { timeout: 15000, state: 'attached' });
-    await page.evaluate((id) => (window as any).__test_navigate(`/trips/${id}`), viajeId);
+    // Esperar a que el card sea VISIBLE (no solo attached), garantizando que
+    // bitacora tiene los datos completos antes de navegar al visor
+    await page.waitForSelector(`[data-testid="trip-card-${viajeId}"]`, { timeout: 15000 });
+    // Click en el card —en vez de navigate programático— para abrir VisorViaje
+    // con la garantía de que los datos están cargados
+    await page.click(`[data-testid="trip-card-${viajeId}"]`);
+    await page.waitForURL(`**/trips/${viajeId}`);
 
     await page.waitForSelector('[data-testid="visor-shared-badge"]', { timeout: 15000 });
 

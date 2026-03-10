@@ -130,9 +130,19 @@ export const useViajes = () => {
         // anexar ownerId para mantener consistencia entre viajes personales y compartidos
         const viajesConOwner = viajes.map((v) => ({ ...v, ownerId: usuario.uid }));
         const paradasConOwner = paradas.map((p) => ({ ...p, ownerId: usuario.uid }));
-        setBitacora(viajesConOwner);
-        setBitacoraData(construirBitacoraData(viajesConOwner));
-        setTodasLasParadas(paradasConOwner);
+        // Actualización funcional para NO perder los viajes compartidos que
+        // upsertSharedViaje ya haya insertado (race condition: el listener
+        // personal puede dispararse después que el listener compartido).
+        setBitacora((prev) => {
+          const compartidos = prev.filter((item) => item.ownerId !== usuario.uid);
+          const next = [...viajesConOwner, ...compartidos];
+          setBitacoraData(construirBitacoraData(next));
+          return next;
+        });
+        setTodasLasParadas((prev) => {
+          const compartidasPrev = prev.filter((item) => item.ownerId !== usuario.uid);
+          return [...paradasConOwner, ...compartidasPrev];
+        });
         setLoading(false);
       },
       onError: (snapshotError) => {

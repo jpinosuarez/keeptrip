@@ -34,7 +34,8 @@ test.describe('Create trip from search modal (E2E)', () => {
     await page.evaluate(({ email, password }) => (window as any).__test_signInWithEmail({ email, password }), { email: userEmail, password });
     await page.waitForSelector('[data-testid="header-avatar"]');
 
-    await page.evaluate(() => (window as any).__test_setVista('bitacora'));
+    await page.goto('/trips');
+    await page.waitForURL('**/trips');
 
     // Wait for the empty state or trip grid to appear
     await page.waitForTimeout(2000); // Give time for data to load
@@ -78,7 +79,8 @@ test.describe('Create trip from search modal (E2E)', () => {
     // Force a page reload to ensure Firestore listeners update
     await page.reload();
     await page.waitForSelector('[data-testid="header-avatar"]');
-    await page.evaluate(() => (window as any).__test_setVista('bitacora'));
+    await page.goto('/trips');
+    await page.waitForURL('**/trips');
     await page.waitForTimeout(2000);
 
     await expect(page.locator('text=Your logbook has no stops yet')).toHaveCount(0, { timeout: 15000 });
@@ -95,7 +97,8 @@ test.describe('Create trip from search modal (E2E)', () => {
     await page.evaluate(({ email, password }) => (window as any).__test_signInWithEmail({ email, password }), { email: userEmail, password });
     await page.waitForSelector('[data-testid="header-avatar"]');
 
-    await page.evaluate(() => (window as any).__test_setVista('bitacora'));
+    await page.goto('/trips');
+    await page.waitForURL('**/trips');
 
     const addTripButton = page.getByRole('button', { name: /Add Trip|Register first stop|Registrar primera parada/i }).first();
     await addTripButton.click();
