@@ -1,6 +1,7 @@
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import './i18n'; // i18n debe inicializarse antes que cualquier componente
 import '@shared/config/styles/index.css';
 import '@shared/config/styles/mobile-polish.css';
@@ -10,18 +11,20 @@ import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ErrorBoundary>
-      <AuthProvider>
-        <ToastProvider>
-          <UploadProvider>
-            <UIProvider>
-              <SearchProvider>
-                <App />
-              </SearchProvider>
-            </UIProvider>
-          </UploadProvider>
-        </ToastProvider>
-      </AuthProvider>
-    </ErrorBoundary>
+    <BrowserRouter>
+      <ErrorBoundary>
+        <AuthProvider>
+          <ToastProvider>
+            <UploadProvider>
+              <UIProvider>
+                <SearchProvider>
+                  <App />
+                </SearchProvider>
+              </UIProvider>
+            </UploadProvider>
+          </ToastProvider>
+        </AuthProvider>
+      </ErrorBoundary>
+    </BrowserRouter>
   </StrictMode>
 );
