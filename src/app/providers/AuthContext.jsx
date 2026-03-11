@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { 
   signInWithPopup, 
@@ -54,9 +54,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // useRef garantiza que el timer de seguridad sobreviva el doble-invoke de
+  // React 18 Strict Mode (cleanup del primer mount cancela el let, pero no el ref).
+  const authTimeoutRef = useRef(null);
+
   useEffect(() => {
-    let timeoutId;
+    // Crear el timer de seguridad solo si no existe ya (evita duplicados en Strict Mode).
+    if (!authTimeoutRef.current) {
+      authTimeoutRef.current = setTimeout(() => {
+        authTimeoutRef.current = null;
+        setCargando(false);
+        console.warn('⏰ Timeout de autenticación: Firebase no respondió en 5s. Forzando cargando=false (¿emuladores apagados?)');
+      }, 5000);
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      // Cancelar el timer INMEDIATAMENTE (síncrono), antes de cualquier await.
+      if (authTimeoutRef.current) {
+        clearTimeout(authTimeoutRef.current);
+        authTimeoutRef.current = null;
+      }
       setUsuario(currentUser);
       setCargando(false);
 
@@ -79,17 +96,11 @@ export const AuthProvider = ({ children }) => {
           console.warn('No se pudo escribir perfil en Firestore:', err?.message || err);
         }
       }
-
-      if (timeoutId) clearTimeout(timeoutId);
     });
-    // Timeout de seguridad: si Firebase no responde en 5s, forzar cargando a false
-    timeoutId = setTimeout(() => {
-      setCargando(false);
-      unsubscribe();
-      console.warn('⏰ Timeout de autenticación: Firebase no respondió en 5s. Se fuerza cargando = false.');
-    }, 5000);
+
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
+      // Solo cancelar el suscriptor de auth; el timer ref NO se cancela aquí para
+      // que siga activo aunque Strict Mode haga cleanup del primer mount.
       unsubscribe();
     };
   }, []);

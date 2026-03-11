@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
-import { Compass, Calendar, Flag, TrendingUp, MapPin, ArrowRight, Trophy, Sparkles, Stamp } from 'lucide-react';
+import { Compass, Calendar, Flag, Globe, MapPin, ArrowRight, Trophy, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@app/providers/AuthContext';
@@ -49,17 +49,19 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile
         </div>
 
         <div style={styles.headerStatsRow}>
-          <div style={styles.statPill} title={visitedCount === 0 ? t('tooltip.awaitingFirstCountry') : undefined}>
-            <div style={styles.pillIcon(COLORS.atomicTangerine)}><Flag size={14} color="white" /></div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={styles.pillValue}>{countriesLabel} <span style={{ fontSize: '0.7rem', opacity: 0.6, fontWeight: '400' }}>/ 195</span></span>
+          <div style={styles.statPillFeatured} title={visitedCount === 0 ? t('tooltip.awaitingFirstCountry') : undefined}>
+            <div style={styles.pillIconFeatured(COLORS.atomicTangerine)}><Flag size={16} color="white" /></div>
+            <div style={styles.pillContent}>
+              <span style={styles.pillValueFeatured}>
+                {countriesLabel} <span style={styles.pillFraction}>/ 195</span>
+              </span>
               <span style={styles.pillLabel}>{t('countries')}</span>
             </div>
           </div>
 
           <div style={styles.statPill} title={log.length === 0 ? t('tooltip.awaitingFirstStop') : undefined}>
             <div style={styles.pillIcon(COLORS.charcoalBlue)}><Compass size={14} color="white" /></div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={styles.pillContent}>
               <span style={styles.pillValue}>{tripsLabel}</span>
               <span style={styles.pillLabel}>{t('trips')}</span>
             </div>
@@ -67,7 +69,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile
 
           <div style={styles.statPill} title={visitedCount === 0 ? t('tooltip.awaitingProgress') : undefined}>
             <div style={styles.pillIcon(COLORS.mutedTeal)}><Trophy size={14} color="white" /></div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={styles.pillContent}>
               <span style={styles.pillValue}>{worldPercent}%</span>
               <span style={styles.pillLabel}>{t('world')}</span>
             </div>
@@ -83,7 +85,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile
 
         <div style={styles.recentsContainer}>
           <div style={styles.sectionHeader}>
-            <span style={styles.sectionTitle}><TrendingUp size={16} /> {t('recentAdventures')}</span>
+            <span style={styles.sectionTitle}>{t('recentAdventures')}</span>
             {!isNewTraveler && (
               <button onClick={() => navigate('/trips')} style={styles.viewAllBtn}>
                 {t('viewAll')} <ArrowRight size={14} />
@@ -91,16 +93,25 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile
             )}
           </div>
 
-          <div style={styles.cardsList} className="custom-scroll">
+          <div style={styles.cardsList(isMobile)} className="custom-scroll">
             {loading ? (
               <SkeletonList count={3} Component={TripCardSkeleton} />
             ) : !isNewTraveler ? (
               recentTrips.map((trip) => (
                 <div
                   key={trip.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={trip.titulo || trip.nombreEspanol || 'Ver viaje'}
                   className="tap-scale"
-                  style={styles.travelCard}
+                  style={styles.travelCard(isMobile)}
                   onClick={() => navigate('/trips/' + trip.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate('/trips/' + trip.id);
+                    }
+                  }}
                 >
                   <div
                     style={{
@@ -113,7 +124,12 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile
                   <div style={styles.cardContent}>
                     <div style={styles.cardTop}>
                       {trip.banderas && trip.banderas.length > 0 ? (
-                        <img src={trip.banderas[0]} alt="flag" loading="lazy" style={styles.flagImg} />
+                        <img
+                          src={trip.banderas[0]}
+                          alt={`Bandera de ${trip.titulo || trip.nombreEspanol || 'este viaje'}`}
+                          loading="lazy"
+                          style={styles.flagImg}
+                        />
                       ) : (
                         <Compass size={18} color="white" />
                       )}
@@ -142,10 +158,10 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile
                 style={styles.welcomeCard}
               >
                 <div style={styles.welcomeArt}>
+                  <Globe size={56} color={COLORS.atomicTangerine} strokeWidth={1.25} />
                   <div style={styles.welcomeArtOrbit}>
-                    <Sparkles size={24} color={COLORS.atomicTangerine} />
+                    <Sparkles size={18} color={COLORS.mutedTeal} />
                   </div>
-                  <Stamp size={64} color={COLORS.charcoalBlue} />
                 </div>
                 <h3 style={styles.welcomeTitle}>{t('emptyLog')}</h3>
                 <p style={styles.welcomeText}>{t('firstTripMessage')}</p>

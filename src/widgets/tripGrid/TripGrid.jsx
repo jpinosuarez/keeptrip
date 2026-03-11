@@ -89,7 +89,14 @@ const TripGrid = ({
               <div style={styles.topGradient}>
                 <div style={styles.flagsRow}>
                   {flags.slice(0, 3).map((flag, i) => (
-                    <img key={i} src={flag} alt="flag" loading="lazy" style={styles.flagImage} onError={(e) => e.target.style.display = 'none'} />
+                    <img
+                      key={i}
+                      src={flag}
+                      alt={i === 0 ? `Bandera de ${data.nombreEspanol || data.titulo || 'destino visitado'}` : 'Bandera de destino visitado'}
+                      loading="lazy"
+                      style={styles.flagImage}
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
                   ))}
                   {flags.length > 3 && <span style={styles.flagOverflow}>+{flags.length - 3}</span>}
                 </div>
@@ -131,12 +138,12 @@ const TripGrid = ({
           <Motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             style={styles.emptyStatePrimary}
             className="trip-empty"
           >
             <div style={styles.emptyIconContainer('primary')}>
-              <Globe size={36} color={COLORS.orangeAtomic} strokeWidth={1.5} />
+              <Globe size={36} color={COLORS.atomicTangerine} strokeWidth={1.5} />
             </div>
             <h3 style={styles.emptyTitlePrimary}>{t('bentogrid.emptyTitle')}</h3>
             <p style={styles.emptyTextPrimary}>
@@ -153,7 +160,7 @@ const TripGrid = ({
           <Motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             style={styles.emptyState}
             className="trip-empty"
           >

@@ -5,8 +5,8 @@ export const styles = {
     width: '100%',
     display: 'flex',
     flexDirection: 'column',
-    gap: isMobile ? '20px' : '28px',
-    padding: isMobile ? '16px 16px 80px' : '28px 28px 40px',
+    gap: isMobile ? '16px' : '24px',
+    padding: isMobile ? '16px 16px 80px' : '32px 32px 40px',
     boxSizing: 'border-box',
   }),
 
@@ -25,8 +25,8 @@ export const styles = {
   },
 
   subtitle: {
-    margin: '6px 0 0',
-    fontSize: '0.9rem',
+    margin: '8px 0 0',
+    fontSize: '0.875rem',
     fontWeight: '600',
     color: COLORS.textSecondary,
     display: 'flex',
@@ -37,28 +37,54 @@ export const styles = {
 
   headerStatsRow: {
     display: 'flex',
-    gap: '12px',
+    gap: '8px',
     flexWrap: 'wrap',
   },
 
   statPill: {
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
+    gap: '8px',
     backgroundColor: COLORS.surface,
-    padding: '10px 16px',
+    padding: '8px 16px',
     borderRadius: RADIUS.xl,
     boxShadow: SHADOWS.sm,
     border: `1px solid rgba(44,62,80,0.06)`,
-    minWidth: '100px',
+    minWidth: '80px',
     flex: '1 1 auto',
+  },
+
+  // Países: el achievement core. Más jerarquía que los soportes.
+  statPillFeatured: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    backgroundColor: COLORS.surface,
+    padding: '12px 20px',
+    borderRadius: RADIUS.xl,
+    boxShadow: `0 4px 16px ${COLORS.atomicTangerine}25, 0 2px 8px rgba(0,0,0,0.04)`,
+    border: `1px solid ${COLORS.atomicTangerine}30`,
+    minWidth: '120px',
+    flex: '2 1 auto',
   },
 
   pillIcon: (color) => ({
     backgroundColor: color,
-    borderRadius: '10px',
-    width: '30px',
-    height: '30px',
+    borderRadius: RADIUS.sm,
+    width: '32px',
+    height: '32px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  }),
+
+  // Ícono del pill featured: 36px para escalar con el número 1.4rem
+  pillIconFeatured: (color) => ({
+    backgroundColor: color,
+    borderRadius: RADIUS.sm,
+    width: '36px',
+    height: '36px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -72,19 +98,38 @@ export const styles = {
     lineHeight: 1,
   },
 
+  pillValueFeatured: {
+    fontSize: '1.4rem',
+    fontWeight: '900',
+    color: COLORS.charcoalBlue,
+    lineHeight: 1,
+  },
+
+  // Fracción "/ 195" en pill featured
+  pillFraction: {
+    fontSize: '0.8rem',
+    fontWeight: '400',
+    color: COLORS.textSecondary,
+  },
+
+  pillContent: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+
   pillLabel: {
     fontSize: '0.65rem',
     fontWeight: '700',
     color: COLORS.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: '0.4px',
-    marginTop: '2px',
+    marginTop: '4px',
   },
 
   mainGrid: (isMobile) => ({
     display: 'grid',
     gridTemplateColumns: isMobile ? '1fr' : '1fr 380px',
-    gap: '20px',
+    gap: '24px',
     alignItems: 'start',
   }),
 
@@ -99,7 +144,7 @@ export const styles = {
   recentsContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '12px',
+    gap: '8px',
   },
 
   sectionHeader: {
@@ -129,29 +174,33 @@ export const styles = {
     fontSize: '0.8rem',
     fontWeight: '700',
     color: COLORS.atomicTangerine,
-    padding: '4px 0',
+    padding: '8px 12px',
+    minHeight: '44px',
+    minWidth: '44px',
+    borderRadius: RADIUS.sm,
   },
 
-  cardsList: {
-    display: 'flex',
-    flexDirection: 'row',
-    gap: '12px',
-    overflowX: 'auto',
-    paddingBottom: '8px',
+  cardsList: (isMobile) => ({
+    display: isMobile ? 'grid' : 'flex',
+    gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : undefined,
+    flexDirection: isMobile ? undefined : 'row',
+    gap: '8px',
+    overflowX: isMobile ? 'hidden' : 'auto',
+    paddingBottom: isMobile ? '0' : '8px',
     scrollbarWidth: 'none',
-  },
+  }),
 
-  travelCard: {
+  travelCard: (isMobile) => ({
     position: 'relative',
-    minWidth: '160px',
-    width: '160px',
-    height: '210px',
-    borderRadius: RADIUS.xl,
+    minWidth: isMobile ? undefined : '160px',
+    width: isMobile ? '100%' : '160px',
+    height: '208px',
+    borderRadius: isMobile ? RADIUS.lg : RADIUS.xl,
     overflow: 'hidden',
     cursor: 'pointer',
-    flexShrink: 0,
+    flexShrink: isMobile ? undefined : 0,
     boxShadow: SHADOWS.md,
-  },
+  }),
 
   cardBackground: {
     position: 'absolute',
@@ -163,13 +212,13 @@ export const styles = {
   cardGradient: {
     position: 'absolute',
     inset: 0,
-    background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.7) 100%)',
+    background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.85) 100%)',
   },
 
   cardContent: {
     position: 'absolute',
     inset: 0,
-    padding: '12px',
+    padding: '8px',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
@@ -190,8 +239,8 @@ export const styles = {
     width: '28px',
     height: '20px',
     objectFit: 'cover',
-    borderRadius: '3px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+    borderRadius: RADIUS.xs,
+    filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.25))',
   },
 
   cardTitle: {
@@ -199,7 +248,7 @@ export const styles = {
     fontSize: '0.85rem',
     fontWeight: '800',
     color: 'white',
-    textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+    textShadow: '0 2px 8px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5)',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -208,14 +257,14 @@ export const styles = {
   cardMeta: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '2px',
+    gap: '4px',
   },
 
   metaItem: {
     display: 'flex',
     alignItems: 'center',
     gap: '4px',
-    fontSize: '0.72rem',
+    fontSize: '0.75rem',
     color: 'rgba(255,255,255,0.9)',
     fontWeight: '600',
   },
@@ -239,15 +288,15 @@ export const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '90px',
-    height: '90px',
+    width: '88px',
+    height: '88px',
   },
 
   welcomeArtOrbit: {
     position: 'absolute',
     top: 0,
     right: 0,
-    backgroundColor: `${COLORS.atomicTangerine}20`,
+    backgroundColor: `${COLORS.mutedTeal}20`,
     borderRadius: '50%',
     padding: '6px',
     display: 'flex',
@@ -262,7 +311,7 @@ export const styles = {
 
   welcomeText: {
     margin: 0,
-    fontSize: '0.87rem',
+    fontSize: '0.875rem',
     color: COLORS.textSecondary,
     lineHeight: 1.5,
     maxWidth: '280px',
@@ -280,5 +329,6 @@ export const styles = {
     boxShadow: `0 4px 14px ${COLORS.atomicTangerine}40`,
     transition: 'opacity 0.15s',
     minHeight: '44px',
+    minWidth: '240px',
   },
 };

@@ -129,9 +129,6 @@ function AppRouter() {
       <Route element={<AuthGuard />}>
         <Route element={<AppShell />}>
 
-          {/* Redirect raíz autenticada → dashboard */}
-          <Route index element={<Navigate to="/dashboard" replace />} />
-
           <Route path="dashboard" element={<DashboardRoute />} />
 
           {/* TripGrid con soporte futuro de nested route para VisorViaje (Fase 4) */}
