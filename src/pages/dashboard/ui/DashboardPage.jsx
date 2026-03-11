@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
-import { Compass, Calendar, Flag, Globe, MapPin, ArrowRight, Trophy, Sparkles } from 'lucide-react';
+import { Compass, Calendar, Globe, MapPin, ArrowRight, Sparkles, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@app/providers/AuthContext';
@@ -25,9 +25,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile
   const isNewTraveler = log.length === 0;
 
   const visitedCount = countriesVisited.length;
-  const worldPercent = visitedCount > 0 ? ((visitedCount / 195) * 100).toFixed(0) : '--';
-  const tripsLabel = log.length > 0 ? log.length : '--';
-  const countriesLabel = visitedCount > 0 ? visitedCount : '--';
+  const worldPercent = visitedCount > 0 ? ((visitedCount / 195) * 100).toFixed(0) : '0';
 
   const level = getTravelerLevel(visitedCount);
   const next = getNextLevel(visitedCount);
@@ -35,10 +33,15 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile
   return (
     <div style={styles.dashboardContainer(isMobile)}>
       {/* Welcome area */}
-      <div style={styles.welcomeArea}>
+      <div style={styles.welcomeArea(isMobile)}>
         <div>
           <h1 style={styles.title}>{t('greeting', { name })}</h1>
           <p style={styles.subtitle}>
+            {visitedCount > 0
+              ? t('subtitleStats', { countries: visitedCount, percent: worldPercent, trips: log.length })
+              : t('firstTripMessage')}
+          </p>
+          <p style={styles.levelLine}>
             {level.icon} {level.label}
             {next.level && (
               <span style={{ opacity: 0.6, fontSize: '0.8rem', marginLeft: '8px' }}>
@@ -48,33 +51,32 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile
           </p>
         </div>
 
-        <div style={styles.headerStatsRow}>
-          <div style={styles.statPillFeatured} title={visitedCount === 0 ? t('tooltip.awaitingFirstCountry') : undefined}>
-            <div style={styles.pillIconFeatured(COLORS.atomicTangerine)}><Flag size={16} color="white" /></div>
-            <div style={styles.pillContent}>
-              <span style={styles.pillValueFeatured}>
-                {countriesLabel} <span style={styles.pillFraction}>/ 195</span>
-              </span>
-              <span style={styles.pillLabel}>{t('countries')}</span>
-            </div>
-          </div>
-
-          <div style={styles.statPill} title={log.length === 0 ? t('tooltip.awaitingFirstStop') : undefined}>
-            <div style={styles.pillIcon(COLORS.charcoalBlue)}><Compass size={14} color="white" /></div>
-            <div style={styles.pillContent}>
-              <span style={styles.pillValue}>{tripsLabel}</span>
-              <span style={styles.pillLabel}>{t('trips')}</span>
-            </div>
-          </div>
-
-          <div style={styles.statPill} title={visitedCount === 0 ? t('tooltip.awaitingProgress') : undefined}>
-            <div style={styles.pillIcon(COLORS.mutedTeal)}><Trophy size={14} color="white" /></div>
-            <div style={styles.pillContent}>
-              <span style={styles.pillValue}>{worldPercent}%</span>
-              <span style={styles.pillLabel}>{t('world')}</span>
-            </div>
-          </div>
-        </div>
+        {!isMobile && !isNewTraveler && (
+          <Motion.button
+            type="button"
+            className="tap-btn"
+            style={styles.ctaDesktop}
+            onClick={openBuscador}
+            whileHover={{ scale: 1.04, y: -2, transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } }}
+            whileTap={{ scale: 0.97 }}
+            aria-label={t('newTrip')}
+          >
+            <Plus size={16} />
+            {t('newTrip', 'Crear viaje')}
+          </Motion.button>
+        )}
+        {isMobile && !isNewTraveler && (
+          <Motion.button
+            type="button"
+            style={styles.fabMobile}
+            onClick={openBuscador}
+            whileTap={{ scale: 0.97 }}
+            aria-label={t('newTrip')}
+          >
+            <Plus size={20} style={{ color: '#fff', filter: 'drop-shadow(0 2px 8px #FF6B35)' }} />
+            {t('newTrip', 'Crear viaje')}
+          </Motion.button>
+        )}
       </div>
 
       {/* Main grid: map + recents */}
@@ -173,6 +175,23 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, isMobile
           </div>
         </div>
       </div>
+      {/* FAB mobile: solo cuando hay viajes */}
+      {isMobile && !isNewTraveler && (
+        <Motion.button
+          type="button"
+          className="tap-btn"
+          style={styles.fabMobile}
+          onClick={openBuscador}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+          whileTap={{ scale: 0.95 }}
+          aria-label={t('newBitacora')}
+        >
+          <Plus size={18} />
+          {t('newBitacora')}
+        </Motion.button>
+      )}
     </div>
   );
 };

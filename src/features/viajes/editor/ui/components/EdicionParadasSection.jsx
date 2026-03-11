@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, MapPin } from 'lucide-react';
 import { COLORS } from '@shared/config';
 import CityManager from '@shared/ui/components/CityManager';
 
@@ -15,7 +15,12 @@ const EdicionParadasSection = ({ styles, t, paradas, setParadas, fechaRangoDispl
         </span>
       )}
       <CityManager paradas={paradas} setParadas={setParadas} />
-      {sinParadas && <span style={styles.inlineError}>{t('labels.addCityWarning')}</span>}
+      {sinParadas && (
+        <span style={{ ...styles.inlineInfo, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <MapPin size={13} />
+          {t('labels.addCityWarning')}
+        </span>
+      )}
     </div>
   );
 };

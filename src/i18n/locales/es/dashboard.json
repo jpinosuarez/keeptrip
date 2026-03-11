@@ -8,6 +8,8 @@
   "emptyLog": "¡Aún no tienes viajes guardados!",
   "firstTripMessage": "Comienza tu aventura registrando tu primer destino.",
   "addFirstTrip": "Agregar primer viaje",
+  "newBitacora": "+ Nueva Bitácora",
+  "subtitleStats": "Llevas {{countries}} países explorados — el {{percent}}% del mundo.",
   "stats": {
     "totalDays": "Días totales",
     "registeredCities": "Ciudades registradas",

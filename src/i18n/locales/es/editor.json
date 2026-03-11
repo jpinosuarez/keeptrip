@@ -5,8 +5,8 @@
   "autoTitle": "Auto",
   "manualTitle": "Manual",
   "tooltip": {
-    "autoUpdate": "Se actualiza al agregar o quitar ciudades",
-    "manualMode": "Usando título manual. Click para volver a auto.",
+    "autoUpdate": "El título cambia cuando agregas o quitas ciudades.",
+    "manualMode": "Modo manual activado. Toca para volver al título automático.",
     "vibe": "Define la energía de tu viaje.",
     "highlights": "Tus momentos favoritos en pocas palabras.",
     "relato": "Narra cada parada como un capítulo.",
@@ -24,11 +24,13 @@
     "companions": "Compañeros",
     "notas": "Notas",
     "addCompanion": "Agregar",
+    "removeCompanion": "Eliminar {{name}}",
     "inviteByEmail": "✉️ Invitar por email: {{email}}",
     "nameOrEmail": "Nombre o email",
-    "selectDefault": "-- seleccionar --",
-    "notesPlaceholder": "Escribe tus recuerdos aquí...",
-    "addCityWarning": "Agrega al menos una ciudad para continuar.",
+    "selectDefault": "Sin especificar",
+    "notesPlaceholder": "¿Qué quieres recordar de este viaje?",
+    "addCityWarning": "Tu ruta necesita al menos una parada para despegar.",
+    "captionPlaceholder": "Describe este momento...",
     "portada": "Portada"
   },
   "budget": {
@@ -53,19 +55,19 @@
     "cancel": "Cancelar",
     "save": "Guardar",
     "createTrip": "Crear Viaje",
-    "processing": "Procesando...",
+    "processing": "Preparando...",
     "saving": "Guardando..."
   },
   "search": {
     "newDestination": "Nuevo Destino",
     "placeholder": "Escribe un país o ciudad...",
-    "searching": "Buscando en el mapa... 🌍",
-    "popularDestinations": "DESTINOS POPULARES",
+    "searching": "Explorando el mapa... 🌍",
+    "popularDestinations": "Destinos populares",
     "country": "País",
-    "searchCountry": "Buscar país (min 3 letras)..."
+    "searchCountry": "Busca tu próximo destino..."
   },
   "citymanager": {
-    "searchPlaceholder": "Buscar ciudad (min 3 letras)...",
+    "searchPlaceholder": "Escribe el nombre de la ciudad...",
     "arrival": "Llegada",
     "departure": "Salida",
     "dateFormat": "dd/mm/aaaa",
@@ -80,19 +82,24 @@
     }
   },
   "error": {
-    "unsupportedFormat": "Formato no soportado. Usa JPG o PNG.",
-    "optimizationFailed": "No se pudo optimizar la imagen seleccionada.",
-    "saveFailed": "No se pudo guardar el viaje. Revisa los datos e intenta de nuevo.",
-    "unexpectedError": "Error inesperado al guardar. Intenta de nuevo.",
-    "coverUpdateFailed": "No se pudo actualizar la portada.",
-    "photoDeleteFailed": "No se pudo eliminar la foto.",
-    "invitationFailed": "No se pudo crear la invitación."
+    "unsupportedFormat": "Solo se aceptan fotos JPG o PNG. Elige otro archivo e intenta de nuevo.",
+    "optimizationFailed": "No pudimos procesar esa foto. Prueba con otra imagen.",
+    "saveFailed": "No pudimos guardar tu bitácora. Revisa tu conexión e intenta de nuevo.",
+    "unexpectedError": "Algo salió mal al guardar. Espera un momento e intenta de nuevo.",
+    "coverUpdateFailed": "No pudimos cambiar la portada. Intenta de nuevo.",
+    "photoDeleteFailed": "La foto no se eliminó. Intenta de nuevo.",
+    "invitationFailed": "No pudimos enviar la invitación. Revisa el email e intenta de nuevo."
   },
   "toast": {
-    "uploadingPhotos": "Subiendo fotos en segundo plano...",
-    "invitationSent": "Invitación enviada.",
-    "invitationCreated": "Invitación creada.",
-    "captionUpdated": "Caption actualizado."
+    "uploadingPhotos": "Tus fotos se están subiendo...",
+    "invitationSent": "Invitación enviada. Tu compañero recibirá un enlace para unirse.",
+    "invitationCreated": "Invitación lista. Comparte el enlace con tu compañero.",
+    "captionUpdated": "Descripción guardada."
+  },
+  "accordion": {
+    "details": "Detalles del viaje",
+    "highlights": "Momentos destacados",
+    "notes": "Notas y recuerdos"
   },
   "confirm": {
     "deletePhoto": "¿Eliminar esta foto de la galería?"
@@ -102,13 +109,16 @@
   },
   "gallery": {
     "dropHere": "Suelta las fotos aquí",
-    "dragOrClick": "Arrastra fotos o haz clic para seleccionar",
+    "dragOrClick": "Arrastra tus fotos aquí, o toca para explorar",
     "specs": "JPG o PNG • Máximo {{max}} fotos • Hasta {{sizeMB}}MB c/u",
-    "invalidFormat": "Se descartaron {{count}} archivo(s) por formato.",
-    "tooLarge": "Se descartaron {{count}} archivo(s) por tamaño (máx {{max}}MB).",
-    "limitReached": "Solo puedes subir {{max}} fotos. Se omitieron {{skipped}}.",
+    "invalidFormat": "{{count}} foto(s) no son JPG ni PNG y se descartaron.",
+    "tooLarge": "{{count}} foto(s) pesan más de {{max}}MB y se descartaron.",
+    "limitReached": "Alcanzaste el límite de {{max}} fotos. Se omitieron {{skipped}}.",
     "optimizing": "Optimizando...",
-    "optimizingCount": "Optimizando {{count}} foto(s)...",
-    "photosSelected": "fotos seleccionadas"
+    "optimizingCount": "Preparando {{count}} foto(s)...",
+    "photosSelected": "fotos seleccionadas",
+    "setCover": "Marcar como portada",
+    "currentCover": "Foto de portada actual",
+    "deletePhoto": "Eliminar foto"
   }
 }

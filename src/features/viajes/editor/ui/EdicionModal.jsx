@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { Save, LoaderCircle } from 'lucide-react';
 import { styles } from './EdicionModal.styles';
+import { COLORS } from '@shared/config';
 import { useAuth } from '@app/providers/AuthContext';
 import { useToast } from '@app/providers/ToastContext';
 import { useUpload } from '@app/providers/UploadContext';
@@ -20,6 +21,7 @@ import EdicionNotesSection from './components/EdicionNotesSection';
 import EdicionGallerySection from './components/EdicionGallerySection';
 import EdicionParadasSection from './components/EdicionParadasSection';
 import EdicionHeaderSection from './components/EdicionHeaderSection';
+import AccordionSection from './components/AccordionSection';
 
 const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSaving = false, onAfterSave }) => {
   const { usuario } = useAuth();
@@ -50,6 +52,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
   const [galleryFiles, setGalleryFiles] = useState([]);
   const [galleryPortada, setGalleryPortada] = useState(0);
   const [captionDrafts, setCaptionDrafts] = useState({});
+  const [hasTried, setHasTried] = useState(false);
 
   // Hook de galería: no cargar para borradores (id 'new') — solo cuando es un viaje guardado
   const galeria = useGaleriaViaje(!esBorrador && viaje?.id ? viaje.id : null);
@@ -160,10 +163,28 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
   const sinParadas = paradas.length === 0;
   const fechaRangoDisplay = formatDateRange(formData.fechaInicio, formData.fechaFin);
 
+  // Badges para acordeones: cuentan campos con datos
+  const contextBadge = (() => {
+    const n = [
+      formData.presupuesto ? 1 : 0,
+      (formData.vibe || []).length,
+      (formData.companions || []).length,
+    ].reduce((a, b) => a + b, 0);
+    return n > 0 ? String(n) : null;
+  })();
+
+  const highlightsBadge = (() => {
+    const n = Object.values(formData.highlights || {}).filter(Boolean).length;
+    return n > 0 ? String(n) : null;
+  })();
+
+  const notesBadge = formData.texto?.trim() ? '●' : null;
+
   return (
     <AnimatePresence>
-      <Motion.div style={styles.overlay(isMobile)} onClick={isBusy ? undefined : onClose} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
-        <Motion.div style={styles.modal(isMobile)} onClick={e => e.stopPropagation()} initial={{y:50}} animate={{y:0}} exit={{y:50}}>
+      <Motion.div style={styles.overlay(isMobile)} onClick={isBusy ? undefined : onClose} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
+        <Motion.div style={styles.modal(isMobile)} onClick={e => e.stopPropagation()} initial={{y:40,opacity:0}} animate={{y:0,opacity:1}} exit={{y:30,opacity:0}} transition={{duration:0.3,ease:[0.25,1,0.5,1]}}>
+          {/* Sección esencial: imágenes y fechas */}
           <EdicionHeaderSection
             styles={styles}
             t={t}
@@ -178,7 +199,6 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
             onToggleTituloAuto={() => setIsTituloAuto((prev) => !prev)}
             onFileChange={handleFileChange}
           />
-
           <div style={styles.body} className="custom-scroll">
             <EdicionGallerySection
               styles={styles}
@@ -198,50 +218,66 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
               onSetPortadaExistente={handleSetPortadaExistente}
               onEliminarFoto={handleEliminarFoto}
             />
-
-            <EdicionParadasSection
+          <EdicionParadasSection
               styles={styles}
               t={t}
               paradas={paradas}
               setParadas={setParadas}
               fechaRangoDisplay={fechaRangoDisplay}
-              sinParadas={sinParadas}
+              sinParadas={sinParadas && hasTried}
             />
-
-            {/* Contexto del viaje: presupuesto, vibe, companions */}
-            <EdicionContextSection
-              styles={styles}
-              t={t}
-              formData={formData}
-              setFormData={setFormData}
-              companionDraft={companionDraft}
-              companionResults={companionResults}
-              onCompanionSearch={handleCompanionSearch}
-              onAddCompanionFreeform={handleAddCompanionFreeform}
-              onAddCompanionFromResult={handleAddCompanionFromResult}
-            />
-
-            <EdicionHighlightsSection
-              styles={styles}
-              t={t}
-              formData={formData}
-              setFormData={setFormData}
-            />
-
-            <EdicionNotesSection
-              styles={styles}
-              t={t}
-              texto={formData.texto}
-              onChange={(texto) => setFormData((prev) => ({ ...prev, texto }))}
-              isBusy={isBusy}
-            />
-            <div style={styles.footer}>
-                <button onClick={onClose} style={styles.cancelBtn(isBusy)} disabled={isBusy}>{t('button.cancel')}</button>
-                <button onClick={handleSave} style={styles.saveBtn(isBusy)} disabled={isBusy}>
-                  {isBusy ? <LoaderCircle size={18} className="spin" /> : <Save size={18} />}
-                  {isProcessingImage ? t('button.processing') : (isSaving ? t('button.saving') : (esBorrador ? t('button.createTrip') : t('button.save')))}
-                </button>
-            </div>
+            {/* Secciones secundarias agrupadas en acordeón */}
+            <AccordionSection title={t('accordion.details')} badge={contextBadge}>
+              <EdicionContextSection
+                styles={styles}
+                t={t}
+                formData={formData}
+                setFormData={setFormData}
+                companionDraft={companionDraft}
+                companionResults={companionResults}
+                onCompanionSearch={handleCompanionSearch}
+                onAddCompanionFreeform={handleAddCompanionFreeform}
+                onAddCompanionFromResult={handleAddCompanionFromResult}
+              />
+            </AccordionSection>
+            <AccordionSection title={t('accordion.highlights')} badge={highlightsBadge}>
+              <EdicionHighlightsSection
+                styles={styles}
+                t={t}
+                formData={formData}
+                setFormData={setFormData}
+              />
+            </AccordionSection>
+            <AccordionSection title={t('accordion.notes')} badge={notesBadge}>
+              <EdicionNotesSection
+                styles={styles}
+                t={t}
+                texto={formData.texto}
+                onChange={(texto) => setFormData((prev) => ({ ...prev, texto }))}
+                isBusy={isBusy}
+              />
+            </AccordionSection>
+          </div>
+          <div style={styles.footer(isMobile)}>
+              <Motion.button
+                onClick={onClose}
+                style={styles.cancelBtn(isBusy, isMobile)}
+                disabled={isBusy}
+                whileHover={!isBusy ? { backgroundColor: COLORS.background } : {}}
+                whileTap={!isBusy ? { scale: 0.97 } : {}}
+                transition={{ duration: 0.15 }}
+              >{t('button.cancel')}</Motion.button>
+              <Motion.button
+                onClick={() => { setHasTried(true); handleSave(); }}
+                style={styles.saveBtn(isBusy, isMobile)}
+                disabled={isBusy}
+                whileHover={!isBusy ? { scale: 1.02, boxShadow: '0 4px 20px rgba(255,107,53,0.35)' } : {}}
+                whileTap={!isBusy ? { scale: 0.97 } : {}}
+                transition={{ duration: 0.15 }}
+              >
+                {isBusy ? <LoaderCircle size={18} className="spin" /> : <Save size={18} />}
+                {isProcessingImage ? t('button.processing') : (isSaving ? t('button.saving') : (esBorrador ? t('button.createTrip') : t('button.save')))}
+              </Motion.button>
           </div>
         </Motion.div>
       </Motion.div>

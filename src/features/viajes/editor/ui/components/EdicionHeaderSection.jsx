@@ -32,6 +32,7 @@ const EdicionHeaderSection = ({
               onChange={(e) => onTituloChange(e.target.value)}
               style={titlePulse ? styles.titleInputAutoPulse : styles.titleInput}
               placeholder={t('tripTitlePlaceholder')}
+              maxLength={80}
               disabled={isBusy}
             />
             {esBorrador && (

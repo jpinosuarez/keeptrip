@@ -1,7 +1,6 @@
 import React from 'react';
-import { Calendar, MapPin, BookOpen, Star } from 'lucide-react';
-import { COLORS, SHADOWS, RADIUS } from '@shared/config';
 import { useTranslation } from 'react-i18next';
+import { COLORS } from '@shared/config';
 
 const LogStats = ({ log = [], logData = {} }) => {
   const { t } = useTranslation('dashboard');
@@ -18,41 +17,76 @@ const LogStats = ({ log = [], logData = {} }) => {
   };
 
   const getTotalCities = () => {
-    const allCities = log.map(v => logData[v.id]?.cities || "").join(',');
+    const allCities = log.map(v => logData[v.id]?.cities || '').join(',');
     return allCities.split(',').filter(c => c.trim().length > 0).length;
   };
 
   const getAverageRating = () => {
-    if (log.length === 0) return "0.0";
+    if (log.length === 0) return null;
     const sum = log.reduce((acc, v) => acc + (logData[v.id]?.rating || 0), 0);
-    return (sum / log.length).toFixed(1);
+    const avg = sum / log.length;
+    return avg > 0 ? avg.toFixed(1) : null;
   };
 
+  if (log.length === 0) return null;
+
+  const rating = getAverageRating();
   const stats = [
-    { label: t('stats.totalDays'), value: getTotalDays(), icon: <Calendar size={20} />, color: COLORS.danger },
-    { label: t('stats.registeredCities'), value: getTotalCities(), icon: <MapPin size={20} />, color: '#3b82f6' },
-    { label: t('stats.tripsCompleted'), value: log.length, icon: <BookOpen size={20} />, color: '#10b981' },
-    { label: t('stats.averageRating'), value: `${getAverageRating()} / 5`, icon: <Star size={20} />, color: '#f59e0b' }
+    { value: log.length,        label: t('stats.tripsCompleted') },
+    { value: getTotalDays(),    label: t('stats.totalDays') },
+    { value: getTotalCities(),  label: t('stats.registeredCities') },
+    ...(rating ? [{ value: `${rating}\u2605`, label: t('stats.averageRating'), accent: true }] : []),
   ];
 
   return (
-    <section style={{ padding: '25px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
-      {stats.map((stat, index) => (
-        <div key={index} style={{ 
-          backgroundColor: COLORS.surface, padding: '20px', borderRadius: RADIUS.xl, 
-          display: 'flex', alignItems: 'center', gap: '15px', border: '1px solid rgba(0,0,0,0.05)',
-          boxShadow: SHADOWS.sm
-        }}>
-          <div style={{ backgroundColor: `${stat.color}15`, padding: '12px', borderRadius: '14px', color: stat.color }}>
-            {stat.icon}
+    <div
+      role="region"
+      aria-label={t('stats.tripSummary', 'Resumen de viajes')}
+      style={{
+        display: 'flex',
+        alignItems: 'stretch',
+        gap: 0,
+        flexWrap: 'wrap',
+        rowGap: '12px',
+        paddingBottom: '4px',
+        marginBottom: '8px',
+      }}
+    >
+      {stats.map((stat, i) => (
+        <React.Fragment key={i}>
+          <div style={{ display: 'flex', flexDirection: 'column', padding: `0 ${i === 0 ? 0 : 20}px 0 ${i === 0 ? 0 : 20}px` }}>
+            <span style={{
+              fontSize: '1.6rem',
+              fontWeight: '900',
+              color: stat.accent ? COLORS.atomicTangerine : COLORS.charcoalBlue,
+              lineHeight: 1,
+              letterSpacing: '-0.02em',
+            }}>
+              {stat.value}
+            </span>
+            <span style={{
+              fontSize: '0.7rem',
+              fontWeight: '700',
+              color: COLORS.textSecondary,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              marginTop: '5px',
+            }}>
+              {stat.label}
+            </span>
           </div>
-          <div>
-            <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: '800', color: COLORS.textSecondary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stat.label}</p>
-            <p style={{ margin: 0, fontSize: '1.2rem', fontWeight: '900', color: '#1e293b' }}>{stat.value}</p>
-          </div>
-        </div>
+          {i < stats.length - 1 && (
+            <div aria-hidden="true" style={{
+              width: '1px',
+              alignSelf: 'stretch',
+              backgroundColor: `rgba(44,62,80,0.1)`,
+              flexShrink: 0,
+              margin: '4px 0',
+            }} />
+          )}
+        </React.Fragment>
       ))}
-    </section>
+    </div>
   );
 };
 

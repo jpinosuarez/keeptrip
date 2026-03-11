@@ -5,8 +5,8 @@
   "autoTitle": "Auto",
   "manualTitle": "Manual",
   "tooltip": {
-    "autoUpdate": "Updates when adding or removing cities",
-    "manualMode": "Using manual title. Click to switch back to auto.",
+    "autoUpdate": "The title updates when you add or remove cities.",
+    "manualMode": "Manual mode on. Tap to switch back to auto title.",
     "vibe": "Define your trip's energy.",
     "highlights": "Your favorite moments in a few words.",
     "relato": "Tell each stop like a chapter.",
@@ -24,11 +24,13 @@
     "companions": "Companions",
     "notas": "Notes",
     "addCompanion": "Add",
+    "removeCompanion": "Remove {{name}}",
     "inviteByEmail": "✉️ Invite by email: {{email}}",
     "nameOrEmail": "Name or email",
-    "selectDefault": "-- select --",
-    "notesPlaceholder": "Write your memories here...",
-    "addCityWarning": "Add at least one city to continue.",
+    "selectDefault": "Not specified",
+    "notesPlaceholder": "What do you want to remember about this trip?",
+    "addCityWarning": "Your route needs at least one stop to take off.",
+    "captionPlaceholder": "Describe this moment...",
     "portada": "Cover"
   },
   "budget": {
@@ -53,19 +55,19 @@
     "cancel": "Cancel",
     "save": "Save",
     "createTrip": "Create Trip",
-    "processing": "Processing...",
+    "processing": "Getting ready...",
     "saving": "Saving..."
   },
   "search": {
     "newDestination": "New Destination",
     "placeholder": "Type a country or city...",
-    "searching": "Searching on the map... 🌍",
-    "popularDestinations": "POPULAR DESTINATIONS",
+    "searching": "Exploring the map... 🌍",
+    "popularDestinations": "Popular destinations",
     "country": "Country",
-    "searchCountry": "Search country (min 3 letters)..."
+    "searchCountry": "Search for your next destination..."
   },
   "citymanager": {
-    "searchPlaceholder": "Search city (min 3 letters)...",
+    "searchPlaceholder": "Type the city name...",
     "arrival": "Arrival",
     "departure": "Departure",
     "dateFormat": "dd/mm/yyyy",
@@ -80,19 +82,24 @@
     }
   },
   "error": {
-    "unsupportedFormat": "Unsupported format. Use JPG or PNG.",
-    "optimizationFailed": "Could not optimize the selected image.",
-    "saveFailed": "Could not save the trip. Check the data and try again.",
-    "unexpectedError": "Unexpected error while saving. Try again.",
-    "coverUpdateFailed": "Could not update the cover.",
-    "photoDeleteFailed": "Could not delete the photo.",
-    "invitationFailed": "Could not create the invitation."
+    "unsupportedFormat": "Only JPG or PNG photos are accepted. Choose a different file and try again.",
+    "optimizationFailed": "We couldn't process that photo. Try with a different image.",
+    "saveFailed": "We couldn't save your log. Check your connection and try again.",
+    "unexpectedError": "Something went wrong while saving. Wait a moment and try again.",
+    "coverUpdateFailed": "We couldn't update the cover. Try again.",
+    "photoDeleteFailed": "The photo wasn't deleted. Try again.",
+    "invitationFailed": "We couldn't send the invitation. Check the email and try again."
   },
   "toast": {
-    "uploadingPhotos": "Uploading photos in the background...",
-    "invitationSent": "Invitation sent.",
-    "invitationCreated": "Invitation created.",
-    "captionUpdated": "Caption updated."
+    "uploadingPhotos": "Your photos are uploading...",
+    "invitationSent": "Invitation sent! Your companion will receive a link to join.",
+    "invitationCreated": "Invitation ready. Share the link with your companion.",
+    "captionUpdated": "Description saved."
+  },
+  "accordion": {
+    "details": "Trip Details",
+    "highlights": "Highlights",
+    "notes": "Notes & Memories"
   },
   "confirm": {
     "deletePhoto": "Delete this photo from the gallery?"
@@ -102,13 +109,16 @@
   },
   "gallery": {
     "dropHere": "Drop photos here",
-    "dragOrClick": "Drag photos or click to select",
+    "dragOrClick": "Drag your photos here, or tap to browse",
     "specs": "JPG or PNG • Max {{max}} photos • Up to {{sizeMB}}MB each",
-    "invalidFormat": "{{count}} file(s) rejected due to format.",
-    "tooLarge": "{{count}} file(s) rejected — max {{max}}MB.",
-    "limitReached": "Max {{max}} photos. {{skipped}} skipped.",
+    "invalidFormat": "{{count}} photo(s) are not JPG or PNG and were removed.",
+    "tooLarge": "{{count}} photo(s) exceed {{max}}MB and were removed.",
+    "limitReached": "You've reached the {{max}}-photo limit. {{skipped}} skipped.",
     "optimizing": "Optimizing...",
-    "optimizingCount": "Optimizing {{count}} photo(s)...",
-    "photosSelected": "photos selected"
+    "optimizingCount": "Getting {{count}} photo(s) ready...",
+    "photosSelected": "photos selected",
+    "setCover": "Set as cover photo",
+    "currentCover": "Current cover photo",
+    "deletePhoto": "Delete photo"
   }
 }

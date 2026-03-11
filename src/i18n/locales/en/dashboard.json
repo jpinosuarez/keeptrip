@@ -8,6 +8,8 @@
   "emptyLog": "Your travel log is empty!",
   "firstTripMessage": "Start your adventure by registering your first destination.",
   "addFirstTrip": "Add first trip",
+  "newBitacora": "+ New Journey",
+  "subtitleStats": "You've explored {{countries}} countries — {{percent}}% of the world.",
   "stats": {
     "totalDays": "Total days",
     "registeredCities": "Registered cities",

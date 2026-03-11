@@ -1,6 +1,7 @@
 import React from 'react';
 import InfoTooltip from '@shared/ui/components/InfoTooltip';
-import { COLORS, RADIUS } from '@shared/config';
+import { COLORS, RADIUS, TRANSITIONS, FONTS } from '@shared/config';
+import { X } from 'lucide-react';
 
 const VIBES = ['Gastronómico', 'Aventura', 'Relax', 'Roadtrip', 'Cultural'];
 const VIBE_KEY_MAP = {
@@ -64,9 +65,13 @@ const EdicionContextSection = ({
                   style={{
                     padding: '6px 10px',
                     borderRadius: RADIUS.md,
-                    border: selected ? '1px solid #f59e0b' : `1px solid ${COLORS.border}`,
-                    background: selected ? '#fffbf0' : COLORS.surface,
+                    border: selected ? `1px solid ${COLORS.atomicTangerine}` : `1px solid ${COLORS.border}`,
+                    background: selected ? `${COLORS.atomicTangerine}12` : COLORS.surface,
                     cursor: 'pointer',
+                    color: selected ? COLORS.atomicTangerine : COLORS.textPrimary,
+                    fontWeight: selected ? '700' : '400',
+                    fontSize: '0.875rem',
+                    transition: TRANSITIONS.fast,
                   }}
                 >
                   {t(`vibes.${VIBE_KEY_MAP[v]}`)}
@@ -84,12 +89,13 @@ const EdicionContextSection = ({
             placeholder={t('labels.nameOrEmail')}
             value={companionDraft || ''}
             onChange={(e) => onCompanionSearch(e.target.value)}
-            style={{ flex: 1, padding: 8, borderRadius: RADIUS.sm, border: `1px solid ${COLORS.border}` }}
+            maxLength={100}
+            style={{ flex: 1, minWidth: 0, padding: '8px 10px', borderRadius: RADIUS.sm, border: `1px solid ${COLORS.border}`, fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }}
           />
           <button
             type="button"
             onClick={() => companionDraft && companionDraft.trim() && onAddCompanionFreeform(companionDraft)}
-            style={styles.saveBtn(false)}
+            style={styles.secondaryBtn(!companionDraft?.trim())}
           >
             {t('labels.addCompanion')}
           </button>
@@ -109,24 +115,19 @@ const EdicionContextSection = ({
             {companionResults.map((u) => (
               <div
                 key={u.uid}
-                style={{ padding: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                style={{ padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', gap: 8 }}
                 onClick={() => onAddCompanionFromResult(u)}
               >
-                <div>
-                  <strong style={{ display: 'block' }}>{u.displayName || u.email}</strong>
-                  <div style={{ fontSize: '0.75rem', color: COLORS.textSecondary }}>{u.email}</div>
+                <div style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
+                  <strong style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.875rem' }}>{u.displayName || u.email}</strong>
+                  <div style={{ fontSize: '0.75rem', color: COLORS.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.email}</div>
                 </div>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onAddCompanionFromResult(u);
                   }}
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: RADIUS.sm,
-                    border: `1px solid ${COLORS.border}`,
-                    background: COLORS.surface,
-                  }}
+                  style={styles.secondaryBtnSm}
                 >
                   {t('labels.addCompanion')}
                 </button>
@@ -139,12 +140,7 @@ const EdicionContextSection = ({
           <div style={{ marginTop: 8 }}>
             <button
               type="button"
-              style={{
-                padding: '8px 12px',
-                borderRadius: RADIUS.sm,
-                border: `1px dashed ${COLORS.textSecondary}`,
-                background: COLORS.surface,
-              }}
+              style={styles.secondaryBtnSm}
               onClick={() => onAddCompanionFreeform(companionDraft)}
             >
               {t('labels.inviteByEmail', { email: companionDraft })}
@@ -154,19 +150,20 @@ const EdicionContextSection = ({
 
         <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
           {(formData.companions || []).map((c, idx) => (
-            <div
+              <div
               key={idx}
               style={{
-                padding: '6px 10px',
+                padding: '5px 10px',
                 borderRadius: RADIUS.md,
                 background: COLORS.background,
                 border: `1px solid ${COLORS.border}`,
                 display: 'flex',
-                gap: 8,
+                gap: 6,
                 alignItems: 'center',
+                maxWidth: '200px',
               }}
             >
-              <span style={{ fontSize: '0.9rem' }}>{c.name}</span>
+              <span style={{ fontSize: '0.875rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{c.name}</span>
               <button
                 type="button"
                 onClick={() =>
@@ -175,9 +172,10 @@ const EdicionContextSection = ({
                     companions: prev.companions.filter((_, i) => i !== idx),
                   }))
                 }
-                style={{ background: 'transparent', border: 'none', color: COLORS.danger }}
+                aria-label={t('labels.removeCompanion', { name: c.name })}
+                style={{ background: 'transparent', border: 'none', color: COLORS.textSecondary, cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px', flexShrink: 0 }}
               >
-                x
+                <X size={13} />
               </button>
             </div>
           ))}

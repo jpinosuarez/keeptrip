@@ -12,6 +12,7 @@ const EdicionNotesSection = ({ styles, t, texto, onChange, isBusy }) => {
         onChange={(e) => onChange(e.target.value)}
         style={styles.textarea}
         placeholder={t('labels.notesPlaceholder')}
+        maxLength={5000}
         disabled={isBusy}
       />
     </div>

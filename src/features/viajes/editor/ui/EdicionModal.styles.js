@@ -5,11 +5,13 @@ export const styles = {
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
     ...GLASS.overlay, backgroundColor: undefined,
     zIndex: 2000, display: 'flex', alignItems: isMobile ? 'stretch' : 'center', justifyContent: 'center',
-    padding: isMobile ? 0 : '20px'
+    padding: isMobile ? '0' : '20px',
+    minWidth: '320px', // Adapt: mínimo seguro para móviles
+    overflowX: 'hidden', // Audit: evitar scroll horizontal
   }),
   modal: (isMobile) => ({
-    width: isMobile ? '100%' : 'min(640px, 100%)',
-    maxWidth: '100%',
+    width: isMobile ? 'min(100vw, 400px)' : 'min(640px, 100%)',
+    maxWidth: '100vw',
     maxHeight: isMobile ? '100dvh' : '92vh',
     backgroundColor: COLORS.surface,
     borderRadius: isMobile ? 0 : RADIUS.xl,
@@ -89,12 +91,12 @@ export const styles = {
   },
   body: {
     padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column',
-    gap: '24px', flex: 1,
+    gap: '16px', flex: 1, // Polish: gap múltiplo de 8
   },
   section: {
-    display: 'flex', flexDirection: 'column', gap: '10px',
+    display: 'flex', flexDirection: 'column', gap: '8px',
     background: COLORS.background,
-    padding: SPACING.md,
+    padding: '16px', // Polish: padding múltiplo de 8
     borderRadius: RADIUS.lg,
     border: `1px solid ${COLORS.border}`,
   },
@@ -110,6 +112,8 @@ export const styles = {
     padding: '10px 12px', fontSize: '0.9rem', color: COLORS.charcoalBlue,
     outline: 'none', background: COLORS.surface, boxShadow: SHADOWS.inner,
     transition: TRANSITIONS.fast,
+    width: '100%', // Corrige desbordes en mobile
+    boxSizing: 'border-box',
   },
   textarea: {
     width: '100%', minHeight: '100px', padding: '14px',
@@ -120,7 +124,7 @@ export const styles = {
     transition: TRANSITIONS.fast,
   },
   inlineError: {
-    fontSize: '0.8rem', fontWeight: '600', color: '#b91c1c'
+    fontSize: '0.8rem', fontWeight: '600', color: COLORS.danger
   },
   inlineInfo: {
     fontSize: '0.8rem', fontWeight: '600', color: COLORS.mutedTeal
@@ -129,15 +133,15 @@ export const styles = {
     fontSize: '0.75rem', fontWeight: '700', color: COLORS.textSecondary, textTransform: 'uppercase'
   },
   galleryManageBlock: {
-    marginTop: '12px',
+    marginTop: '8px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '10px'
+    gap: '8px'
   },
   galleryManageGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-    gap: '12px'
+    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+    gap: '8px'
   },
   galleryManageCard: (isPortada) => ({
     border: `1px solid ${isPortada ? COLORS.atomicTangerine : COLORS.border}`,
@@ -152,7 +156,7 @@ export const styles = {
   }),
   galleryManageImg: {
     width: '100%',
-    height: '120px',
+    height: '140px',
     objectFit: 'cover',
     borderRadius: RADIUS.sm
   },
@@ -161,10 +165,12 @@ export const styles = {
     border: `1px solid ${COLORS.border}`,
     borderRadius: RADIUS.sm,
     padding: '8px 10px',
-    fontSize: '1rem',
+    fontSize: '0.875rem',
     color: COLORS.textPrimary,
     outline: 'none',
-    background: COLORS.background
+    background: COLORS.background,
+    boxSizing: 'border-box',
+    transition: TRANSITIONS.fast,
   },
   galleryActionsRow: {
     display: 'flex',
@@ -199,35 +205,86 @@ export const styles = {
     cursor: 'pointer',
     transition: TRANSITIONS.fast
   },
-  portadaBadgeMini: {
-    fontSize: '0.65rem', fontWeight: '800', color: COLORS.atomicTangerine,
-    textTransform: 'uppercase', letterSpacing: '0.5px',
-    textAlign: 'center',
-  },
-  footer: {
+  footer: (isMobile = false) => ({
     borderTop: `1px solid ${COLORS.border}`,
-    padding: '20px 24px',
-    paddingBottom: 'max(20px, env(safe-area-inset-bottom, 0px))',
-    display: 'flex', justifyContent: 'flex-end', gap: '12px',
+    padding: isMobile ? '12px 16px' : '16px 24px',
+    paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: isMobile ? 'stretch' : 'flex-end',
+    gap: '12px',
     background: COLORS.surface,
-    position: 'sticky',
-    bottom: 0,
-    zIndex: 5,
-  },
-  cancelBtn: (disabled = false) => ({
-    background: 'transparent', border: `1px solid ${COLORS.border}`,
-    color: COLORS.textSecondary,
-    fontWeight: '700', cursor: disabled ? 'not-allowed' : 'pointer',
-    padding: '12px 22px', borderRadius: RADIUS.full,
-    opacity: disabled ? 0.6 : 1, transition: TRANSITIONS.fast,
-    fontSize: '0.9rem',
+    flexShrink: 0,
   }),
-  saveBtn: (disabled = false) => ({
-    background: COLORS.atomicTangerine, color: 'white', border: 'none',
-    padding: '12px 28px', borderRadius: RADIUS.full, fontWeight: '700',
-    fontFamily: FONTS.body,
-    cursor: disabled ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-    boxShadow: SHADOWS.glow, opacity: disabled ? 0.7 : 1, transition: TRANSITIONS.fast,
+  // Acciones secundarias: teal outline, jerarquía claramente debajo del primario naranja
+  secondaryBtn: (disabled = false) => ({
+    background: 'transparent',
+    border: `1.5px solid ${COLORS.mutedTeal}`,
+    color: COLORS.mutedTeal,
+    borderRadius: RADIUS.full,
+    padding: '9px 18px',
+    fontSize: '0.875rem',
+    fontWeight: '700',
+    fontFamily: FONTS.heading,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.5 : 1,
+    transition: TRANSITIONS.fast,
+    whiteSpace: 'nowrap',
+    minHeight: '44px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+  }),
+  // Variante compacta para espacios inline (dropdown, invite-by-email)
+  secondaryBtnSm: {
+    background: 'transparent',
+    border: `1px solid ${COLORS.mutedTeal}`,
+    color: COLORS.mutedTeal,
+    borderRadius: RADIUS.sm,
+    padding: '6px 12px',
+    fontSize: '0.8rem',
+    fontWeight: '700',
+    cursor: 'pointer',
+    transition: TRANSITIONS.fast,
+    whiteSpace: 'nowrap',
+    minHeight: '36px',
+    display: 'inline-flex',
+    alignItems: 'center',
+  },
+  cancelBtn: (disabled = false, isMobile = false) => ({
+    background: 'transparent',
+    border: `1px solid ${COLORS.border}`,
+    color: COLORS.textSecondary,
+    fontWeight: '700',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    padding: isMobile ? '12px 16px' : '12px 22px',
+    borderRadius: RADIUS.full,
+    opacity: disabled ? 0.6 : 1,
+    transition: TRANSITIONS.fast,
     fontSize: '0.9rem',
+    flex: '0 0 auto',
+    minHeight: '44px',
+    whiteSpace: 'nowrap',
+  }),
+  saveBtn: (disabled = false, isMobile = false) => ({
+    background: COLORS.atomicTangerine,
+    color: 'white',
+    border: 'none',
+    flex: isMobile ? '1 1 auto' : '0 0 auto',
+    minWidth: isMobile ? 0 : '200px',
+    padding: '12px 28px',
+    borderRadius: RADIUS.full,
+    fontWeight: '700',
+    fontFamily: FONTS.heading,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    boxShadow: SHADOWS.md,
+    opacity: disabled ? 0.7 : 1,
+    transition: TRANSITIONS.fast,
+    fontSize: '0.9rem',
+    minHeight: '44px',
   })
 };

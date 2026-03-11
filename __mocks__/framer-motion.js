@@ -48,4 +48,5 @@ export const AnimatePresence = ({ children }) => children ?? null;
 export const useAnimation = () => ({ start: () => {}, stop: () => {} });
 export const useMotionValue = (v) => ({ get: () => v, set: () => {} });
 export const useTransform = () => ({ get: () => 0, set: () => {} });
+export const useReducedMotion = () => false;
 export const useSpring = () => ({ get: () => 0, set: () => {} });

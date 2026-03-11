@@ -5,16 +5,18 @@ export const styles = {
     width: '100%',
     display: 'flex',
     flexDirection: 'column',
-    gap: isMobile ? '16px' : '24px',
-    padding: isMobile ? '16px 16px 80px' : '32px 32px 40px',
+    gap: isMobile ? '10px' : '16px', // Reduce el gap vertical
+    padding: isMobile ? '16px 16px 80px' : '32px 32px 32px', // Reduce padding inferior
     boxSizing: 'border-box',
   }),
 
-  welcomeArea: {
+  welcomeArea: (isMobile) => ({
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: isMobile ? 'column' : 'row',
+    justifyContent: 'space-between',
+    alignItems: isMobile ? 'flex-start' : 'flex-end',
     gap: '16px',
-  },
+  }),
 
   title: {
     margin: 0,
@@ -26,6 +28,14 @@ export const styles = {
 
   subtitle: {
     margin: '8px 0 0',
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+    lineHeight: 1.5,
+  },
+
+  levelLine: {
+    margin: '6px 0 0',
     fontSize: '0.875rem',
     fontWeight: '600',
     color: COLORS.textSecondary,
@@ -35,116 +45,70 @@ export const styles = {
     flexWrap: 'wrap',
   },
 
-  headerStatsRow: {
-    display: 'flex',
-    gap: '8px',
-    flexWrap: 'wrap',
-  },
-
-  statPill: {
+  ctaDesktop: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    backgroundColor: COLORS.surface,
-    padding: '8px 16px',
+    backgroundColor: COLORS.atomicTangerine,
+    color: 'white',
+    border: 'none',
     borderRadius: RADIUS.xl,
-    boxShadow: SHADOWS.sm,
-    border: `1px solid rgba(44,62,80,0.06)`,
-    minWidth: '80px',
-    flex: '1 1 auto',
+    padding: '10px 20px',
+    fontSize: '0.9rem',
+    fontWeight: '800',
+    cursor: 'pointer',
+    boxShadow: `0 4px 14px ${COLORS.atomicTangerine}40`,
+    minHeight: '44px',
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+    letterSpacing: '-0.01em',
   },
 
-  // Países: el achievement core. Más jerarquía que los soportes.
-  statPillFeatured: {
+  fabMobile: {
+    position: 'fixed',
+    bottom: '80px',
+    right: '16px',
+    zIndex: 200,
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
-    backgroundColor: COLORS.surface,
-    padding: '12px 20px',
+    gap: '8px',
+    backgroundColor: COLORS.atomicTangerine,
+    color: 'white',
+    border: 'none',
     borderRadius: RADIUS.xl,
-    boxShadow: `0 4px 16px ${COLORS.atomicTangerine}25, 0 2px 8px rgba(0,0,0,0.04)`,
-    border: `1px solid ${COLORS.atomicTangerine}30`,
-    minWidth: '120px',
-    flex: '2 1 auto',
-  },
-
-  pillIcon: (color) => ({
-    backgroundColor: color,
-    borderRadius: RADIUS.sm,
-    width: '32px',
-    height: '32px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  }),
-
-  // Ícono del pill featured: 36px para escalar con el número 1.4rem
-  pillIconFeatured: (color) => ({
-    backgroundColor: color,
-    borderRadius: RADIUS.sm,
-    width: '36px',
-    height: '36px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  }),
-
-  pillValue: {
-    fontSize: '1rem',
-    fontWeight: '900',
-    color: COLORS.charcoalBlue,
-    lineHeight: 1,
-  },
-
-  pillValueFeatured: {
-    fontSize: '1.4rem',
-    fontWeight: '900',
-    color: COLORS.charcoalBlue,
-    lineHeight: 1,
-  },
-
-  // Fracción "/ 195" en pill featured
-  pillFraction: {
-    fontSize: '0.8rem',
-    fontWeight: '400',
-    color: COLORS.textSecondary,
-  },
-
-  pillContent: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-
-  pillLabel: {
-    fontSize: '0.65rem',
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: '0.4px',
-    marginTop: '4px',
+    padding: '14px 20px',
+    fontSize: '0.9rem',
+    fontWeight: '800',
+    cursor: 'pointer',
+    boxShadow: `0 6px 20px ${COLORS.atomicTangerine}50, 0 2px 8px rgba(0,0,0,0.15)`,
+    minHeight: '48px',
   },
 
   mainGrid: (isMobile) => ({
     display: 'grid',
-    gridTemplateColumns: isMobile ? '1fr' : '1fr 380px',
-    gap: '24px',
-    alignItems: 'start',
+    gridTemplateColumns: isMobile ? '1fr' : '1fr 320px',
+    gap: isMobile ? '16px' : '18px',
+    alignItems: isMobile ? 'stretch' : 'center', // Centra verticalmente en desktop
+    justifyContent: 'center', // Centra horizontalmente el grid
   }),
 
   mapCard: (isMobile) => ({
     borderRadius: RADIUS.xl,
     overflow: 'hidden',
-    height: isMobile ? '240px' : '360px',
+    aspectRatio: '2.2/1', // Relación de aspecto más panorámica
+    height: isMobile ? 'auto' : 'auto', // Deja que aspectRatio controle el alto
+    minHeight: isMobile ? '160px' : '220px', // Asegura suficiente altura
+    maxHeight: isMobile ? '260px' : '320px', // Evita que sea demasiado grande
     boxShadow: SHADOWS.md,
     backgroundColor: COLORS.surface,
+    cursor: 'crosshair',
   }),
 
   recentsContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
+    gap: '4px', // Reduce el gap interno
+    marginTop: '-8px', // Sube el bloque de aventuras recientes
   },
 
   sectionHeader: {

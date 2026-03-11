@@ -18,6 +18,7 @@ const EdicionHighlightsSection = ({ styles, t, formData, setFormData }) => {
               highlights: { ...(prev.highlights || {}), topFood: e.target.value },
             }))
           }
+          maxLength={120}
           style={styles.dateInput}
         />
         <input
@@ -29,6 +30,7 @@ const EdicionHighlightsSection = ({ styles, t, formData, setFormData }) => {
               highlights: { ...(prev.highlights || {}), topView: e.target.value },
             }))
           }
+          maxLength={120}
           style={styles.dateInput}
         />
         <input
@@ -40,7 +42,8 @@ const EdicionHighlightsSection = ({ styles, t, formData, setFormData }) => {
               highlights: { ...(prev.highlights || {}), topTip: e.target.value },
             }))
           }
-          style={{ gridColumn: '1 / -1', padding: 8, borderRadius: RADIUS.sm, border: `1px solid ${COLORS.border}` }}
+          maxLength={120}
+          style={{ ...styles.dateInput, gridColumn: '1 / -1' }}
         />
       </div>
     </div>

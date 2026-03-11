@@ -25,8 +25,8 @@ const HomeMap = ({ paisesVisitados = [] }) => {
       <Map
         initialViewState={{
           longitude: 0,
-          latitude: 15,
-          zoom: 0.6, 
+          latitude: 20,
+          zoom: 0.32, 
         }}
         mapStyle="mapbox://styles/mapbox/light-v11"
         mapboxAccessToken={MAPBOX_TOKEN}
