@@ -12,7 +12,8 @@ import { useVisorViajeData } from './hooks/useVisorViajeData';
 import { useVisorViajeGallery } from './hooks/useVisorViajeGallery';
 import { useVisorViajeUI } from './hooks/useVisorViajeUI';
 import { useVisorViajeStory } from './hooks/useVisorViajeStory';
-import VisorHero from './components/VisorHero';
+import { useDocumentaryState } from './hooks/useDocumentaryState';
+import DocumentaryHero from './components/DocumentaryHero';
 import VisorBitacoraSection from './components/VisorBitacoraSection';
 import VisorGallerySection from './components/VisorGallerySection';
 import VisorTimelineSection from './components/VisorTimelineSection';
@@ -59,6 +60,12 @@ const VisorViaje = ({
 
   const uiVM = useVisorViajeUI({ isRouteMode, isMobile });
 
+  const docVM = useDocumentaryState({
+    paradas,
+    isMobile,
+    enabled: isRouteMode && !uiVM.showEditModal
+  });
+
   const storyVM = useVisorViajeStory({
     data,
     viajeBase,
@@ -94,11 +101,12 @@ const VisorViaje = ({
         paradas={paradas}
         styles={styles}
         isMobile={isMobile}
-        activeParadaIndex={uiVM.activeParadaIndex}
+        activeParadaIndex={docVM.activeIndex}
         hoveredIndex={uiVM.hoveredIndex}
-        setParadaRef={uiVM.setParadaRef}
+        setParadaRef={docVM.setParadaRef}
         onHover={uiVM.setHoveredIndex}
         onHoverEnd={() => uiVM.setHoveredIndex(null)}
+        galeria={galleryVM.galeria}
       />
     ),
     bitacora: <VisorBitacoraSection paradas={paradas} texto={data.texto} styles={styles} />,
@@ -118,6 +126,7 @@ const VisorViaje = ({
         onSetPortada={galleryVM.handleSetPortadaExistente}
         onEliminarFoto={galleryVM.handleEliminarFoto}
         isBusy={isBusy}
+        storyData={storyVM.storyData}
       />
     ),
   };
@@ -130,7 +139,7 @@ const VisorViaje = ({
       transition={{ type: 'spring', damping: 25 }}
       style={styles.expandedOverlay}
     >
-        <VisorHero
+        <DocumentaryHero
           styles={styles}
           isMobile={isMobile}
           fotoMostrada={storyVM.fotoMostrada}
@@ -145,7 +154,6 @@ const VisorViaje = ({
           viajeBase={viajeBase}
           ownerDisplayName={ownerDisplayName}
           isRouteMode={isRouteMode}
-          galeriaFotosCount={galleryVM.galeria.fotos.length}
         />
 
         {isRouteMode ? (
@@ -153,11 +161,15 @@ const VisorViaje = ({
             isMobile={isMobile}
             styles={styles}
             paradas={paradas}
-            activeParadaIndex={uiVM.activeParadaIndex}
+            activeParadaIndex={docVM.activeIndex}
+            mapSyncIndex={docVM.mapSyncIndex}
             hoveredIndex={uiVM.hoveredIndex}
             onMarkerHover={uiVM.handleMarkerHover}
             onMarkerHoverEnd={uiVM.handleMarkerHoverEnd}
-            onMarkerClick={uiVM.handleMarkerClick}
+            onMarkerClick={(i) => {
+              const node = docVM.getParadaNode(i);
+              if (node) node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }}
             showMapModal={uiVM.showMapModal}
             onOpenMap={() => uiVM.setShowMapModal(true)}
             onCloseMap={() => uiVM.setShowMapModal(false)}

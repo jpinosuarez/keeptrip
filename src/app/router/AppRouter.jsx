@@ -34,7 +34,7 @@ const TripsPage      = lazy(() => import('@pages/trips/ui/TripsPage'));
 const MapaView       = lazy(() => import('@features/mapa/ui/MapaView'));
 const TravelerHub    = lazy(() => import('@features/gamification/ui/TravelerHub'));
 const InvitationsList = lazy(() => import('@features/invitations/ui/InvitationsList'));
-const SettingsPage   = lazy(() => import('@pages/Configuracion/SettingsPage'));
+const SettingsPage   = lazy(() => import('@pages/settings/ui/SettingsPage'));
 
 // ── Raíz pública/autenticada ───────────────────────────────────────────────────
 function RootRoute() {
@@ -113,6 +113,15 @@ function InvitationsRoute() {
   );
 }
 
+function SettingsRoute() {
+  const { data } = useOutletContext();
+  return (
+    <Suspense fallback={null}>
+      <SettingsPage log={data.bitacora} />
+    </Suspense>
+  );
+}
+
 // ── Router principal ───────────────────────────────────────────────────────────
 function AppRouter() {
   return (
@@ -135,7 +144,7 @@ function AppRouter() {
           <Route path="map"        element={<MapRoute />} />
           <Route path="explorer"   element={<ExplorerRoute />} />
           <Route path="invitations" element={<InvitationsRoute />} />
-          <Route path="settings"   element={<SettingsPage />} />
+          <Route path="settings"   element={<SettingsRoute />} />
 
           {/* Rutas de administrador (Deprecated/Removed) */}
 

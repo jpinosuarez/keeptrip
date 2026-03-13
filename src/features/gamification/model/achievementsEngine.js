@@ -3,6 +3,11 @@
  *
  * Takes user stats and returns the list of currently-unlocked achievements.
  * No side-effects — all persistence is handled by the useAchievements hook.
+ *
+ * New micro-milestone resolvers added (Guardrail #1):
+ *   has_photo    — any trip has at least 1 photo
+ *   has_detail   — any trip has ciudades / destinos populated
+ *   has_dates    — any trip has fechaInicio or startDate set
  */
 
 import { COUNTRIES_DB } from '../../../assets/sellos/index';
@@ -51,7 +56,30 @@ export const buildStats = (countryCodes, bitacora, todasLasParadas) => {
     }
     if (Array.isArray(t.gallery)) totalPhotos += t.gallery.length;
     else if (Array.isArray(t.fotos)) totalPhotos += t.fotos.length;
+    // Also count single foto field
+    else if (t.foto) totalPhotos += 1;
   }
+
+  // ── Micro-milestone derived booleans (Guardrail #1) ──
+  const hasAnyPhoto = bitacora.some((t) => {
+    return (
+      (Array.isArray(t.gallery) && t.gallery.length > 0) ||
+      (Array.isArray(t.fotos) && t.fotos.length > 0) ||
+      Boolean(t.foto)
+    );
+  });
+
+  const hasAnyDetail = bitacora.some((t) => {
+    // "detail" = trip has at least one city/destination listed
+    const hasCiudades = typeof t.ciudades === 'string' && t.ciudades.trim().length > 0;
+    const hasDestinos = Array.isArray(t.destinos) && t.destinos.length > 0;
+    const hasCities = Array.isArray(t.cities) && t.cities.length > 0;
+    return hasCiudades || hasDestinos || hasCities;
+  });
+
+  const hasAnyDates = bitacora.some((t) => {
+    return Boolean(t.fechaInicio || t.startDate);
+  });
 
   return {
     countries: countryCodes.length,
@@ -61,6 +89,10 @@ export const buildStats = (countryCodes, bitacora, todasLasParadas) => {
     continentNames: continents,
     longestTrip: longestDays,
     totalPhotos,
+    // Micro-milestone flags
+    hasAnyPhoto,
+    hasAnyDetail,
+    hasAnyDates,
   };
 };
 
@@ -74,6 +106,10 @@ export const evaluateAchievements = (stats) => {
     trips:          (t) => stats.trips >= t,
     continents:     (t) => stats.continents >= t,
     detailed_trips: (t) => stats.detailedTrips >= t,
+    // Micro-milestone resolvers (Guardrail #1)
+    has_photo:  () => stats.hasAnyPhoto,
+    has_detail: () => stats.hasAnyDetail,
+    has_dates:  () => stats.hasAnyDates,
   };
 
   return ACHIEVEMENTS.filter((a) => {
@@ -85,6 +121,9 @@ export const evaluateAchievements = (stats) => {
 /**
  * Compute progress (0..1) for each achievement.
  * Returns all achievements with a `progress` field added.
+ *
+ * For boolean micro-milestones (has_photo, has_detail, has_dates),
+ * progress is 0 or 1 (no partial — you either have it or you don't).
  */
 export const getAchievementsWithProgress = (stats) =>
   ACHIEVEMENTS.map((a) => {
@@ -94,6 +133,14 @@ export const getAchievementsWithProgress = (stats) =>
       continents:     stats.continents,
       detailed_trips: stats.detailedTrips,
     };
+
+    // Boolean types: progress is binary
+    const booleanTypes = { has_photo: 'hasAnyPhoto', has_detail: 'hasAnyDetail', has_dates: 'hasAnyDates' };
+    if (booleanTypes[a.criteria.type]) {
+      const flag = stats[booleanTypes[a.criteria.type]];
+      return { ...a, progress: flag ? 1 : 0, current: flag ? 1 : 0, unlocked: flag };
+    }
+
     const current = valueMap[a.criteria.type] ?? 0;
     const progress = Math.min(current / a.criteria.threshold, 1);
     const unlocked = progress >= 1;

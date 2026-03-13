@@ -1,8 +1,22 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 
 const UIContext = createContext(null);
 const SearchContext = createContext(null);
+
+// ── mapStyle persistence helpers (Guardrail #2) ──
+const MAP_STYLE_KEY = 'keeptrip_map_style';
+const MAP_STYLES = ['globe', 'flat', 'hybrid'];
+const DEFAULT_MAP_STYLE = 'globe';
+
+const readMapStyle = () => {
+  try {
+    const stored = localStorage.getItem(MAP_STYLE_KEY);
+    return MAP_STYLES.includes(stored) ? stored : DEFAULT_MAP_STYLE;
+  } catch {
+    return DEFAULT_MAP_STYLE;
+  }
+};
 
 export const UIProvider = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -14,6 +28,19 @@ export const UIProvider = ({ children }) => {
   const [ciudadInicialBorrador, setCiudadInicialBorrador] = useState(null);
   // Confirmación de eliminación (no requiere URL — es un diálogo transitorio)
   const [confirmarEliminacion, setConfirmarEliminacion] = useState(null);
+
+  // Map Style preference — initialised from localStorage, reactive (Guardrail #2)
+  const [mapStyle, setMapStyleState] = useState(readMapStyle);
+
+  const setMapStyle = useCallback((style) => {
+    if (!MAP_STYLES.includes(style)) return;
+    setMapStyleState(style);
+    try {
+      localStorage.setItem(MAP_STYLE_KEY, style);
+    } catch {
+      // storage unavailable — ignore silently
+    }
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -33,7 +60,11 @@ export const UIProvider = ({ children }) => {
       ciudadInicialBorrador,
       setCiudadInicialBorrador,
       confirmarEliminacion,
-      setConfirmarEliminacion
+      setConfirmarEliminacion,
+      // Map style (Guardrail #2)
+      mapStyle,
+      setMapStyle,
+      MAP_STYLES,
     }),
     [
       sidebarCollapsed,
@@ -41,7 +72,9 @@ export const UIProvider = ({ children }) => {
       mostrarBuscador,
       viajeBorrador,
       ciudadInicialBorrador,
-      confirmarEliminacion
+      confirmarEliminacion,
+      mapStyle,
+      setMapStyle,
     ]
   );
 
@@ -49,9 +82,7 @@ export const UIProvider = ({ children }) => {
     if (typeof window === 'undefined' || import.meta.env.VITE_ENABLE_TEST_LOGIN !== 'true') {
       return undefined;
     }
-
     window.__test_abrirBuscador = () => setMostrarBuscador(true);
-
     return undefined;
   }, []);
 

@@ -18,5 +18,20 @@
   "language": {
     "title": "Idioma",
     "description": "Selecciona el idioma de la interfaz."
-  }
+  },
+  "appearance": "Apariencia",
+  "appearanceDesc": "Modo oscuro próximamente",
+  "mapStyle": {
+    "title": "Estilo de Mapa",
+    "desc": "Elige cómo se muestra tu mundo.",
+    "globe": "Globo 3D",
+    "globeDesc": "Globo interactivo inmersivo",
+    "flat": "Mapa Plano",
+    "flatDesc": "Mapa clásico bidimensional",
+    "hybrid": "Híbrido",
+    "hybridDesc": "Satélite con etiquetas"
+  },
+  "legacyData": "Legado & Datos",
+  "legacyDataDesc": "Tu bitácora es tuya. Descárgala cuando quieras.",
+  "exportJSON": "Exportar viajes (JSON)"
 }

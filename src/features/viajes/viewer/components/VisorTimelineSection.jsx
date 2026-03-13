@@ -24,23 +24,33 @@ const VisorTimelineSection = ({
   setParadaRef,
   onHover,
   onHoverEnd,
+  galeria,
 }) => {
+  // Heuristic: Distribute gallery photos across stops
+  const getInterleavedPhoto = (index) => {
+    if (!galeria?.fotos || galeria.fotos.length === 0) return null;
+    const photosPerStop = Math.max(1, Math.floor(galeria.fotos.length / paradas.length));
+    const photoIndex = index * photosPerStop;
+    return galeria.fotos[photoIndex] || null;
+  };
+
   return (
     <>
-      <h3 style={styles.sectionTitle}>Itinerario</h3>
+      <h3 style={styles.sectionTitle}>La Crónica del Viaje</h3>
       <div style={styles.timelineContainer}>
         {paradas.map((p, i) => {
           const isActive = activeParadaIndex === i && !isMobile;
           const isHovered = hoveredIndex === i && !isMobile;
           const highlighted = isActive || isHovered;
+          const memory = getInterleavedPhoto(i);
 
           const cardVariants = {
-            hidden: { opacity: 0, y: 24, scale: 0.97 },
+            hidden: { opacity: 0, y: 30, scale: 0.98 },
             visible: {
               opacity: 1,
               y: 0,
               scale: 1,
-              transition: { duration: 0.4, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] },
+              transition: { duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] },
             },
           };
 
@@ -52,7 +62,7 @@ const VisorTimelineSection = ({
               variants={cardVariants}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
+              viewport={{ once: true, amount: 0.2 }}
             >
               <div style={styles.timelineTrack}>
                 <div style={highlighted ? styles.timelineDotActive : styles.timelineDotInactive} />
@@ -74,21 +84,51 @@ const VisorTimelineSection = ({
                   </span>
                   <span style={styles.stopCardDate}>{formatDateRange(p.fechaLlegada || p.fecha, p.fechaSalida)}</span>
                 </div>
-                {p.clima && (
-                  <div style={styles.climaBadge}>
-                    <span style={{ fontSize: '1.1rem' }}>{climaEmoji(p.clima.desc)}</span>
-                    {p.clima.max != null && <span>{Math.round(p.clima.max)}°C</span>}
-                    <span style={styles.verifiedBadge}>Histórico</span>
-                  </div>
+
+                {/* Interleaved memory preview */}
+                {memory && (
+                  <Motion.img 
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    src={memory.url} 
+                    alt={memory.caption || 'Memory'} 
+                    style={styles.interleavedMemoryImg} 
+                  />
                 )}
-                {p.notaCorta && <p style={styles.notaCorta}>{p.notaCorta}</p>}
+
                 {p.relato && p.relato.trim() && (
                   <div style={styles.paradaRelato}>
                     <p style={styles.paradaRelatoText}>{p.relato}</p>
                   </div>
                 )}
+
+                {/* Bento Metadata Grid */}
+                <div style={styles.stopCardBentoGrid}>
+                  {p.clima && (
+                    <div style={styles.bentoItem}>
+                      <span style={styles.bentoLabel}>Clima</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                         <span style={{ fontSize: '1.1rem' }}>{climaEmoji(p.clima.desc)}</span>
+                         <span style={styles.bentoValue}>{Math.round(p.clima.max)}°C</span>
+                      </div>
+                    </div>
+                  )}
+                  {p.transporte && (
+                    <div style={styles.bentoItem}>
+                      <span style={styles.bentoLabel}>Transporte</span>
+                      <span style={styles.bentoValue}>{transporteEmoji[p.transporte] || '🚶'} {p.transporte}</span>
+                    </div>
+                  )}
+                  {p.notaCorta && (
+                    <div style={{ ...styles.bentoItem, gridColumn: 'span 2' }}>
+                      <span style={styles.bentoLabel}>Destacado</span>
+                      <span style={styles.bentoValue}>✨ {p.notaCorta}</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
+              {/* Transport indicator on the line */}
               {i < paradas.length - 1 && paradas[i + 1]?.transporte && (
                 <div style={styles.transportIconOnLine}>{transporteEmoji[paradas[i + 1].transporte] || '🚶'}</div>
               )}

@@ -46,14 +46,27 @@ const RouteMap = ({ paradas, activeIndex = 0, hoveredIndex = null, onMarkerHover
   // ─── fitBounds inicial (espera a que el mapa cargue) ───
   useEffect(() => {
     if (!mapLoaded) return;
-    // En modal (mobile fullscreen) el contenedor tarda en tener dimensiones finales.
-    // Demoramos fitBounds para que mapbox calcule bounds sobre geometría real.
     if (isModal) {
       const timer = setTimeout(fitMapToBounds, 350);
       return () => clearTimeout(timer);
     }
     fitMapToBounds();
   }, [mapLoaded, fitMapToBounds, isModal]);
+
+  // ─── Cinematic Fly-To on Active Index change ───
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current || isModal) return;
+    const parada = paradas[activeIndex];
+    if (parada && parada.coordenadas) {
+      mapRef.current.flyTo({
+        center: parada.coordenadas,
+        zoom: 5.5,
+        speed: 0.8,
+        curve: 1,
+        essential: true,
+      });
+    }
+  }, [activeIndex, mapLoaded, paradas, isModal]);
 
   // ─── GeoJSON: ruta curvada ───
   const rutaGeoJSON = useMemo(() => {

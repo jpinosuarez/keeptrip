@@ -1,6 +1,6 @@
-import React from 'react';
-import { Star, Trash2 } from 'lucide-react';
+import { Star, Trash2, Share2, Sparkles } from 'lucide-react';
 import { GalleryGrid } from '@shared/ui/components/GalleryGrid';
+import { ShareStoryButton } from '@features/share';
 
 const VisorGallerySection = ({
   styles,
@@ -17,11 +17,12 @@ const VisorGallerySection = ({
   onSetPortada,
   onEliminarFoto,
   isBusy,
+  storyData, // passed from VisorViaje
 }) => {
   return (
-    <div style={{ marginTop: '32px' }}>
+    <div style={styles.recapGalleryWrapper}>
       <div style={styles.galleryHeaderRow}>
-        <h3 style={styles.sectionTitle}>Galería de fotos</h3>
+        <h3 style={styles.sectionTitle}>Recuerdos Consolidados</h3>
         {!isSharedTrip && (
           <button
             type="button"
@@ -32,13 +33,40 @@ const VisorGallerySection = ({
           </button>
         )}
       </div>
-      <p style={styles.gallerySubtitle}>Tus recuerdos, listos para contar la historia.</p>
-      <GalleryGrid
-        fotos={galeria.fotos}
-        fotosSubiendo={fotosSubiendo}
-        onReintentarFoto={onReintentarFoto}
-        isMobile={isMobile}
-      />
+      
+      {galeria.fotos.length > 0 ? (
+        <>
+          <p style={styles.gallerySubtitle}>La colección completa de tu aventura.</p>
+          <GalleryGrid
+            fotos={galeria.fotos}
+            fotosSubiendo={fotosSubiendo}
+            onReintentarFoto={onReintentarFoto}
+            isMobile={isMobile}
+          />
+        </>
+      ) : (
+        <div style={styles.emptyState}>No hay fotos adicionales en la galería.</div>
+      )}
+
+      {/* ACT III — Tactile Share CTA */}
+      <div style={{ position: 'relative' }}>
+         {/* We use the custom style trigger for ShareStoryButton logic */}
+         <div style={styles.shareCtaCard} onClick={() => document.getElementById('final-share-trigger')?.click()}>
+            <div style={styles.shareLargeIcon}>
+              <Sparkles size={32} color="white" />
+            </div>
+            <h2 style={styles.shareCtaTitle}>Preserva el Legado</h2>
+            <p style={styles.shareCtaText}>
+              Convierte tu travesía en una historia visual y compártela con el mundo.
+            </p>
+            
+            {/* Hidden real trigger to reuse ShareStoryButton logic */}
+            <div style={{ display: 'none' }}>
+              <ShareStoryButton id="final-share-trigger" data={storyData} />
+            </div>
+         </div>
+      </div>
+
       {showGalleryTools && galeria.fotos.length > 0 && (
         <div style={styles.galleryManageBlock}>
           {galeria.fotos.map((f) => (

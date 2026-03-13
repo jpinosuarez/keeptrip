@@ -145,9 +145,9 @@ export const styles = {
   achievementsGrid: (isMobile) => ({
     display: 'grid',
     gridTemplateColumns: isMobile
-      ? 'repeat(2, 1fr)'
-      : 'repeat(auto-fill, minmax(150px, 1fr))',
-    gap: isMobile ? '10px' : '14px',
+      ? 'repeat(auto-fill, minmax(140px, 1fr))'
+      : 'repeat(auto-fill, minmax(160px, 1fr))',
+    gap: isMobile ? '12px' : '16px',
     marginBottom: '24px',
   }),
 

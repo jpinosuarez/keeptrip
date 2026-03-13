@@ -7,6 +7,7 @@ const VisorRouteLayout = ({
   styles,
   paradas,
   activeParadaIndex,
+  mapSyncIndex,
   hoveredIndex,
   onMarkerHover,
   onMarkerHoverEnd,
@@ -35,7 +36,7 @@ const VisorRouteLayout = ({
             <button type="button" style={styles.mapModalClose} onClick={onCloseMap} aria-label="Cerrar mapa">
               <X size={20} />
             </button>
-            <RouteMap paradas={paradas} activeIndex={activeParadaIndex} isModal />
+            <RouteMap paradas={paradas} activeIndex={mapSyncIndex || activeParadaIndex} isModal />
           </div>
         )}
       </>
@@ -53,7 +54,7 @@ const VisorRouteLayout = ({
       <div style={styles.mapColumn}>
         <RouteMap
           paradas={paradas}
-          activeIndex={activeParadaIndex}
+          activeIndex={mapSyncIndex !== undefined ? mapSyncIndex : activeParadaIndex}
           hoveredIndex={hoveredIndex}
           onMarkerHover={onMarkerHover}
           onMarkerHoverEnd={onMarkerHoverEnd}
