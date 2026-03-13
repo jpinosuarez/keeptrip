@@ -28,17 +28,14 @@ export const tripStyles = {
     borderRadius: 'inherit'
   },
 
-  bgImage: (url) => ({
+  bgImageHolder: {
     position: 'absolute',
     inset: '-10%', // Leave bleeding room for parallax
     width: '120%',
     height: '120%',
-    backgroundImage: url ? `url(${url})` : 'none',
-    backgroundColor: url ? 'transparent' : COLORS.mutedTeal,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
+    backgroundColor: COLORS.mutedTeal,
     willChange: 'transform'
-  }),
+  },
 
   // Invisible UI Gradient Overlay
   overlay: {

@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react';
 import { motion as Motion } from 'framer-motion';
 import { Calendar, ArrowLeft, Trash2, LoaderCircle, Edit3 } from 'lucide-react';
-import { formatDateRange, getInitials } from '@shared/lib/utils/viajeUtils';
+import { formatDateRange, getInitials, FOTO_DEFAULT_URL } from '@shared/lib/utils/viajeUtils';    
 import { getFlagUrl } from '@shared/lib/utils/countryUtils';
 import { COLORS, FONTS, RADIUS, SHADOWS, GLASS, Z_INDEX } from '@shared/config';
 import { ShareStoryButton } from '@features/share';
+import DocumentaryFlagHero from '@shared/ui/components/DocumentaryFlagHero';
 
 /**
- * DocumentaryHero — ACT I of the Keeptrip Manuscript.
  * Premium editorial cover with dynamic flag shards and spatial typography.
  */
 const DocumentaryHero = ({
@@ -35,18 +35,24 @@ const DocumentaryHero = ({
     return uniqueCodes;
   }, [data.banderas]);
 
-  const hasPhotos = Boolean(fotoMostrada);
+  const isDefaultPhoto = !fotoMostrada || fotoMostrada === FOTO_DEFAULT_URL;
 
   return (
-    <div style={styles.heroWrapper}>
+    <div style={styles.heroWrapper(isMobile)}>
       {/* Background Layer */}
       <div style={styles.heroBgContainer(isMobile)}>
-        {hasPhotos ? (
+        {!isDefaultPhoto ? (
           <div style={styles.heroImage(fotoMostrada, isMobile)}>
+            <img
+              src={fotoMostrada}
+              alt="Hero cover"
+              fetchPriority="high"
+              style={styles.heroImgLayer} 
+            />
             <div style={styles.heroGradient} />
           </div>
         ) : (
-          <FlagBackground flags={flags} isMobile={isMobile} />
+          <DocumentaryFlagHero banderas={data.banderas} style={{ background: COLORS.charcoalBlue, width: '100%', height: '100%' }} />
         )}
         
         {/* Film Grain & Noise Overlay */}
@@ -147,83 +153,6 @@ const DocumentaryHero = ({
           )}
         </Motion.div>
       </div>
-    </div>
-  );
-};
-
-// Internal component for the geometric flag magic
-const FlagBackground = ({ flags, isMobile }) => {
-  if (!flags || flags.length === 0) return <div style={{ background: COLORS.charcoalBlue, width: '100%', height: '100%' }} />;
-
-  const count = flags.length;
-
-  // Case 1: Single Flag
-  if (count === 1) {
-    return (
-      <div style={{ 
-        width: '100%', 
-        height: '100%', 
-        backgroundImage: `url(${flags[0]})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        filter: 'brightness(0.6) saturate(0.8)'
-      }} />
-    );
-  }
-
-  // Case 2: 2-3 Flags (Slashes)
-  if (count <= 3) {
-    return (
-      <div style={{ display: 'flex', width: '100%', height: '100%', background: '#000', overflow: 'hidden' }}>
-        {flags.map((f, i) => {
-          const isMiddle = count === 3 && i === 1;
-          const clipPath = isMiddle 
-            ? 'polygon(15% 0, 100% 0, 85% 100%, 0% 100%)' 
-            : i === 0 
-              ? `polygon(0 0, ${count === 2 ? '55%' : '40%'} 0, ${count === 2 ? '45%' : '30%'} 100%, 0 100%)`
-              : `polygon(${count === 2 ? '45%' : '75%'} 0, 100% 0, 100% 100%, ${count === 2 ? '35%' : '65%'} 100%)`;
-
-          return (
-            <div 
-              key={i} 
-              style={{ 
-                flex: 1, 
-                backgroundImage: `url(${f})`, 
-                backgroundSize: 'cover', 
-                backgroundPosition: 'center', 
-                filter: 'brightness(0.5) saturate(0.7)',
-                clipPath: count > 1 ? clipPath : 'none',
-                marginLeft: i > 0 ? '-10%' : 0 // Overlap for the slash
-              }} 
-            />
-          );
-        })}
-      </div>
-    );
-  }
-
-  // Case 3: 4+ Flags (Bento Shards)
-  return (
-    <div style={{ 
-      display: 'grid', 
-      gridTemplateColumns: 'repeat(4, 1fr)', 
-      gridTemplateRows: 'repeat(2, 1fr)',
-      width: '100%', 
-      height: '100%',
-      background: '#000'
-    }}>
-      {flags.slice(0, 8).map((f, i) => (
-        <div 
-          key={i} 
-          style={{ 
-            backgroundImage: `url(${f})`, 
-            backgroundSize: 'cover', 
-            backgroundPosition: 'center', 
-            filter: 'brightness(0.5) saturate(0.7)',
-            border: '0.5px solid rgba(255,255,255,0.1)'
-          }} 
-        />
-      ))}
     </div>
   );
 };

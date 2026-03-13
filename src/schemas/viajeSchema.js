@@ -85,7 +85,7 @@ export const FotoSchema = z.object({
 });
 
 /**
- * Schema para crédito de fotos (Pexels, Unsplash, etc.)
+ * Schema para crédito de fotos
  */
 export const CreditoFotoSchema = z.object({
   nombre: z.string().optional().nullable(),

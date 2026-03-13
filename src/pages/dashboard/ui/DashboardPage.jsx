@@ -67,7 +67,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
       {/* Main grid: map + recents */}
       <div style={styles.mainGrid(isMobile)}>
         <div style={styles.mapCard(isMobile)}>
-          <HomeMap paisesVisitados={countriesVisited} />
+          <HomeMap paisesVisitados={countriesVisited} isMobile={isMobile} />
         </div>
 
         <div style={styles.recentsContainer}>

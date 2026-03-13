@@ -7,7 +7,7 @@ import { setMapLanguage } from '@shared/lib/geo';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
-const HomeMap = ({ paisesVisitados = [] }) => {
+const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
   const { i18n } = useTranslation();
   const [hoverInfo, setHoverInfo] = useState(null);
 
@@ -25,12 +25,13 @@ const HomeMap = ({ paisesVisitados = [] }) => {
       <Map
         initialViewState={{
           longitude: 0,
-          latitude: 20,
-          zoom: 0.32, 
+          latitude: isMobile ? 15 : 20,
+          zoom: isMobile ? -0.6 : 0.32,
         }}
         mapStyle="mapbox://styles/mapbox/light-v11"
         mapboxAccessToken={MAPBOX_TOKEN}
         projection="mercator"
+        minZoom={-2}
         scrollZoom={false}
         dragPan={false}
         doubleClickZoom={false}

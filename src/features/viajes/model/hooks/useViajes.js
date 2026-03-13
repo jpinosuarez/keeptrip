@@ -4,7 +4,6 @@ import { doc as fbDoc, query as fbQuery, where as fbWhere, onSnapshot as fbOnSna
 import { useAuth } from '@app/providers/AuthContext';
 import { useToast } from '@app/providers/ToastContext';
 import { obtenerClimaHistoricoSeguro } from '@shared/api/services/external/weatherService';
-import { obtenerFotoConCacheSeguro } from '@shared/api/services/external/photoService';
 import {
   suscribirViajesConParadas,
   guardarViajeConParadas,
@@ -28,7 +27,6 @@ import {
 import { validarViaje, validarCoordenadas } from '../../../../schemas/viajeSchema';
 import { logger } from '@shared/lib/utils/logger';
 
-const PEXELS_ACCESS_KEY = import.meta.env.VITE_PEXELS_ACCESS_KEY || '';
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
 
 const obtenerCoordenadasViaje = ({ datosViaje = {}, viajeActual = null, paradas = [] }) => {
@@ -81,10 +79,6 @@ const validarDatosViaje = ({ datosViaje = {}, viajeActual = null, paradas = [], 
 
   return { esValido: true };
 };
-
-if (!PEXELS_ACCESS_KEY) {
-  console.warn('VITE_PEXELS_ACCESS_KEY no esta configurada en .env');
-}
 
 export const useViajes = () => {
   const { usuario } = useAuth();
@@ -312,16 +306,6 @@ export const useViajes = () => {
     const ciudades = construirCiudadesViaje(paradas);
     const ciudadesLista = [...new Set(paradas.map((parada) => parada.nombre).filter(isNonEmptyString))];
 
-    const fotoPromise = !fotoFinal
-      ? obtenerFotoConCacheSeguro({
-          db,
-          paisNombre: datosViajeNormalizados.nombreEspanol,
-          paisCode: datosViajeNormalizados.code,
-          pexelsApiKey: PEXELS_ACCESS_KEY,
-          ciudades: ciudadesLista
-        })
-      : Promise.resolve(null);
-
     const paradasPromise = Promise.all(
       paradas.map(async (parada) => {
         const fechaUso = parada.fecha || datosViajeNormalizados.fechaInicio || getTodayIsoDate();
@@ -334,12 +318,7 @@ export const useViajes = () => {
       })
     );
 
-    const [fotoInfo, paradasProcesadas] = await Promise.all([fotoPromise, paradasPromise]);
-
-    if (fotoInfo) {
-      fotoFinal = fotoInfo.url;
-      creditoFinal = fotoInfo.credito;
-    }
+    const [paradasProcesadas] = await Promise.all([paradasPromise]);
 
     const payloadViaje = construirViajePayload({
       datosViaje: datosViajeNormalizados,

@@ -51,7 +51,7 @@ export const ToastProvider = ({ children }) => {
                 style={{
                   ...styles.toast,
                   backgroundColor: palette.bg,
-                  borderColor: palette.border
+                  border: `1px solid ${palette.border}`
                 }}
               >
                 <Icon size={18} />

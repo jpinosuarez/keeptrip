@@ -1,5 +1,22 @@
 import { COLORS, RADIUS, SHADOWS, TRANSITIONS } from '@shared/config';
 
+export const mediaQueries = `
+  @media (max-width: 768px) {
+    .travel-stats-pill {
+      min-height: 44px !important;
+      min-width: 90px !important;
+      padding: 6px 12px !important;
+    }
+    .travel-stats-value {
+      font-size: 1.2rem !important;
+    }
+    .travel-stats-label {
+      font-size: 0.65rem !important;
+      margin-top: 2px !important;
+    }
+  }
+`;
+
 export const styles = {
   container: {
     display: 'flex',

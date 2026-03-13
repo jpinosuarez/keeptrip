@@ -132,7 +132,7 @@ const AchievementCard = ({ achievement, isMobile = false }) => {
         </h4>
 
         {unlocked ? (
-          <span style={{ ...styles.tierTag, background: `${tierColor}20`, color: tierColor, borderColor: `${tierColor}40` }}>
+          <span style={{ ...styles.tierTag, background: `${tierColor}20`, color: tierColor, border: `1px solid ${tierColor}40` }}>
             {tierLabel}
           </span>
         ) : (

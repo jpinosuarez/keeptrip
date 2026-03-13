@@ -6,8 +6,9 @@
  * @param {string} lang - Language code ('es' | 'en')
  */
 export function setMapLanguage(map, lang) {
+  const mapInstance = typeof map.getMap === 'function' ? map.getMap() : map;
   const field = lang === 'en' ? 'name_en' : 'name_es';
-  const style = map.getStyle();
+  const style = mapInstance.getStyle();
   if (!style?.layers) return;
 
   for (const layer of style.layers) {
@@ -17,7 +18,7 @@ export function setMapLanguage(map, lang) {
     // Only change layers that reference a name* property
     const serialized = JSON.stringify(textField);
     if (serialized.includes('name')) {
-      map.setLayoutProperty(layer.id, 'text-field', ['coalesce', ['get', field], ['get', 'name']]);
+      mapInstance.setLayoutProperty(layer.id, 'text-field', ['coalesce', ['get', field], ['get', 'name']]);
     }
   }
 }

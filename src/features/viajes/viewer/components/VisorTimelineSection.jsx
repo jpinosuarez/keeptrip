@@ -24,16 +24,7 @@ const VisorTimelineSection = ({
   setParadaRef,
   onHover,
   onHoverEnd,
-  galeria,
 }) => {
-  // Heuristic: Distribute gallery photos across stops
-  const getInterleavedPhoto = (index) => {
-    if (!galeria?.fotos || galeria.fotos.length === 0) return null;
-    const photosPerStop = Math.max(1, Math.floor(galeria.fotos.length / paradas.length));
-    const photoIndex = index * photosPerStop;
-    return galeria.fotos[photoIndex] || null;
-  };
-
   return (
     <>
       <h3 style={styles.sectionTitle}>La Crónica del Viaje</h3>
@@ -42,7 +33,6 @@ const VisorTimelineSection = ({
           const isActive = activeParadaIndex === i && !isMobile;
           const isHovered = hoveredIndex === i && !isMobile;
           const highlighted = isActive || isHovered;
-          const memory = getInterleavedPhoto(i);
 
           const cardVariants = {
             hidden: { opacity: 0, y: 30, scale: 0.98 },
@@ -84,17 +74,6 @@ const VisorTimelineSection = ({
                   </span>
                   <span style={styles.stopCardDate}>{formatDateRange(p.fechaLlegada || p.fecha, p.fechaSalida)}</span>
                 </div>
-
-                {/* Interleaved memory preview */}
-                {memory && (
-                  <Motion.img 
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    src={memory.url} 
-                    alt={memory.caption || 'Memory'} 
-                    style={styles.interleavedMemoryImg} 
-                  />
-                )}
 
                 {p.relato && p.relato.trim() && (
                   <div style={styles.paradaRelato}>

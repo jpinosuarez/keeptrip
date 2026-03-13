@@ -1,7 +1,8 @@
 import React from 'react';
 import { Calendar, ArrowLeft, Trash2, LoaderCircle, Edit3 } from 'lucide-react';
-import { formatDateRange, getInitials } from '@shared/lib/utils/viajeUtils';
+import { formatDateRange, getInitials, FOTO_DEFAULT_URL } from '@shared/lib/utils/viajeUtils';
 import { ShareStoryButton } from '@features/share';
+import DocumentaryFlagHero from '@shared/ui/components/DocumentaryFlagHero';
 
 const VisorHero = ({
   styles,
@@ -18,11 +19,25 @@ const VisorHero = ({
   viajeBase,
   ownerDisplayName,
   isRouteMode,
-  galeriaFotosCount,
 }) => {
+  const isDefaultPhoto = !fotoMostrada || fotoMostrada === FOTO_DEFAULT_URL;
+
   return (
     <div style={styles.heroWrapper}>
       <div style={styles.heroImage(fotoMostrada, isMobile)}>
+        {!isDefaultPhoto ? (
+          <img
+            src={fotoMostrada}
+            alt="Hero cover" 
+            fetchPriority="high" 
+            style={styles.heroImgLayer} 
+          />
+        ) : (
+          <DocumentaryFlagHero 
+            banderas={data.banderas} 
+            style={{ position: 'absolute', inset: 0, zIndex: 1 }} 
+          />
+        )}
         <div style={styles.heroGradient} />
 
         <div style={styles.navBar}>
@@ -105,16 +120,6 @@ const VisorHero = ({
             </div>
           )}
 
-          {fotoMostrada && data.fotoCredito && galeriaFotosCount === 0 && (
-            <a
-              href={`${data.fotoCredito.link}?utm_source=keeptrip&utm_medium=referral`}
-              target="_blank"
-              rel="noreferrer"
-              style={styles.creditLink}
-            >
-              📷 {data.fotoCredito.nombre} / Pexels
-            </a>
-          )}
         </div>
       </div>
     </div>

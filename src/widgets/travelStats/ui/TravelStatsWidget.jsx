@@ -1,7 +1,7 @@
 import React, { memo, useEffect } from 'react';
 import { motion as Motion, useMotionValue, animate } from 'framer-motion';
 import { COLORS } from '@shared/config';
-import { styles } from './TravelStatsWidget.styles';
+import { styles, mediaQueries } from './TravelStatsWidget.styles';
 
 /**
  * Flexible stats widget used across dashboard, hub, etc.
@@ -16,15 +16,18 @@ const TravelStatsWidget = ({ stats = [], ariaLabel, variant = 'full' }) => {
   const displayed = variant === 'compact' ? stats.slice(0, 2) : stats;
 
   return (
-    <div
-      role="region"
-      aria-label={ariaLabel}
-      style={styles.container}
-    >
-      {displayed.map((stat) => (
-        <StatPill key={stat.label} stat={stat} />
-      ))}
-    </div>
+    <>
+      <style>{mediaQueries}</style>
+      <div
+        role="region"
+        aria-label={ariaLabel}
+        style={styles.container}
+      >
+        {displayed.map((stat) => (
+          <StatPill key={stat.label} stat={stat} />
+        ))}
+      </div>
+    </>
   );
 };
 
@@ -43,13 +46,14 @@ const StatPill = memo(({ stat }) => {
 
   return (
     <Motion.div
+      className="travel-stats-pill"
       style={styles.pill}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
     >
       <span style={styles.icon}>{stat.icon || null}</span>
-      <Motion.span style={styles.value}>{count}</Motion.span>
-      <span style={styles.label}>{stat.label}</span>
+      <Motion.span className="travel-stats-value" style={styles.value}>{count}</Motion.span>
+      <span className="travel-stats-label" style={styles.label}>{stat.label}</span>
     </Motion.div>
   );
 });

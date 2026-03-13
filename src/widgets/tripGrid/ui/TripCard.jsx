@@ -2,6 +2,8 @@ import React, { useRef } from 'react';
 import { motion as Motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { Compass, Calendar, MapPin, Trash2 } from 'lucide-react';
 import { tripStyles as styles } from './TripCard.styles';
+import DocumentaryFlagHero from '@shared/ui/components/DocumentaryFlagHero';
+import { FOTO_DEFAULT_URL } from '@shared/lib/utils/viajeUtils';
 
 /**
  * Cinematic TripCard (2026 Restyle)
@@ -10,6 +12,7 @@ import { tripStyles as styles } from './TripCard.styles';
 const TripCard = ({ trip, onClick, onDelete, isMobile = false, variant = 'list' }) => {
   const flags = trip.banderas || trip.flags || (trip.flag ? [trip.flag] : []);
   const coverUrl = trip.foto || '';
+  const isDefaultPhoto = !coverUrl || coverUrl === FOTO_DEFAULT_URL;
 
   // 3D Parallax logic (Desktop Only)
   const cardRef = useRef(null);
@@ -64,8 +67,7 @@ const TripCard = ({ trip, onClick, onDelete, isMobile = false, variant = 'list' 
         }
       }}
       initial={{ opacity: 0, y: 15 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-20px' }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 100, damping: 20 }}
       whileHover={!isMobile ? { scale: 1.02, zIndex: 10 } : {}}
       whileTap={{ scale: 0.96 }}
@@ -75,11 +77,22 @@ const TripCard = ({ trip, onClick, onDelete, isMobile = false, variant = 'list' 
       <div style={styles.bgWrapper}>
         <Motion.div 
           style={{
-            ...styles.bgImage(coverUrl),
+            ...styles.bgImageHolder,
             x: isMobile ? 0 : bgX,
             y: isMobile ? 0 : bgY
           }} 
-        />
+        >
+          {!isDefaultPhoto ? (
+            <img 
+              src={coverUrl} 
+              alt={trip.titulo || 'viaje'} 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              loading="lazy"
+            />
+          ) : (
+            <DocumentaryFlagHero banderas={flags} />
+          )}
+        </Motion.div>
         <div style={styles.overlay} />
       </div>
       

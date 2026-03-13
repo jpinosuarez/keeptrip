@@ -265,7 +265,7 @@ const SettingsPage = ({ log = [] }) => {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', damping: 20, stiffness: 120, delay: 0.25 }}
-        style={{ ...s.card, borderColor: '#fee2e2' }}
+        style={{ ...s.card, border: '1px solid #fee2e2' }}
       >
         <h2 style={{ ...s.sectionTitle, color: COLORS.danger }}><LogOut size={16} /> {t('settings:dangerZone')}</h2>
         <p style={s.sectionDesc}>{t('settings:logoutDescription')}</p>

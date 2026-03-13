@@ -11,11 +11,15 @@ export const styles = {
   // ==========================================================
   //  HERO — Rediseño inmersivo Bento/Glassmorphism
   // ==========================================================
-  heroWrapper: {
+  heroWrapper: (isMobile = false) => ({
     position: 'relative',
     width: '100%',
+    minHeight: isMobile ? '45vh' : '65vh',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-end',
     overflow: 'hidden',
-  },
+  }),
   heroImage: (foto, isMobile = false) => ({
     width: '100%',
     height: foto
@@ -23,16 +27,21 @@ export const styles = {
       : (isMobile ? '32vh' : '40vh'),
     minHeight: isMobile ? '240px' : '320px',
     position: 'relative',
-    backgroundImage: foto ? `url(${foto})` : 'none',
     backgroundColor: foto ? 'transparent' : COLORS.charcoalBlue,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
     borderRadius: `0 0 var(--radius-2xl) var(--radius-2xl)`,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'flex-end',
     overflow: 'hidden',
   }),
+  heroImgLayer: {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    zIndex: 1,
+  },
   heroGradient: {
     position: 'absolute',
     inset: 0,
@@ -43,7 +52,7 @@ export const styles = {
   heroBgContainer: (isMobile = false) => ({
     position: 'absolute',
     inset: 0,
-    height: isMobile ? '45vh' : '65vh',
+    height: '100%',
     overflow: 'hidden',
     zIndex: 1,
     backgroundColor: COLORS.charcoalBlue,
@@ -69,7 +78,7 @@ export const styles = {
   // ==========================================================
   navBar: {
     position: 'absolute',
-    top: '16px',
+    top: 'max(16px, env(safe-area-inset-top, 16px))',
     left: '16px',
     right: '16px',
     display: 'flex',
@@ -141,7 +150,7 @@ export const styles = {
   heroContent: (isMobile = false) => ({
     position: 'relative',
     zIndex: 10,
-    padding: isMobile ? '0 16px 20px' : '0 32px 32px',
+    padding: isMobile ? '100px 16px 20px' : '150px 32px 32px',
     maxWidth: '1100px',
     margin: '0 auto',
     width: '100%',
@@ -653,7 +662,7 @@ export const styles = {
     overflow: 'hidden',
   },
   enrichedStopCardActive: {
-    borderColor: COLORS.atomicTangerine,
+    border: `1px solid ${COLORS.atomicTangerine}`,
     boxShadow: SHADOWS.float,
     transform: 'scale(1.02)',
     zIndex: 10,

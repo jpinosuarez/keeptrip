@@ -236,7 +236,7 @@ const LandingPage = () => {
              <div style={{...styles.timelineLine, left: '16px', background: `${COLORS.mutedTeal}40`}} />
              
              <div style={styles.timelineItem}>
-               <div style={{...styles.timelineDot, background: COLORS.mutedTeal, borderColor: '#fff'}} />
+               <div style={{...styles.timelineDot, background: COLORS.mutedTeal, border: '2px solid #fff'}} />
                <div style={styles.timelineItemContent}>
                  <span style={styles.timelineItemDate}>2 Mar, 10:00 AM</span>
                  <span style={styles.timelineItemTitle}>Aeropuerto Suvarnabhumi</span>
