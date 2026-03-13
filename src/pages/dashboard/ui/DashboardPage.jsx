@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion as Motion } from 'framer-motion';
-import { Compass, Calendar, Globe, MapPin, ArrowRight, Sparkles, Plus } from 'lucide-react';
+import { Compass, Calendar, Globe, MapPin, ArrowRight, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@app/providers/AuthContext';
@@ -62,7 +62,6 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
         logStatsDashboard={logStatsDashboard}
         isNewTraveler={isNewTraveler}
         isMobile={isMobile}
-        onNewTrip={openBuscador}
       />
 
       {/* Main grid: map + recents */}
@@ -99,23 +98,6 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
           </div>
         </div>
       </div>
-      {/* FAB mobile: solo cuando hay viajes */}
-      {isMobile && !isNewTraveler && (
-        <Motion.button
-          type="button"
-          className="tap-btn"
-          style={styles.fabMobile}
-          onClick={openBuscador}
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-          whileTap={{ scale: 0.95 }}
-          aria-label={t('newBitacora')}
-        >
-          <Plus size={18} />
-          {t('newBitacora')}
-        </Motion.button>
-      )}
     </div>
   );
 };

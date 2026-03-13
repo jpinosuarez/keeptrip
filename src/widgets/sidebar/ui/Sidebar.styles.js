@@ -1,131 +1,114 @@
 import { COLORS, SHADOWS, RADIUS, TRANSITIONS, GLASS, Z_INDEX } from '@shared/config';
 
-const baseSidebar = {
-  height: '100vh',
-  width: '260px',
-  backgroundColor: COLORS.surface,
-  display: 'flex',
-  flexDirection: 'column',
-  borderRight: `1px solid ${COLORS.border}`,
-  top: 0,
-  left: 0,
-  boxShadow: SHADOWS.sm
-};
-
-export const styles = {
-  sidebar: {
-    ...baseSidebar,
-    position: 'fixed',
-    zIndex: Z_INDEX.sticky
-  },
-  mobileSidebar: {
-    ...baseSidebar,
-    position: 'fixed',
-    zIndex: Z_INDEX.overlay + 1,
-    width: '280px',
-    maxWidth: '84vw'
-  },
-  mobileOverlay: {
-    position: 'fixed',
-    inset: 0,
-    zIndex: Z_INDEX.overlay,
-    ...GLASS.overlay
-  },
-  mobileTopRow: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '16px 16px 8px'
-  },
-  logoContainerMobile: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px'
-  },
-  mobileCloseBtn: {
-    border: `1px solid ${COLORS.border}`,
-    background: COLORS.surface,
-    borderRadius: RADIUS.sm,
-    width: '44px',
-    height: '44px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: COLORS.textSecondary,
-    cursor: 'pointer'
-  },
-  toggleBtn: {
-    position: 'absolute',
-    top: '32px',
-    right: '-16px',
-    width: '44px',
-    height: '44px',
-    backgroundColor: COLORS.surface,
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: RADIUS.full,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    color: COLORS.textSecondary,
-    zIndex: Z_INDEX.sticky,
-    boxShadow: SHADOWS.sm,
-    transition: TRANSITIONS.fast
-  },
-  logoContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    height: '60px',
-    marginBottom: '32px',
-    padding: '0 16px',
-    overflow: 'hidden'
-  },
-  logoText: {
-    fontSize: '1.4rem',
-    fontWeight: '900',
-    color: COLORS.charcoalBlue,
-    letterSpacing: '-0.5px',
-    margin: 0,
-    whiteSpace: 'nowrap'
-  },
-  nav: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    flex: 1,
-    padding: '0 16px'
-  },
-  navItem: {
-    display: 'flex',
-    alignItems: 'center',
-    borderRadius: RADIUS.md,
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: '0.95rem',
-    transition: TRANSITIONS.fast,
-    width: '100%',
-    minHeight: '44px',
-    overflow: 'hidden'
-  },
-  labelSpan: { fontWeight: '600', marginLeft: '8px', whiteSpace: 'nowrap' },
-  footer: {
-    borderTop: `1px solid ${COLORS.background}`,
-    padding: '16px',
-    paddingBottom: 'max(16px, env(safe-area-inset-bottom, 0px))'
-  },
-  logoutBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    background: 'none',
-    border: 'none',
-    color: COLORS.textSecondary,
-    cursor: 'pointer',
-    padding: '12px 8px',
-    minHeight: '44px',
-    fontWeight: '600',
-    fontSize: '0.9rem',
-    width: '100%',
-    borderRadius: RADIUS.sm
+export const mediaStyles = `
+  /* Mobile Tab Bar */
+  .mobile-tab-bar {
+    display: none;
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(92vw, 400px);
+    height: 64px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 9999px; /* Pill shape */
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    z-index: ${Z_INDEX.sticky};
+    padding: 0 12px;
+    align-items: center;
+    justify-content: space-between;
   }
-};
+
+  .mobile-tab-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    height: 100%;
+    flex: 1;
+    color: ${COLORS.textSecondary};
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .mobile-tab-btn.active {
+    color: ${COLORS.atomicTangerine};
+  }
+
+  /* Desktop Fluid Rail */
+  .desktop-fluid-rail {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 80px; /* Slim rail */
+    background: transparent;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 0;
+    z-index: ${Z_INDEX.sticky};
+    border-right: 1px solid rgba(0,0,0,0.05); /* Very subtle if any */
+  }
+
+  .rail-logo {
+    margin-bottom: 32px;
+  }
+
+  .rail-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+    width: 100%;
+    align-items: center;
+  }
+
+  .rail-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: ${RADIUS.xl};
+    border: none;
+    background: transparent;
+    color: ${COLORS.textSecondary};
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    position: relative;
+  }
+
+  .rail-btn:hover {
+    background: rgba(0,0,0,0.04);
+    color: ${COLORS.charcoalBlue};
+  }
+
+  .rail-btn.active {
+    background: ${COLORS.charcoalBlue};
+    color: #fff;
+    box-shadow: ${SHADOWS.md};
+  }
+
+  .rail-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 24px;
+    width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    .desktop-fluid-rail {
+      display: none !important;
+    }
+    .mobile-tab-bar {
+      display: flex !important;
+    }
+  }
+`;

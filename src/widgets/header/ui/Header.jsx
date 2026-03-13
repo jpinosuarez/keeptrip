@@ -1,30 +1,41 @@
+/**
+ * Header — 2026 Ambient Context Bar
+ *
+ * Performance Guardrail #3 (useScroll):
+ *   - We use Framer Motion's `useScroll` + `useTransform` to animate
+ *     background opacity and backdrop-filter OUTSIDE React's render cycle.
+ *   - No `useState` attached to `window.addEventListener('scroll')`.
+ *   - The animations run directly on the DOM via Framer's Motion Values.
+ */
 import React, { useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Plus, LogOut, User, X, Menu, Bell } from 'lucide-react';
+import { Search, Plus, LogOut, User, X, Bell, Disc } from 'lucide-react';
+import {
+  motion as Motion,
+  useScroll,
+  useTransform,
+  useSpring,
+} from 'framer-motion';
 import { useAuth } from '@app/providers/AuthContext';
 import { useSearch, useUI } from '@app/providers/UIContext';
-import { styles } from './Header.styles';
-import { COLORS, RADIUS } from '@shared/config';
+import { COLORS, RADIUS, Z_INDEX } from '@shared/config';
 import { useTranslation } from 'react-i18next';
 
-// Route-to-translation mapping for current page title.
 const PAGE_TITLES = {
-  '/dashboard':      'pageTitle.home',
-  '/trips':          'pageTitle.journal',
-  '/map':            'pageTitle.worldMap',
-  '/explorer':       'pageTitle.hub',
-  '/invitations':    'pageTitle.invitations',
-  '/settings':       'pageTitle.settings',
-  '/admin/curacion': 'pageTitle.curation',
+  '/dashboard':   'pageTitle.home',
+  '/trips':       'pageTitle.journal',
+  '/map':         'pageTitle.worldMap',
+  '/explorer':    'pageTitle.hub',
+  '/invitations': 'pageTitle.invitations',
+  '/settings':    'pageTitle.settings',
 };
+
+// Mobile routes where full wordmark is hidden (space-constrained) — Disc logomark still shown
+const COMPACT_LOGO_ROUTES = ['/trips', '/map'];
 
 const Header = ({ isMobile = false, invitationsCount = 0 }) => {
   const { usuario: user, login, logout } = useAuth();
-  const {
-    openBuscador: openTripSearch,
-    openMobileDrawer,
-    mobileDrawerOpen: isDrawerOpen
-  } = useUI();
+  const { openBuscador: openTripSearch } = useUI();
   const { busqueda: query, setBusqueda: setQuery, limpiarBusqueda: clearQuery } = useSearch();
   const { t } = useTranslation(['nav', 'common']);
   const [failedPhoto, setFailedPhoto] = useState(null);
@@ -33,19 +44,26 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  // Page title and search visibility are derived from route.
+  // ─────────────────────────────────────────────
+  // Ambient Scroll Effect (Performance Guardrail #3)
+  // useScroll tracks scroll outside React render cycle.
+  // ─────────────────────────────────────────────
+  const { scrollY } = useScroll();
+
+  const bgOpacity = useTransform(scrollY, [0, 72], [0, 1]);
+  const backdropStrength = useTransform(scrollY, [0, 72], [0, 20]);
+  const springBgOpacity = useSpring(bgOpacity, { damping: 30, stiffness: 200 });
+
+  // Pre-compute derived animated values (Rules of Hooks: cannot call inside style prop)
+  const animBgColor = useTransform(springBgOpacity, (v) => `rgba(248, 250, 252, ${v})`);
+  const animBackdrop = useTransform(backdropStrength, (v) => `blur(${v}px) saturate(160%)`);
+  const animBorder = useTransform(springBgOpacity, (v) => `1px solid rgba(0,0,0,${v * 0.06})`);
+
+  // Page title
   const pageTitleKey = PAGE_TITLES[pathname] ?? (pathname.startsWith('/trips/') ? 'pageTitle.journal' : null);
   const headerTitle = pageTitleKey ? t(`nav:${pageTitleKey}`) : 'Keeptrip';
-  const showSearch  = pathname === '/trips' || pathname.startsWith('/trips/');
+  const showSearch = pathname === '/trips' || pathname.startsWith('/trips/');
   const searchPlaceholder = t('nav:searchJournal');
-
-  const handleSearchIconClick = () => {
-    setIsMobileSearchOpen((open) => !open);
-  };
-
-  const handleMobileSearchClose = () => {
-    setIsMobileSearchOpen(false);
-  };
 
   const initials = useMemo(
     () => user?.displayName?.trim()?.[0]?.toUpperCase() || '',
@@ -54,85 +72,163 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
   const photoUrl = user?.photoURL || null;
   const canShowPhoto = Boolean(photoUrl && failedPhoto !== photoUrl);
 
+  // Brand visibility for mobile (Refinement #3)
+  const isCompactLogoRoute = COMPACT_LOGO_ROUTES.some(r => pathname === r || pathname.startsWith(r + '/'));
+
   return (
-    <header role="banner" style={styles.header(isMobile)} className="app-shell-focus">
-      <div style={styles.leftSide}>
+    <Motion.header
+      role="banner"
+      className="app-shell-focus"
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: Z_INDEX.dropdown,
+        minHeight: '64px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: isMobile ? '0 16px' : '0 24px',
+        gap: isMobile ? '8px' : '16px',
+        // Ambient Glass BG — Framer Motion MotionValues, animates outside React render cycle
+        backgroundColor: animBgColor,
+        backdropFilter: animBackdrop,
+        WebkitBackdropFilter: animBackdrop,
+        borderBottom: animBorder,
+      }}
+    >
+      {/* Left: Brand (mobile) + Page Context */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+        {/* Mobile Brand Anchor (Refinement #3) */}
         {isMobile && (
-          <button
-            type="button"
-            style={styles.menuButton}
-            onClick={openMobileDrawer}
-            aria-label={t('nav:openMenu')}
-            aria-expanded={isDrawerOpen}
-            aria-controls="mobile-sidebar-drawer"
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, marginRight: '4px' }}
           >
-            <Menu size={18} />
-          </button>
+            <Disc size={22} color={COLORS.atomicTangerine} />
+            {!isCompactLogoRoute && (
+              <span style={{ fontWeight: '900', fontSize: '1rem', color: COLORS.charcoalBlue, letterSpacing: '-0.5px' }}>
+                Keeptrip
+              </span>
+            )}
+          </div>
         )}
-        {!isMobile && <span style={styles.breadcrumb}>Keeptrip</span>}
-        {!isMobile && <span style={styles.separator}>/</span>}
-        <h2 style={styles.titulo(isMobile)}>{headerTitle}</h2>
+        {/* Title */}
+        <Motion.h2
+          key={pathname}
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', damping: 20, stiffness: 200 }}
+          style={{
+            fontSize: isMobile ? '1rem' : '1.15rem',
+            color: COLORS.charcoalBlue,
+            fontWeight: '800',
+            margin: 0,
+            letterSpacing: '-0.5px',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {headerTitle}
+        </Motion.h2>
       </div>
 
-      <div style={styles.rightSide(isMobile)}>
+      {/* Right: Contextual Actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px', minWidth: 0 }}>
+        {/* Desktop Search (only on /trips) */}
         {!isMobile && showSearch && (
-          <div style={styles.searchContainer(isMobile)}>
-            <Search size={16} color={COLORS.textSecondary} />
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(0,0,0,0.04)',
+              padding: '8px 14px',
+              borderRadius: RADIUS.md,
+              border: '1px solid rgba(0,0,0,0.06)',
+              minWidth: '240px',
+            }}
+          >
+            <Search size={15} color={COLORS.textSecondary} />
             <input
               type="text"
               placeholder={searchPlaceholder}
               aria-label={t('nav:searchJournal')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              style={styles.searchInput}
+              style={{
+                border: 'none',
+                background: 'none',
+                fontSize: '0.9rem',
+                color: COLORS.charcoalBlue,
+                width: '100%',
+                outline: 'none',
+              }}
             />
             {query && (
-              <button
-                type="button"
-                onClick={clearQuery}
-                style={styles.clearButton}
-                aria-label={t('nav:clearSearch')}
-              >
+              <button type="button" onClick={clearQuery} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: COLORS.textSecondary, display: 'flex' }}>
                 <X size={14} />
               </button>
             )}
           </div>
         )}
 
+        {/* Mobile Search toggle (only on /trips) */}
         {isMobile && showSearch && (
           <button
             type="button"
-            onClick={handleSearchIconClick}
+            onClick={() => setIsMobileSearchOpen(o => !o)}
             aria-label={isMobileSearchOpen ? t('nav:closeSearch') : t('nav:openSearch')}
             aria-expanded={isMobileSearchOpen}
-            aria-controls="mobile-header-search"
             style={{
-              background: COLORS.surface,
-              border: `1px solid ${COLORS.border}`,
+              background: 'transparent',
+              border: '1px solid rgba(0,0,0,0.08)',
               color: COLORS.textSecondary,
-              width: '44px',
-              height: '44px',
+              width: '40px',
+              height: '40px',
               borderRadius: RADIUS.md,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              flexShrink: 0,
             }}
           >
             {isMobileSearchOpen ? <X size={18} /> : <Search size={18} />}
           </button>
         )}
 
+        {/* Desktop Add Trip CTA */}
         {!isMobile && (
-          <button type="button" style={styles.addButton(isMobile)} onClick={openTripSearch}>
-            <Plus size={18} />
-            <span style={styles.addButtonLabel}>{t('nav:addTrip')}</span>
-          </button>
+          <Motion.button
+            type="button"
+            onClick={openTripSearch}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              background: `linear-gradient(135deg, ${COLORS.atomicTangerine}, #ff9a4d)`,
+              color: '#fff',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: RADIUS.md,
+              fontWeight: '800',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: `0 4px 12px ${COLORS.atomicTangerine}40`,
+              fontSize: '0.9rem',
+              minHeight: '40px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <Plus size={16} />
+            {t('nav:addTrip')}
+          </Motion.button>
         )}
 
+        {/* User Area */}
         {user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Invitations Bell */}
             <button
               type="button"
               data-testid="header-invitations-button"
@@ -145,10 +241,11 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
                 color: COLORS.textSecondary,
                 display: 'flex',
                 alignItems: 'center',
-                minWidth: '44px',
-                minHeight: '44px',
+                minWidth: '40px',
+                minHeight: '40px',
                 borderRadius: RADIUS.md,
-                justifyContent: 'center'
+                justifyContent: 'center',
+                position: 'relative',
               }}
             >
               <Bell size={18} />
@@ -157,12 +254,19 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
                   data-testid="header-invitations-count"
                   aria-live="polite"
                   style={{
+                    position: 'absolute',
+                    top: '4px',
+                    right: '4px',
                     background: COLORS.danger,
-                    color: COLORS.surface,
-                    borderRadius: RADIUS.sm,
-                    padding: '4px 8px',
-                    fontSize: 12,
-                    marginLeft: 8
+                    color: '#fff',
+                    borderRadius: '9999px',
+                    width: '16px',
+                    height: '16px',
+                    fontSize: '0.65rem',
+                    fontWeight: '800',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   {invitationsCount}
@@ -170,13 +274,30 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
               )}
             </button>
 
+            {/* Avatar */}
             <button
               type="button"
               data-testid="header-avatar"
-              style={{ ...styles.avatar, cursor: 'pointer' }}
               onClick={() => navigate('/settings')}
               title={t('nav:settings')}
               aria-label={t('nav:settings')}
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: RADIUS.full,
+                backgroundColor: COLORS.mutedTeal,
+                border: '2px solid rgba(255,255,255,0.8)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                fontWeight: 'bold',
+                fontSize: '0.85rem',
+                flexShrink: 0,
+                cursor: 'pointer',
+                overflow: 'hidden',
+              }}
             >
               {canShowPhoto ? (
                 <img
@@ -186,21 +307,33 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
                   onError={() => setFailedPhoto(photoUrl)}
                 />
               ) : initials ? (
-                <span style={styles.avatarInitials}>{initials}</span>
+                <span style={{ fontWeight: '700', fontSize: '0.8rem' }}>{initials}</span>
               ) : (
-                <User size={20} />
+                <User size={18} />
               )}
             </button>
 
+            {/* Desktop Logout (subtle) */}
             {!isMobile && (
               <button
                 type="button"
                 data-testid="header-logout-button"
                 onClick={logout}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.textSecondary, minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: COLORS.textSecondary,
+                  minWidth: '40px',
+                  minHeight: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: 0.6,
+                }}
                 title={t('common:logout')}
               >
-                <LogOut size={18} />
+                <LogOut size={16} />
               </button>
             )}
           </div>
@@ -209,49 +342,70 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
             type="button"
             data-testid="header-login-button"
             onClick={login}
-            style={{ ...styles.addButton(isMobile), backgroundColor: COLORS.mutedTeal }}
+            style={{
+              backgroundColor: COLORS.mutedTeal,
+              color: '#fff',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: RADIUS.md,
+              fontWeight: '700',
+              cursor: 'pointer',
+            }}
           >
             {t('common:login')}
           </button>
         )}
       </div>
 
+      {/* Mobile Search Dropdown */}
       {isMobile && showSearch && isMobileSearchOpen && (
-        <div id="mobile-header-search" style={styles.mobileSearchPanel}>
-          <div style={styles.searchContainer(true)}>
-            <Search size={16} color={COLORS.textSecondary} />
-            <input
-              type="text"
-              placeholder={searchPlaceholder}
-              aria-label={t('nav:searchJournal')}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              style={styles.searchInput}
-              autoFocus
-            />
-            {query ? (
-              <button
-                type="button"
-                onClick={clearQuery}
-                style={styles.clearButton}
-                aria-label={t('nav:clearSearch')}
-              >
-                <X size={14} />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleMobileSearchClose}
-                style={styles.clearButton}
-                aria-label={t('nav:closeSearch')}
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
-        </div>
+        <Motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ type: 'spring', damping: 20 }}
+          style={{
+            position: 'absolute',
+            top: '64px',
+            left: '16px',
+            right: '16px',
+            background: 'rgba(255,255,255,0.95)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: RADIUS.lg,
+            border: '1px solid rgba(0,0,0,0.08)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+            padding: '12px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            zIndex: 100,
+          }}
+        >
+          <Search size={16} color={COLORS.textSecondary} />
+          <input
+            type="text"
+            placeholder={searchPlaceholder}
+            aria-label={t('nav:searchJournal')}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            autoFocus
+            style={{
+              border: 'none',
+              background: 'none',
+              fontSize: '1rem',
+              color: COLORS.charcoalBlue,
+              width: '100%',
+              outline: 'none',
+            }}
+          />
+          {query && (
+            <button type="button" onClick={clearQuery} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: COLORS.textSecondary, display: 'flex' }}>
+              <X size={14} />
+            </button>
+          )}
+        </Motion.div>
       )}
-    </header>
+    </Motion.header>
   );
 };
 

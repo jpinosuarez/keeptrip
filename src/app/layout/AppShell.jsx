@@ -9,7 +9,6 @@
  */
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import MobileCreateFab from './MobileCreateFab';
 
 import AppModalsManager from './AppModalsManager';
 import AppScaffold from './AppScaffold';
@@ -153,7 +152,6 @@ function AppShell() {
           />
           <PWAUpdatePrompt />
           <OfflineBanner />
-          {isMobile && <MobileCreateFab />}
         </>
       )}
     />

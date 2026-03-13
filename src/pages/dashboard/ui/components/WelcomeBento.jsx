@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
-import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { welcomeStyles as styles } from './WelcomeBento.styles';
 import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
@@ -14,8 +13,7 @@ const WelcomeBento = ({
   nextLevel, 
   logStatsDashboard, 
   isNewTraveler, 
-  isMobile, 
-  onNewTrip 
+  isMobile
 }) => {
   const { t } = useTranslation('dashboard');
 
@@ -46,20 +44,6 @@ const WelcomeBento = ({
             )}
           </div>
         </div>
-
-        {!isMobile && (
-          <Motion.button
-            type="button"
-            style={styles.ctaDesktop}
-            onClick={onNewTrip}
-            whileHover={{ scale: 1.04, y: -2 }}
-            whileTap={{ scale: 0.96 }}
-            aria-label={t('newTrip')}
-          >
-            <Plus size={20} strokeWidth={2.5} />
-            {t('newTrip', 'Crear viaje')}
-          </Motion.button>
-        )}
       </div>
 
       {!isNewTraveler && (
