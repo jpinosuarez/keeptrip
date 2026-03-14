@@ -21,7 +21,9 @@ const readMapStyle = () => {
 export const UIProvider = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const [mostrarBuscador, setMostrarBuscador] = useState(false);
+  
+  // SearchPalette (Cmd+K) state
+  const [searchPaletteOpen, setSearchPaletteOpen] = useState(false);
 
   // Modal state para viaje nuevo (borrador no persistido aún)
   const [viajeBorrador, setViajeBorrador] = useState(null);
@@ -43,33 +45,44 @@ export const UIProvider = ({ children }) => {
   }, []);
 
   const value = useMemo(
-    () => ({
-      searchPlaceholder: 'Buscar viajes, paises o ciudades...',
-      sidebarCollapsed,
-      setSidebarCollapsed,
-      toggleSidebarCollapse: () => setSidebarCollapsed((prev) => !prev),
-      mobileDrawerOpen,
-      setMobileDrawerOpen,
-      openMobileDrawer: () => setMobileDrawerOpen(true),
-      closeMobileDrawer: () => setMobileDrawerOpen(false),
-      mostrarBuscador,
-      openBuscador: () => setMostrarBuscador(true),
-      closeBuscador: () => setMostrarBuscador(false),
-      viajeBorrador,
-      setViajeBorrador,
-      ciudadInicialBorrador,
-      setCiudadInicialBorrador,
-      confirmarEliminacion,
-      setConfirmarEliminacion,
-      // Map style (Guardrail #2)
-      mapStyle,
-      setMapStyle,
-      MAP_STYLES,
-    }),
+    () => {
+      // Backward compatibility: alias mostrarBuscador → searchPaletteOpen
+      const mostrarBuscador = searchPaletteOpen;
+      const openBuscador = () => setSearchPaletteOpen(true);
+      const closeBuscador = () => setSearchPaletteOpen(false);
+
+      return {
+        searchPlaceholder: 'Buscar viajes, paises o ciudades...',
+        sidebarCollapsed,
+        setSidebarCollapsed,
+        toggleSidebarCollapse: () => setSidebarCollapsed((prev) => !prev),
+        mobileDrawerOpen,
+        setMobileDrawerOpen,
+        openMobileDrawer: () => setMobileDrawerOpen(true),
+        closeMobileDrawer: () => setMobileDrawerOpen(false),
+        searchPaletteOpen,
+        openSearchPalette: () => setSearchPaletteOpen(true),
+        closeSearchPalette: () => setSearchPaletteOpen(false),
+        // Backward compatibility aliases
+        mostrarBuscador,
+        openBuscador,
+        closeBuscador,
+        viajeBorrador,
+        setViajeBorrador,
+        ciudadInicialBorrador,
+        setCiudadInicialBorrador,
+        confirmarEliminacion,
+        setConfirmarEliminacion,
+        // Map style (Guardrail #2)
+        mapStyle,
+        setMapStyle,
+        MAP_STYLES,
+      };
+    },
     [
       sidebarCollapsed,
       mobileDrawerOpen,
-      mostrarBuscador,
+      searchPaletteOpen,
       viajeBorrador,
       ciudadInicialBorrador,
       confirmarEliminacion,
@@ -82,7 +95,10 @@ export const UIProvider = ({ children }) => {
     if (typeof window === 'undefined' || import.meta.env.VITE_ENABLE_TEST_LOGIN !== 'true') {
       return undefined;
     }
-    window.__test_abrirBuscador = () => setMostrarBuscador(true);
+    // Backward compatibility for old buscador API
+    window.__test_abrirBuscador = () => setSearchPaletteOpen(true);
+    // New SearchPalette API
+    window.__test_abrirSearchPalette = () => setSearchPaletteOpen(true);
     return undefined;
   }, []);
 

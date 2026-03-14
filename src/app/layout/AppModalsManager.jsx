@@ -11,6 +11,8 @@ import { BentoCardSkeleton } from '@shared/ui/components';
 // Cada uno genera su propio chunk de Rolldown y solo se descarga cuando el
 // usuario abre la funcionalidad por primera vez. Las visitas siguientes usan
 // la caché del SW de Workbox.
+const SearchPalette = lazy(() => import('@features/search/ui/SearchPalette/SearchPalette'));
+const EditorFocusPanel = lazy(() => import('@features/viajes/editor/ui/EditorFocusPanel'));
 const SearchModal  = lazy(() => import('@features/search/ui/SearchModal/SearchModal'));
 const EdicionModal = lazy(() => import('@features/viajes/editor/ui/EdicionModal'));
 const VisorViaje   = lazy(() => import('@features/viajes/viewer/VisorViaje'));
@@ -53,6 +55,8 @@ function AppModalsManager({
   const {
     mostrarBuscador,
     closeBuscador,
+    searchPaletteOpen,
+    closeSearchPalette,
     filtro,
     setFiltro,
     viajeBorrador,
@@ -108,21 +112,19 @@ function AppModalsManager({
   return (
     <>
       <Suspense fallback={null}>
-        <SearchModal
-          isOpen={mostrarBuscador}
-          onClose={closeBuscador}
-          query={filtro}
-          setQuery={setFiltro}
-          selectPlace={onLugarSeleccionado}
-          onSearchError={() => pushToast('Connection error while searching', 'error')}
-          onNoResults={(query) => pushToast(`No results for "${query}"`, 'info', 2500)}
+        <SearchPalette
+          isOpen={searchPaletteOpen}
+          onClose={closeSearchPalette}
+          allTrips={bitacora}
+          onSelectPlace={onLugarSeleccionado}
+          onSelectTrip={(tripId) => navigate('/trips/' + tripId)}
         />
       </Suspense>
 
       {viajeParaEditar && (
         <ErrorBoundary>
           <Suspense fallback={null}>
-            <EdicionModal
+            <EditorFocusPanel
               viaje={viajeParaEditar}
               bitacoraData={bitacoraData}
               onClose={closeEditor}

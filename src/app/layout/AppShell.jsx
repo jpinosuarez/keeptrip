@@ -50,6 +50,9 @@ function AppShell() {
     setMobileDrawerOpen,
     mostrarBuscador,
     closeBuscador,
+    searchPaletteOpen,
+    openSearchPalette,
+    closeSearchPalette,
     viajeBorrador,
     setViajeBorrador,
     ciudadInicialBorrador,
@@ -77,6 +80,26 @@ function AppShell() {
     return () => { delete window.__test_navigate; };
   }, [navigate]);
 
+  // Global Cmd+K listener to open SearchPalette from anywhere
+  React.useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      // Don't trigger if user is typing in an input field or textarea
+      const isFormActive = 
+        document.activeElement?.tagName === 'INPUT' ||
+        document.activeElement?.tagName === 'TEXTAREA';
+
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k' && !isFormActive) {
+        e.preventDefault();
+        if (!searchPaletteOpen) {
+          openSearchPalette();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [searchPaletteOpen, openSearchPalette]);
+
   const {
     onLugarSeleccionado,
     modalController,
@@ -90,6 +113,9 @@ function AppShell() {
       setMobileDrawerOpen,
       mostrarBuscador,
       closeBuscador,
+      searchPaletteOpen,
+      openSearchPalette,
+      closeSearchPalette,
       viajeBorrador,
       setViajeBorrador,
       ciudadInicialBorrador,
