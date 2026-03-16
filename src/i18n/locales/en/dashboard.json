@@ -39,5 +39,15 @@
   "registerFirstStop": "Register first trip",
   "noResults": "No results found",
   "noResultsMessage": "No trips match your search. Try different terms.",
-  "clearFilter": "Clear filter"
+  "clearFilter": "Clear filter",
+  "viewGrid": "Grid view",
+  "viewList": "List view",
+  "filters": {
+    "all": "All",
+    "year": "This year",
+    "favorites": "Favorites"
+  },
+  "toast": {
+    "comingSoon": "Coming soon"
+  }
 }

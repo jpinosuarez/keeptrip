@@ -45,5 +45,15 @@
   "registerFirstStop": "Registrar primer viaje",
   "noResults": "No se encontraron resultados",
   "noResultsMessage": "No hay viajes que coincidan con tu búsqueda. Intenta con otros términos.",
-  "clearFilter": "Limpiar filtro"
+  "clearFilter": "Limpiar filtro",
+  "viewGrid": "Vista de cuadrícula",
+  "viewList": "Vista de lista",
+  "filters": {
+    "all": "Todos",
+    "year": "Este año",
+    "favorites": "Favoritos"
+  },
+  "toast": {
+    "comingSoon": "Próximamente"
+  }
 }

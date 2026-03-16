@@ -21,13 +21,13 @@ export const styles = {
 
   // ── Hero Card ──
   heroCard: (levelColor) => ({
-    background: `linear-gradient(135deg, ${COLORS.charcoalBlue} 0%, ${levelColor}30 100%)`,
+    background: `linear-gradient(135deg, rgba(15,23,42,0.95) 0%, ${levelColor}22 80%, ${levelColor}15 100%)`,
     borderRadius: RADIUS.xl,
-    padding: '28px 32px',
+    padding: '22px 24px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: '24px',
+    gap: '18px',
     marginBottom: '20px',
     position: 'relative',
     overflow: 'hidden',
@@ -48,13 +48,13 @@ export const styles = {
     fontSize: '1.5rem',
     fontWeight: '900',
     fontFamily: FONTS.heading,
-    color: 'white',
+    color: COLORS.charcoalBlue,
   },
   heroSublabel: {
     margin: 0,
     fontSize: '0.85rem',
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.7)',
+    fontWeight: '600',
+    color: COLORS.textSecondary,
     fontFamily: FONTS.body,
   },
   heroProgressOuter: {

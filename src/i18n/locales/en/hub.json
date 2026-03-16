@@ -35,6 +35,10 @@
     "cartographer_desc": "Visit 25 countries",
     "centurion": "Centurion",
     "centurion_desc": "Register 25 trips",
+    "marathoner": "Marathoner",
+    "marathoner_desc": "Register 50 trips",
+    "world_adventurer": "World Adventurer",
+    "world_adventurer_desc": "Visit 100 countries",
     "legend": "Living Legend",
     "legend_desc": "Visit 50 countries"
   },
@@ -67,6 +71,12 @@
     "amazing": "Amazing! 🚀",
     "level": "Level",
     "levelPrefix": "Level: {{label}}"
+  },
+  "criteriaMet": "Met {{count}} {{unit}}",
+  "levels": {
+    "title": "Traveler Levels",
+    "viewAll": "View all levels",
+    "requirement": "Requires {{count}} countries visited"
   },
   "para-desbloquear": "to unlock"
 }

@@ -107,6 +107,18 @@ export const ACHIEVEMENTS = [
     criteria: { type: 'trips', threshold: 25 },
   },
   {
+    id: 'marathoner',
+    icon: '🏃‍♂️',
+    tier: 'platinum',
+    criteria: { type: 'trips', threshold: 50 },
+  },
+  {
+    id: 'world_adventurer',
+    icon: '🧭',
+    tier: 'diamond',
+    criteria: { type: 'countries', threshold: 100 },
+  },
+  {
     id: 'legend',
     icon: '👑',
     tier: 'diamond',

@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion as Motion } from 'framer-motion';
-import { getTravelerLevel, getNextLevel } from '../model/travelerLevel';
+import { getTravelerLevel, getNextLevel, TRAVELER_LEVELS } from '../model/travelerLevel';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import AchievementsGrid from './AchievementsGrid';
 import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
@@ -11,6 +11,7 @@ import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
 import { Globe, Calendar, MapPin, Image, Share } from 'lucide-react';
 import { useToast } from '@app/providers';
 import { useAchievements } from '../model/useAchievements';
+import { BottomSheet, BottomSheetHeader, BottomSheetContent } from '@shared/ui/components';
 
 // Inject shimmer keyframes once
 const injectShimmerCSS = () => {
@@ -40,6 +41,8 @@ const TravelerHub = ({ paisesVisitados, bitacora, achievementsWithProgress, stat
   const { t: tNav } = useTranslation('nav');
   useDocumentTitle(tNav('hub'));
   injectShimmerCSS();
+
+  const [showLevels, setShowLevels] = useState(false);
 
   const countryCount = paisesVisitados.length;
   const level = getTravelerLevel(countryCount);
@@ -202,6 +205,18 @@ const TravelerHub = ({ paisesVisitados, bitacora, achievementsWithProgress, stat
             >
               <Share size={18} />
             </Motion.button>
+
+            <Motion.button
+              type="button"
+              onClick={() => setShowLevels(true)}
+              style={styles.levelsBtn}
+              aria-label={t('levels.viewAll')}
+              title={t('levels.viewAll')}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {t('levels.viewAll')}
+            </Motion.button>
           </div>
         </Motion.div>
 
@@ -212,6 +227,54 @@ const TravelerHub = ({ paisesVisitados, bitacora, achievementsWithProgress, stat
 
         {/* ── Achievement Grid ── */}
         <AchievementsGrid achievementsWithProgress={achievementsWithProgress} isMobile={isMobile} />
+
+        <BottomSheet isOpen={showLevels} onClose={() => setShowLevels(false)} ariaLabel={t('levels.title')}>
+          <BottomSheetHeader />
+          <BottomSheetContent>
+            <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: COLORS.charcoalBlue }}>
+                  {t('levels.title')}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowLevels(false)}
+                  style={{
+                    border: 'none',
+                    background: 'none',
+                    color: COLORS.textSecondary,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  {t('common.close')}
+                </button>
+              </div>
+              {TRAVELER_LEVELS.map((lvl) => (
+                <div key={lvl.id} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '12px',
+                  borderRadius: RADIUS.lg,
+                  background: lvl.id === level.id ? `${lvl.color}20` : 'rgba(255,255,255,0.6)',
+                  border: lvl.id === level.id ? `1px solid ${lvl.color}` : '1px solid rgba(0,0,0,0.08)',
+                }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: lvl.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
+                    {lvl.icon}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 800, color: COLORS.charcoalBlue }}>{lvl.label}</div>
+                    <div style={{ fontSize: '0.8rem', color: COLORS.textSecondary }}>
+                      {t('levels.requirement', { count: lvl.min })}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </BottomSheetContent>
+        </BottomSheet>
       </div>
     </div>
   );

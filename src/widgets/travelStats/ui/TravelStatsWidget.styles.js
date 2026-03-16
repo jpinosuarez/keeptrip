@@ -20,10 +20,11 @@ export const mediaQueries = `
 export const styles = {
   container: {
     display: 'flex',
+    flexWrap: 'wrap',
     alignItems: 'stretch',
-    gap: '12px',
+    gap: '8px',
     overflowX: 'auto',
-    padding: '8px 0',
+    padding: '12px 0',
     scrollbarWidth: 'none',
     WebkitOverflowScrolling: 'touch',
   },

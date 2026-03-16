@@ -43,6 +43,10 @@
     "cartographer_desc": "Visitá 25 países",
     "centurion": "Centenario",
     "centurion_desc": "Registrá 25 viajes",
+    "marathoner": "Maratonista",
+    "marathoner_desc": "Registrá 50 viajes",
+    "world_adventurer": "Aventurero Global",
+    "world_adventurer_desc": "Visitá 100 países",
     "legend": "Leyenda Viviente",
     "legend_desc": "Visitá 50 países"
   },
@@ -75,6 +79,12 @@
     "amazing": "¡Increíble! 🚀",
     "level": "Nivel",
     "levelPrefix": "Nivel: {{label}}"
+  },
+  "criteriaMet": "Cumpliste {{count}} {{unit}}",
+  "levels": {
+    "title": "Niveles de Viajero",
+    "viewAll": "Ver todos los niveles",
+    "requirement": "Necesitas {{count}} países visitados"
   },
   "para-desbloquear": "para desbloquear"
 }

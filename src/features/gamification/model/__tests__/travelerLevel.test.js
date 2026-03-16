@@ -54,8 +54,12 @@ describe('travelerLevel', () => {
       expect(getTravelerLevel(51).id).toBe('legend');
     });
 
-    it('devuelve Leyenda para 195 países', () => {
-      expect(getTravelerLevel(195).id).toBe('legend');
+    it('devuelve Viajero del Mundo para 195 países', () => {
+      expect(getTravelerLevel(195).id).toBe('world_traveler');
+    });
+
+    it('devuelve Mítico para 201 países', () => {
+      expect(getTravelerLevel(201).id).toBe('mythic');
     });
 
     it('devuelve Soñador para valores negativos', () => {
@@ -93,8 +97,16 @@ describe('travelerLevel', () => {
       expect(remaining).toBe(1);
     });
 
-    it('con 51+ países no hay siguiente nivel', () => {
+    it('con 51+ países el siguiente nivel es Viajero del Mundo', () => {
       const { level, remaining, progress } = getNextLevel(60);
+      expect(level.id).toBe('world_traveler');
+      expect(remaining).toBe(41);
+      expect(progress).toBeGreaterThan(0);
+      expect(progress).toBeLessThan(1);
+    });
+
+    it('con 201+ países no hay siguiente nivel', () => {
+      const { level, remaining, progress } = getNextLevel(201);
       expect(level).toBeNull();
       expect(remaining).toBe(0);
       expect(progress).toBe(1);

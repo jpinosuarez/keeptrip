@@ -48,12 +48,16 @@ const AchievementsGrid = ({ achievementsWithProgress = [], isMobile = false }) =
                 continents: remaining === 1 ? t('goals.units.continents_one') : t('goals.units.continents_other'),
                 detailed_trips: remaining === 1 ? t('goals.units.detailed_trips_one') : t('goals.units.detailed_trips_other'),
               };
+              const goalName = t(`achievements.${goal.id}`, goal.id);
               return (
                 <div key={goal.id} style={isLast ? styles.goalRowLast : styles.goalRow}>
                   <span style={styles.goalIcon}>{goal.icon}</span>
-                  <p style={styles.goalText}>
-                    {remaining} {unitMap[goal.criteria.type] || t('goals.units.countries_other')} {t('para-desbloquear')}
-                  </p>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ ...styles.goalText, fontWeight: 800, margin: 0 }}>{goalName}</p>
+                    <p style={{ ...styles.goalText, margin: 0, fontSize: '0.8rem', color: 'rgba(44, 62, 80, 0.8)' }}>
+                      {remaining} {unitMap[goal.criteria.type] || t('goals.units.countries_other')} {t('para-desbloquear')}
+                    </p>
+                  </div>
                   <span style={styles.goalProgress}>{Math.round(goal.progress * 100)}%</span>
                 </div>
               );

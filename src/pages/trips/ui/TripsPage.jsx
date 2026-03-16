@@ -60,7 +60,7 @@ const TripsPage = () => {
         tripCount={filteredTrips.length}
       />
       
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)' }}>
         <TripGrid 
           trips={filteredTrips} 
           tripData={tripData}

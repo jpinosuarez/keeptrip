@@ -13,6 +13,8 @@ export const TRAVELER_LEVELS = [
   { id: 'globetrotter', min: 11, label: 'Trotamundos',  icon: '🌍', color: '#FBBF24' },
   { id: 'nomad',      min: 26, label: 'Nómada Global',  icon: '✈️', color: '#F97316' },
   { id: 'legend',     min: 51, label: 'Leyenda',        icon: '👑', color: '#A855F7' },
+  { id: 'world_traveler', min: 101, label: 'Viajero del Mundo', icon: '🌏', color: '#22C55E' },
+  { id: 'mythic',     min: 201, label: 'Mítico',         icon: '🪄', color: '#EC4899' },
 ];
 
 /**

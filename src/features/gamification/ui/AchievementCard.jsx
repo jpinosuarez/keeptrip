@@ -132,9 +132,26 @@ const AchievementCard = ({ achievement, isMobile = false }) => {
         </h4>
 
         {unlocked ? (
-          <span style={{ ...styles.tierTag, background: `${tierColor}20`, color: tierColor, border: `1px solid ${tierColor}40` }}>
-            {tierLabel}
-          </span>
+          <>
+            <span style={{ ...styles.tierTag, background: `${tierColor}20`, color: tierColor, border: `1px solid ${tierColor}40` }}>
+              {tierLabel}
+            </span>
+            <span style={styles.criteriaLabel}>
+              {t('achievements.criteriaMet', {
+                count: criteria.threshold,
+                unit:
+                  criteria.type === 'countries'
+                    ? t('goals.units.countries_other')
+                    : criteria.type === 'trips'
+                    ? t('goals.units.trips_other')
+                    : criteria.type === 'continents'
+                    ? t('goals.units.continents_other')
+                    : criteria.type === 'detailed_trips'
+                    ? t('goals.units.detailed_trips_other')
+                    : criteria.type,
+              })}
+            </span>
+          </>
         ) : (
           <>
             {description ? (
