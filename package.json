@@ -14,7 +14,7 @@
     "test": "vitest run",
     "test:unit": "vitest run --exclude 'e2e/**' --exclude 'src/__tests__/firestore.rules.test.js'",
     "test:rules": "vitest run src/__tests__/firestore.rules.test.js",
-    "test:e2e": "playwright test",
+    "test:e2e": "firebase emulators:exec --only auth,firestore,storage --project keeptrip-app-b06b3 -- npx playwright test",
     "test:ci": "vitest run && playwright test"
   },
   "dependencies": {

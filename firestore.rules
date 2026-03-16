@@ -20,14 +20,19 @@ service cloud.firestore {
     match /usuarios/{userId}/viajes/{viajeId} {
       allow read: if isOwner(userId) || (isAuthenticated() && request.auth.uid in resource.data.sharedWith);
       allow create, delete: if isOwner(userId);
+
       // permitir que el invitee agregue SOLO su UID a sharedWith (no otros cambios)
       allow update: if isOwner(userId)
         || (
           isAuthenticated()
           && request.resource.data.diff(resource.data).changedKeys().hasOnly(['sharedWith'])
+          // Asegurarnos de que sharedWith sea una lista válida para evitar runtime errors en reglas.
+          && (request.resource.data.sharedWith == null || request.resource.data.sharedWith is list)
+          && (resource.data.sharedWith == null || resource.data.sharedWith is list)
           // resource.data.sharedWith may be missing on old documents — treat as empty array
-          && (resource.data.sharedWith == null || request.resource.data.sharedWith.hasAll(resource.data.sharedWith))
-          && request.resource.data.sharedWith.size() == (resource.data.sharedWith == null ? 0 : resource.data.sharedWith.size()) + 1
+          && (request.resource.data.sharedWith == null || request.resource.data.sharedWith.hasAll(resource.data.sharedWith == null ? [] : resource.data.sharedWith))
+          && (request.resource.data.sharedWith == null ? 0 : request.resource.data.sharedWith.size())
+            == (resource.data.sharedWith == null ? 0 : resource.data.sharedWith.size()) + 1
           && request.resource.data.sharedWith.hasAny([request.auth.uid])
           // solo permitir si existe una invitacion creada por el owner para este viaje + invitee
           // existe una invitacion bajo el viaje creada por el owner para este invitee?

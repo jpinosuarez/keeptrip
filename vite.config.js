@@ -24,6 +24,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       includeAssets: ['favicon.svg', 'icons/*.png'],
+      cleanupOutdatedCaches: true,
       manifest: {
         id: '/',
         name: 'Keeptrip — Registra tus aventuras',
@@ -120,6 +121,10 @@ export default defineConfig({
     }),
   ],
   build: {
+    // Strip noisy console.* calls from production bundles, but retain errors/warnings.
+    esbuild: {
+      pure: ['console.log', 'console.info', 'console.debug'],
+    },
     rollupOptions: {
       output: {
         /**
