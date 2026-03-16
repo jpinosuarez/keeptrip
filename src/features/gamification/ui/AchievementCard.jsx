@@ -217,7 +217,7 @@ const styles = {
   description: {
     margin: 0,
     fontSize: '0.7rem',
-    color: COLORS.textSecondary,
+    color: COLORS.charcoalBlue,
     lineHeight: 1.3,
     fontFamily: FONTS.body,
     display: '-webkit-box',

@@ -347,16 +347,25 @@ export const useViajes = () => {
       });
 
       if (esFotoParaStorage) {
-        logger.debug('Subiendo foto a Storage', { viajeId });
-        const url = await subirFotoViaje({
-          storage,
-          userId: usuario.uid,
-          viajeId,
-          foto: fotoFileOptimizada || datosViaje.foto
-        });
-        if (url) {
-          await actualizarViaje({ db, userId: usuario.uid, viajeId, data: { foto: url } });
-          logger.debug('Foto subida exitosamente', { viajeId, fotoUrl: url.substring(0, 50) });
+        try {
+          logger.debug('Subiendo foto a Storage', { viajeId });
+          const url = await subirFotoViaje({
+            storage,
+            userId: usuario.uid,
+            viajeId,
+            foto: fotoFileOptimizada || datosViaje.foto
+          });
+          if (url) {
+            await actualizarViaje({ db, userId: usuario.uid, viajeId, data: { foto: url } });
+            logger.debug('Foto subida exitosamente', { viajeId, fotoUrl: url.substring(0, 50) });
+          }
+        } catch (photoError) {
+          logger.error('Error subiendo foto de portada tras guardar viaje', {
+            viajeId,
+            code: photoError?.code,
+            error: photoError.message,
+          });
+          toast.warning('Viaje guardado, pero no se pudo subir la foto de portada');
         }
       }
 

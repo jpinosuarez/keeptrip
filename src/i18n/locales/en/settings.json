@@ -18,5 +18,28 @@
   "language": {
     "title": "Language",
     "description": "Select the interface language."
-  }
+  },
+  "mapStyle": {
+    "title": "Map Style",
+    "desc": "Choose how your world is displayed.",
+    "comingSoon": "Coming soon",
+    "disabledHint": "Disabled in this preview",
+    "globe": "Globe",
+    "globeDesc": "Immersive 3D globe",
+    "flat": "Flat",
+    "flatDesc": "Classic 2D map",
+    "hybrid": "Hybrid",
+    "hybridDesc": "Satellite with labels"
+  },
+  "avatarUpload": "Upload avatar",
+  "avatarHint": "Max 15MB, JPG/PNG",
+  "avatarUploadSuccess": "Avatar updated!",
+  "avatarUploadError": "Upload failed. Please try again.",
+  "deleteAccount": "Delete account",
+  "deleteAccountTitle": "Delete account",
+  "deleteAccountMessage": "This will permanently delete your account and all your data. This action cannot be undone.",
+  "deleteAccountConfirm": "Delete account",
+  "deleteAccountSuccess": "Your account has been deleted.",
+  "deleteAccountError": "Could not delete account. Please try again.",
+  "deleteAccountNeedsRelogin": "Please log out and log back in to delete your account."
 }

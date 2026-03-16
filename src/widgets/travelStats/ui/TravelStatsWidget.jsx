@@ -1,5 +1,5 @@
 import React, { memo, useEffect } from 'react';
-import { motion as Motion, useMotionValue, animate } from 'framer-motion';
+import { motion as Motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { COLORS } from '@shared/config';
 import { styles, mediaQueries } from './TravelStatsWidget.styles';
 

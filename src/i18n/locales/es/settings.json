@@ -24,6 +24,8 @@
   "mapStyle": {
     "title": "Estilo de Mapa",
     "desc": "Elige cómo se muestra tu mundo.",
+    "comingSoon": "Próximamente",
+    "disabledHint": "Deshabilitado en esta vista previa",
     "globe": "Globo 3D",
     "globeDesc": "Globo interactivo inmersivo",
     "flat": "Mapa Plano",
@@ -31,6 +33,17 @@
     "hybrid": "Híbrido",
     "hybridDesc": "Satélite con etiquetas"
   },
+  "avatarUpload": "Subir avatar",
+  "avatarHint": "Max 15MB, JPG/PNG",
+  "avatarUploadSuccess": "Avatar actualizado correctamente.",
+  "avatarUploadError": "No se pudo subir el avatar. Intenta de nuevo.",
+  "deleteAccount": "Eliminar cuenta",
+  "deleteAccountTitle": "Eliminar cuenta",
+  "deleteAccountMessage": "Esto eliminará permanentemente tu cuenta y todos tus datos. Esta acción no se puede deshacer.",
+  "deleteAccountConfirm": "Eliminar cuenta",
+  "deleteAccountSuccess": "Tu cuenta ha sido eliminada.",
+  "deleteAccountError": "No se pudo eliminar la cuenta. Intenta de nuevo.",
+  "deleteAccountNeedsRelogin": "Por favor cierra sesión y vuelve a ingresar para eliminar tu cuenta.",
   "legacyData": "Legado & Datos",
   "legacyDataDesc": "Tu bitácora es tuya. Descárgala cuando quieras.",
   "exportJSON": "Exportar viajes (JSON)"

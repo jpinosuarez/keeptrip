@@ -129,7 +129,13 @@ export const subirFotoViaje = async ({ storage, userId, viajeId, foto }) => {
     }
 
     return null;
-  } catch {
-    return null;
+  } catch (error) {
+    console.error('[subirFotoViaje] Upload to Firebase Storage failed', {
+      userId,
+      viajeId,
+      code: error?.code,
+      message: error?.message,
+    });
+    throw error;
   }
 };
