@@ -6,6 +6,7 @@ import { AnimatePresence } from 'framer-motion';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { BentoCardSkeleton } from '@shared/ui/components';
+import UserMenuBottomSheet from '@shared/ui/components/UserMenuBottomSheet';
 
 // ── Lazy-loaded heavy components ───────────────────────────────────────────────
 // Cada uno genera su propio chunk de Rolldown y solo se descarga cuando el
@@ -87,7 +88,12 @@ function AppModalsManager({
 
   const closeEditor = () => {
     if (editingId) {
-      setSearchParams((prev) => { prev.delete('editing'); return prev; });
+      // React Router only detects changes when a new URLSearchParams object is provided.
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('editing');
+        return next;
+      });
     } else {
       setViajeBorrador(null);
       setCiudadInicialBorrador(null);
@@ -134,6 +140,8 @@ function AppModalsManager({
           onSelectTrip={(tripId) => navigate('/trips/' + tripId)}
         />
       </Suspense>
+
+      <UserMenuBottomSheet />
 
       {viajeParaEditar && (
         <ErrorBoundary>

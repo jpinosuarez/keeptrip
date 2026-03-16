@@ -6,7 +6,7 @@ import { getTravelerLevel } from '@features/gamification';
 import { useLogStats } from '@shared/lib/hooks/useLogStats';
 import { GLASS, SHADOWS, RADIUS, COLORS } from '@shared/config';
 
-const TravelerHud = ({ paises = [], trips = [], tripData = {} }) => {
+const TravelerHud = ({ paises = [], trips = [], tripData = {}, isMobile = false }) => {
   const { t } = useTranslation('dashboard');
   const { usuario } = useAuth();
   
@@ -23,8 +23,8 @@ const TravelerHud = ({ paises = [], trips = [], tripData = {} }) => {
       whileTap={{ scale: 0.98 }}
       style={{
         position: 'absolute',
-        top: '24px',
-        left: '24px',
+        top: isMobile ? '12px' : '24px',
+        left: isMobile ? '12px' : '24px',
         zIndex: 10,
         pointerEvents: 'auto',
         
@@ -32,13 +32,13 @@ const TravelerHud = ({ paises = [], trips = [], tripData = {} }) => {
         backgroundColor: 'rgba(30, 41, 59, 0.65)',
         border: '1px solid rgba(255, 255, 255, 0.1)',
         borderRadius: RADIUS.xl,
-        padding: '16px 24px',
+        padding: isMobile ? '12px 16px' : '16px 24px',
         boxShadow: SHADOWS.float,
         
         display: 'flex',
         flexDirection: 'column',
         gap: '6px',
-        minWidth: '240px',
+        minWidth: isMobile ? '200px' : '240px',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

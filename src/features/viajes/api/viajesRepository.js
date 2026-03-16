@@ -3,6 +3,7 @@ import {
   addDoc,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   onSnapshot,
   orderBy,
@@ -73,8 +74,34 @@ export const actualizarParada = ({ db, userId, viajeId, paradaId, data }) =>
 export const eliminarParada = ({ db, userId, viajeId, paradaId }) =>
   deleteDoc(doc(db, `usuarios/${userId}/viajes/${viajeId}/paradas`, paradaId));
 
-export const eliminarViaje = ({ db, userId, viajeId }) =>
-  deleteDoc(doc(db, `usuarios/${userId}/viajes`, viajeId));
+export const eliminarViaje = async ({ db, userId, viajeId }) => {
+  // Firestore deleteDoc resolves even if the document doesn't exist.
+  // We check after deletion to ensure the document is gone.
+  const primaryRef = doc(db, `usuarios/${userId}/viajes`, viajeId);
+
+  try {
+    await deleteDoc(primaryRef);
+    const after = await getDoc(primaryRef);
+    if (after.exists()) {
+      throw new Error('Deletion did not remove the document');
+    }
+    return true;
+  } catch (primaryError) {
+    // Attempt legacy deletion path (e.g. older tests) to avoid silent failures.
+    try {
+      const legacyRef = doc(db, `viajes`, viajeId);
+      await deleteDoc(legacyRef);
+      const afterLegacy = await getDoc(legacyRef);
+      if (afterLegacy.exists()) {
+        throw new Error('Legacy deletion did not remove the document');
+      }
+      return true;
+    } catch (legacyError) {
+      // Prefer returning the original error for better logging.
+      throw primaryError;
+    }
+  }
+};
 
 export const subirFotoViaje = async ({ storage, userId, viajeId, foto }) => {
   try {

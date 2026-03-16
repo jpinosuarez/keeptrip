@@ -68,7 +68,13 @@ export function useEdicionModalSave({
 
       if (!payload.nombreEspanol) {
         pushToast(t('error.saveFailed'), 'error');
-        return;
+        return null;
+      }
+
+      // Ensure legacy photo field is updated when portadaUrl is set.
+      if (payload.portadaUrl) {
+        payload.foto = payload.portadaUrl;
+        payload.fotoPortada = payload.portadaUrl;
       }
 
       const saveResult = await onSave(viaje.id, payload);
@@ -76,7 +82,7 @@ export function useEdicionModalSave({
 
       if (!savedViajeId) {
         pushToast(t('error.saveFailed'), 'error');
-        return;
+        return null;
       }
 
       if (galleryFiles.length > 0) {
@@ -94,8 +100,11 @@ export function useEdicionModalSave({
       } else {
         onClose();
       }
+
+      return savedViajeId;
     } catch {
       pushToast(t('error.unexpectedError'), 'error');
+      return null;
     }
   }, [
     ciudadInicial,

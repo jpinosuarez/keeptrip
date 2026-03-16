@@ -8,6 +8,7 @@
   "loading": "Searching the map... 🌍",
   "noResults": "We couldn't find '{{term}}'. Try searching for countries, cities or popular destinations.",
   "emptyHelp": "You can search by name, country or city.",
+  "minChars": "Type at least 3 characters to search",
   "country": "Country",
   "add": "Add"
 }

@@ -262,6 +262,7 @@ const Sidebar = () => {
             className={`mobile-tab-btn${active ? ' active' : ''}`}
             whileTap={{ scale: 0.85 }}
             aria-current={active ? 'page' : undefined}
+            style={{ position: 'relative' }}
           >
             <Motion.div
               animate={{ y: active ? -2 : 0 }}
@@ -269,10 +270,11 @@ const Sidebar = () => {
             >
               <Icon
                 size={24}
-                strokeWidth={active ? 2.5 : 1.8}
-                fill={active ? 'currentColor' : 'none'}
+                strokeWidth={2.2}
+                fill="none"
               />
             </Motion.div>
+            {active && <span className="tab-dot" />}
           </Motion.button>
         );
       })}
@@ -287,8 +289,8 @@ const Sidebar = () => {
           background: `linear-gradient(135deg, ${COLORS.atomicTangerine}, #ff9a4d)`,
           border: 'none',
           borderRadius: '50%',
-          width: '52px',
-          height: '52px',
+          width: '48px',
+          height: '48px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -299,7 +301,7 @@ const Sidebar = () => {
         }}
         aria-label={t('addTrip')}
       >
-        <Plus size={24} strokeWidth={2.5} />
+        <Plus size={20} strokeWidth={2.5} />
       </Motion.button>
 
       {/* Right 2 tabs */}
@@ -314,6 +316,7 @@ const Sidebar = () => {
             className={`mobile-tab-btn${active ? ' active' : ''}`}
             whileTap={{ scale: 0.85 }}
             aria-current={active ? 'page' : undefined}
+            style={{ position: 'relative' }}
           >
             <Motion.div
               animate={{ y: active ? -2 : 0 }}
@@ -321,10 +324,11 @@ const Sidebar = () => {
             >
               <Icon
                 size={24}
-                strokeWidth={active ? 2.5 : 1.8}
-                fill={active ? 'currentColor' : 'none'}
+                strokeWidth={2.2}
+                fill="none"
               />
             </Motion.div>
+            {active && <span className="tab-dot" />}
           </Motion.button>
         );
       })}

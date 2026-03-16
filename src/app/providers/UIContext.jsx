@@ -25,6 +25,9 @@ export const UIProvider = ({ children }) => {
   // SearchPalette (Cmd+K) state
   const [searchPaletteOpen, setSearchPaletteOpen] = useState(false);
 
+  // User menu bottom sheet
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
   // Modal state para viaje nuevo (borrador no persistido aún)
   const [viajeBorrador, setViajeBorrador] = useState(null);
   const [ciudadInicialBorrador, setCiudadInicialBorrador] = useState(null);
@@ -63,6 +66,9 @@ export const UIProvider = ({ children }) => {
         searchPaletteOpen,
         openSearchPalette: () => setSearchPaletteOpen(true),
         closeSearchPalette: () => setSearchPaletteOpen(false),
+        userMenuOpen,
+        openUserMenu: () => setUserMenuOpen(true),
+        closeUserMenu: () => setUserMenuOpen(false),
         // Backward compatibility aliases
         mostrarBuscador,
         openBuscador,
@@ -83,6 +89,7 @@ export const UIProvider = ({ children }) => {
       sidebarCollapsed,
       mobileDrawerOpen,
       searchPaletteOpen,
+      userMenuOpen,
       viajeBorrador,
       ciudadInicialBorrador,
       confirmarEliminacion,

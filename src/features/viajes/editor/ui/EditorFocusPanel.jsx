@@ -157,13 +157,19 @@ const EditorFocusPanel = ({
   const handleSaveWithLoading = useCallback(async () => {
     setIsSavingManual(true);
     try {
-      await handleSaveManual();
-      // After successful save, close the editor
+      const savedId = await handleSaveManual();
+      if (!savedId) {
+        // Save failed; keep the editor open so user can retry.
+        return;
+      }
+
+      // After successful save, close the editor (AppModalsManager will navigate if needed)
       isClosingRef.current = true;
       limpiarEstado();
       onClose();
     } catch (error) {
       console.error('Save error:', error);
+    } finally {
       setIsSavingManual(false);
     }
   }, [handleSaveManual, limpiarEstado, onClose]);

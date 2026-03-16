@@ -35,7 +35,7 @@ const COMPACT_LOGO_ROUTES = ['/trips', '/map'];
 
 const Header = ({ isMobile = false, invitationsCount = 0 }) => {
   const { usuario: user, login, logout } = useAuth();
-  const { openBuscador: openTripSearch } = useUI();
+  const { openBuscador: openTripSearch, openUserMenu } = useUI();
   const { busqueda: query, setBusqueda: setQuery, limpiarBusqueda: clearQuery } = useSearch();
   const { t } = useTranslation(['nav', 'common']);
   const [failedPhoto, setFailedPhoto] = useState(null);
@@ -278,7 +278,7 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
             <button
               type="button"
               data-testid="header-avatar"
-              onClick={() => navigate('/settings')}
+              onClick={() => openUserMenu()}
               title={t('nav:settings')}
               aria-label={t('nav:settings')}
               style={{

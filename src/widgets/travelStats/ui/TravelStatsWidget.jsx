@@ -34,6 +34,7 @@ const TravelStatsWidget = ({ stats = [], ariaLabel, variant = 'full' }) => {
 const StatPill = memo(({ stat }) => {
   // motion value for animated counter
   const count = useMotionValue(stat.value);
+  const rounded = useTransform(count, (latest) => Math.round(latest));
   const prev = React.useRef(stat.value);
 
   useEffect(() => {
@@ -52,7 +53,7 @@ const StatPill = memo(({ stat }) => {
       whileTap={{ scale: 0.95 }}
     >
       <span style={styles.icon}>{stat.icon || null}</span>
-      <Motion.span className="travel-stats-value" style={styles.value}>{count}</Motion.span>
+      <Motion.span className="travel-stats-value" style={styles.value}>{rounded}</Motion.span>
       <span className="travel-stats-label" style={styles.label}>{stat.label}</span>
     </Motion.div>
   );

@@ -10,16 +10,27 @@ export const mediaStyles = `
     transform: translateX(-50%);
     width: min(92vw, 400px);
     height: 64px;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    border: 1px solid rgba(255, 255, 255, 0.55);
     border-radius: 9999px; /* Pill shape */
     box-shadow: 0 8px 32px rgba(0,0,0,0.12);
     z-index: ${Z_INDEX.sticky};
     padding: 0 12px;
     align-items: center;
     justify-content: space-between;
+  }
+
+  .tab-dot {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: ${COLORS.atomicTangerine};
   }
 
   .mobile-tab-btn {
@@ -29,8 +40,9 @@ export const mediaStyles = `
     justify-content: center;
     background: transparent;
     border: none;
-    height: 100%;
-    flex: 1;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
     color: ${COLORS.textSecondary};
     cursor: pointer;
     transition: color 0.2s;

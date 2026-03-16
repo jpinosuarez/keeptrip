@@ -21,8 +21,9 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
   const listaPaises = paisesVisitados.length > 0 ? paisesVisitados : ['EMPTY_LIST'];
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative', background: COLORS.background, borderRadius: RADIUS.xl, overflow: 'hidden' }}>
+    <div style={{ width: '100%', minWidth: 0, height: '100%', position: 'relative', background: COLORS.background, borderRadius: RADIUS.xl, overflow: 'hidden' }}>
       <Map
+        style={{ width: '100%', minWidth: 0, height: '100%' }}
         initialViewState={{
           longitude: 0,
           latitude: isMobile ? 15 : 20,

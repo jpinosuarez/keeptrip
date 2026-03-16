@@ -93,7 +93,9 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
                 />
               ))
             ) : (
-              <EmptyDashboardState onNewTrip={openBuscador} />
+              <div style={{ gridColumn: '1 / -1' }}>
+                <EmptyDashboardState onNewTrip={openBuscador} />
+              </div>
             )}
           </div>
         </div>

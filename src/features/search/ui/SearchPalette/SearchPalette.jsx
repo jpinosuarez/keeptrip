@@ -38,7 +38,9 @@ const SearchPalette = ({
 
   // Fetch Mapbox results when debounced query changes
   useEffect(() => {
-    if (!debouncedQuery || debouncedQuery.length < 2) {
+    // Only run searches once the user has typed at least 3 characters.
+    // This prevents the UI from flashing a "no results" state on short queries.
+    if (!debouncedQuery || debouncedQuery.length < 3) {
       setMapboxResults([]);
       return;
     }
@@ -184,6 +186,10 @@ const SearchPalette = ({
 
   if (!isOpen) return null;
 
+  const trimmedQuery = query.trim();
+  const showQueryTooShort = trimmedQuery.length > 0 && trimmedQuery.length < 3;
+  const showNoResults = trimmedQuery.length >= 3 && !loading && allResults.length === 0;
+
   const styles = {
     overlay: {
       position: 'fixed',
@@ -217,6 +223,7 @@ const SearchPalette = ({
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
+      flexWrap: 'wrap',
     },
     searchBox: {
       flex: 1,
@@ -230,6 +237,7 @@ const SearchPalette = ({
     },
     input: {
       flex: 1,
+      minWidth: 0,
       border: 'none',
       outline: 'none',
       backgroundColor: 'transparent',
@@ -371,21 +379,27 @@ const SearchPalette = ({
               </div>
             )}
 
-            {!query && (
+            {!trimmedQuery && (
               <div style={styles.emptyState}>
                 <p>{t('search:inputPlaceholder', 'Start typing to search...')}</p>
               </div>
             )}
 
-            {loading && query && (
+            {showQueryTooShort && (
+              <div style={styles.emptyState}>
+                <p>{t('search:minChars', 'Type at least 3 characters to start searching')}</p>
+              </div>
+            )}
+
+            {loading && trimmedQuery && (
               <div style={styles.emptyState}>
                 <p>{t('search:loading', 'Searching...')}</p>
               </div>
             )}
 
-            {!loading && query && allResults.length === 0 && (
+            {showNoResults && (
               <div style={styles.emptyState}>
-                <p>{t('search:noResults', 'No results found')}</p>
+                <p>{t('search:noResults', { term: trimmedQuery })}</p>
               </div>
             )}
 

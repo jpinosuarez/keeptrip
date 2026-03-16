@@ -48,24 +48,6 @@ const VisorGallerySection = ({
         <div style={styles.emptyState}>No hay fotos adicionales en la galería.</div>
       )}
 
-      {/* ACT III — Tactile Share CTA */}
-      <div style={{ position: 'relative' }}>
-         {/* We use the custom style trigger for ShareStoryButton logic */}
-         <div style={styles.shareCtaCard} onClick={() => document.getElementById('final-share-trigger')?.click()}>
-            <div style={styles.shareLargeIcon}>
-              <Sparkles size={32} color="white" />
-            </div>
-            <h2 style={styles.shareCtaTitle}>Preserva el Legado</h2>
-            <p style={styles.shareCtaText}>
-              Convierte tu travesía en una historia visual y compártela con el mundo.
-            </p>
-            
-            {/* Hidden real trigger to reuse ShareStoryButton logic */}
-            <div style={{ display: 'none' }}>
-              <ShareStoryButton id="final-share-trigger" data={storyData} />
-            </div>
-         </div>
-      </div>
 
       {showGalleryTools && galeria.fotos.length > 0 && (
         <div style={styles.galleryManageBlock}>

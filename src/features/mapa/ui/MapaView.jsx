@@ -6,9 +6,9 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { COLORS, RADIUS, SHADOWS, GLASS } from '@shared/config';
 import { setMapLanguage } from '@shared/lib/geo';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
+import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 
 import TravelerHud from './components/TravelerHud';
-import MapFabGroup from './components/MapFabGroup';
 import TripSlideOver from './components/TripSlideOver';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -17,7 +17,12 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   const { i18n, t } = useTranslation('dashboard');
   useDocumentTitle(t('map', 'Mapa 3D'));
   const mapRef = useRef(null);
-  const [viewState, setViewState] = useState({ longitude: 20, latitude: 20, zoom: 1.5 });
+  const { isMobile } = useWindowSize(768);
+  const [viewState, setViewState] = useState(() => ({
+    longitude: 0,
+    latitude: 20,
+    zoom: isMobile ? 0 : 1.5,
+  }));
   
   const [selectedTrip, setSelectedTrip] = useState(null);
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
@@ -83,7 +88,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
         interactiveLayerIds={['unclustered-point']}
         mapStyle="mapbox://styles/mapbox/light-v11"
         mapboxAccessToken={MAPBOX_TOKEN}
-        projection="globe"
+        projection={isMobile ? 'mercator' : 'globe'}
         onLoad={(e) => setMapLanguage(e.target, i18n.language)}
         reuseMaps
       >
@@ -137,12 +142,11 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
         <NavigationControl position="top-right" />
       </Map>
 
-      {/* OVERLAY LAYER (HUD & FABS) */}
+      {/* OVERLAY LAYER (HUD) */}
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 5 }}>
         {!isEmptyMap && (
-          <TravelerHud paises={paises} trips={trips} tripData={tripData} />
+          <TravelerHud isMobile={isMobile} paises={paises} trips={trips} tripData={tripData} />
         )}
-        <MapFabGroup onLocateMe={handleLocateMe} />
       </div>
 
       <AnimatePresence>

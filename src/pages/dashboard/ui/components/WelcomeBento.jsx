@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import { welcomeStyles as styles } from './WelcomeBento.styles';
 import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
 
@@ -16,6 +18,11 @@ const WelcomeBento = ({
   isMobile
 }) => {
   const { t } = useTranslation('dashboard');
+  const navigate = useNavigate();
+
+  const handleLevelClick = () => {
+    navigate('/explorer');
+  };
 
   return (
     <Motion.div 
@@ -34,9 +41,12 @@ const WelcomeBento = ({
           </p>
           
           <div style={styles.badgeRow}>
-            <span style={styles.badgeLevel}>
-              {level.icon} {level.label}
-            </span>
+            <button type="button" onClick={handleLevelClick} style={styles.badgeLevelButton}>
+              <span style={styles.badgeLevel}>
+                {level.icon} {level.label}
+              </span>
+              <ArrowRight size={16} />
+            </button>
             {nextLevel.level && (
               <span style={styles.badgeProgress}>
                 · {nextLevel.remaining} {nextLevel.remaining !== 1 ? t('stats.countriesPlural') : t('stats.countrySingular')} para {nextLevel.level.label}

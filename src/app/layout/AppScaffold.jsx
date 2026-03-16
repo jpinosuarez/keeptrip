@@ -28,6 +28,7 @@ const SCAFFOLD_CSS = `
   .scaffold-content {
     flex: 1;
     padding: 16px 24px;
+    padding-bottom: max(120px, env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
     overflow-x: hidden;
     display: flex;

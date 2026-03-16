@@ -57,6 +57,20 @@ export const welcomeStyles = {
     marginTop: '4px',
   },
 
+  badgeLevelButton: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '8px 12px',
+    borderRadius: RADIUS.full,
+    border: '1px solid rgba(0,0,0,0.08)',
+    background: 'rgba(255, 255, 255, 0.92)',
+    cursor: 'pointer',
+    color: COLORS.charcoalBlue,
+    fontWeight: 800,
+    fontSize: '0.875rem',
+  },
+
   badgeLevel: {
     fontSize: '0.875rem',
     fontWeight: '800',

@@ -91,7 +91,7 @@ export const styles = {
 
   mainGrid: (isMobile) => ({
     display: 'grid',
-    gridTemplateColumns: isMobile ? '1fr' : '1fr 320px',
+    gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) 320px',
     gap: isMobile ? '16px' : '18px',
     alignItems: isMobile ? 'stretch' : 'center', // Centra verticalmente en desktop
     justifyContent: 'center', // Centra horizontalmente el grid
@@ -100,6 +100,9 @@ export const styles = {
   mapCard: (isMobile) => ({
     borderRadius: RADIUS.xl,
     overflow: 'hidden',
+    width: '100%',
+    minWidth: 0,
+    maxWidth: '100%',
     aspectRatio: '2.2/1', // Relación de aspecto más panorámica
     height: isMobile ? 'auto' : 'auto', // Deja que aspectRatio controle el alto
     minHeight: isMobile ? '160px' : '220px', // Asegura suficiente altura
