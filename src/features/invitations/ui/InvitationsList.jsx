@@ -118,13 +118,7 @@ export default function InvitationsList({ compact = false, hook = null }) {
                   aria-label={`Aceptar invitación de ${inviterLabel} para ${tripLabel}`}
                   onClick={async (e) => {
                     try {
-                      if (import.meta.env.DEV) {
-                        console.debug('InvitationsList: accept clicked', { invId: inv.id, viajeId: inv.viajeId });
-                      }
                       const ok = await acceptInvitation(inv.id);
-                      if (import.meta.env.DEV) {
-                        console.debug('InvitationsList: acceptInvitation returned', { ok, invId: inv.id });
-                      }
                       if (ok) {
                         try { e?.currentTarget?.blur?.(); } catch { /* safe fallback for tests */ }
                         pushToast('Invitación aceptada — ahora puedes ver el viaje', 'success');

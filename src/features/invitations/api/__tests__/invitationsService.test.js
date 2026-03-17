@@ -5,14 +5,14 @@ const {
   arrayUnionMock,
   collectionMock,
   docMock,
-  runTransactionMock,
+  getDocMock,
   setDocMock
 } = vi.hoisted(() => ({
   addDocMock: vi.fn(),
   arrayUnionMock: vi.fn((value) => value),
   collectionMock: vi.fn(),
   docMock: vi.fn(),
-  runTransactionMock: vi.fn(),
+  getDocMock: vi.fn(),
   setDocMock: vi.fn()
 }));
 
@@ -25,12 +25,12 @@ vi.mock('firebase/firestore', () => ({
   addDoc: addDocMock,
   doc: docMock,
   getDocs: vi.fn(),
-  getDoc: vi.fn(),
+  getDoc: getDocMock,
   setDoc: setDocMock,
   query: vi.fn(),
   where: vi.fn(),
   onSnapshot: vi.fn(),
-  runTransaction: runTransactionMock,
+  runTransaction: vi.fn(),
   arrayUnion: arrayUnionMock,
   orderBy: vi.fn()
 }));
@@ -44,11 +44,7 @@ describe('invitationsService.createInvitation', () => {
     docMock.mockImplementation((...args) => ({ args, path: args.slice(1).join('/') }));
     setDocMock.mockResolvedValue(undefined);
     addDocMock.mockResolvedValue({ id: 'generated-id' });
-    runTransactionMock.mockImplementation(async (_database, callback) => callback({
-      get: vi.fn(),
-      update: vi.fn(),
-      set: vi.fn()
-    }));
+    getDocMock.mockResolvedValue({ exists: () => false });
   });
 
   it('writes nested and top-level invitation when inviteeUid is provided', async () => {
@@ -115,15 +111,10 @@ describe('invitationsService.createInvitation', () => {
   });
 
   it('accepts invitation and updates top-level invitation plus viaje.sharedWith', async () => {
-    const transaction = {
-      get: vi.fn().mockResolvedValue({
-        exists: () => true,
-        data: () => ({ inviterId: 'owner-1', inviteeUid: 'guest-1', viajeId: 'trip-1', status: 'pending' })
-      }),
-      update: vi.fn(),
-      set: vi.fn()
-    };
-    runTransactionMock.mockImplementation(async (_database, callback) => callback(transaction));
+    getDocMock.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ inviterId: 'owner-1', inviteeUid: 'guest-1', viajeId: 'trip-1', status: 'pending' })
+    });
 
     const ok = await acceptInvitation({
       db: { __db: 'test-db' },
@@ -132,32 +123,38 @@ describe('invitationsService.createInvitation', () => {
     });
 
     expect(ok).toBe(true);
-    expect(runTransactionMock).toHaveBeenCalledTimes(1);
-    expect(arrayUnionMock).toHaveBeenCalledWith('guest-1');
+    expect(getDocMock).toHaveBeenCalledWith(
+      expect.objectContaining({ path: 'invitations/trip-1_guest-1' })
+    );
 
-    expect(transaction.update).toHaveBeenCalledWith(
+    expect(setDocMock).toHaveBeenCalledTimes(3);
+    expect(setDocMock).toHaveBeenNthCalledWith(
+      1,
       expect.objectContaining({ path: 'invitations/trip-1_guest-1' }),
-      expect.objectContaining({ status: 'accepted', acceptedBy: 'guest-1', inviteeUid: 'guest-1' })
+      expect.objectContaining({ status: 'accepted', acceptedBy: 'guest-1', inviteeUid: 'guest-1' }),
+      { merge: true }
     );
 
-    expect(transaction.update).toHaveBeenCalledWith(
+    expect(setDocMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ path: 'usuarios/owner-1/viajes/trip-1/invitations/guest-1' }),
+      expect.objectContaining({ status: 'accepted', acceptedBy: 'guest-1', inviteeUid: 'guest-1' }),
+      { merge: true }
+    );
+
+    expect(setDocMock).toHaveBeenNthCalledWith(
+      3,
       expect.objectContaining({ path: 'usuarios/owner-1/viajes/trip-1' }),
-      { sharedWith: 'guest-1' }
+      { sharedWith: 'guest-1' },
+      { merge: true }
     );
-
-    expect(transaction.set).not.toHaveBeenCalled();
   });
 
   it('declines invitation and updates only top-level invitation status', async () => {
-    const transaction = {
-      get: vi.fn().mockResolvedValue({
-        exists: () => true,
-        data: () => ({ inviterId: 'owner-1', inviteeUid: 'guest-2', viajeId: 'trip-1', status: 'pending' })
-      }),
-      update: vi.fn(),
-      set: vi.fn()
-    };
-    runTransactionMock.mockImplementation(async (_database, callback) => callback(transaction));
+    getDocMock.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ inviterId: 'owner-1', inviteeUid: 'guest-2', viajeId: 'trip-1', status: 'pending' })
+    });
 
     const ok = await declineInvitation({
       db: { __db: 'test-db' },
@@ -166,20 +163,16 @@ describe('invitationsService.createInvitation', () => {
     });
 
     expect(ok).toBe(true);
-    expect(transaction.update).toHaveBeenCalledWith(
+    expect(setDocMock).toHaveBeenCalledTimes(1);
+    expect(setDocMock).toHaveBeenCalledWith(
       expect.objectContaining({ path: 'invitations/trip-1_guest-2' }),
-      expect.objectContaining({ status: 'declined', declinedBy: 'guest-2' })
+      expect.objectContaining({ status: 'declined', declinedBy: 'guest-2' }),
+      { merge: true }
     );
-    expect(transaction.set).not.toHaveBeenCalled();
   });
 
   it('returns false on accept when invitation does not exist', async () => {
-    const transaction = {
-      get: vi.fn().mockResolvedValue({ exists: () => false }),
-      update: vi.fn(),
-      set: vi.fn()
-    };
-    runTransactionMock.mockImplementation(async (_database, callback) => callback(transaction));
+    getDocMock.mockResolvedValue({ exists: () => false });
 
     const ok = await acceptInvitation({
       db: { __db: 'test-db' },
@@ -188,6 +181,6 @@ describe('invitationsService.createInvitation', () => {
     });
 
     expect(ok).toBe(false);
-    expect(transaction.update).not.toHaveBeenCalled();
+    expect(setDocMock).not.toHaveBeenCalled();
   });
 });

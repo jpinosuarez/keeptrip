@@ -46,6 +46,7 @@ service cloud.firestore {
           // existe una invitacion bajo el viaje creada por el owner para este invitee?
           && exists(/databases/$(database)/documents/usuarios/$(userId)/viajes/$(viajeId)/invitations/$(request.auth.uid))
           && get(/databases/$(database)/documents/usuarios/$(userId)/viajes/$(viajeId)/invitations/$(request.auth.uid)).data.inviterId == userId
+          && get(/databases/$(database)/documents/usuarios/$(userId)/viajes/$(viajeId)/invitations/$(request.auth.uid)).data.status == 'accepted'
         );
     }
 

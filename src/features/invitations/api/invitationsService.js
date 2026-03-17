@@ -74,15 +74,6 @@ export const acceptInvitation = async ({ db: _db, invitationId, acceptorUid }) =
       inviteeUid: resolvedInviteeUid
     };
 
-    if (import.meta.env.DEV) {
-      console.debug('acceptInvitation: updating invitation', {
-        invitationId,
-        acceptorUid,
-        invitationDataBefore: invitationData,
-        invitationUpdate
-      });
-    }
-
     // Update the top-level invitation record.
     await setDoc(invitationRef, invitationUpdate, { merge: true });
 
@@ -103,18 +94,8 @@ export const acceptInvitation = async ({ db: _db, invitationId, acceptorUid }) =
       await setDoc(viajeRef, { sharedWith: arrayUnion(acceptorUid) }, { merge: true });
     }
 
-    if (import.meta.env.DEV) {
-      const postSnap = await getDoc(invitationRef);
-      console.debug('acceptInvitation succeeded', {
-        invitationId,
-        acceptorUid,
-        invitationUpdate,
-        after: postSnap.exists() ? postSnap.data() : null
-      });
-    }
     return true;
   } catch (err) {
-    console.error('acceptInvitation error', err);
     logger.error('acceptInvitation error', { error: err?.message, invitationId, acceptorUid });
     return false;
   }
@@ -138,7 +119,6 @@ export const declineInvitation = async ({ db: _db, invitationId, declinerUid }) 
 
     return true;
   } catch (err) {
-    console.error('declineInvitation error', err);
     logger.error('declineInvitation error', { error: err?.message, invitationId, declinerUid });
     return false;
   }
