@@ -33,7 +33,9 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
         mapboxAccessToken={MAPBOX_TOKEN}
         projection="mercator"
         reuseMaps
-        minZoom={-2}
+        renderWorldCopies={false}
+        minZoom={1.5}
+        maxBounds={[[ -180, -85 ], [ 180, 85 ]]}
         scrollZoom={false}
         dragPan={false}
         doubleClickZoom={false}

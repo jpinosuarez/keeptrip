@@ -87,7 +87,7 @@ export function UploadProvider({ children }) {
     uploadingRef.current.add(viajeId);
 
     // Iniciar subida secuencial (evita saturar la red)
-    procesarCola(viajeId, fotosConPreview);
+    await procesarCola(viajeId, fotosConPreview);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [usuario, generarPreview]);
 
@@ -257,13 +257,16 @@ export function UploadProvider({ children }) {
     return fotos.some(f => f.status === 'pending' || f.status === 'uploading');
   }, [uploadsByViaje]);
 
+  const isUploading = useCallback((viajeId) => uploadingRef.current.has(viajeId), []);
+
   const value = useMemo(() => ({
     iniciarSubida,
     getEstadoViaje,
+    isUploading,
     reintentarFoto,
     limpiarUploads,
     tieneUploadsPendientes
-  }), [iniciarSubida, getEstadoViaje, reintentarFoto, limpiarUploads, tieneUploadsPendientes]);
+  }), [iniciarSubida, getEstadoViaje, isUploading, reintentarFoto, limpiarUploads, tieneUploadsPendientes]);
 
   return (
     <UploadContext.Provider value={value}>

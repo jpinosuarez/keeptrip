@@ -102,6 +102,7 @@
   },
   "toast": {
     "uploadingPhotos": "Your photos are uploading...",
+    "uploadingPhotosDone": "Your photos uploaded successfully.",
     "invitationSent": "Invitation sent! Your companion will receive a link to join.",
     "invitationCreated": "Invitation ready. Share the link with your companion.",
     "captionUpdated": "Description saved."

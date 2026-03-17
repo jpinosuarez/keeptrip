@@ -21,7 +21,8 @@ export const styles = {
 
   // ── Hero Card ──
   heroCard: (levelColor) => ({
-    background: `linear-gradient(135deg, rgba(15,23,42,0.95) 0%, ${levelColor}22 80%, ${levelColor}15 100%)`,
+    background: `linear-gradient(145deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1)), linear-gradient(145deg, ${COLORS.linen} 0%, ${COLORS.surface} 60%)`,
+    backgroundBlendMode: 'overlay',
     borderRadius: RADIUS.xl,
     padding: '22px 24px',
     display: 'flex',
@@ -54,7 +55,7 @@ export const styles = {
     margin: 0,
     fontSize: '0.85rem',
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: COLORS.textPrimary,
     fontFamily: FONTS.body,
   },
   heroProgressOuter: {

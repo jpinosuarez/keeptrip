@@ -10,6 +10,7 @@ function resolveSavedViajeId(saveResult, viajeId) {
 export function useEdicionModalSave({
   isProcessingImage,
   isSaving,
+  isUploading,
   formData,
   viaje,
   ciudadInicial,
@@ -34,7 +35,7 @@ export function useEdicionModalSave({
       return date.toISOString().split('T')[0];
     };
 
-    if (isProcessingImage || isSaving) return;
+    if (isProcessingImage || isSaving || isUploading) return;
 
     try {
       const payload = {
@@ -87,11 +88,17 @@ export function useEdicionModalSave({
 
       if (galleryFiles.length > 0) {
         if (hasUploadContext) {
-          void iniciarSubida(savedViajeId, galleryFiles, galleryPortada);
+          try {
+            pushToast(t('toast.uploadingPhotos'), 'info');
+            await iniciarSubida(savedViajeId, galleryFiles, galleryPortada);
+            pushToast(t('toast.uploadingPhotosDone'), 'success');
+          } catch (uploadError) {
+            console.error('Upload error:', uploadError);
+            pushToast(t('gallery.errorUploadFailed', { ns: 'gallery' }), 'error');
+          }
         } else {
           pushToast(t('error.unexpectedError'), 'error');
         }
-        pushToast(t('toast.uploadingPhotos'), 'info');
       }
 
       limpiarEstado();

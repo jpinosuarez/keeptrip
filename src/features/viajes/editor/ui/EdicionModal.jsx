@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { Save, LoaderCircle } from 'lucide-react';
 import { styles } from './EdicionModal.styles';
@@ -28,12 +29,16 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
   const { usuario } = useAuth();
   const { pushToast } = useToast();
   const { t } = useTranslation('editor');
+  const navigate = useNavigate();
+
   // useUpload puede no estar disponible en tests aislados; usar fallback seguro
   let iniciarSubida = () => {};
   let hasUploadContext = false;
+  let getEstadoViaje = () => ({ isUploading: false });
   try {
     const uploadCtx = useUpload();
     iniciarSubida = uploadCtx?.iniciarSubida || (() => {});
+    getEstadoViaje = uploadCtx?.getEstadoViaje || (() => ({ isUploading: false }));
     hasUploadContext = typeof uploadCtx?.iniciarSubida === 'function';
   } catch {
     iniciarSubida = () => {};
@@ -81,9 +86,17 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     setCaptionDrafts,
   });
 
+  const { isUploading } = viaje?.id ? getEstadoViaje(viaje.id) : { isUploading: false };
+
+  const handleAfterSave = (savedId) => {
+    if (onAfterSave) onAfterSave(savedId);
+    navigate(`/viaje/${savedId}`);
+  };
+
   const handleSave = useEdicionModalSave({
     isProcessingImage,
     isSaving,
+    isUploading,
     formData,
     viaje,
     ciudadInicial,
@@ -97,7 +110,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     t,
     limpiarEstado,
     onClose,
-    onAfterSave,
+    onAfterSave: handleAfterSave,
   });
 
   const {
@@ -181,7 +194,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
 
   if (!viaje) return null;
 
-  const isBusy = isSaving || isProcessingImage;
+  const isBusy = isSaving || isProcessingImage || isUploading;
   const sinParadas = paradas.length === 0;
   const fechaRangoDisplay = formatDateRange(formData.fechaInicio, formData.fechaFin);
 

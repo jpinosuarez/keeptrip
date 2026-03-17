@@ -5,6 +5,8 @@ import {
   getDoc,
   getDocs,
   setDoc,
+  writeBatch,
+  runTransaction,
   query,
   where,
   onSnapshot,
@@ -63,38 +65,41 @@ export const acceptInvitation = async ({ db: _db, invitationId, acceptorUid }) =
   const database = _db || db;
   try {
     const invitationRef = doc(database, 'invitations', invitationId);
-    const invSnap = await getDoc(invitationRef);
-    if (!invSnap.exists()) throw new Error('Invitation not found');
 
-    const invitationData = invSnap.data() || {};
-    const resolvedInviteeUid = invitationData.inviteeUid || acceptorUid;
-    const acceptedAt = Date.now();
-    const invitationUpdate = {
-      status: 'accepted',
-      acceptedAt,
-      acceptedBy: acceptorUid,
-      inviteeUid: resolvedInviteeUid
-    };
+    await runTransaction(database, async (transaction) => {
+      const invSnap = await transaction.get(invitationRef);
+      if (!invSnap.exists()) throw new Error('Invitation not found');
 
-    // Update the top-level invitation record.
-    await setDoc(invitationRef, invitationUpdate, { merge: true });
+      const invitationData = invSnap.data() || {};
+      const resolvedInviteeUid = invitationData.inviteeUid || acceptorUid;
+      const acceptedAt = Date.now();
+      const invitationUpdate = {
+        status: 'accepted',
+        acceptedAt,
+        acceptedBy: acceptorUid,
+        inviteeUid: resolvedInviteeUid
+      };
 
-    // Also update the nested invitation record under the owner's viaje, if it exists.
-    if (invitationData.inviterId && invitationData.viajeId) {
-      const nestedInviteRef = doc(
-        database,
-        'usuarios',
-        invitationData.inviterId,
-        'viajes',
-        invitationData.viajeId,
-        'invitations',
-        resolvedInviteeUid
-      );
-      await setDoc(nestedInviteRef, invitationUpdate, { merge: true });
+      // Update the top-level invitation record.
+      transaction.set(invitationRef, invitationUpdate, { merge: true });
 
-      const viajeRef = doc(database, 'usuarios', invitationData.inviterId, 'viajes', invitationData.viajeId);
-      await setDoc(viajeRef, { sharedWith: arrayUnion(acceptorUid) }, { merge: true });
-    }
+      // Also update the nested invitation record under the owner's viaje, if it exists.
+      if (invitationData.inviterId && invitationData.viajeId) {
+        const nestedInviteRef = doc(
+          database,
+          'usuarios',
+          invitationData.inviterId,
+          'viajes',
+          invitationData.viajeId,
+          'invitations',
+          resolvedInviteeUid
+        );
+        transaction.set(nestedInviteRef, invitationUpdate, { merge: true });
+
+        const viajeRef = doc(database, 'usuarios', invitationData.inviterId, 'viajes', invitationData.viajeId);
+        transaction.set(viajeRef, { sharedWith: arrayUnion(acceptorUid) }, { merge: true });
+      }
+    });
 
     return true;
   } catch (err) {

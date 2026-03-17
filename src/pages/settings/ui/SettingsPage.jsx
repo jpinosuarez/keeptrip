@@ -142,7 +142,7 @@ const SettingsPage = ({ log = [] }) => {
   const initials = usuario?.displayName?.trim()?.[0]?.toUpperCase() || '';
 
   return (
-    <div style={s.page}>
+    <div style={s.page(isMobile)}>
 
       {/* ── Identity Card ── */}
       <Motion.section
@@ -410,15 +410,17 @@ const SettingsPage = ({ log = [] }) => {
 
 // ── Styles ──
 const s = {
-  page: {
+  page: (isMobile) => ({
+    width: '100%',
     maxWidth: '860px',
     margin: '0 auto',
-    padding: '24px 24px 80px',
+    padding: isMobile ? '16px 16px 80px' : '24px 24px 80px',
     display: 'flex',
     flexDirection: 'column',
     gap: '20px',
     overflowX: 'hidden',
-  },
+    boxSizing: 'border-box',
+  }),
   card: {
     background: '#fff',
     borderRadius: RADIUS.xl,

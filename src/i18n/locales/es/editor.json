@@ -109,6 +109,7 @@
   },
   "toast": {
     "uploadingPhotos": "Tus fotos se están subiendo...",
+    "uploadingPhotosDone": "Tus fotos se subieron correctamente.",
     "invitationSent": "Invitación enviada. Tu compañero recibirá un enlace para unirse.",
     "invitationCreated": "Invitación lista. Comparte el enlace con tu compañero.",
     "captionUpdated": "Descripción guardada."

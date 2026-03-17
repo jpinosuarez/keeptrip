@@ -144,7 +144,8 @@ const RailButton = ({ item, active, onClick }) => {
       <Icon
         size={22}
         strokeWidth={active ? 2.5 : 1.8}
-        fill={active ? 'currentColor' : 'none'}
+        stroke="currentColor"
+        fill="none"
         style={{
           filter: active ? `drop-shadow(0 0 6px ${COLORS.charcoalBlue}40)` : 'none',
           transition: 'filter 0.2s',

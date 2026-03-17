@@ -52,7 +52,11 @@ const StatPill = memo(({ stat }) => {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
     >
-      <span style={styles.icon}>{stat.icon || null}</span>
+      <div style={styles.iconWrap}>
+        <div style={styles.iconCircle}>
+          {stat.icon || null}
+        </div>
+      </div>
       <Motion.span className="travel-stats-value" style={styles.value}>{rounded}</Motion.span>
       <span className="travel-stats-label" style={styles.label}>{stat.label}</span>
     </Motion.div>
