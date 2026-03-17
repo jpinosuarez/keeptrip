@@ -29,13 +29,13 @@ test('invitee puede agregar su uid a sharedWith, pero no modificar otros campos'
     const viajeRef = adminDb.doc('usuarios/ownerUid/viajes/viaje1');
     await viajeRef.set({ titulo: 'Original', sharedWith: [] });
     const invRef = adminDb.doc('usuarios/ownerUid/viajes/viaje1/invitations/inviteeUid');
-    await invRef.set({ inviterId: 'ownerUid', inviteeUid: 'inviteeUid', viajeId: 'viaje1', status: 'pending' });
+    await invRef.set({ inviterId: 'ownerUid', inviteeUid: 'inviteeUid', viajeId: 'viaje1', status: 'accepted' });
   });
 
   const inviteeDb = testEnv.authenticatedContext('inviteeUid').firestore();
   const viajeRef = inviteeDb.doc('usuarios/ownerUid/viajes/viaje1');
 
-  // puede agregar su uid a sharedWith
+  // puede agregar su uid a sharedWith cuando la invitación está aceptada
   await assertSucceeds(viajeRef.update({ sharedWith: ['inviteeUid'] }));
 
   // NO puede modificar otros campos al mismo tiempo
@@ -57,17 +57,20 @@ test('owner puede actualizar campos y otros usuarios no pueden agregar sharedWit
   await assertFails(viajeRefAttacker.update({ sharedWith: ['attackerUid'] }));
 });
 
-test('attacker sin invitación NO puede agregar su uid a sharedWith', async () => {
-  // Viaje SIN documento de invitación para attackerUid
+test('invitee no puede agregar sharedWith si invitación NO está aceptada', async () => {
   await testEnv.withSecurityRulesDisabled(async (admin) => {
     const adminDb = admin.firestore();
-    await adminDb.doc('usuarios/ownerUid/viajes/viaje2').set({ titulo: 'Solo owner', sharedWith: [] });
+    const viajeRef = adminDb.doc('usuarios/ownerUid/viajes/viaje2');
+    await viajeRef.set({ titulo: 'Original', sharedWith: [] });
+    const invRef = adminDb.doc('usuarios/ownerUid/viajes/viaje2/invitations/inviteeUid');
+    await invRef.set({ inviterId: 'ownerUid', inviteeUid: 'inviteeUid', viajeId: 'viaje2', status: 'pending' });
   });
 
-  const attackerDb = testEnv.authenticatedContext('attackerUid').firestore();
-  const viajeRef = attackerDb.doc('usuarios/ownerUid/viajes/viaje2');
-  // No hay invitation → debe fallar
-  await assertFails(viajeRef.update({ sharedWith: ['attackerUid'] }));
+  const inviteeDb = testEnv.authenticatedContext('inviteeUid').firestore();
+  const viajeRef = inviteeDb.doc('usuarios/ownerUid/viajes/viaje2');
+
+  // Invitación pendiente → no se permite agregar sharedWith
+  await assertFails(viajeRef.update({ sharedWith: ['inviteeUid'] }));
 });
 
 test('invitación con inviterId falso (no coincide con owner del viaje) NO permite bypass', async () => {
