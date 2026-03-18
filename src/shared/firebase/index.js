@@ -71,11 +71,20 @@ if (useEmulators && isLocalhost) {
 const auth = getAuth(app);
 // Inicializar Firestore con caché persistente multi-tab (offline-first).
 // Usa IndexedDB para que queries funcionen sin conexión y escrituras se encolen.
-const db = initializeFirestore(app, {
-  localCache: isTestEnv
+const useMemoryCache = isTestEnv || useEmulators;
+const firestoreSettings = {
+  localCache: useMemoryCache
     ? memoryLocalCache()
     : persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
-});
+};
+
+if (useEmulators) {
+  // Playwright + Emulator can intermittently fail WebChannel streams; long polling is more stable in CI/E2E.
+  firestoreSettings.experimentalAutoDetectLongPolling = true;
+  firestoreSettings.useFetchStreams = false;
+}
+
+const db = initializeFirestore(app, firestoreSettings);
 const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 

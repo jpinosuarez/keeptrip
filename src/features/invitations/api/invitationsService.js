@@ -5,12 +5,12 @@ import {
   getDoc,
   getDocs,
   setDoc,
+  updateDoc,
   writeBatch,
   runTransaction,
   query,
   where,
   onSnapshot,
-  arrayUnion,
   orderBy
 } from 'firebase/firestore';
 import { db } from '@shared/firebase';
@@ -64,6 +64,21 @@ export const createInvitation = async ({ db: _db, inviterId, inviteeEmail = null
 export const acceptInvitation = async ({ db: _db, invitationId, acceptorUid }) => {
   const database = _db || db;
   try {
+    const withRetry = async (operation, maxAttempts = 3) => {
+      let lastError;
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+          return await operation();
+        } catch (error) {
+          lastError = error;
+          if (attempt < maxAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, attempt * 250));
+          }
+        }
+      }
+      throw lastError;
+    };
+
     const invitationRef = doc(database, 'invitations', invitationId);
 
     const invSnap = await getDoc(invitationRef);
@@ -73,11 +88,15 @@ export const acceptInvitation = async ({ db: _db, invitationId, acceptorUid }) =
 
     const invitationData = invSnap.data() || {};
     const resolvedInviteeUid = invitationData.inviteeUid || acceptorUid;
+    if (!resolvedInviteeUid) {
+      throw new Error('Cannot resolve inviteeUid for invitation acceptance');
+    }
+    const effectiveAcceptorUid = acceptorUid || resolvedInviteeUid;
     const acceptedAt = Date.now();
     const invitationUpdate = {
       status: 'accepted',
       acceptedAt,
-      acceptedBy: acceptorUid,
+      acceptedBy: effectiveAcceptorUid,
       inviteeUid: resolvedInviteeUid
     };
     
@@ -91,18 +110,12 @@ export const acceptInvitation = async ({ db: _db, invitationId, acceptorUid }) =
       resolvedInviteeUid
     });
 
-    // SEQUENCE IS CRITICAL for UI testing and security rules.
-    // 1 MUST happen first because the reading rules now depend on sharedWith
-    // 2 & 3 can happen after, for verification purposes
+    // SEQUENCE IS CRITICAL for security rules.
+    // 1) nested invitation must exist/update first
+    // 2) then trip sharedWith can be modified
+    // 3) finally top-level invitation is updated
     if (invitationData.inviterId && invitationData.viajeId) {
-      // 1. Update arrayUnion FIRST so invitee can read the trip immediately
-      const viajeRef = doc(database, 'usuarios', invitationData.inviterId, 'viajes', invitationData.viajeId);
-      await setDoc(viajeRef, { sharedWith: arrayUnion(acceptorUid) }, { merge: true });
-      if (import.meta.env.DEV) {
-        console.log('[acceptInvitation] Updated viaje sharedWith FIRST', { path: `usuarios/${invitationData.inviterId}/viajes/${invitationData.viajeId}`, userId: acceptorUid });
-      }
-
-      // 2. Update nested invitation (for verification and future expansions)
+      // 1. Update nested invitation first (required by firestore.rules)
       const nestedInviteRef = doc(
         database,
         'usuarios',
@@ -114,14 +127,36 @@ export const acceptInvitation = async ({ db: _db, invitationId, acceptorUid }) =
       );
       await setDoc(nestedInviteRef, invitationUpdate, { merge: true });
       if (import.meta.env.DEV) {
-        console.log('[acceptInvitation] Updated nested invitation', { path: `usuarios/${invitationData.inviterId}/viajes/${invitationData.viajeId}/invitations/${resolvedInviteeUid}` });
+        console.log('[acceptInvitation] Updated nested invitation FIRST', { path: `usuarios/${invitationData.inviterId}/viajes/${invitationData.viajeId}/invitations/${resolvedInviteeUid}` });
+      }
+
+      // 2. Then update sharedWith on the trip document
+      const viajeRef = doc(database, 'usuarios', invitationData.inviterId, 'viajes', invitationData.viajeId);
+      const viajeSnap = await withRetry(() => getDoc(viajeRef));
+      const currentSharedWith = Array.isArray(viajeSnap.data()?.sharedWith)
+        ? viajeSnap.data().sharedWith
+        : [];
+      const nextSharedWith = currentSharedWith.includes(resolvedInviteeUid)
+        ? currentSharedWith
+        : [...currentSharedWith, resolvedInviteeUid];
+      await withRetry(() => setDoc(viajeRef, { sharedWith: nextSharedWith }, { merge: true }));
+      if (import.meta.env.DEV) {
+        console.log('[acceptInvitation] Updated viaje sharedWith after nested invitation', { path: `usuarios/${invitationData.inviterId}/viajes/${invitationData.viajeId}`, userId: resolvedInviteeUid });
       }
     }
 
     // 3. Update the top-level invitation record last.
-    await setDoc(invitationRef, invitationUpdate, { merge: true });
+    await withRetry(() => updateDoc(invitationRef, {
+      status: 'accepted',
+      acceptedAt,
+      acceptedBy: effectiveAcceptorUid,
+      inviteeUid: resolvedInviteeUid
+    }));
     if (import.meta.env.DEV) {
-      console.log('[acceptInvitation] Updated top-level invitation', { id: invitationId });
+      console.log('[acceptInvitation] Updated top-level invitation with inviteeUid', {
+        id: invitationId,
+        inviteeUid: resolvedInviteeUid
+      });
     }
 
     // Verify the update was written successfully

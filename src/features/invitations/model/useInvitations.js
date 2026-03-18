@@ -13,7 +13,7 @@ export default function useInvitations() {
   }, [usuario?.uid]);
 
   const acceptInvitation = useCallback(async (invId) => {
-    if (!usuario) throw new Error('Not authenticated');
+    if (!usuario?.uid) throw new Error('Not authenticated');
     const result = await invitationsService.acceptInvitation({ db: null, invitationId: invId, acceptorUid: usuario.uid });
     
     if (result) {
@@ -25,7 +25,7 @@ export default function useInvitations() {
   }, [usuario]);
 
   const declineInvitation = useCallback(async (invId) => {
-    if (!usuario) throw new Error('Not authenticated');
+    if (!usuario?.uid) throw new Error('Not authenticated');
     return invitationsService.declineInvitation({ db: null, invitationId: invId, declinerUid: usuario.uid });
   }, [usuario]);
 

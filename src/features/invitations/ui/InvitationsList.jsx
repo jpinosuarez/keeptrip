@@ -114,9 +114,12 @@ export default function InvitationsList({ compact = false, hook = null }) {
             {inv.status === 'pending' ? (
               <>
                 <button
+                  type="button"
                   data-testid={`inv-accept-${inv.id}`}
                   aria-label={`Aceptar invitación de ${inviterLabel} para ${tripLabel}`}
                   onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     try {
                       const ok = await acceptInvitation(inv.id);
                       if (ok) {
@@ -135,9 +138,12 @@ export default function InvitationsList({ compact = false, hook = null }) {
                 >Aceptar</button>
 
                 <button
+                  type="button"
                   data-testid={`inv-decline-${inv.id}`}
                   aria-label={`Rechazar invitación de ${inviterLabel}`}
-                  onClick={async () => {
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     try {
                       const ok = await declineInvitation(inv.id);
                       if (ok) pushToast('Invitación rechazada', 'warning');

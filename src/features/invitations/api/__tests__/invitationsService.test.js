@@ -6,14 +6,16 @@ const {
   collectionMock,
   docMock,
   getDocMock,
-  setDocMock
+  setDocMock,
+  updateDocMock
 } = vi.hoisted(() => ({
   addDocMock: vi.fn(),
   arrayUnionMock: vi.fn((value) => value),
   collectionMock: vi.fn(),
   docMock: vi.fn(),
   getDocMock: vi.fn(),
-  setDocMock: vi.fn()
+  setDocMock: vi.fn(),
+  updateDocMock: vi.fn()
 }));
 
 vi.mock('@shared/firebase', () => ({
@@ -27,6 +29,7 @@ vi.mock('firebase/firestore', () => ({
   getDocs: vi.fn(),
   getDoc: getDocMock,
   setDoc: setDocMock,
+  updateDoc: updateDocMock,
   query: vi.fn(),
   where: vi.fn(),
   onSnapshot: vi.fn(),
@@ -43,6 +46,7 @@ describe('invitationsService.createInvitation', () => {
     collectionMock.mockReturnValue({ id: 'invitations-collection' });
     docMock.mockImplementation((...args) => ({ args, path: args.slice(1).join('/') }));
     setDocMock.mockResolvedValue(undefined);
+    updateDocMock.mockResolvedValue(undefined);
     addDocMock.mockResolvedValue({ id: 'generated-id' });
     getDocMock.mockResolvedValue({ exists: () => false });
   });
@@ -110,10 +114,10 @@ describe('invitationsService.createInvitation', () => {
     );
   });
 
-  it('accepts invitation and updates top-level invitation plus viaje.sharedWith', async () => {
+  it('accepts invitation and updates nested invitation, viaje.sharedWith and top-level invitation', async () => {
     getDocMock.mockResolvedValue({
       exists: () => true,
-      data: () => ({ inviterId: 'owner-1', inviteeUid: 'guest-1', viajeId: 'trip-1', status: 'pending' })
+      data: () => ({ inviterId: 'owner-1', inviteeUid: 'guest-1', viajeId: 'trip-1', status: 'pending', sharedWith: [] })
     });
 
     const ok = await acceptInvitation({
@@ -127,26 +131,25 @@ describe('invitationsService.createInvitation', () => {
       expect.objectContaining({ path: 'invitations/trip-1_guest-1' })
     );
 
-    expect(setDocMock).toHaveBeenCalledTimes(3);
+    expect(setDocMock).toHaveBeenCalledTimes(2);
     expect(setDocMock).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ path: 'invitations/trip-1_guest-1' }),
-      expect.objectContaining({ status: 'accepted', acceptedBy: 'guest-1', inviteeUid: 'guest-1' }),
-      { merge: true }
-    );
-
-    expect(setDocMock).toHaveBeenNthCalledWith(
-      2,
       expect.objectContaining({ path: 'usuarios/owner-1/viajes/trip-1/invitations/guest-1' }),
       expect.objectContaining({ status: 'accepted', acceptedBy: 'guest-1', inviteeUid: 'guest-1' }),
       { merge: true }
     );
 
     expect(setDocMock).toHaveBeenNthCalledWith(
-      3,
+      2,
       expect.objectContaining({ path: 'usuarios/owner-1/viajes/trip-1' }),
-      { sharedWith: 'guest-1' },
+      { sharedWith: ['guest-1'] },
       { merge: true }
+    );
+
+    expect(updateDocMock).toHaveBeenCalledTimes(1);
+    expect(updateDocMock).toHaveBeenCalledWith(
+      expect.objectContaining({ path: 'invitations/trip-1_guest-1' }),
+      expect.objectContaining({ status: 'accepted', acceptedBy: 'guest-1', inviteeUid: 'guest-1' })
     );
   });
 
@@ -182,5 +185,6 @@ describe('invitationsService.createInvitation', () => {
 
     expect(ok).toBe(false);
     expect(setDocMock).not.toHaveBeenCalled();
+    expect(updateDocMock).not.toHaveBeenCalled();
   });
 });
