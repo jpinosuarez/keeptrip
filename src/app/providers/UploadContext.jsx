@@ -55,12 +55,13 @@ export function UploadProvider({ children }) {
    * @returns {Promise<void>}
    */
   const iniciarSubida = useCallback(async (viajeId, files, portadaIndex = 0) => {
-    console.log('[UploadContext] Iniciando subida de', files?.length, 'archivos para viajeId:', viajeId, 'owner:', usuario?.uid);
-    if (!usuario || !viajeId || files.length === 0) {
-      const reason = !usuario ? 'usuario no autenticado' : !viajeId ? 'viajeId indefinido' : 'files vacíos';
-      console.warn('[UploadContext] iniciarSubida abortada:', reason);
-      return;
-    }
+    console.log('-> UPLOAD CONTEXT INVOCADO', { viajeId, filesLength: files?.length, usuarioUid: usuario?.uid });
+
+    if (!viajeId) throw new Error('Abortado: viajeId es undefined o nulo');
+    if (!files || files.length === 0) throw new Error('Abortado: array de files vacío');
+    if (!usuario) throw new Error('Abortado: objeto usuario no está listo en el Contexto');
+
+    console.log('Archivos a subir:', files.length);
 
     logger.info('Iniciando subida de fotos', { viajeId, totalFotos: files.length });
 
@@ -103,6 +104,8 @@ export function UploadProvider({ children }) {
     let exitosas = 0;
     let fallidas = 0;
 
+    console.log('UploadContext: Archivos a subir:', fotos?.length, 'viajeId:', viajeId);
+
     for (let i = 0; i < fotos.length; i++) {
       const foto = fotos[i];
       
@@ -116,15 +119,25 @@ export function UploadProvider({ children }) {
 
       try {
         // Subir la foto
-        const fotoId = await subirFotoGaleria({
-          storage,
-          db,
-          userId: usuario.uid,
-          viajeId,
-          file: foto.file,
-          metadata: { orden: foto.orden },
-          esPortada: foto.esPortada
-        });
+        let fotoId = null;
+        try {
+          fotoId = await subirFotoGaleria({
+            storage,
+            db,
+            userId: usuario.uid,
+            viajeId,
+            file: foto.file,
+            metadata: { orden: foto.orden },
+            esPortada: foto.esPortada
+          });
+        } catch (uploadError) {
+          logger.error('UploadContext: error individual en subirFotoGaleria', {
+            viajeId,
+            tempId: foto.id,
+            error: uploadError?.message || uploadError
+          });
+          throw uploadError;
+        }
 
         if (fotoId) {
           exitosas += 1;

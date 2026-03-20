@@ -75,22 +75,21 @@ export function GalleryUploader({
     const acceptedFiles = validFiles.slice(0, remainingSlots);
     const skippedByLimit = Math.max(0, validFiles.length - acceptedFiles.length);
 
-    if (invalidTypeCount > 0) {
-      pushToast(t('gallery.invalidFormat', { count: invalidTypeCount }), 'error');
-    }
-
-    if (invalidSizeCount > 0) {
-      pushToast(t('gallery.tooLarge', { count: invalidSizeCount, max: Math.round(MAX_FILE_SIZE / 1024 / 1024) }), 'error');
-    }
-
-    if (skippedByLimit > 0) {
-      pushToast(t('gallery.limitReached', { max: maxFiles, skipped: skippedByLimit }), 'info');
-    }
-
-    if (acceptedFiles.length === 0) return;
-
-    const updatedFiles = [...files, ...acceptedFiles];
-    // Notify parent immediately so React can re-render with skeleton state
+        incoming.forEach((file) => {
+          const isImage = file.type.startsWith('image/');
+          const isValidFormat = ['image/jpeg', 'image/jpg', 'image/png'].includes(file.type);
+          // FAIL FAST: Validar tamaño antes de previews o compresión
+          if (file.size > MAX_FILE_SIZE) {
+            pushToast(`La imagen ${file.name} es demasiado grande (Máx 15MB)`, 'error');
+            invalidSizeCount += 1;
+            return;
+          }
+          if (!isImage || !isValidFormat) {
+            invalidTypeCount += 1;
+            return;
+          }
+          validFiles.push(file);
+        });
     onChange(updatedFiles);
 
     // Yield main thread to React's commit phase before generating previews.
@@ -272,6 +271,12 @@ export function GalleryUploader({
   );
 }
 
+                  {/* Microcopy preventivo */}
+                  <div style={{ marginTop: 8 }}>
+                    <span style={{ fontSize: 12, color: '#6B7280' /* text-gray-500 */, display: 'block' }}>
+                      Formatos soportados: JPG, PNG. Optimizado automáticamente para ahorrar tus datos.
+                    </span>
+                  </div>
 const styles = {
   container: {
     width: '100%',

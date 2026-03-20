@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { db, storage } from '@shared/firebase';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '@app/providers/AuthContext';
 import { logger } from '@shared/lib/utils/logger';
 import {
@@ -43,7 +43,7 @@ export function useGaleriaViaje(viajeId, ownerId = null) {
     setError(null);
 
     const fotosRef = collection(db, `usuarios/${ownerUid}/viajes/${viajeId}/fotos`);
-    const q = query(fotosRef, orderBy('orden', 'asc'));
+    const q = query(fotosRef);
 
     const unsubscribe = onSnapshot(
       q,

@@ -8,7 +8,8 @@ import {
   orderBy,
   updateDoc,
   writeBatch,
-  Timestamp
+  Timestamp,
+  serverTimestamp
 } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes, deleteObject } from 'firebase/storage';
 import { compressImage } from '@shared/lib/utils/imageUtils';
@@ -36,76 +37,74 @@ export const subirFotoGaleria = async ({
   db, 
   userId, 
   viajeId, 
-  file, 
+  file: fileObj, 
   metadata = {}, 
   esPortada = false 
 }) => {
   try {
-    logger.debug('Comprimiendo imagen para galería', { 
-      fileName: file.name,
-      originalSize: file.size 
-    });
-
-    // Comprimir imagen
-    const compressed = await compressImage(file, 1920, 0.8);
-    
-    logger.debug('Imagen comprimida', {
-      originalSize: file.size,
-      compressedSize: compressed.size,
-      reduction: `${Math.round((1 - compressed.size / file.size) * 100)}%`
-    });
-
-    // Generar ID único para la foto
-    const fotoId = `foto_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Subir a Storage
-    const storageRef = ref(storage, `usuarios/${userId}/viajes/${viajeId}/galeria/${fotoId}.jpg`);
-    const contentType = file.type || 'image/jpeg';
-    await uploadBytes(storageRef, compressed.blob, { 
-      contentType,
-      customMetadata: {
-        originalName: file.name,
-        uploadedAt: new Date().toISOString()
-      }
-    });
-
-    // Obtener URL de descarga
-    const url = await getDownloadURL(storageRef);
-
-    // Crear documento en subcolección
-    const fotoData = {
-      url,
-      orden: metadata.orden ?? 0,
-      esPortada: esPortada || false,
-      caption: metadata.caption || null,
-      fechaCaptura: metadata.fechaCaptura || null,
-      size: compressed.size,
-      createdAt: Timestamp.now()
-    };
-
-    const fotoRef = await addDoc(
-      collection(db, `usuarios/${userId}/viajes/${viajeId}/fotos`),
-      fotoData
-    );
-
-    logger.info('Foto subida a galería', { 
-      fotoId: fotoRef.id,
-      viajeId,
-      esPortada,
-      size: compressed.size 
-    });
-
-    // Si es portada, actualizar documento del viaje
-    if (esPortada) {
-      await actualizarPortadaViaje({ db, userId, viajeId, fotoUrl: url });
+    // Si fileObj viene del uploader, puede ser un File puro o un objeto con la propiedad .file
+    const actualFile = fileObj instanceof File ? fileObj : fileObj?.file;
+    if (!actualFile) {
+      console.error('Objeto inválido pasado a subirFotoGaleria', fileObj);
+      throw new Error('No es un archivo válido');
     }
 
-    return fotoRef.id;
+    // Comprimir el archivo antes de subir para reducir fallos por tamaño en reglas de Storage
+    const compressedResult = await compressImage(actualFile, 1920, 0.8);
+    const compressedFile = compressedResult?.blob;
+    const fileToUpload = compressedFile instanceof Blob || compressedFile instanceof File
+      ? compressedFile
+      : actualFile;
+
+    console.log('subirFotoGaleria: Paso 1, intentado subir a Storage...', { viajeId, userId, fileName: actualFile.name, originalSize: actualFile.size, uploadSize: fileToUpload.size });
+
+    const storageRef = ref(storage, `usuarios/${userId}/viajes/${viajeId}/galeria/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpg`);
+
+    const metadataUpload = { contentType: fileToUpload.type || 'image/jpeg' };
+
+    await uploadBytes(storageRef, fileToUpload, metadataUpload);
+
+    console.log('subirFotoGaleria: Paso 2, storage OK. Obteniendo URL de descarga...');
+    const downloadUrl = await getDownloadURL(storageRef);
+    console.log('subirFotoGaleria: Paso 3, URL obtenida:', downloadUrl);
+
+    console.log('subirFotoGaleria: Paso 4, intentado escribir en Firestore subcolección fotos...');
+
+    let fotoDoc;
+
+    try {
+      const fotosRef = collection(db, 'usuarios', userId, 'viajes', viajeId, 'fotos');
+      fotoDoc = await addDoc(fotosRef, {
+        url: downloadUrl,
+        fileType: fileToUpload.type || actualFile.type,
+        createdAt: serverTimestamp(),
+        orden: metadata.orden ?? 0,
+        esPortada: esPortada || false,
+        caption: metadata.caption || null,
+        fechaCaptura: metadata.fechaCaptura || null,
+        size: fileToUpload.size
+      });
+
+      console.log('subirFotoGaleria: Paso 5, ¡ESCRITURA EN FIRESTORE EXITOSA!', fotoDoc.id);
+    } catch (writeError) {
+      console.error('❌ ERROR FATAL ESCRIBIENDO EN FIRESTORE:', writeError);
+      throw writeError;
+    }
+
+    if (esPortada) {
+      try {
+        await actualizarPortadaViaje({ db, userId, viajeId, fotoUrl: downloadUrl });
+      } catch (coverError) {
+        console.error('subirFotoGaleria: no se pudo actualizar portada tras subir foto', coverError);
+      }
+    }
+
+    return fotoDoc.id;
   } catch (error) {
     logger.error('Error subiendo foto a galería', {
-      error: error.message,
+      error: error?.message || error,
       viajeId,
-      fileName: file?.name
+      fileName: (fileObj instanceof File ? fileObj : fileObj?.file)?.name || null
     });
     return null;
   }

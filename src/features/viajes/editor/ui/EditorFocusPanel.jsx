@@ -9,6 +9,7 @@ import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { useEdicionModalLifecycle } from '../model/hooks/useEdicionModalLifecycle';
 import { useEdicionModalSave } from '../model/hooks/useEdicionModalSave';
 import { useAuth } from '@app/providers/AuthContext';
+import { useUpload } from '@app/providers/UploadContext';
 import { getFlagUrl } from '@shared/lib/utils/countryUtils';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 
@@ -58,6 +59,7 @@ const EditorFocusPanel = ({
   const { t } = useTranslation('editor');
   const { isMobile } = useWindowSize(768);
   const { usuario } = useAuth();
+  const uploadCtx = useUpload();
   const usuarioUid = usuario?.uid || null;
   const [isSavingManual, setIsSavingManual] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -129,10 +131,17 @@ const EditorFocusPanel = ({
     setCaptionDrafts: effectiveSetCaptionDrafts,
   });
 
+  const iniciarSubida = uploadCtx?.iniciarSubida;
+  const hasUploadContext = typeof iniciarSubida === 'function';
+  const { isUploading } = viaje?.id
+    ? (uploadCtx?.getEstadoViaje?.(viaje.id) || { isUploading: false })
+    : { isUploading: false };
+
   // Manual save handler (explicit, not auto-save)
   const handleSaveManual = useEdicionModalSave({
     isProcessingImage,
     isSaving: isSavingManual,
+    isUploading,
     formData: effectiveFormData,
     viaje,
     ciudadInicial,
@@ -140,8 +149,8 @@ const EditorFocusPanel = ({
     onSave,
     galleryFiles: effectiveGalleryFiles,
     galleryPortada: effectiveGalleryPortada,
-    hasUploadContext: true,
-    iniciarSubida: () => {},
+    hasUploadContext,
+    iniciarSubida,
     pushToast: () => {},
     t,
     limpiarEstado,

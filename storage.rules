@@ -20,18 +20,18 @@ service firebase.storage {
         ];
     }
 
-    // Helper: solo permitir imagenes y con tamano maximo de 2 MB.
+    // Helper: solo permitir imagenes y con tamano maximo de 5 MB.
     function isValidImageUpload() {
       return request.resource != null
         && request.resource.contentType.matches('image/.*')
-        && request.resource.size <= 2 * 1024 * 1024;
+        && request.resource.size <= 5 * 1024 * 1024;
     }
 
     match /usuarios/{userId}/{allPaths=**} {
       // Lectura unicamente para el dueno del espacio.
       allow read: if isOwner(userId);
 
-      // Escrituras de archivo (create/update) solo si es dueno y el archivo es imagen <= 2 MB.
+      // Escrituras de archivo (create/update) solo si es dueno y el archivo es imagen <= 5 MB.
       allow create, update: if isOwner(userId) && isValidImageUpload();
 
       // Borrado permitido solo al dueno.

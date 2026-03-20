@@ -86,6 +86,7 @@ export function useEdicionModalSave({
 
       if (galleryFiles.length > 0) {
         console.log('Subiendo a viajeId:', savedViajeId, 'con files:', galleryFiles.length, 'portadaIndex:', galleryPortada);
+        console.log('Referencia a iniciarSubida:', iniciarSubida?.toString?.());
 
         if (hasUploadContext) {
           try {
