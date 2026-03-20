@@ -87,6 +87,8 @@ export function useEdicionModalSave({
       }
 
       if (galleryFiles.length > 0) {
+        console.log('Subiendo a viajeId:', savedViajeId, 'con files:', galleryFiles.length, 'portadaIndex:', galleryPortada);
+
         if (hasUploadContext) {
           try {
             pushToast(t('toast.uploadingPhotos'), 'info');
@@ -95,9 +97,11 @@ export function useEdicionModalSave({
           } catch (uploadError) {
             console.error('Upload error:', uploadError);
             pushToast(t('gallery.errorUploadFailed', { ns: 'gallery' }), 'error');
+            throw uploadError; // evitar cierre silencioso y forzar retry en UI
           }
         } else {
           pushToast(t('error.unexpectedError'), 'error');
+          throw new Error('Upload context no disponible');
         }
       }
 

@@ -29,6 +29,7 @@ export function useGaleriaViaje(viajeId, ownerId = null) {
    * Carga las fotos del viaje desde Firestore
    */
   const cargarFotos = useCallback(async () => {
+    console.log('[useGaleriaViaje] cargarFotos ownerUid:', ownerUid, 'viajeId:', viajeId);
     if (!ownerUid || !viajeId) {
       setFotos([]);
       return;

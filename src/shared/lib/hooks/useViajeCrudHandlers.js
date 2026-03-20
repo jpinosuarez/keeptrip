@@ -48,6 +48,7 @@ export function useViajeCrudHandlers({
         }
 
         const nuevoId = await guardarNuevoViaje(datosViaje, todasLasParadasLocal);
+        console.log('[useViajeCrudHandlers] nuevoId devuelto de guardarNuevoViaje:', nuevoId);
         if (nuevoId) {
           setViajeBorrador(null);
           setCiudadInicialBorrador(null);

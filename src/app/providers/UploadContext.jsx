@@ -55,7 +55,12 @@ export function UploadProvider({ children }) {
    * @returns {Promise<void>}
    */
   const iniciarSubida = useCallback(async (viajeId, files, portadaIndex = 0) => {
-    if (!usuario || !viajeId || files.length === 0) return;
+    console.log('[UploadContext] Iniciando subida de', files?.length, 'archivos para viajeId:', viajeId, 'owner:', usuario?.uid);
+    if (!usuario || !viajeId || files.length === 0) {
+      const reason = !usuario ? 'usuario no autenticado' : !viajeId ? 'viajeId indefinido' : 'files vacíos';
+      console.warn('[UploadContext] iniciarSubida abortada:', reason);
+      return;
+    }
 
     logger.info('Iniciando subida de fotos', { viajeId, totalFotos: files.length });
 

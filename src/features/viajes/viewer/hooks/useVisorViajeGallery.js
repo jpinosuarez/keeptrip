@@ -8,6 +8,7 @@ export function useVisorViajeGallery({
   getEstadoViaje,
   reintentarFoto,
 }) {
+  console.log('[useVisorViajeGallery] ownerUid:', ownerUid, 'viajeId:', viajeId);
   const galeria = useGaleriaViaje(viajeId, ownerUid);
   const [captionDrafts, setCaptionDrafts] = useState({});
   const [showGalleryTools, setShowGalleryTools] = useState(false);

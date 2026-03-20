@@ -342,7 +342,7 @@ export const useViajes = () => {
       logger.info('Guardando nuevo viaje', { 
         userId: usuario.uid,
         paisCodigo: datosViajeNormalizados.code,
-        totalParadas: paradasProcesadas.length 
+        totalParadas: paradasProcesados.length 
       });
 
       const viajeId = await guardarViajeConParadas({
@@ -351,6 +351,11 @@ export const useViajes = () => {
         viaje: payloadViaje,
         paradas: paradasProcesadas
       });
+      console.log('[useViajes] viajeId devuelto desde guardarViajeConParadas:', viajeId);
+
+      if (!viajeId) {
+        throw new Error('No se obtuvo viajeId al crear viaje');
+      }
 
       if (esFotoParaStorage) {
         try {
