@@ -60,8 +60,9 @@ export const subirFotoGaleria = async ({
     
     // Subir a Storage
     const storageRef = ref(storage, `usuarios/${userId}/viajes/${viajeId}/galeria/${fotoId}.jpg`);
+    const contentType = file.type || 'image/jpeg';
     await uploadBytes(storageRef, compressed.blob, { 
-      contentType: 'image/jpeg',
+      contentType,
       customMetadata: {
         originalName: file.name,
         uploadedAt: new Date().toISOString()

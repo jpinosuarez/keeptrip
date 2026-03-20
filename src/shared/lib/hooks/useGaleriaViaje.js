@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { db, storage } from '@shared/firebase';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '@app/providers/AuthContext';
 import { logger } from '@shared/lib/utils/logger';
 import {
@@ -26,8 +27,59 @@ export function useGaleriaViaje(viajeId, ownerId = null) {
   const [error, setError] = useState(null);
 
   /**
-   * Carga las fotos del viaje desde Firestore
+   * Carga las fotos del viaje desde Firestore (no backoff). 
+   * Se usa un snapshot en tiempo real para evitar condiciones de carrera post-upload.
    */
+  useEffect(() => {
+    if (!ownerUid || !viajeId) {
+      setFotos([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
+    logger.info('Subscribiendo galería de viaje', { ownerUid, viajeId });
+    setLoading(true);
+    setError(null);
+
+    const fotosRef = collection(db, `usuarios/${ownerUid}/viajes/${viajeId}/fotos`);
+    const q = query(fotosRef, orderBy('orden', 'asc'));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const fotosData = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+          createdAt: docSnap.data().createdAt?.toDate?.() || null,
+        }));
+
+        setFotos(fotosData);
+        setLoading(false);
+
+        logger.debug('Galería actualizada por snapshot', {
+          ownerUid,
+          viajeId,
+          totalFotos: fotosData.length,
+        });
+      },
+      (err) => {
+        logger.error('Error en subscription de galería', {
+          ownerUid,
+          viajeId,
+          error: err.message,
+        });
+        setError(err);
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      unsubscribe();
+      logger.info('Desuscribiendo galería de viaje', { ownerUid, viajeId });
+    };
+  }, [ownerUid, viajeId]);
+
   const cargarFotos = useCallback(async () => {
     console.log('[useGaleriaViaje] cargarFotos ownerUid:', ownerUid, 'viajeId:', viajeId);
     if (!ownerUid || !viajeId) {
@@ -39,7 +91,7 @@ export function useGaleriaViaje(viajeId, ownerId = null) {
     setError(null);
 
     try {
-      logger.debug('Cargando fotos de galería', { viajeId });
+      logger.debug('Cargando fotos de galería (manual)', { viajeId });
       
       const fotosData = await obtenerFotosViaje({
         db,
@@ -49,7 +101,7 @@ export function useGaleriaViaje(viajeId, ownerId = null) {
 
       setFotos(fotosData);
       
-      logger.debug('Fotos cargadas', { 
+      logger.debug('Fotos cargadas (manual)', { 
         viajeId, 
         totalFotos: fotosData.length 
       });

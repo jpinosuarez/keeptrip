@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { X, LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -96,7 +96,7 @@ const EditorFocusPanel = ({
   }, [viaje?.id]);
 
   // Check for unsaved changes
-  const hasUnsavedChanges = useCallback(() => {
+  const hasUnsavedChanges = () => {
     const current = {
       form: structuredClone(effectiveFormData),
       paradas: structuredClone(effectiveParadas),
@@ -106,7 +106,7 @@ const EditorFocusPanel = ({
       paradas: initialParadasRef.current || [],
     };
     return JSON.stringify(current) !== JSON.stringify(initial);
-  }, [effectiveFormData, effectiveParadas]);
+  };
 
   const {
     isTituloAuto: autoTitleMode,
@@ -154,7 +154,7 @@ const EditorFocusPanel = ({
   });
 
   // Manual save wrapper with loading state
-  const handleSaveWithLoading = useCallback(async () => {
+  const handleSaveWithLoading = async () => {
     setIsSavingManual(true);
     try {
       const savedId = await handleSaveManual();
@@ -172,16 +172,16 @@ const EditorFocusPanel = ({
     } finally {
       setIsSavingManual(false);
     }
-  }, [handleSaveManual, limpiarEstado, onClose]);
+  };
 
-  const handleConfirmClose = useCallback(() => {
+  const handleConfirmClose = () => {
     setShowConfirmModal(false);
     isClosingRef.current = true;
     limpiarEstado();
     onClose();
-  }, [limpiarEstado, onClose]);
+  };
 
-  const handleClose = useCallback(() => {
+  const handleClose = () => {
     if (isClosingRef.current) return;
 
     // GUARDRAIL: Check for unsaved changes
@@ -193,7 +193,7 @@ const EditorFocusPanel = ({
     isClosingRef.current = true;
     limpiarEstado();
     onClose();
-  }, [hasUnsavedChanges, limpiarEstado, onClose]);
+  };
 
   // Prevent background scroll while the panel is open (iOS-friendly)
   useEffect(() => {
@@ -253,17 +253,17 @@ const EditorFocusPanel = ({
   if (!viaje) return null;
 
   // Cover picker handlers
-  const handleOpenCoverPicker = useCallback(() => {
+  const handleOpenCoverPicker = () => {
     setShowCoverPicker(true);
-  }, []);
+  };
 
-  const handleSelectCover = useCallback((coverUrl, coverId) => {
+  const handleSelectCover = (coverUrl, coverId) => {
     effectiveSetFormData((prev) => ({
       ...prev,
       portadaUrl: coverUrl,
     }));
     setShowCoverPicker(false);
-  }, [effectiveSetFormData]);
+  };
 
   const flagUrl = viaje.banderas?.[0] ? getFlagUrl(viaje.banderas[0]) : null;
   const isBusy = isSaving || isProcessingImage;

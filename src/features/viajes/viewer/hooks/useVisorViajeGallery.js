@@ -20,7 +20,11 @@ export function useVisorViajeGallery({
   useEffect(() => {
     const fotosExitosas = (fotosSubiendo || []).filter((f) => f.status === 'success');
     if (fotosExitosas.length > 0 && !isUploading) {
-      galeria.recargar?.();
+      // A veces la escritura de Firestore tarda unos ms en propagarse, forzamos recarga.
+      const timeout = setTimeout(() => {
+        galeria.recargar?.();
+      }, 250);
+      return () => clearTimeout(timeout);
     }
   }, [fotosSubiendo, isUploading, galeria]);
 

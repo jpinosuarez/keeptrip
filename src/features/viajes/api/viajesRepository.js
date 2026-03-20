@@ -49,6 +49,7 @@ export const suscribirViajesConParadas = ({ db, userId, onData, onError }) => {
 };
 
 export const guardarViajeConParadas = async ({ db, userId, viaje, paradas = [] }) => {
+  console.log('[viajesRepository] guardarViajeConParadas start', { userId, viajeId: viaje?.id, viaje, paradas });
   const batch = writeBatch(db);
   const viajeRef = doc(collection(db, `usuarios/${userId}/viajes`));
   batch.set(viajeRef, viaje);
@@ -58,7 +59,14 @@ export const guardarViajeConParadas = async ({ db, userId, viaje, paradas = [] }
     batch.set(paradaRef, parada);
   });
 
-  await batch.commit();
+  try {
+    await batch.commit();
+  } catch (err) {
+    console.error('[viajesRepository] guardarViajeConParadas commit error', err);
+    throw err;
+  }
+
+  console.log('[viajesRepository] guardarViajeConParadas success', { viajeId: viajeRef.id });
   return viajeRef.id;
 };
 

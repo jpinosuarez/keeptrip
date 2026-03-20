@@ -279,6 +279,7 @@ export const useViajes = () => {
   );
 
   const guardarNuevoViaje = async (datosViaje, paradas = []) => {
+    console.log('[useViajes] guardarNuevoViaje params:', { datosViaje, paradas, usuario: usuario?.uid });
     if (!usuario) return null;
 
     const tituloDefault = isNonEmptyString(datosViaje?.nombreEspanol)
@@ -295,6 +296,7 @@ export const useViajes = () => {
     const titulo = generarTituloInteligente(datosViajeNormalizados.nombreEspanol, paradas);
     const validacion = validarDatosViaje({ datosViaje: datosViajeNormalizados, paradas, tituloGenerado: titulo });
     if (!validacion.esValido) {
+      console.warn('[useViajes] validacion fallida', { validacion, datosViajeNormalizados, paradas });
       toast.warning(validacion.mensaje);
       return null;
     }
@@ -309,7 +311,7 @@ export const useViajes = () => {
     const ciudades = construirCiudadesViaje(paradas);
     const ciudadesLista = [...new Set(paradas.map((parada) => parada.nombre).filter(isNonEmptyString))];
 
-    const paradasPromise = Promise.all(
+    const paradasProcesadas = await Promise.all(
       paradas.map(async (parada) => {
         const fechaUso = parada.fecha || datosViajeNormalizados.fechaInicio || getTodayIsoDate();
         const climaInfo = await obtenerClimaHistoricoSeguro(
@@ -320,8 +322,6 @@ export const useViajes = () => {
         return construirParadaPayload(parada, fechaUso, climaInfo);
       })
     );
-
-    const [paradasProcesadas] = await Promise.all([paradasPromise]);
 
     const payloadViaje = construirViajePayload({
       datosViaje: datosViajeNormalizados,
@@ -342,7 +342,7 @@ export const useViajes = () => {
       logger.info('Guardando nuevo viaje', { 
         userId: usuario.uid,
         paisCodigo: datosViajeNormalizados.code,
-        totalParadas: paradasProcesados.length 
+        totalParadas: paradasProcesadas.length 
       });
 
       const viajeId = await guardarViajeConParadas({
@@ -384,9 +384,10 @@ export const useViajes = () => {
       toast.success('Viaje guardado');
       return viajeId;
     } catch (saveError) {
+      console.error('[useViajes] saveError completo:', saveError);
       logger.error('Error guardando viaje', { 
-        error: saveError.message,
-        stack: saveError.stack,
+        error: saveError?.message || saveError,
+        stack: saveError?.stack || null,
         userId: usuario.uid,
         paisCodigo: datosViajeNormalizados.code
       });

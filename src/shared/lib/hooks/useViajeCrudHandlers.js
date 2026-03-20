@@ -32,10 +32,14 @@ export function useViajeCrudHandlers({
 
   // PHASE 1: Pure database persistence (no UI side-effects)
   const saveTripToDb = useCallback(async (id, datosCombinados) => {
+    // Aseguramos que valores falsy de id se traten como nuevo viaje para no fallar
+    const targetId = id || 'new';
     const { paradasNuevas, ...datosViaje } = datosCombinados;
 
+    console.log('[useViajeCrudHandlers] saveTripToDb targetId:', targetId, 'datosViaje:', datosViaje);
+
     try {
-      if (id === 'new') {
+      if (targetId === 'new') {
         const todasLasParadasLocal = [...(paradasNuevas || [])];
         if (ciudadInicialBorrador) {
           const yaExiste = todasLasParadasLocal.some((p) => p.nombre === ciudadInicialBorrador.nombre);

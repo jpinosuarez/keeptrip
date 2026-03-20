@@ -1,5 +1,3 @@
-import { useCallback } from 'react';
-
 function resolveSavedViajeId(saveResult, viajeId) {
   if (typeof saveResult === 'string' && saveResult.trim()) return saveResult;
   if (saveResult && typeof saveResult === 'object' && typeof saveResult.id === 'string') return saveResult.id;
@@ -26,7 +24,7 @@ export function useEdicionModalSave({
   onClose,
   onAfterSave,
 }) {
-  return useCallback(async () => {
+  const handleSave = async () => {
     const normalizeDate = (value) => {
       if (!value && value !== 0) return null;
       if (typeof value === 'number' && !Number.isFinite(value)) return null;
@@ -120,22 +118,7 @@ export function useEdicionModalSave({
       pushToast(mensaje, 'error');
       return null;
     }
-  }, [
-    ciudadInicial,
-    formData,
-    galleryFiles,
-    galleryPortada,
-    hasUploadContext,
-    iniciarSubida,
-    isProcessingImage,
-    isSaving,
-    limpiarEstado,
-    onAfterSave,
-    onClose,
-    onSave,
-    paradas,
-    pushToast,
-    t,
-    viaje,
-  ]);
+  };
+
+  return handleSave;
 }
