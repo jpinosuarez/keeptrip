@@ -42,6 +42,8 @@ function AppShell() {
     eliminarViaje,
     agregarParada,
     loading: loadingViajes,
+    fetchError,
+    isError,
   } = useViajes();
 
   const {
@@ -135,6 +137,8 @@ function AppShell() {
       bitacoraData,
       todasLasParadas,
       loadingViajes,
+      fetchError,
+      isError,
       guardarNuevoViaje,
       actualizarDetallesViaje,
       actualizarParadaHook,

@@ -103,6 +103,7 @@ export const useViajes = () => {
   const [todasLasParadas, setTodasLasParadas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [fetchError, setFetchError] = useState(null);
 
   useEffect(() => {
     if (!usuario) {
@@ -112,6 +113,7 @@ export const useViajes = () => {
       setTodasLasParadas([]);
       setLoading(false);
       setError(null);
+      setFetchError(null);
       return;
     }
 
@@ -121,6 +123,7 @@ export const useViajes = () => {
 
     setLoading(true);
     setError(null);
+    setFetchError(null);
 
     const unsubscribe = suscribirViajesConParadas({
       db,
@@ -146,6 +149,7 @@ export const useViajes = () => {
           const compartidasPrev = prev.filter((item) => item.ownerId !== usuario.uid);
           return [...paradasConOwner, ...compartidasPrev];
         });
+        setFetchError(null);
         setLoading(false);
       },
       onError: (snapshotError) => {
@@ -158,6 +162,7 @@ export const useViajes = () => {
           'viajes-subscription',
           'No pudimos sincronizar tu bitacora. Reintentaremos automaticamente.'
         );
+        setFetchError(snapshotError);
         setError(snapshotError);
         setLoading(false);
       }
@@ -592,6 +597,8 @@ export const useViajes = () => {
     actualizarDetallesViaje,
     eliminarViaje: eliminar,
     loading,
-    error
+    error,
+    fetchError,
+    isError: !!fetchError,
   };
 };

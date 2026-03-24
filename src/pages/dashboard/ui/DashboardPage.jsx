@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { motion as Motion } from 'framer-motion';
-import { AlertTriangle, Compass, Calendar, Globe, MapPin, ArrowRight, Sparkles } from 'lucide-react';
+import { AlertTriangle, Compass, Calendar, Globe, MapPin, ArrowRight, Sparkles, WifiOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@app/providers/AuthContext';
@@ -18,7 +18,7 @@ import WelcomeBento from './components/WelcomeBento';
 import EmptyDashboardState from './components/EmptyDashboardState';
 import TripCard from '@widgets/tripGrid/ui/TripCard';
 
-const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, loading = false }) => {
+const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, loading = false, isError = false, fetchError = null }) => {
   const { usuario } = useAuth();
   const navigate = useNavigate();
   const { openBuscador } = useUI();
@@ -53,15 +53,22 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
 
   const mapFallback = (
     <div style={styles.mapErrorFallback(isMobile)} role="status" aria-live="polite">
-      <AlertTriangle size={20} color={COLORS.warning} />
-      <p style={styles.mapErrorText}>{t('mapUnavailable', 'El mapa no esta disponible ahora mismo.')}</p>
-      <button
-        type="button"
-        style={styles.mapRetryBtn}
-        onClick={() => setMapRenderKey((prev) => prev + 1)}
-      >
-        {t('retryMap', 'Reintentar mapa')}
-      </button>
+      <div style={styles.mapErrorBackdrop} aria-hidden="true">
+        <div style={styles.mapErrorGlowA} />
+        <div style={styles.mapErrorGlowB} />
+        <div style={styles.mapErrorGrid} />
+      </div>
+      <div style={styles.mapErrorPanel}>
+        <AlertTriangle size={20} color={COLORS.warning} />
+        <p style={styles.mapErrorText}>{t('mapUnavailable', 'El mapa no esta disponible ahora mismo.')}</p>
+        <button
+          type="button"
+          style={styles.mapRetryBtn}
+          onClick={() => setMapRenderKey((prev) => prev + 1)}
+        >
+          {t('retryMap', 'Reintentar mapa')}
+        </button>
+      </div>
     </div>
   );
 
@@ -101,6 +108,16 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
           <div style={styles.cardsList(isMobile)} className="custom-scroll">
             {loading ? (
               <SkeletonList count={3} Component={TripCardSkeleton} />
+            ) : isError ? (
+              <div style={styles.dashboardErrorCard} role="status" aria-live="polite">
+                <WifiOff size={18} color={COLORS.warning} />
+                <p style={styles.dashboardErrorText}>
+                  {t('loadTripsError', "We couldn't load your trips. Please check your connection.")}
+                </p>
+                {fetchError?.message && (
+                  <p style={styles.dashboardErrorHint}>{fetchError.message}</p>
+                )}
+              </div>
             ) : !isNewTraveler ? (
               recentTrips.map((trip) => (
                 <TripCard 

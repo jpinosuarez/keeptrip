@@ -81,7 +81,32 @@ export const ToastProvider = ({ children }) => {
       action: normalized.action || null,
     };
 
-    setToasts((prev) => [...prev, nextToast]);
+    setToasts((prev) => {
+      const existingIndex = prev.findIndex(
+        (toast) => toast.type === nextToast.type && toast.message === nextToast.message
+      );
+
+      if (existingIndex === -1) {
+        return [...prev, nextToast];
+      }
+
+      const existing = prev[existingIndex];
+      const timeoutId = timeoutsRef.current[existing.id];
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+        delete timeoutsRef.current[existing.id];
+      }
+
+      const next = [...prev];
+      next[existingIndex] = {
+        ...existing,
+        duration: nextToast.duration,
+        persistent: nextToast.persistent,
+        action: nextToast.action || existing.action,
+        refreshedAt: Date.now(),
+      };
+      return next;
+    });
   }, []);
 
   React.useEffect(() => {

@@ -113,21 +113,73 @@ export const styles = {
   }),
 
   mapErrorFallback: (isMobile) => ({
+    position: 'relative',
     width: '100%',
     height: '100%',
     minHeight: isMobile ? '160px' : '220px',
     display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
     justifyContent: 'center',
-    gap: '10px',
     padding: '16px',
-    textAlign: 'center',
+    overflow: 'hidden',
     color: COLORS.textPrimary,
-    background: `linear-gradient(160deg, ${COLORS.surface} 0%, ${COLORS.background} 100%)`,
+    background: `linear-gradient(160deg, ${COLORS.background} 0%, ${COLORS.surface} 56%, #f1f5f9 100%)`,
     border: `1px solid ${COLORS.border}`,
     borderRadius: RADIUS.xl,
   }),
+
+  mapErrorBackdrop: {
+    position: 'absolute',
+    inset: 0,
+    filter: 'blur(0.2px)',
+  },
+
+  mapErrorGlowA: {
+    position: 'absolute',
+    width: '56%',
+    aspectRatio: '1 / 1',
+    top: '-22%',
+    right: '-8%',
+    borderRadius: '50%',
+    background: `${COLORS.atomicTangerine}28`,
+    filter: 'blur(18px)',
+  },
+
+  mapErrorGlowB: {
+    position: 'absolute',
+    width: '62%',
+    aspectRatio: '1 / 1',
+    left: '-22%',
+    bottom: '-30%',
+    borderRadius: '50%',
+    background: `${COLORS.mutedTeal}30`,
+    filter: 'blur(20px)',
+  },
+
+  mapErrorGrid: {
+    position: 'absolute',
+    inset: 0,
+    opacity: 0.4,
+    backgroundImage: `linear-gradient(${COLORS.border} 1px, transparent 1px), linear-gradient(90deg, ${COLORS.border} 1px, transparent 1px)`,
+    backgroundSize: '36px 36px',
+    maskImage: 'radial-gradient(circle at 60% 40%, black 30%, transparent 90%)',
+  },
+
+  mapErrorPanel: {
+    position: 'relative',
+    zIndex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '10px',
+    width: 'min(92%, 380px)',
+    padding: '16px',
+    textAlign: 'center',
+    borderRadius: RADIUS.lg,
+    border: `1px solid ${COLORS.border}`,
+    background: 'rgba(255, 255, 255, 0.72)',
+    backdropFilter: 'blur(8px)',
+    boxShadow: SHADOWS.md,
+  },
 
   mapErrorText: {
     margin: 0,
@@ -138,16 +190,17 @@ export const styles = {
   },
 
   mapRetryBtn: {
-    border: 'none',
+    border: `1px solid ${COLORS.atomicTangerine}55`,
     borderRadius: RADIUS.full,
     backgroundColor: COLORS.atomicTangerine,
     color: COLORS.surface,
     minHeight: '44px',
-    padding: '10px 16px',
+    padding: '10px 18px',
     fontSize: '0.86rem',
     fontWeight: 700,
     cursor: 'pointer',
-    boxShadow: `0 6px 14px ${COLORS.atomicTangerine}45`,
+    letterSpacing: '0.01em',
+    boxShadow: `0 10px 20px ${COLORS.atomicTangerine}40`,
   },
 
   recentsContainer: {
@@ -199,5 +252,35 @@ export const styles = {
     paddingBottom: isMobile ? '0' : '8px',
     scrollbarWidth: 'none',
   }),
+
+  dashboardErrorCard: {
+    gridColumn: '1 / -1',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '8px',
+    padding: '14px',
+    borderRadius: RADIUS.lg,
+    border: `1px solid ${COLORS.border}`,
+    background: `linear-gradient(180deg, ${COLORS.surface} 0%, ${COLORS.background} 100%)`,
+    boxShadow: SHADOWS.sm,
+    minWidth: 0,
+  },
+
+  dashboardErrorText: {
+    margin: 0,
+    fontSize: '0.9rem',
+    lineHeight: 1.4,
+    fontWeight: 700,
+    color: COLORS.textPrimary,
+  },
+
+  dashboardErrorHint: {
+    margin: 0,
+    fontSize: '0.8rem',
+    lineHeight: 1.35,
+    color: COLORS.textSecondary,
+    overflowWrap: 'anywhere',
+  },
 
 };

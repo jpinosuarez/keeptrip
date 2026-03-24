@@ -64,6 +64,8 @@ function DashboardRoute() {
         logData={data.bitacoraData}
         isMobile={view.isMobile}
         loading={data.loadingViajes}
+        isError={data.isError}
+        fetchError={data.fetchError}
       />
     </Suspense>
   );

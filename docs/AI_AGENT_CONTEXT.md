@@ -38,7 +38,7 @@ Keeptrip is not a "folder-by-type" project. It is a **Domain-Driven** project:
 
 ---
 
-## 🎨 3. UI/UX & DESIGN SYSTEM (THE "IMPECCABLE" STANDARD)
+## 🎨 3. UI/UX & DESIGN SYSTEM
 - **Mobile-First:** Minimum Touch Target is **44x44px** (Actions: 56px).
 - **Design Tokens:** Use `theme.js` (e.g., `props.theme.colors.atomicTangerine`, `props.theme.shadows.float`).
 - **Motion:** Use `framer-motion` with **Spring Physics**.
