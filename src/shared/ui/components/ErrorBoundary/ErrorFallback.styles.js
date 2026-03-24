@@ -15,10 +15,11 @@ const styles = {
   },
   card: {
     backgroundColor: COLORS.surface || '#FFFFFF',
-    borderRadius: RADIUS.lg || '32px',
+    borderRadius: RADIUS.xl || '24px',
     boxShadow: SHADOWS.lg || '0 8px 32px rgba(44,62,80,0.12)',
     padding: 'clamp(32px, 6vw, 48px)',
-    maxWidth: '600px',
+    border: `1px solid ${COLORS.border || '#E2E8F0'}`,
+    maxWidth: '560px',
     width: '100%',
     textAlign: 'center',
   },
@@ -36,11 +37,16 @@ const styles = {
   description: {
     fontSize: 'clamp(15px, 2vw, 18px)',
     color: COLORS.textSecondary || '#6B7280',
-    marginBottom: '24px',
+    marginBottom: '12px',
     lineHeight: 1.6,
   },
+  hintText: {
+    fontSize: 'clamp(13px, 1.6vw, 15px)',
+    color: COLORS.textTertiary || '#475569',
+    marginBottom: '20px',
+  },
   errorDetails: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: `${COLORS.danger || '#EF4444'}12`,
     border: `1px solid ${(COLORS.danger || '#FF6B35')}20`,
     borderRadius: RADIUS.sm || '16px',
     padding: '16px',
@@ -55,9 +61,10 @@ const styles = {
   },
   errorMessage: {
     fontSize: 'clamp(12px, 1vw, 14px)',
-    color: '#991B1B',
+    color: COLORS.textPrimary || '#1E293B',
     fontFamily: FONTS.mono || 'monospace',
     overflow: 'auto',
+    overflowWrap: 'anywhere',
     margin: 0,
     padding: '8px',
     backgroundColor: COLORS.surface || '#FFFFFF',
@@ -72,14 +79,13 @@ const styles = {
     fontWeight: 600,
     color: COLORS.textSecondary || '#6B7280',
     marginBottom: '8px',
-    outline: '2px solid #FF6B35', // Focus-visible
-    outlineOffset: '2px',
   },
   stackCode: {
     fontSize: 'clamp(11px, 1vw, 13px)',
     color: COLORS.textSecondary || '#6B7280',
     fontFamily: FONTS.mono || 'monospace',
     overflow: 'auto',
+    overflowWrap: 'anywhere',
     maxHeight: '200px',
     margin: '8px 0 0',
     padding: '8px',
@@ -107,13 +113,11 @@ const styles = {
     gap: '8px',
     transition: TRANSITIONS.fast || 'all 0.2s',
     minHeight: '44px',
-    outline: '2px solid #FF6B35', // Focus-visible
-    outlineOffset: '2px',
   },
   secondaryButton: {
     backgroundColor: 'transparent',
     color: COLORS.textPrimary || '#2C3E50',
-    border: `2px solid ${COLORS.border || '#E5E7EB'}`,
+    border: `1px solid ${COLORS.border || '#E5E7EB'}`,
     borderRadius: RADIUS.full || '999px',
     padding: '14px 28px', // Touch target >=44px
     fontSize: 'clamp(15px, 2vw, 18px)',
@@ -124,8 +128,6 @@ const styles = {
     gap: '8px',
     transition: TRANSITIONS.fast || 'all 0.2s',
     minHeight: '44px',
-    outline: '2px solid #FF6B35', // Focus-visible
-    outlineOffset: '2px',
   },
   supportText: {
     fontSize: 'clamp(13px, 1.5vw, 16px)',

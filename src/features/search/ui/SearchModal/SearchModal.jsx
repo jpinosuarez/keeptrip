@@ -35,12 +35,14 @@ const SearchModal = ({
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const lastNoResult = useRef("");
   const inputRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
     if (!isOpen) {
+      abortControllerRef.current?.abort();
       setResults([]);
       lastNoResult.current = "";
     }
@@ -50,17 +52,27 @@ const SearchModal = ({
 
   useEffect(() => {
     if (!debouncedQuery) {
+      abortControllerRef.current?.abort();
       setResults([]);
       lastNoResult.current = "";
       return;
     }
     if (debouncedQuery.length < 3) return;
     setLoading(true);
+
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     (async () => {
       try {
         const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(debouncedQuery)}.json?types=country,place,locality&language=${i18n.language}&access_token=${MAPBOX_TOKEN}`;
-        const res = await fetch(endpoint);
+        const res = await fetch(endpoint, { signal: controller.signal });
+        if (!res.ok) {
+          throw new Error(`Mapbox geocoding failed with status ${res.status}`);
+        }
         const data = await res.json();
+        if (controller.signal.aborted) return;
         const processed = (data.features || []).map((feat) => {
           const countryContext =
             feat.context?.find((c) => c.id.startsWith("country")) ||
@@ -91,11 +103,16 @@ const SearchModal = ({
           onNoResults?.(debouncedQuery.trim());
         }
       } catch (error) {
+        if (error.name === 'AbortError') return;
         onSearchError?.();
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     })();
+
+    return () => controller.abort();
   }, [debouncedQuery, onSearchError, onNoResults, i18n.language]);
 
   const handleSelectPopular = (dest) => {

@@ -23,13 +23,17 @@
     "deleting": "Eliminando..."
   },
   "error": {
-    "title": "¡Ups! Algo salió mal",
-    "description": "Lo sentimos, hemos encontrado un problema inesperado. No te preocupes, tus datos están seguros.",
+    "title": "Pausa en tu bitácora",
+    "description": "Tuvimos un tropiezo en la ruta, pero tus viajes y recuerdos están a salvo.",
+    "hint": "Volvamos al camino con una de las acciones de abajo.",
     "detailsTitle": "Detalles técnicos:",
     "stackTrace": "Ver stack trace",
-    "retry": "Reintentar",
-    "goHome": "Ir al inicio",
-    "support": "Si el problema persiste, por favor contacta al soporte."
+    "retry": "Retomar ruta",
+    "goHome": "Volver al campamento",
+    "support": "Si esto sigue pasando, escríbenos y te ayudamos a seguir viajando."
+  },
+  "toast": {
+    "close": "Cerrar notificacion"
   },
   "offline": {
     "message": "Estás sin conexión.",

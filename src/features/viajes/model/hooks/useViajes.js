@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { db, storage } from '@shared/firebase';
 import { doc as fbDoc, query as fbQuery, where as fbWhere, onSnapshot as fbOnSnapshot, collection as fbCollection } from 'firebase/firestore';
 import { useAuth } from '@app/providers/AuthContext';
@@ -88,6 +88,15 @@ export const useViajes = () => {
     error: (message) => pushToast(message, 'error'),
     warning: (message) => pushToast(message, 'warning')
   };
+  const errorToastCooldownRef = useRef({});
+
+  const notifyErrorThrottled = useCallback((key, message, cooldownMs = 10000) => {
+    const now = Date.now();
+    const lastShown = errorToastCooldownRef.current[key] || 0;
+    if (now - lastShown < cooldownMs) return;
+    pushToast(message, 'error');
+    errorToastCooldownRef.current[key] = now;
+  }, [pushToast]);
 
   const [bitacora, setBitacora] = useState([]);
   const [bitacoraData, setBitacoraData] = useState({});
@@ -105,8 +114,6 @@ export const useViajes = () => {
       setError(null);
       return;
     }
-
-    let mounted = true;
 
     // Configurar userId en el logger para contexto global
     logger.setUserId(usuario.uid);
@@ -147,6 +154,10 @@ export const useViajes = () => {
           stack: snapshotError.stack,
           userId: usuario.uid
         });
+        notifyErrorThrottled(
+          'viajes-subscription',
+          'No pudimos sincronizar tu bitacora. Reintentaremos automaticamente.'
+        );
         setError(snapshotError);
         setLoading(false);
       }
@@ -220,6 +231,10 @@ export const useViajes = () => {
             viajeId,
             userId: usuario.uid
           });
+          notifyErrorThrottled(
+            'shared-trip-subscription',
+            'Un viaje compartido no pudo actualizarse. Continuamos con el resto de tu bitacora.'
+          );
           removeSharedViaje({ ownerId, viajeId });
         });
 
@@ -238,6 +253,10 @@ export const useViajes = () => {
             viajeId,
             userId: usuario.uid
           });
+          notifyErrorThrottled(
+            'shared-stops-subscription',
+            'No pudimos cargar algunas paradas compartidas. Puedes seguir explorando sin interrupciones.'
+          );
           upsertSharedParadas({ ownerId, viajeId, paradas: [] });
         });
 
@@ -259,10 +278,13 @@ export const useViajes = () => {
         error: sharedInvitationsError.message,
         userId: usuario.uid
       });
+      notifyErrorThrottled(
+        'shared-invitations-subscription',
+        'No pudimos actualizar invitaciones en este momento. Intenta de nuevo en un momento.'
+      );
     });
 
     return () => {
-      mounted = false;
       logger.debug('Desuscribiendo de viajes del usuario');
       unsubscribe();
       unsubShared();
@@ -271,7 +293,7 @@ export const useViajes = () => {
       }
       sharedTripListeners.clear();
     };
-  }, [usuario]);
+  }, [usuario, notifyErrorThrottled]);
 
   const paisesVisitados = useMemo(
     () => obtenerPaisesVisitados(bitacora, todasLasParadas),
@@ -309,8 +331,6 @@ export const useViajes = () => {
 
     const banderas = construirBanderasViaje(datosViajeNormalizados.code, paradas);
     const ciudades = construirCiudadesViaje(paradas);
-    const ciudadesLista = [...new Set(paradas.map((parada) => parada.nombre).filter(isNonEmptyString))];
-
     const paradasProcesadas = await Promise.all(
       paradas.map(async (parada) => {
         const fechaUso = parada.fecha || datosViajeNormalizados.fechaInicio || getTodayIsoDate();

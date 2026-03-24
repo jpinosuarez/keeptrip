@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, RefreshCcw, Home } from 'lucide-react';
+import { AlertTriangle, Compass, RefreshCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import styles from './ErrorFallback.styles';
 
@@ -16,13 +16,18 @@ const ErrorFallback = ({ error, errorInfo, onReset }) => {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
+    <div style={styles.container} role="alert" aria-live="assertive" aria-atomic="true">
+      <div style={styles.card} aria-labelledby="error-fallback-title" aria-describedby="error-fallback-description">
         <div style={styles.iconContainer}>
           <AlertTriangle size={48} color={styles.colors.danger} />
         </div>
-        <h1 style={styles.title}>{t('error.title')}</h1>
-        <p style={styles.description}>{t('error.description')}</p>
+        <h1 id="error-fallback-title" style={styles.title}>{t('error.title')}</h1>
+        <p id="error-fallback-description" style={styles.description}>{t('error.description')}</p>
+
+        {!isDevelopment && (
+          <p style={styles.hintText}>{t('error.hint')}</p>
+        )}
+
         {isDevelopment && error && (
           <div style={styles.errorDetails}>
             <p style={styles.errorTitle}>{t('error.detailsTitle')}</p>
@@ -37,21 +42,21 @@ const ErrorFallback = ({ error, errorInfo, onReset }) => {
         )}
         <div style={styles.actions}>
           <button
+            type="button"
             onClick={onReset}
             style={styles.primaryButton}
-            tabIndex={0}
             aria-label={t('error.retry')}
           >
             <RefreshCcw size={18} />
             {t('error.retry')}
           </button>
           <button
+            type="button"
             onClick={handleGoHome}
             style={styles.secondaryButton}
-            tabIndex={0}
             aria-label={t('error.goHome')}
           >
-            <Home size={18} />
+            <Compass size={18} />
             {t('error.goHome')}
           </button>
         </div>

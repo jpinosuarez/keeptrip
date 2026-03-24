@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, X, HelpCircle } from 'lucide-react';
 import { COLORS, RADIUS, SHADOWS, GLASS, FONTS, TRANSITIONS } from '@shared/config';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
+import { useToast } from '@app/providers/ToastContext';
 import { useDebounce } from '../../model/useDebounce';
 import { useSearchHistory } from '../../model/useSearchHistory';
 import RichResultCard from './RichResultCard';
@@ -18,9 +19,11 @@ const SearchPalette = ({
   allTrips = [] 
 }) => {
   const { t, i18n } = useTranslation(['search', 'common']);
+  const { pushToast } = useToast();
   const { isMobile } = useWindowSize(768);
   const inputRef = useRef(null);
   const abortControllerRef = useRef(null);
+  const lastMapboxErrorRef = useRef(0);
   
   const [query, setQuery] = useState('');
   const [mapboxResults, setMapboxResults] = useState([]);
@@ -59,6 +62,9 @@ const SearchPalette = ({
         )}.json?types=country,place,locality&language=${i18n.language}&access_token=${MAPBOX_TOKEN}`;
 
         const res = await fetch(endpoint, { signal: controller.signal });
+        if (!res.ok) {
+          throw new Error(`Mapbox geocoding failed with status ${res.status}`);
+        }
         const data = await res.json();
 
         const processed = (data.features || []).map((feat) => {
@@ -88,6 +94,17 @@ const SearchPalette = ({
       } catch (error) {
         if (error.name === 'AbortError') return;
         console.error('Mapbox search error:', error);
+        const now = Date.now();
+        if (now - lastMapboxErrorRef.current > 6000) {
+          pushToast({
+            type: 'warning',
+            message: t('searchUnavailable', {
+              ns: 'common',
+              defaultValue: 'No pudimos buscar lugares en este momento. Intenta de nuevo en unos segundos.'
+            })
+          });
+          lastMapboxErrorRef.current = now;
+        }
         setMapboxResults([]);
       } finally {
         setLoading(false);
@@ -97,7 +114,7 @@ const SearchPalette = ({
     return () => {
       controller.abort();
     };
-  }, [debouncedQuery, i18n.language]);
+  }, [debouncedQuery, i18n.language, pushToast, t]);
 
   // Combine and group results
   const allResults = useMemo(() => {
@@ -120,6 +137,26 @@ const SearchPalette = ({
   useEffect(() => {
     setSelectedIndex(allResults.length > 0 ? 0 : -1);
   }, [allResults.length]);
+
+  const handleSelectResult = useCallback(
+    (result) => {
+      if (result._type === 'trip') {
+        onSelectTrip?.(result.id);
+      } else {
+        onSelectPlace?.({
+          isCountry: result.type === 'country',
+          name: result.name,
+          coordinates: result.coordinates,
+          countryName: result.countryName,
+          countryCode: result.countryCode,
+          code: result.countryCode,
+        });
+      }
+      setQuery('');
+      onClose();
+    },
+    [onSelectPlace, onSelectTrip, onClose]
+  );
 
   // Keyboard navigation
   const handleKeyDown = useCallback(
@@ -154,27 +191,7 @@ const SearchPalette = ({
         setShowHelp(true);
       }
     },
-    [allResults, selectedIndex, onClose, showHelp]
-  );
-
-  const handleSelectResult = useCallback(
-    (result) => {
-      if (result._type === 'trip') {
-        onSelectTrip?.(result.id);
-      } else {
-        onSelectPlace?.({
-          isCountry: result.type === 'country',
-          name: result.name,
-          coordinates: result.coordinates,
-          countryName: result.countryName,
-          countryCode: result.countryCode,
-          code: result.countryCode,
-        });
-      }
-      setQuery('');
-      onClose();
-    },
-    [onSelectPlace, onSelectTrip, onClose]
+    [allResults, selectedIndex, onClose, showHelp, handleSelectResult]
   );
 
   // Focus input when palette opens

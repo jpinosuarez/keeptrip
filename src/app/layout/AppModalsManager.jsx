@@ -1,12 +1,13 @@
 import React, { lazy, Suspense, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useParams, useSearchParams, useNavigate, useMatch } from 'react-router-dom';
+import { useSearchParams, useNavigate, useMatch } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { BentoCardSkeleton } from '@shared/ui/components';
 import UserMenuBottomSheet from '@shared/ui/components/UserMenuBottomSheet';
+import { COLORS, RADIUS, SHADOWS } from '@shared/config';
 
 // ── Lazy-loaded heavy components ───────────────────────────────────────────────
 // Cada uno genera su propio chunk de Rolldown y solo se descarga cuando el
@@ -59,12 +60,8 @@ function AppModalsManager({
   }
 
   const {
-    mostrarBuscador,
-    closeBuscador,
     searchPaletteOpen,
     closeSearchPalette,
-    filtro,
-    setFiltro,
     viajeBorrador,
     setViajeBorrador,
     ciudadInicialBorrador,
@@ -134,17 +131,63 @@ function AppModalsManager({
     : null;
   const tituloViajeAEliminar = viajeAEliminar?.titulo || viajeAEliminar?.nombreEspanol || 'este viaje';
 
+  const searchPaletteFallback = (
+    <div
+      style={{
+        position: 'fixed',
+        right: 16,
+        bottom: 16,
+        zIndex: 10002,
+        maxWidth: 360,
+        background: COLORS.surface,
+        border: `1px solid ${COLORS.border}`,
+        borderRadius: RADIUS.lg,
+        boxShadow: SHADOWS.lg,
+        padding: 14,
+        color: COLORS.textPrimary,
+      }}
+      role="status"
+      aria-live="polite"
+    >
+      <p style={{ margin: 0, fontSize: '0.86rem', fontWeight: 600, lineHeight: 1.4 }}>
+        El buscador tuvo un tropiezo. Puedes cerrarlo y abrirlo de nuevo.
+      </p>
+      <button
+        type="button"
+        onClick={() => {
+          closeSearchPalette();
+          pushToast?.('Buscador cerrado. Puedes abrirlo de nuevo cuando quieras.', 'info', 2400);
+        }}
+        style={{
+          marginTop: 10,
+          border: 'none',
+          borderRadius: 9999,
+          minHeight: 38,
+          padding: '8px 12px',
+          background: COLORS.atomicTangerine,
+          color: COLORS.surface,
+          fontWeight: 700,
+          cursor: 'pointer',
+        }}
+      >
+        Cerrar buscador
+      </button>
+    </div>
+  );
+
   return (
     <>
-      <Suspense fallback={null}>
-        <SearchPalette
-          isOpen={searchPaletteOpen}
-          onClose={closeSearchPalette}
-          allTrips={bitacora}
-          onSelectPlace={onLugarSeleccionado}
-          onSelectTrip={(tripId) => navigate('/trips/' + tripId)}
-        />
-      </Suspense>
+      <ErrorBoundary fallback={searchPaletteFallback}>
+        <Suspense fallback={null}>
+          <SearchPalette
+            isOpen={searchPaletteOpen}
+            onClose={closeSearchPalette}
+            allTrips={bitacora}
+            onSelectPlace={onLugarSeleccionado}
+            onSelectTrip={(tripId) => navigate('/trips/' + tripId)}
+          />
+        </Suspense>
+      </ErrorBoundary>
 
       <UserMenuBottomSheet />
 

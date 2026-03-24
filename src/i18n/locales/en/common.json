@@ -23,13 +23,17 @@
     "deleting": "Deleting..."
   },
   "error": {
-    "title": "Something went wrong",
-    "description": "Sorry, we encountered an unexpected problem. Don't worry, your data is safe.",
+    "title": "Pause in your travel log",
+    "description": "We hit a bump on the route, but your trips and memories are safe.",
+    "hint": "Pick an action below and we will get you back on track.",
     "detailsTitle": "Technical details:",
     "stackTrace": "View stack trace",
-    "retry": "Retry",
-    "goHome": "Go to home",
-    "support": "If the problem persists, please contact support."
+    "retry": "Resume route",
+    "goHome": "Back to basecamp",
+    "support": "If this keeps happening, contact us and we will help you continue the journey."
+  },
+  "toast": {
+    "close": "Close notification"
   },
   "offline": {
     "message": "You are currently offline.",

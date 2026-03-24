@@ -112,6 +112,44 @@ export const styles = {
     cursor: 'crosshair',
   }),
 
+  mapErrorFallback: (isMobile) => ({
+    width: '100%',
+    height: '100%',
+    minHeight: isMobile ? '160px' : '220px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '10px',
+    padding: '16px',
+    textAlign: 'center',
+    color: COLORS.textPrimary,
+    background: `linear-gradient(160deg, ${COLORS.surface} 0%, ${COLORS.background} 100%)`,
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: RADIUS.xl,
+  }),
+
+  mapErrorText: {
+    margin: 0,
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    color: COLORS.textSecondary,
+    maxWidth: '34ch',
+  },
+
+  mapRetryBtn: {
+    border: 'none',
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.atomicTangerine,
+    color: COLORS.surface,
+    minHeight: '44px',
+    padding: '10px 16px',
+    fontSize: '0.86rem',
+    fontWeight: 700,
+    cursor: 'pointer',
+    boxShadow: `0 6px 14px ${COLORS.atomicTangerine}45`,
+  },
+
   recentsContainer: {
     display: 'flex',
     flexDirection: 'column',

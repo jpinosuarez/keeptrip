@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion as Motion } from 'framer-motion';
-import { Compass, Calendar, Globe, MapPin, ArrowRight, Sparkles } from 'lucide-react';
+import { AlertTriangle, Compass, Calendar, Globe, MapPin, ArrowRight, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@app/providers/AuthContext';
@@ -8,6 +8,7 @@ import { useUI } from '@app/providers/UIContext';
 import { COLORS } from '@shared/config';
 import { styles } from './DashboardPage.styles';
 import { HomeMap } from '@features/mapa';
+import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { getTravelerLevel, getNextLevel } from '@features/gamification';
 import { useLogStats } from '@shared/lib/hooks/useLogStats';
 import { SkeletonList, TripCardSkeleton } from '@shared/ui/components/Skeletons';
@@ -31,6 +32,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
     [log]
   );
   const isNewTraveler = log.length === 0;
+  const [mapRenderKey, setMapRenderKey] = useState(0);
 
   // dashboard stats
   const tripDataMap = useMemo(() => {
@@ -48,6 +50,20 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
 
   const level = getTravelerLevel(visitedCount);
   const next = getNextLevel(visitedCount);
+
+  const mapFallback = (
+    <div style={styles.mapErrorFallback(isMobile)} role="status" aria-live="polite">
+      <AlertTriangle size={20} color={COLORS.warning} />
+      <p style={styles.mapErrorText}>{t('mapUnavailable', 'El mapa no esta disponible ahora mismo.')}</p>
+      <button
+        type="button"
+        style={styles.mapRetryBtn}
+        onClick={() => setMapRenderKey((prev) => prev + 1)}
+      >
+        {t('retryMap', 'Reintentar mapa')}
+      </button>
+    </div>
+  );
 
   return (
     <div style={styles.dashboardContainer(isMobile)}>
@@ -67,7 +83,9 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
       {/* Main grid: map + recents */}
       <div style={styles.mainGrid(isMobile)}>
         <div style={styles.mapCard(isMobile)}>
-          <HomeMap paisesVisitados={countriesVisited} isMobile={isMobile} />
+          <ErrorBoundary fallback={mapFallback}>
+            <HomeMap key={mapRenderKey} paisesVisitados={countriesVisited} isMobile={isMobile} />
+          </ErrorBoundary>
         </div>
 
         <div style={styles.recentsContainer}>
