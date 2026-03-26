@@ -20,6 +20,7 @@
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useOutletContext } from 'react-router-dom';
 import PageLoader from '@shared/ui/components/PageLoader';
+import { ENABLE_IMMERSIVE_VIEWER, ENABLE_INVITATIONS } from '@shared/config';
 
 import AuthGuard from './AuthGuard';
 import AdminGuard from './AdminGuard';
@@ -142,12 +143,21 @@ function AppRouter() {
             {/* TripGrid con soporte futuro de nested route para VisorViaje (Fase 4) */}
             <Route path="trips">
               <Route index element={<TripsRoute />} />
-              <Route path=":id" element={<TripsRoute />} />
+              <Route
+                path=":id"
+                element={ENABLE_IMMERSIVE_VIEWER ? <TripsRoute /> : <Navigate to="/dashboard" replace />}
+              />
             </Route>
 
             <Route path="map"        element={<MapRoute />} />
-            <Route path="explorer"   element={<ExplorerRoute />} />
-            <Route path="invitations" element={<InvitationsRoute />} />
+            <Route
+              path="explorer"
+              element={ENABLE_IMMERSIVE_VIEWER ? <ExplorerRoute /> : <Navigate to="/dashboard" replace />}
+            />
+            <Route
+              path="invitations"
+              element={ENABLE_INVITATIONS ? <InvitationsRoute /> : <Navigate to="/dashboard" replace />}
+            />
             <Route path="settings"   element={<SettingsRoute />} />
 
             {/* Rutas de administrador (Deprecated/Removed) */}

@@ -20,13 +20,13 @@ const TripsPage = () => {
   const searchTerm = busqueda.trim().toLowerCase();
 
   const filteredTrips = useMemo(() => {
-    let result = trips;
+    let result = [...trips];
     
     // Quick Filters
     if (activeFilter === 'year') {
        const currentYear = new Date().getFullYear();
        result = result.filter(t => {
-          const start = tripData[t.id]?.startDate || t.date;
+         const start = tripData[t.id]?.fechaInicio || tripData[t.id]?.startDate || t.fechaInicio || t.date;
           return start && start.includes(currentYear.toString());
        });
     }
@@ -37,7 +37,10 @@ const TripsPage = () => {
         const d = tripData[trip.id] || {};
         const fields = [
           d.titulo,
+          d.nombreEspanol,
+          trip.nombreEspanol,
           trip.nameSpanish,
+          d.ciudades,
           d.cities,
         ].filter(Boolean).join(' ').toLowerCase();
         return fields.includes(searchTerm);
@@ -46,8 +49,8 @@ const TripsPage = () => {
     
     // Sort
     return result.sort((a, b) => {
-      const dateA = new Date(tripData[a.id]?.startDate || a.date).getTime();
-      const dateB = new Date(tripData[b.id]?.startDate || b.date).getTime();
+      const dateA = new Date(tripData[a.id]?.fechaInicio || tripData[a.id]?.startDate || a.fechaInicio || a.date).getTime();
+      const dateB = new Date(tripData[b.id]?.fechaInicio || tripData[b.id]?.startDate || b.fechaInicio || b.date).getTime();
       return dateB - dateA; // newest first
     });
   }, [trips, tripData, activeFilter, searchTerm]);

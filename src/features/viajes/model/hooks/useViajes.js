@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { db, storage } from '@shared/firebase';
-import { doc as fbDoc, query as fbQuery, where as fbWhere, onSnapshot as fbOnSnapshot, collection as fbCollection } from 'firebase/firestore';
+import { doc as fbDoc, query as fbQuery, where as fbWhere, onSnapshot as fbOnSnapshot, collection as fbCollection, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@app/providers/AuthContext';
 import { useToast } from '@app/providers/ToastContext';
 import { obtenerClimaHistoricoSeguro } from '@shared/api/services/external/weatherService';
@@ -358,6 +358,8 @@ export const useViajes = () => {
       ownerId: usuario.uid
     });
 
+    payloadViaje.createdAt = serverTimestamp();
+
     // OwnerId obligatorio para que Firestore permita creación en la nueva regla.
     if (!payloadViaje.ownerId) {
       payloadViaje.ownerId = usuario.uid;
@@ -406,7 +408,7 @@ export const useViajes = () => {
       }
 
       logger.info('Viaje guardado exitosamente', { viajeId });
-      toast.success('Viaje guardado');
+      toast.success('Viaje guardado correctamente');
       return viajeId;
     } catch (saveError) {
       console.error('[useViajes] saveError completo:', saveError);
@@ -481,7 +483,7 @@ export const useViajes = () => {
 
       await actualizarViaje({ db, userId: usuario.uid, viajeId: id, data: dataToSave });
       logger.info('Viaje actualizado exitosamente', { viajeId: id });
-      toast.success('Viaje actualizado');
+      toast.success('Viaje guardado correctamente');
       return true;
     } catch (updateError) {
       logger.error('Error actualizando viaje', {

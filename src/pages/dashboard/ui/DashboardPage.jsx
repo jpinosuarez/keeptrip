@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { motion as Motion } from 'framer-motion';
 import { AlertTriangle, Compass, Calendar, Globe, MapPin, ArrowRight, Sparkles, WifiOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUI } from '@app/providers/UIContext';
 import { COLORS } from '@shared/config';
@@ -21,6 +21,7 @@ import TripCard from '@widgets/tripGrid/ui/TripCard';
 const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, loading = false, isError = false, fetchError = null }) => {
   const { usuario } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { openBuscador } = useUI();
   const { t } = useTranslation('dashboard');
   const { t: tNav } = useTranslation('nav');
@@ -71,6 +72,12 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
       </div>
     </div>
   );
+
+  const openTripEditor = (tripId) => {
+    const params = new URLSearchParams(location.search);
+    params.set('editing', tripId);
+    navigate({ pathname: location.pathname, search: params.toString() });
+  };
 
   return (
     <div style={styles.dashboardContainer(isMobile)}>
@@ -124,7 +131,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
                   key={trip.id} 
                   trip={trip} 
                   isMobile={isMobile} 
-                  onClick={() => navigate('/trips/' + trip.id)} 
+                  onClick={() => openTripEditor(trip.id)} 
                 />
               ))
             ) : (

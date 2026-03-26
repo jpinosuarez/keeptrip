@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion as Motion } from 'framer-motion';
-import { useNavigate, Outlet } from 'react-router-dom';
+import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLogStats } from '@shared/lib/hooks/useLogStats';
 import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
@@ -16,13 +16,11 @@ const TripGrid = ({
   trips = [],
   tripData = {},
   totalLogCount = 0,
-  searchTerm = '',
   handleDelete,
-  isDeletingTrip = () => false
 }) => {
-  const { t } = useTranslation('gallery');
   const { t: tDashboard } = useTranslation('dashboard');
   const navigate = useNavigate();
+  const location = useLocation();
 
   const logStats = useLogStats(trips, tripData);
 
@@ -44,6 +42,12 @@ const TripGrid = ({
   const hasNoTrips = totalLogCount === 0;
   const hasNoSearchResults = !hasNoTrips && trips.length === 0;
 
+  const openTripEditor = (tripId) => {
+    const params = new URLSearchParams(location.search);
+    params.set('editing', tripId);
+    navigate({ pathname: location.pathname, search: params.toString() });
+  };
+
   return (
     <div style={styles.gridWrapper}>
       {trips.length > 0 && (
@@ -62,7 +66,14 @@ const TripGrid = ({
           <AnimatePresence mode="popLayout">
             {trips.map((trip) => {
               const data = tripData[trip.id] || trip || {};
-              if (!data.nameSpanish && !data.titulo) return null;
+              if (!data.nombreEspanol && !data.nameSpanish && !data.titulo) return null;
+
+              const paradaCount = Array.isArray(data.paradas)
+                ? data.paradas.length
+                : String(data.ciudades || '')
+                    .split(',')
+                    .map((city) => city.trim())
+                    .filter(Boolean).length;
               
               return (
                 <Motion.div 
@@ -75,9 +86,9 @@ const TripGrid = ({
                   exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
                 >
                   <TripCard
-                    trip={data}
+                    trip={{ ...data, id: trip.id, paradaCount }}
                     variant="grid"
-                    onClick={() => navigate('/trips/' + trip.id)}
+                    onClick={() => openTripEditor(trip.id)}
                     onDelete={handleDelete}
                   />
                 </Motion.div>

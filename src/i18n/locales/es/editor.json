@@ -135,6 +135,7 @@
     "optimizing": "Optimizando...",
     "optimizingCount": "Preparando {{count}} foto(s)...",
     "photosSelected": "fotos seleccionadas",
+    "coverOnlyNotice": "Por ahora, solo permitimos 1 foto de portada para tu viaje.",
     "setCover": "Marcar como portada",
     "currentCover": "Foto de portada actual",
     "deletePhoto": "Eliminar foto"

@@ -16,8 +16,6 @@ import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 // Import original editor sections (reusing existing components)
 import EdicionHeaderSection from './components/EdicionHeaderSection';
 import EdicionContextSection from './components/EdicionContextSection';
-import EdicionHighlightsSection from './components/EdicionHighlightsSection';
-import EdicionNotesSection from './components/EdicionNotesSection';
 import EdicionGallerySection from './components/EdicionGallerySection';
 import EdicionParadasSection from './components/EdicionParadasSection';
 import CoverPickerModal from './components/CoverPickerModal';
@@ -55,6 +53,7 @@ const EditorFocusPanel = ({
   onAddCompanionFreeform = () => {},
   onAddCompanionFromResult = () => {},
   galeria = { fotos: [], uploading: false },
+  onAfterSave = null,
 }) => {
   const { t } = useTranslation('editor');
   const { isMobile } = useWindowSize(768);
@@ -172,6 +171,8 @@ const EditorFocusPanel = ({
         return;
       }
 
+      onAfterSave?.(savedId);
+
       // After successful save, close the editor (AppModalsManager will navigate if needed)
       isClosingRef.current = true;
       limpiarEstado();
@@ -261,12 +262,7 @@ const EditorFocusPanel = ({
 
   if (!viaje) return null;
 
-  // Cover picker handlers
-  const handleOpenCoverPicker = () => {
-    setShowCoverPicker(true);
-  };
-
-  const handleSelectCover = (coverUrl, coverId) => {
+  const handleSelectCover = (coverUrl) => {
     effectiveSetFormData((prev) => ({
       ...prev,
       portadaUrl: coverUrl,
@@ -377,6 +373,7 @@ const EditorFocusPanel = ({
             setFormData={effectiveSetFormData}
             companionDraft={companionDraft}
             companionResults={companionResults}
+            showCompanions={false}
             onCompanionSearch={onCompanionSearch}
             onAddCompanionFreeform={onAddCompanionFreeform}
             onAddCompanionFromResult={onAddCompanionFromResult}
@@ -415,22 +412,6 @@ const EditorFocusPanel = ({
             />
           )}
 
-          {/* Notes Section */}
-          <EdicionNotesSection
-            styles={edicionModalStyles}
-            t={t}
-            texto={effectiveFormData.texto}
-            onChange={(texto) => effectiveSetFormData((prev) => ({ ...prev, texto }))}
-            isBusy={isBusy}
-          />
-
-          {/* Highlights Section */}
-          <EdicionHighlightsSection
-            styles={edicionModalStyles}
-            t={t}
-            formData={effectiveFormData}
-            setFormData={effectiveSetFormData}
-          />
         </div>
 
         {/* Sticky Footer with Manual Save & Cancel */}

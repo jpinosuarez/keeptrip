@@ -91,10 +91,13 @@ const EdicionGallerySection = ({
         onChange={onFilesChange}
         portadaIndex={portadaIndex}
         onPortadaChange={onPortadaChange}
-        maxFiles={10}
+        maxFiles={1}
         disabled={isBusy || galeria.uploading}
         isMobile={isMobile}
       />
+      <span style={styles.inlineInfo}>
+        {t('gallery.coverOnlyNotice', 'Por ahora, solo permitimos 1 foto de portada para tu viaje.')}
+      </span>
       {galeria.uploading && (
         <span style={styles.inlineInfo}>{t('toast.uploadingPhotos')}</span>
       )}

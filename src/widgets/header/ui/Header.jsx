@@ -18,7 +18,7 @@ import {
 } from 'framer-motion';
 import { useAuth } from '@app/providers/AuthContext';
 import { useSearch, useUI } from '@app/providers/UIContext';
-import { COLORS, RADIUS, Z_INDEX } from '@shared/config';
+import { COLORS, RADIUS, Z_INDEX, ENABLE_INVITATIONS } from '@shared/config';
 import { useTranslation } from 'react-i18next';
 
 const PAGE_TITLES = {
@@ -229,50 +229,52 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
         {user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {/* Invitations Bell */}
-            <button
-              type="button"
-              data-testid="header-invitations-button"
-              onClick={() => navigate('/invitations')}
-              aria-label={t('nav:invitations', { count: invitationsCount })}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                color: COLORS.textSecondary,
-                display: 'flex',
-                alignItems: 'center',
-                minWidth: '44px',
-                minHeight: '44px',
-                borderRadius: RADIUS.md,
-                justifyContent: 'center',
-                position: 'relative',
-              }}
-            >
-              <Bell size={18} />
-              {invitationsCount > 0 && (
-                <span
-                  data-testid="header-invitations-count"
-                  aria-live="polite"
-                  style={{
-                    position: 'absolute',
-                    top: '4px',
-                    right: '4px',
-                    background: COLORS.danger,
-                    color: '#fff',
-                    borderRadius: '9999px',
-                    width: '16px',
-                    height: '16px',
-                    fontSize: '0.65rem',
-                    fontWeight: '800',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {invitationsCount}
-                </span>
-              )}
-            </button>
+            {ENABLE_INVITATIONS && (
+              <button
+                type="button"
+                data-testid="header-invitations-button"
+                onClick={() => navigate('/invitations')}
+                aria-label={t('nav:invitations', { count: invitationsCount })}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: COLORS.textSecondary,
+                  display: 'flex',
+                  alignItems: 'center',
+                  minWidth: '44px',
+                  minHeight: '44px',
+                  borderRadius: RADIUS.md,
+                  justifyContent: 'center',
+                  position: 'relative',
+                }}
+              >
+                <Bell size={18} />
+                {invitationsCount > 0 && (
+                  <span
+                    data-testid="header-invitations-count"
+                    aria-live="polite"
+                    style={{
+                      position: 'absolute',
+                      top: '4px',
+                      right: '4px',
+                      background: COLORS.danger,
+                      color: '#fff',
+                      borderRadius: '9999px',
+                      width: '16px',
+                      height: '16px',
+                      fontSize: '0.65rem',
+                      fontWeight: '800',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {invitationsCount}
+                  </span>
+                )}
+              </button>
+            )}
 
             {/* Avatar */}
             <button

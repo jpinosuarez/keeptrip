@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUI } from '@app/providers/UIContext';
-import { COLORS, SHADOWS, RADIUS } from '@shared/config';
+import { COLORS, SHADOWS, RADIUS, ENABLE_IMMERSIVE_VIEWER } from '@shared/config';
 import { useTranslation } from 'react-i18next';
 import { mediaStyles } from './Sidebar.styles';
 
@@ -38,7 +38,7 @@ const MENU_ITEMS = (t) => [
   { id: 'home',     icon: LayoutGrid, label: t('home') },
   { id: 'mapa',     icon: Map,        label: t('map')  },
   { id: 'bitacora', icon: BookOpen,   label: t('journal') },
-  { id: 'hub',      icon: Trophy,     label: t('hub')  },
+  ...(ENABLE_IMMERSIVE_VIEWER ? [{ id: 'hub', icon: Trophy, label: t('hub') }] : []),
   { id: 'config',   icon: Settings,   label: t('adjust') },
 ];
 

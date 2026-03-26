@@ -1,13 +1,17 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, ArrowRight } from 'lucide-react';
 import { COLORS, RADIUS } from '@shared/config';
 import BottomSheet from '@shared/ui/components/BottomSheet/BottomSheet';
 
 const TripSlideOver = ({ isOpen, onClose, trip }) => {
-  const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
+
+  const openTripEditor = () => {
+    const params = new URLSearchParams(window.location.search);
+    params.set('editing', trip.id);
+    navigate({ pathname: '/trips', search: params.toString() });
+  };
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose} zIndex={100} ariaLabel="Detalles del viaje">
@@ -59,7 +63,7 @@ const TripSlideOver = ({ isOpen, onClose, trip }) => {
             className="tap-btn"
             onClick={() => {
               onClose();
-              navigate('/trips/' + trip.id);
+              openTripEditor();
             }}
             style={{
               marginTop: '8px',
@@ -78,7 +82,7 @@ const TripSlideOver = ({ isOpen, onClose, trip }) => {
               cursor: 'pointer'
             }}
           >
-            Ver Diario <ArrowRight size={18} />
+            Abrir Bitacora <ArrowRight size={18} />
           </button>
         </div>
       )}

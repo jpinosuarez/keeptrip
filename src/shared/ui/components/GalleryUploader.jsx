@@ -1,64 +1,48 @@
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Upload, X, Image as ImageIcon, Star, LoaderCircle } from 'lucide-react';
+import { Upload, X, Star, LoaderCircle } from 'lucide-react';
 import { COLORS, RADIUS, SHADOWS, TRANSITIONS } from '@shared/config';
 import { useToast } from '@app/providers/ToastContext';
 import { MAX_FILE_SIZE } from '@shared/lib/utils/imageUtils';
 
-/**
- * Componente para subir múltiples fotos a la galería de un viaje
- * Soporta drag-and-drop, preview y selección de portada
- * 
- * @param {Object} props
- * @param {Array<File>} props.files - Array de archivos seleccionados
- * @param {Function} props.onChange - Callback cuando cambian los archivos
- * @param {number} props.maxFiles - Máximo de fotos permitidas (default: 10)
- * @param {number} props.portadaIndex - Índice de la foto que será portada
- * @param {Function} props.onPortadaChange - Callback cuando cambia la portada
- * @param {boolean} props.disabled - Si está deshabilitado
- */
-export function GalleryUploader({ 
-  files = [], 
-  onChange, 
+export function GalleryUploader({
+  files = [],
+  onChange,
   maxFiles = 10,
   portadaIndex = 0,
   onPortadaChange,
   disabled = false,
-  isMobile = false
+  isMobile = false,
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const [previews, setPreviews] = useState([]);
-  const [optimizing, setOptimizing] = useState(0); // count of files being optimized
+  const [optimizing, setOptimizing] = useState(0);
   const fileInputRef = useRef(null);
-  // Track object URLs created via createObjectURL so we can revoke them on cleanup
   const objectUrlsRef = useRef(new Set());
-
-  useEffect(() => {
-    const urls = objectUrlsRef.current;
-    return () => urls.forEach((url) => URL.revokeObjectURL(url));
-  }, []);
   const { pushToast } = useToast();
   const { t } = useTranslation('editor');
 
-  // Previews se generan localmente al seleccionar archivos (handleFileSelect).
-  // No necesitamos un efecto que sincronice previews desde `files` — el padre
-  // controla el array `files` y las previews se crean/limpian al usar `onChange`.
+  useEffect(() => {
+    const urls = objectUrlsRef.current;
+    return () => {
+      urls.forEach((url) => URL.revokeObjectURL(url));
+      urls.clear();
+    };
+  }, []);
 
-
-  const handleFileSelect = (newFiles) => {
+  const applyFiles = (selectedFiles) => {
     if (disabled) return;
 
-    const incoming = Array.from(newFiles);
+    const incoming = Array.from(selectedFiles || []);
     const validFiles = [];
     let invalidTypeCount = 0;
     let invalidSizeCount = 0;
 
     incoming.forEach((file) => {
-      const isImage = file.type.startsWith('image/');
       const isValidFormat = ['image/jpeg', 'image/jpg', 'image/png'].includes(file.type);
       const isValidSize = file.size <= MAX_FILE_SIZE;
 
-      if (!isImage || !isValidFormat) {
+      if (!isValidFormat) {
         invalidTypeCount += 1;
         return;
       }
@@ -75,33 +59,50 @@ export function GalleryUploader({
     const acceptedFiles = validFiles.slice(0, remainingSlots);
     const skippedByLimit = Math.max(0, validFiles.length - acceptedFiles.length);
 
-        incoming.forEach((file) => {
-          const isImage = file.type.startsWith('image/');
-          const isValidFormat = ['image/jpeg', 'image/jpg', 'image/png'].includes(file.type);
-          // FAIL FAST: Validar tamaño antes de previews o compresión
-          if (file.size > MAX_FILE_SIZE) {
-            pushToast(`La imagen ${file.name} es demasiado grande (Máx 15MB)`, 'error');
-            invalidSizeCount += 1;
-            return;
-          }
-          if (!isImage || !isValidFormat) {
-            invalidTypeCount += 1;
-            return;
-          }
-          validFiles.push(file);
-        });
-    onChange(acceptedFiles);
+    if (invalidTypeCount > 0) {
+      pushToast(
+        t('gallery.invalidFormat', {
+          count: invalidTypeCount,
+          defaultValue: `${invalidTypeCount} foto(s) no son JPG ni PNG y se descartaron.`,
+        }),
+        'warning'
+      );
+    }
 
-    // Yield main thread to React's commit phase before generating previews.
-    // URL.createObjectURL is a near-instant pointer into the browser's Blob store
-    // (no base64 encoding, no heap copy) — far less blocking than FileReader.
-    setOptimizing(prev => prev + acceptedFiles.length);
+    if (invalidSizeCount > 0) {
+      pushToast(
+        t('gallery.tooLarge', {
+          count: invalidSizeCount,
+          max: Math.round(MAX_FILE_SIZE / 1024 / 1024),
+          defaultValue: `${invalidSizeCount} foto(s) pesan más de ${Math.round(MAX_FILE_SIZE / 1024 / 1024)}MB y se descartaron.`,
+        }),
+        'warning'
+      );
+    }
+
+    if (skippedByLimit > 0) {
+      pushToast(
+        t('gallery.limitReached', {
+          max: maxFiles,
+          skipped: skippedByLimit,
+          defaultValue: `Alcanzaste el límite de ${maxFiles} fotos. Se omitieron ${skippedByLimit}.`,
+        }),
+        'info'
+      );
+    }
+
+    if (acceptedFiles.length === 0) return;
+
+    const nextFiles = [...files, ...acceptedFiles].slice(0, maxFiles);
+    onChange?.(nextFiles);
+
+    setOptimizing((prev) => prev + acceptedFiles.length);
     setTimeout(() => {
-      acceptedFiles.forEach(file => {
+      acceptedFiles.forEach((file) => {
         const url = URL.createObjectURL(file);
         objectUrlsRef.current.add(url);
-        setPreviews(prev => [...prev, { file, url }]);
-        setOptimizing(prev => Math.max(0, prev - 1));
+        setPreviews((prev) => [...prev, { file, url }]);
+        setOptimizing((prev) => Math.max(0, prev - 1));
       });
     }, 0);
   };
@@ -109,20 +110,10 @@ export function GalleryUploader({
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    handleFileSelect(e.dataTransfer.files);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    if (!isDragging) setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
+    applyFiles(e.dataTransfer.files);
   };
 
   const handleRemoveFile = (index) => {
-    // Revoke the object URL when removing to free memory
     const removed = previews[index];
     if (removed) {
       URL.revokeObjectURL(removed.url);
@@ -130,11 +121,9 @@ export function GalleryUploader({
     }
 
     const updatedFiles = files.filter((_, i) => i !== index);
-    onChange(updatedFiles);
+    onChange?.(updatedFiles);
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
 
-    setPreviews(prev => prev.filter((_, i) => i !== index));
-
-    // Ajustar portada si se eliminó
     if (index === portadaIndex && updatedFiles.length > 0) {
       onPortadaChange?.(0);
     } else if (index < portadaIndex) {
@@ -142,14 +131,7 @@ export function GalleryUploader({
     }
   };
 
-  const handleSetPortada = (index) => {
-    onPortadaChange?.(index);
-  };
-
-  const getPreviewUrl = (file) => {
-    const preview = previews.find(p => p.file === file);
-    return preview?.url || null;
-  };
+  const getPreviewUrl = (file) => previews.find((p) => p.file === file)?.url || null;
 
   const formatFileSize = (bytes) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -159,21 +141,19 @@ export function GalleryUploader({
 
   return (
     <div style={styles.container}>
-      {/* Zona de drop */}
       {files.length < maxFiles && (
         <div
           style={styles.dropZone(isDragging, disabled)}
           onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
+          onDragOver={(e) => {
+            e.preventDefault();
+            if (!isDragging) setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
           onClick={() => !disabled && fileInputRef.current?.click()}
         >
           <Upload size={32} color={COLORS.textSecondary} />
-          <p style={styles.dropText}>
-            {isDragging
-              ? t('gallery.dropHere')
-              : t('gallery.dragOrClick')}
-          </p>
+          <p style={styles.dropText}>{isDragging ? t('gallery.dropHere') : t('gallery.dragOrClick')}</p>
           <p style={styles.dropSubtext}>
             {t('gallery.specs', { max: maxFiles, sizeMB: Math.round(MAX_FILE_SIZE / 1024 / 1024) })}
           </p>
@@ -181,15 +161,17 @@ export function GalleryUploader({
             ref={fileInputRef}
             type="file"
             accept="image/jpeg,image/jpg,image/png"
-            multiple
+            multiple={maxFiles > 1}
             style={{ display: 'none' }}
-            onChange={(e) => handleFileSelect(e.target.files)}
+            onChange={(e) => {
+              applyFiles(e.target.files);
+              e.target.value = '';
+            }}
             disabled={disabled}
           />
         </div>
       )}
 
-      {/* Grid de previews */}
       {files.length > 0 && (
         <div style={styles.previewGrid}>
           {files.map((file, index) => {
@@ -198,7 +180,6 @@ export function GalleryUploader({
 
             return (
               <div key={`${file.name}-${index}`} style={styles.previewCard(isPortada)}>
-                {/* Preview de imagen */}
                 <div style={styles.previewImage}>
                   {previewUrl ? (
                     <img src={previewUrl} alt={file.name} style={styles.img} />
@@ -209,7 +190,6 @@ export function GalleryUploader({
                     </div>
                   )}
 
-                  {/* Badge de portada */}
                   {isPortada && (
                     <div style={styles.portadaBadge}>
                       <Star size={14} fill="white" color="white" />
@@ -217,15 +197,15 @@ export function GalleryUploader({
                     </div>
                   )}
 
-                  {/* Overlay con acciones */}
                   <div style={styles.overlay(isMobile)}>
                     {!isPortada && (
                       <button
                         style={styles.actionBtn}
-                        onClick={() => handleSetPortada(index)}
-                        title="Marcar como portada"
-                        aria-label="Marcar como portada"
+                        onClick={() => onPortadaChange?.(index)}
+                        title={t('gallery.setCover')}
+                        aria-label={t('gallery.setCover')}
                         disabled={disabled}
+                        type="button"
                       >
                         <Star size={16} />
                       </button>
@@ -233,16 +213,16 @@ export function GalleryUploader({
                     <button
                       style={styles.actionBtn}
                       onClick={() => handleRemoveFile(index)}
-                      title="Eliminar"
-                      aria-label="Eliminar"
+                      title={t('gallery.deletePhoto')}
+                      aria-label={t('gallery.deletePhoto')}
                       disabled={disabled}
+                      type="button"
                     >
                       <X size={16} />
                     </button>
                   </div>
                 </div>
 
-                {/* Info de archivo */}
                 <div style={styles.fileInfo}>
                   <p style={styles.fileName}>{file.name}</p>
                   <p style={styles.fileSize}>{formatFileSize(file.size)}</p>
@@ -253,7 +233,6 @@ export function GalleryUploader({
         </div>
       )}
 
-      {/* Contador + optimizing banner */}
       {files.length > 0 && (
         <div style={styles.footer}>
           {optimizing > 0 && (
@@ -271,12 +250,6 @@ export function GalleryUploader({
   );
 }
 
-                  {/* Microcopy preventivo */}
-                  <div style={{ marginTop: 8 }}>
-                    <span style={{ fontSize: 12, color: '#6B7280' /* text-gray-500 */, display: 'block' }}>
-                      Formatos soportados: JPG, PNG. Optimizado automáticamente para ahorrar tus datos.
-                    </span>
-                  </div>
 const styles = {
   container: {
     width: '100%',
@@ -418,12 +391,9 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: '6px',
     fontSize: '12px',
-    fontWeight: 600,
-    color: COLORS.atomicTangerine,
-    marginBottom: 4,
+    color: COLORS.textSecondary,
+    margin: '0 0 8px',
   },
 };
-
-// Acciones visibles por defecto para accesibilidad y soporte mobile

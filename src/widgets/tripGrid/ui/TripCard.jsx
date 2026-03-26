@@ -135,6 +135,11 @@ const TripCard = ({ trip, onClick, onDelete, isMobile = false, variant = 'list' 
               <Calendar size={12} /> {trip.fechaInicio || trip.startDate}
             </span>
           )}
+          {trip.paradaCount > 0 && (
+            <span style={styles.glassPill}>
+              <MapPin size={12} /> {trip.paradaCount} Paradas
+            </span>
+          )}
           {trip.ciudades && (
             <span style={styles.glassPill}>
               <MapPin size={12} /> {trip.ciudades.split(',')[0]}

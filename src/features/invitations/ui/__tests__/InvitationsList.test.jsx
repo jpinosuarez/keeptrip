@@ -38,7 +38,7 @@ vi.mock('@app/providers/ToastContext', () => ({
 
 
 describe('InvitationsList', () => {
-  it('muestra invitaciones y dispara aceptar/rechazar y abre el visor al aceptar', async () => {
+  it('muestra invitaciones y dispara aceptar/rechazar y abre editor al aceptar', async () => {
     // ensure module cache is clean so the hoisted mock is used
     vi.resetModules();
     const { default: InvitationsList } = await import('../InvitationsList');
@@ -61,7 +61,7 @@ describe('InvitationsList', () => {
     await userEvent.click(screen.getByTestId('inv-accept-inv1'));
     expect(accept).toHaveBeenCalledWith('inv1');
     expect(pushToastMock).toHaveBeenCalledWith(expect.stringContaining('Invitación aceptada'), 'success');
-    expect(mockNavigate).toHaveBeenCalledWith('/trips/viaje-1');
+    expect(mockNavigate).toHaveBeenCalledWith({ pathname: '/trips', search: 'editing=viaje-1' });
 
     await userEvent.click(screen.getByTestId('inv-decline-inv1'));
     expect(decline).toHaveBeenCalledWith('inv1');

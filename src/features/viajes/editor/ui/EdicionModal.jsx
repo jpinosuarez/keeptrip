@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { Save, LoaderCircle } from 'lucide-react';
 import { styles } from './EdicionModal.styles';
@@ -8,7 +7,6 @@ import { useAuth } from '@app/providers/AuthContext';
 import { useToast } from '@app/providers/ToastContext';
 import { useUpload } from '@app/providers/UploadContext';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
-import { compressImage } from '@shared/lib/utils/imageUtils';
 import { useTranslation } from 'react-i18next';
 import { formatDateRange } from '@shared/lib/utils/viajeUtils';
 import { useGaleriaViaje } from '@shared/lib/hooks/useGaleriaViaje';
@@ -17,19 +15,15 @@ import { useEdicionCompanions } from '../model/hooks/useEdicionCompanions';
 import { useEdicionGalleryManager } from '../model/hooks/useEdicionGalleryManager';
 import { useEdicionModalLifecycle } from '../model/hooks/useEdicionModalLifecycle';
 import EdicionContextSection from './components/EdicionContextSection';
-import EdicionHighlightsSection from './components/EdicionHighlightsSection';
-import EdicionNotesSection from './components/EdicionNotesSection';
 import EdicionGallerySection from './components/EdicionGallerySection';
 import EdicionParadasSection from './components/EdicionParadasSection';
 import EdicionHeaderSection from './components/EdicionHeaderSection';
 import CoverPickerModal from './components/CoverPickerModal';
-import AccordionSection from './components/AccordionSection';
 
 const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSaving = false, onAfterSave }) => {
   const { usuario } = useAuth();
   const { pushToast } = useToast();
   const { t } = useTranslation('editor');
-  const navigate = useNavigate();
 
   // useUpload puede no estar disponible en tests aislados; usar fallback seguro
   let iniciarSubida = () => {};
@@ -54,7 +48,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     presupuesto: null,
   });
   const [paradas, setParadas] = useState([]);
-  const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const isProcessingImage = false;
   const [galleryFiles, setGalleryFiles] = useState([]);
   const [galleryPortada, setGalleryPortada] = useState(0);
   const [captionDrafts, setCaptionDrafts] = useState({});
@@ -97,8 +91,11 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
   const { isUploading } = viaje?.id ? getEstadoViaje(viaje.id) : { isUploading: false };
 
   const handleAfterSave = (savedId) => {
-    if (onAfterSave) onAfterSave(savedId);
-    navigate(`/viaje/${savedId}`);
+    if (onAfterSave) {
+      onAfterSave(savedId);
+      return;
+    }
+    onClose();
   };
 
   const handleSave = useEdicionModalSave({
@@ -149,38 +146,6 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     t,
   });
 
-  const handleFileChange = async (e) => {
-    setIsProcessingImage(true);
-    const file = e.target.files?.[0];
-    if (!file) {
-      setIsProcessingImage(false);
-      return;
-    }
-
-    if (!['image/jpeg', 'image/png'].includes(file.type)) {
-      pushToast(t('error.unsupportedFormat'), 'error');
-      e.target.value = '';
-      setIsProcessingImage(false);
-      return;
-    }
-
-    try {
-      const { blob, dataUrl } = await compressImage(file, 1920, 0.8);
-      const optimizedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), {
-        type: 'image/jpeg',
-        lastModified: Date.now()
-      });
-
-      setFormData((prev) => ({ ...prev, foto: dataUrl, fotoFile: optimizedFile, fotoCredito: null }));
-    } catch (error) {
-      console.error('Error optimizando imagen:', error);
-      pushToast(t('error.optimizationFailed'), 'error');
-    } finally {
-      setIsProcessingImage(false);
-      e.target.value = '';
-    }
-  };
-
   // Auto-set first photo as cover when gallery goes from 0→1 photos
   useEffect(() => {
     const currentGalleryLength = galeria?.fotos?.length || 0;
@@ -205,23 +170,6 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
   const isBusy = isSaving || isProcessingImage || isUploading;
   const sinParadas = paradas.length === 0;
   const fechaRangoDisplay = formatDateRange(formData.fechaInicio, formData.fechaFin);
-
-  // Badges para acordeones: cuentan campos con datos
-  const contextBadge = (() => {
-    const n = [
-      formData.presupuesto ? 1 : 0,
-      (formData.vibe || []).length,
-      (formData.companions || []).length,
-    ].reduce((a, b) => a + b, 0);
-    return n > 0 ? String(n) : null;
-  })();
-
-  const highlightsBadge = (() => {
-    const n = Object.values(formData.highlights || {}).filter(Boolean).length;
-    return n > 0 ? String(n) : null;
-  })();
-
-  const notesBadge = formData.texto?.trim() ? '●' : null;
 
   return (
     <AnimatePresence>
@@ -251,6 +199,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
               setFormData={setFormData}
               companionDraft={companionDraft}
               companionResults={companionResults}
+              showCompanions={false}
               onCompanionSearch={handleCompanionSearch}
               onAddCompanionFreeform={handleAddCompanionFreeform}
               onAddCompanionFromResult={handleAddCompanionFromResult}
@@ -284,25 +233,6 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
               onSetPortadaExistente={handleSetPortadaExistente}
               onEliminarFoto={handleEliminarFoto}
             />
-
-            {/* Secciones secundarias agrupadas en acordeón */}
-            <AccordionSection title={t('accordion.notes')} badge={notesBadge}>
-              <EdicionNotesSection
-                styles={styles}
-                t={t}
-                texto={formData.texto}
-                onChange={(texto) => setFormData((prev) => ({ ...prev, texto }))}
-                isBusy={isBusy}
-              />
-            </AccordionSection>
-            <AccordionSection title={t('accordion.highlights')} badge={highlightsBadge}>
-              <EdicionHighlightsSection
-                styles={styles}
-                t={t}
-                formData={formData}
-                setFormData={setFormData}
-              />
-            </AccordionSection>
           </div>
           <div style={styles.footer(isMobile)}>
               <Motion.button

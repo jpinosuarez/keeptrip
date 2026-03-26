@@ -17,6 +17,7 @@ const EdicionContextSection = ({
   t,
   formData,
   setFormData,
+  showCompanions = true,
   companionDraft,
   companionResults,
   onCompanionSearch,
@@ -82,6 +83,7 @@ const EdicionContextSection = ({
         </div>
       </div>
 
+      {showCompanions && (
       <div style={{ marginTop: 12 }}>
         <label style={{ fontSize: '0.75rem', color: COLORS.textSecondary }}>{t('labels.companions')}</label>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
@@ -181,6 +183,7 @@ const EdicionContextSection = ({
           ))}
         </div>
       </div>
+      )}
     </div>
   );
 };

@@ -125,7 +125,7 @@ export default function InvitationsList({ compact = false, hook = null }) {
                       if (ok) {
                         try { e?.currentTarget?.blur?.(); } catch { /* safe fallback for tests */ }
                         pushToast('Invitación aceptada — ahora puedes ver el viaje', 'success');
-                        navigate('/trips/' + inv.viajeId);
+                        navigate({ pathname: '/trips', search: `editing=${inv.viajeId}` });
                       } else {
                         pushToast('No se pudo aceptar la invitación', 'error');
                       }

@@ -22,11 +22,21 @@ export const suscribirViajesConParadas = ({ db, userId, onData, onError }) => {
 
   return onSnapshot(
     q,
+    { includeMetadataChanges: true },
     async (snapshot) => {
       const snapshotId = ++latestSnapshotId;
 
       try {
-        const viajes = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+        const viajes = snapshot.docs.map((item) => {
+          const data = item.data();
+          return {
+            id: item.id,
+            ...data,
+            createdAt:
+              data.createdAt ??
+              (item.metadata.hasPendingWrites ? new Date() : null),
+          };
+        });
         const paradasPromises = viajes.map(async (viaje) => {
           const paradasRef = collection(db, `usuarios/${userId}/viajes/${viaje.id}/paradas`);
           const paradasSnap = await getDocs(paradasRef);
@@ -104,7 +114,7 @@ export const eliminarViaje = async ({ db, userId, viajeId }) => {
         throw new Error('Legacy deletion did not remove the document');
       }
       return true;
-    } catch (legacyError) {
+    } catch {
       // Prefer returning the original error for better logging.
       throw primaryError;
     }

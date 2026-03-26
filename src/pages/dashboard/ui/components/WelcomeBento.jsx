@@ -3,6 +3,7 @@ import { motion as Motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import { ENABLE_IMMERSIVE_VIEWER } from '@shared/config';
 import { welcomeStyles as styles } from './WelcomeBento.styles';
 import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
 
@@ -41,12 +42,18 @@ const WelcomeBento = ({
           </p>
           
           <div style={styles.badgeRow}>
-            <button type="button" onClick={handleLevelClick} style={styles.badgeLevelButton}>
+            {ENABLE_IMMERSIVE_VIEWER ? (
+              <button type="button" onClick={handleLevelClick} style={styles.badgeLevelButton}>
+                <span style={styles.badgeLevel}>
+                  {level.icon} {level.label}
+                </span>
+                <ArrowRight size={16} />
+              </button>
+            ) : (
               <span style={styles.badgeLevel}>
                 {level.icon} {level.label}
               </span>
-              <ArrowRight size={16} />
-            </button>
+            )}
             {nextLevel.level && (
               <span style={styles.badgeProgress}>
                 · {nextLevel.remaining} {nextLevel.remaining !== 1 ? t('stats.countriesPlural') : t('stats.countrySingular')} para {nextLevel.level.label}

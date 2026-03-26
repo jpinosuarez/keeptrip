@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect, useRef } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate, useMatch } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
@@ -102,26 +102,10 @@ function AppModalsManager({
     }
   };
 
-  // Al guardar un nuevo viaje, limpiar borrador y navegar al visor vía URL
-  const navigateTimeoutRef = useRef(null);
-
-  useEffect(() => {
-    return () => {
-      if (navigateTimeoutRef.current) {
-        window.clearTimeout(navigateTimeoutRef.current);
-        navigateTimeoutRef.current = null;
-      }
-    };
-  }, []);
-
   const handleAfterSave = esBorrador
-    ? (savedId) => {
+    ? () => {
         setViajeBorrador(null);
         setCiudadInicialBorrador(null);
-        if (navigateTimeoutRef.current) {
-          window.clearTimeout(navigateTimeoutRef.current);
-        }
-        navigateTimeoutRef.current = window.setTimeout(() => navigate('/trips/' + savedId), 400);
       }
     : undefined;
 
@@ -184,7 +168,7 @@ function AppModalsManager({
             onClose={closeSearchPalette}
             allTrips={bitacora}
             onSelectPlace={onLugarSeleccionado}
-            onSelectTrip={(tripId) => navigate('/trips/' + tripId)}
+            onSelectTrip={(tripId) => navigate({ pathname: '/trips', search: `editing=${tripId}` })}
           />
         </Suspense>
       </ErrorBoundary>
