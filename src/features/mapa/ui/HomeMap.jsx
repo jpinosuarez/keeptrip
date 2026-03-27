@@ -8,7 +8,7 @@ import { setMapLanguage } from '@shared/lib/geo';
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation('dashboard');
   const [hoverInfo, setHoverInfo] = useState(null);
 
   const onHover = useCallback(event => {
@@ -92,7 +92,7 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
             fontWeight: '600'
           }}>
             {/* Mapbox suele tener name_es o name_en */}
-            {hoverInfo.feature.properties[`name_${i18n.language}`] || hoverInfo.feature.properties.name_en || "País"}
+            {hoverInfo.feature.properties[`name_${i18n.language}`] || hoverInfo.feature.properties.name_en || t('countryFallback')}
           </div>
         )}
       </Map>

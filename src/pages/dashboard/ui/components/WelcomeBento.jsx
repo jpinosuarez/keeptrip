@@ -31,13 +31,18 @@ const WelcomeBento = ({
       transition={{ type: 'spring', stiffness: 100, damping: 20 }}
       style={styles.card(isMobile)}
     >
+      <div style={styles.decorLayer} aria-hidden="true">
+        <span style={styles.decorOrbA} />
+        <span style={styles.decorOrbB} />
+      </div>
+
       <div style={styles.headerRow}>
         <div style={styles.identityGroup}>
           <h1 style={styles.title}>{t('greeting', { name })}</h1>
           <p style={styles.subtitle}>
             {visitedCount > 0
               ? t('subtitleStats', { countries: visitedCount, percent: worldPercent, trips: tripsCount })
-              : t('welcome.emptyStateSubtitle', 'Comienza a explorar el mundo')}
+              : t('welcome.emptyStateSubtitle')}
           </p>
           
           <div style={styles.badgeRow}>
@@ -55,7 +60,11 @@ const WelcomeBento = ({
             )}
             {nextLevel.level && (
               <span style={styles.badgeProgress}>
-                · {nextLevel.remaining} {nextLevel.remaining !== 1 ? t('stats.countriesPlural') : t('stats.countrySingular')} para {nextLevel.level.label}
+                {t('nextLevelProgress', {
+                  remaining: nextLevel.remaining,
+                  countryWord: nextLevel.remaining !== 1 ? t('stats.countriesPlural') : t('stats.countrySingular'),
+                  level: nextLevel.level.label,
+                })}
               </span>
             )}
           </div>
@@ -64,6 +73,10 @@ const WelcomeBento = ({
 
       <div style={styles.statsWrapper}>
         <TravelStatsWidget
+          heroMetric={{
+            value: visitedCount,
+            label: t('stats.countriesVisited')
+          }}
           stats={[
             { value: logStatsDashboard.tripCount, label: t('stats.tripsCompleted') },
             { value: logStatsDashboard.totalDays, label: t('stats.totalDays') },
@@ -72,7 +85,7 @@ const WelcomeBento = ({
             { value: logStatsDashboard.longestTrip, label: t('stats.longestTrip') },
             { value: logStatsDashboard.totalPhotos, label: t('stats.photos') },
           ]}
-          ariaLabel={t('stats.tripSummary', 'Trip summary')}
+          ariaLabel={t('stats.tripSummary')}
         />
       </div>
     </Motion.div>

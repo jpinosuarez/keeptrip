@@ -30,8 +30,8 @@ const EmptyDashboardState = ({ onNewTrip }) => {
         </Motion.div>
       </Motion.div>
       
-      <h3 style={styles.title}>{t('welcome.emptyStateTitle', 'El Comienzo de tu Legado')}</h3>
-      <p style={styles.text}>{t('welcome.emptyStateDescription', 'Aún no tienes destinos guardados. El mapa espera por tus historias.')}</p>
+      <h3 style={styles.title}>{t('welcome.emptyStateTitle')}</h3>
+      <p style={styles.text}>{t('welcome.emptyStateDescription')}</p>
       
       <Motion.button 
         type="button" 
@@ -41,7 +41,7 @@ const EmptyDashboardState = ({ onNewTrip }) => {
         whileTap={{ scale: 0.95 }}
       >
         <Compass size={20} />
-        {t('welcome.emptyStateCTA', 'Registrar Primera Aventura')}
+        {t('welcome.emptyStateCTA')}
       </Motion.button>
     </Motion.div>
   );

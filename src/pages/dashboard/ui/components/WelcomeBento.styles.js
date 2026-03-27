@@ -4,15 +4,41 @@ export const welcomeStyles = {
   card: (isMobile) => ({
     display: 'flex',
     flexDirection: 'column',
-    gap: '16px',
-    padding: isMobile ? '20px' : '24px',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    backdropFilter: 'blur(12px)',
+    gap: '10px',
+    padding: isMobile ? '16px' : '18px',
+    backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
-    boxShadow: `0 8px 32px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.5)`,
+    border: `1px solid ${COLORS.border}`,
+    boxShadow: SHADOWS.sm,
     position: 'relative',
     overflow: 'hidden',
   }),
+
+  decorLayer: {
+    position: 'absolute',
+    inset: 0,
+    pointerEvents: 'none',
+  },
+
+  decorOrbA: {
+    position: 'absolute',
+    width: '140px',
+    height: '140px',
+    right: '-44px',
+    top: '-56px',
+    borderRadius: '999px',
+    background: 'radial-gradient(circle, rgba(255,107,53,0.16) 0%, rgba(255,107,53,0) 72%)',
+  },
+
+  decorOrbB: {
+    position: 'absolute',
+    width: '120px',
+    height: '120px',
+    left: '-38px',
+    bottom: '-60px',
+    borderRadius: '999px',
+    background: 'radial-gradient(circle, rgba(69,176,168,0.14) 0%, rgba(69,176,168,0) 74%)',
+  },
 
   headerRow: {
     display: 'flex',
@@ -25,12 +51,14 @@ export const welcomeStyles = {
   identityGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
+    gap: '6px',
+    position: 'relative',
+    zIndex: 1,
   },
 
   title: {
     margin: 0,
-    fontSize: '1.75rem',
+    fontSize: 'clamp(1.3rem, 2.3vw, 1.7rem)',
     fontWeight: '900',
     color: COLORS.charcoalBlue,
     lineHeight: 1.1,
@@ -39,22 +67,24 @@ export const welcomeStyles = {
 
   subtitle: {
     margin: 0,
-    fontSize: '0.95rem',
+    fontSize: '0.9rem',
     fontWeight: '500',
     color: COLORS.textSecondary,
-    lineHeight: 1.4,
+    lineHeight: 1.35,
   },
 
   badgeRow: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '8px',
-    padding: '6px 12px',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: '5px 10px',
+    backgroundColor: '#F8FAFC',
     borderRadius: RADIUS.full,
-    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-    border: '1px solid rgba(44, 62, 80, 0.05)',
-    marginTop: '4px',
+    boxShadow: 'none',
+    border: `1px solid ${COLORS.border}`,
+    marginTop: '2px',
+    flexWrap: 'wrap',
+    maxWidth: '100%',
   },
 
   badgeLevelButton: {
@@ -63,8 +93,8 @@ export const welcomeStyles = {
     gap: '6px',
     padding: '8px 12px',
     borderRadius: RADIUS.full,
-    border: '1px solid rgba(0,0,0,0.08)',
-    background: 'rgba(255, 255, 255, 0.92)',
+    border: `1px solid ${COLORS.border}`,
+    background: COLORS.surface,
     cursor: 'pointer',
     color: COLORS.charcoalBlue,
     fontWeight: 800,
@@ -81,14 +111,17 @@ export const welcomeStyles = {
   },
 
   badgeProgress: {
-    fontSize: '0.75rem',
+    fontSize: '0.72rem',
     fontWeight: '600',
     color: COLORS.textSecondary,
-    opacity: 0.8,
+    opacity: 0.9,
+    whiteSpace: 'nowrap',
   },
 
   statsWrapper: {
-    marginTop: '8px',
+    marginTop: '4px',
+    position: 'relative',
+    zIndex: 1,
   },
   
   ctaDesktop: {

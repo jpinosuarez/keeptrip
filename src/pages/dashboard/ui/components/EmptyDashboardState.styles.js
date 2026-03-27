@@ -2,8 +2,8 @@ import { COLORS, SHADOWS, RADIUS } from '@shared/config';
 
 export const emptyStyles = {
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    backdropFilter: 'blur(16px)',
+    backgroundColor: COLORS.surface,
+    border: `1px solid ${COLORS.border}`,
     borderRadius: RADIUS.xl,
     padding: '48px 24px',
     display: 'flex',
@@ -12,7 +12,7 @@ export const emptyStyles = {
     justifyContent: 'center',
     gap: '20px',
     textAlign: 'center',
-    boxShadow: `0 8px 32px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.6)`,
+    boxShadow: SHADOWS.sm,
     width: '100%',
     minHeight: '320px',
     position: 'relative',
@@ -35,7 +35,7 @@ export const emptyStyles = {
     position: 'absolute',
     top: '-8px',
     right: '-8px',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: COLORS.surface,
     borderRadius: '50%',
     padding: '8px',
     display: 'flex',

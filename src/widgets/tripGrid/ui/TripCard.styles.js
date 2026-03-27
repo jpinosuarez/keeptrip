@@ -3,15 +3,16 @@ import { COLORS, SHADOWS, RADIUS } from '@shared/config';
 export const tripStyles = {
   cardBase: (isMobile, variant) => {
     const isGrid = variant === 'grid';
+    const isHome = variant === 'home';
     return {
       position: 'relative',
       minWidth: isGrid ? 'auto' : (isMobile ? undefined : '160px'),
-      width: isGrid ? '100%' : (isMobile ? '100%' : '160px'),
-      height: isGrid ? '280px' : '220px', // Taller for cinematic feel
+      width: isGrid || isHome ? '100%' : (isMobile ? '100%' : '160px'),
+      height: isGrid ? '280px' : isHome ? '188px' : '220px',
       borderRadius: isMobile ? RADIUS.lg : RADIUS.xl,
       overflow: 'hidden',
       cursor: 'pointer',
-      flexShrink: isGrid || isMobile ? undefined : 0,
+      flexShrink: isGrid || isHome || isMobile ? undefined : 0,
       boxShadow: SHADOWS.lg,
       backgroundColor: COLORS.surface,
       display: 'flex',

@@ -1,28 +1,44 @@
 import { COLORS, RADIUS, SHADOWS, TRANSITIONS } from '@shared/config';
 
-export const mediaQueries = `
-  @media (max-width: 768px) {
-    .travel-stats-grid {
-      grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)) !important;
-      gap: 8px !important;
-    }
-    .travel-stats-pill {
-      min-height: 44px !important;
-      min-width: 0 !important;
-      padding: 6px 12px !important;
-    }
-    .travel-stats-value {
-      font-size: 1.2rem !important;
-    }
-    .travel-stats-label {
-      font-size: 0.65rem !important;
-      margin-top: 2px !important;
-    }
-  }
-`;
-
 export const styles = {
-  container: {
+  shell: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(180px, 0.95fr) minmax(0, 2fr)',
+    gap: '8px',
+    width: '100%',
+    alignItems: 'stretch',
+  },
+  heroCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    minHeight: '108px',
+    padding: '12px 14px',
+    borderRadius: RADIUS.lg,
+    border: `1px solid ${COLORS.border}`,
+    backgroundColor: '#FFF7F3',
+    boxShadow: SHADOWS.sm,
+  },
+  heroLabel: {
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    color: COLORS.textSecondary,
+  },
+  heroValue: {
+    fontSize: 'clamp(1.9rem, 3.2vw, 2.4rem)',
+    fontWeight: 900,
+    color: COLORS.atomicTangerine,
+    lineHeight: 1,
+    letterSpacing: '-0.03em',
+  },
+  secondaryGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(105px, 1fr))',
+    gap: '6px',
+  },
+  compactContainer: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(112px, 1fr))',
     alignItems: 'stretch',
@@ -35,46 +51,30 @@ export const styles = {
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: '56px',
-    minWidth: '112px',
-    padding: '10px 16px',
-    borderRadius: RADIUS.full,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    border: `1px solid rgba(44,62,80,0.08)`,
-    boxShadow: SHADOWS.md,
+    minHeight: '62px',
+    minWidth: 0,
+    padding: '8px 10px',
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.surface,
+    border: `1px solid ${COLORS.border}`,
+    boxShadow: SHADOWS.sm,
     position: 'relative',
     transition: TRANSITIONS.normal,
   },
-  iconWrap: {
-    width: '100%',
-    display: 'flex',
-    justifyContent: 'flex-start',
-    marginBottom: '8px',
-  },
-  iconCircle: {
-    width: '34px',
-    height: '34px',
-    borderRadius: RADIUS.full,
-    background: 'rgba(255, 255, 255, 0.8)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: `0 4px 14px rgba(0,0,0,0.08)`,
-    color: COLORS.atomicTangerine,
-  },
   value: {
-    fontSize: '1.8rem',
+    fontSize: '1.28rem',
     fontWeight: '900',
     color: COLORS.charcoalBlue,
     lineHeight: 1,
-    letterSpacing: '-0.02em',
+    letterSpacing: '-0.015em',
   },
   label: {
-    fontSize: '0.7rem',
+    fontSize: '0.64rem',
     fontWeight: '700',
     color: COLORS.textSecondary,
     textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-    marginTop: '5px',
+    letterSpacing: '0.04em',
+    marginTop: '4px',
+    textAlign: 'center',
   },
 };

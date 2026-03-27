@@ -10,6 +10,7 @@ import { HomeMap } from '@features/mapa';
 import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { getTravelerLevel, getNextLevel } from '@features/gamification';
 import { useLogStats } from '@shared/lib/hooks/useLogStats';
+import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { SkeletonList, TripCardSkeleton } from '@shared/ui/components/Skeletons';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
 
@@ -24,16 +25,24 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
   const { openBuscador } = useUI();
   const { t } = useTranslation('dashboard');
   const { t: tNav } = useTranslation('nav');
+  const { width, height } = useWindowSize();
   useDocumentTitle(tNav('home'));
 
-  const name = usuario?.displayName ? usuario.displayName.split(' ')[0] : t('fallbackName', 'Explorer');
+  const name = usuario?.displayName ? usuario.displayName.split(' ')[0] : t('fallbackName');
   const recentTrips = useMemo(
     () => [...log].sort((a, b) => new Date(b.fechaInicio) - new Date(a.fechaInicio)),
     [log]
   );
+
+  const recentTripsLimit = useMemo(() => {
+    if (isMobile) return 2;
+    if (width >= 1500 && height >= 880) return 3;
+    return 2;
+  }, [height, isMobile, width]);
+
   const visibleRecentTrips = useMemo(
-    () => recentTrips.slice(0, isMobile ? 2 : 2),
-    [recentTrips, isMobile]
+    () => recentTrips.slice(0, recentTripsLimit),
+    [recentTrips, recentTripsLimit]
   );
   const isNewTraveler = log.length === 0;
   const [mapRenderKey, setMapRenderKey] = useState(0);
@@ -64,13 +73,13 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
       </div>
       <div style={styles.mapErrorPanel}>
         <AlertTriangle size={20} color={COLORS.warning} />
-        <p style={styles.mapErrorText}>{t('mapUnavailable', 'El mapa no esta disponible ahora mismo.')}</p>
+        <p style={styles.mapErrorText}>{t('mapUnavailable')}</p>
         <button
           type="button"
           style={styles.mapRetryBtn}
           onClick={() => setMapRenderKey((prev) => prev + 1)}
         >
-          {t('retryMap', 'Reintentar mapa')}
+          {t('retryMap')}
         </button>
       </div>
     </div>
@@ -106,9 +115,13 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
 
         <div style={styles.recentsContainer}>
           <div style={styles.sectionHeader}>
-            <span style={styles.sectionTitle}>{t('recentAdventures')}</span>
+            <h2 style={styles.sectionTitle}>{t('recentAdventures')}</h2>
             {!isNewTraveler && (
-              <button onClick={() => navigate('/trips')} style={styles.viewAllBtn}>
+              <button
+                onClick={() => navigate('/trips')}
+                style={styles.viewAllBtn}
+                aria-label={t('viewAllTripSummary')}
+              >
                 {t('viewAll')} <ArrowRight size={14} />
               </button>
             )}
@@ -121,7 +134,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
               <div style={styles.dashboardErrorCard} role="status" aria-live="polite">
                 <WifiOff size={18} color={COLORS.warning} />
                 <p style={styles.dashboardErrorText}>
-                  {t('loadTripsError', "We couldn't load your trips. Please check your connection.")}
+                  {t('loadTripsError')}
                 </p>
                 {fetchError?.message && (
                   <p style={styles.dashboardErrorHint}>{fetchError.message}</p>
@@ -133,6 +146,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
                   key={trip.id} 
                   trip={trip} 
                   isMobile={isMobile} 
+                  variant="home"
                   onClick={() => openTripEditor(trip.id)} 
                 />
               ))
