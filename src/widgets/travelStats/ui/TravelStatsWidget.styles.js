@@ -4,7 +4,7 @@ export const styles = {
   shell: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '32px',
+    gap: '16px',
     width: '100%',
   },
   heroContainer: {
@@ -23,7 +23,7 @@ export const styles = {
     margin: 0,
   },
   heroValue: {
-    fontSize: 'clamp(2.5rem, 5vw, 3.75rem)',
+    fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
     fontWeight: 900,
     color: COLORS.atomicTangerine,
     lineHeight: 0.9,
@@ -32,8 +32,8 @@ export const styles = {
   },
   secondaryGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-    gap: '24px 20px',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(clamp(100px, 12vw, 140px), 1fr))',
+    gap: '12px 16px',
     width: '100%',
   },
   secondaryStat: {
@@ -43,7 +43,7 @@ export const styles = {
     alignItems: 'flex-start',
   },
   value: {
-    fontSize: 'clamp(1.6rem, 2.2vw, 2rem)',
+    fontSize: 'clamp(1.3rem, 1.8vw, 1.6rem)',
     fontWeight: 900,
     color: COLORS.charcoalBlue,
     lineHeight: 1,
@@ -51,7 +51,7 @@ export const styles = {
     margin: 0,
   },
   label: {
-    fontSize: '0.65rem',
+    fontSize: '0.6rem',
     fontWeight: 600,
     color: COLORS.textSecondary,
     textTransform: 'uppercase',

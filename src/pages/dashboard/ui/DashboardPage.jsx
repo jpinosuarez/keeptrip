@@ -93,14 +93,16 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
   return (
     <div style={styles.dashboardContainer(isMobile)}>
       {/* Welcome area (Traveler Identity Bento) */}
-      <WelcomeBento 
-        name={name}
-        visitedCount={visitedCount}
-        level={level}
-        nextLevel={next}
-        logStatsDashboard={logStatsDashboard}
-        isMobile={isMobile}
-      />
+      <div style={styles.welcomeContainer}>
+        <WelcomeBento 
+          name={name}
+          visitedCount={visitedCount}
+          level={level}
+          nextLevel={next}
+          logStatsDashboard={logStatsDashboard}
+          isMobile={isMobile}
+        />
+      </div>
 
       {/* Main grid: map + recents */}
       <div style={styles.mainGrid(isMobile)}>

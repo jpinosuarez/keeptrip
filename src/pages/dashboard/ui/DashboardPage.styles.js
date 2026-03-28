@@ -7,17 +7,23 @@ export const styles = {
     flexDirection: 'column',
     gap: isMobile ? '10px' : '14px',
     padding: isMobile ? '14px 14px 0' : '18px 20px 0',
-    height: '100%',
+    height: isMobile ? '100%' : '100dvh',
     minHeight: 0,
     overflow: 'hidden',
     boxSizing: 'border-box',
   }),
 
+  welcomeContainer: {
+    flexShrink: 0,
+    width: '100%',
+    overflow: 'visible',
+  },
+
   mainGrid: (isMobile) => ({
     display: 'grid',
-    gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.25fr) minmax(320px, 0.95fr)',
+    gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 60%) minmax(0, 40%)',
     gap: isMobile ? '12px' : '14px',
-    alignItems: 'start',
+    alignItems: 'stretch',
     flex: 1,
     minHeight: 0,
     overflow: 'hidden',
@@ -26,7 +32,10 @@ mapSection: {
   display: 'flex',
   flexDirection: 'column',
   gap: '8px',
+  flex: 1,
   minWidth: 0,
+  minHeight: 0,
+  overflow: 'hidden',
 },
 mapSectionTitle: {
   margin: 0,
@@ -38,12 +47,15 @@ mapSectionTitle: {
 },
 
   mapCard: (isMobile) => ({
+    display: 'flex',
+    flex: 1,
     borderRadius: RADIUS.xl,
     overflow: 'hidden',
     width: '100%',
     minWidth: 0,
     maxWidth: '100%',
-    height: isMobile ? 'clamp(180px, 38dvh, 260px)' : 'clamp(220px, 36dvh, 300px)',
+    minHeight: isMobile ? '300px' : '400px',
+    height: '100%',
     boxShadow: SHADOWS.md,
     backgroundColor: COLORS.surface,
     cursor: 'default',
@@ -143,6 +155,7 @@ mapSectionTitle: {
   recentsContainer: {
     display: 'flex',
     flexDirection: 'column',
+    flex: 1,
     gap: '8px',
     minWidth: 0,
     minHeight: 0,
@@ -187,8 +200,11 @@ mapSectionTitle: {
       : 'repeat(auto-fit, minmax(min(210px, 100%), 1fr))',
     alignItems: 'stretch',
     gap: isMobile ? '8px' : '10px',
-    overflow: 'hidden',
+    overflowY: 'auto',
+    overflowX: 'hidden',
     minWidth: 0,
+    minHeight: 0,
+    flex: 1,
   }),
 
   dashboardErrorCard: {

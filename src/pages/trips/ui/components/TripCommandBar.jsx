@@ -15,10 +15,10 @@ const TripCommandBar = ({ activeFilter, onFilterChange, logStats = null }) => {
     color: active ? COLORS.atomicTangerine : COLORS.charcoalBlue,
     fontSize: '0.8rem',
     fontWeight: 700,
-    cursor: 'pointer.',
+    cursor: 'pointer',
     transition: 'all 0.2s ease-out',
     whiteSpace: 'nowrap',
-    minHeight: '40px',
+    minHeight: '44px',
   });
   const iconBtnStyle = {
     background: 'none',
@@ -33,11 +33,13 @@ const TripCommandBar = ({ activeFilter, onFilterChange, logStats = null }) => {
     justifyContent: 'center',
     transition: 'color 0.2s ease-out',
   };
-  const statsText = logStats ? `${logStats.tripCount} Trips • ${logStats.totalDays} Travel Days • ${logStats.totalCities} Cities` : '';
+  const statsText = logStats
+    ? `${logStats.tripCount} Trips • ${logStats.totalDays} Travel Days • ${logStats.totalCities} Cities`
+    : '';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '12px', borderBottom: `1px solid ${COLORS.border}` }}>
       {statsText && (
-        <div style={{ fontSize: '0.85rem', color: COLORS.textSecondary, fontWeight: 500 }}>
+        <div style={{ fontSize: '0.9rem', color: COLORS.charcoalBlue, fontWeight: 600, lineHeight: 1.3 }}>
           {statsText}
         </div>
       )}
