@@ -22,7 +22,7 @@ export const styles = {
 
   mainGrid: (isMobile) => ({
     display: isMobile ? 'flex' : 'grid',
-    gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',
+    gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))',
     flexDirection: isMobile ? 'column' : undefined,
     gap: isMobile ? '10px' : '12px',
     alignItems: isMobile ? undefined : 'stretch',
