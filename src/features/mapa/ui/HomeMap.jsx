@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import Map, { Source, Layer } from 'react-map-gl';
+import Map, { Source, Layer, Popup } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { COLORS, RADIUS } from '@shared/config';
 import { setMapLanguage } from '@shared/lib/geo';
@@ -11,9 +11,13 @@ const HomeMap = ({ paisesVisitados = [] }) => {
   const mapRef = useRef(null);
 
   const onHover = useCallback(event => {
-    const { features, point: { x, y } } = event;
+    const { features, lngLat } = event;
     const hoveredFeature = features && features[0];
-    setHoverInfo(hoveredFeature ? { feature: hoveredFeature, x, y } : null);
+    setHoverInfo(hoveredFeature ? { 
+      feature: hoveredFeature, 
+      longitude: lngLat.lng, 
+      latitude: lngLat.lat 
+    } : null);
   }, []);
 
   const handleMapLoad = useCallback(e => {
@@ -55,9 +59,18 @@ const HomeMap = ({ paisesVisitados = [] }) => {
           <Layer id="borders" type="line" source-layer="country_boundaries" paint={{ 'line-color': '#cbd5e1', 'line-width': 0.5, 'line-opacity': 0.6 }} />
         </Source>
         {hoverInfo && (
-          <div style={{ position: 'absolute', zIndex: 10, pointerEvents: 'none', left: hoverInfo.x, top: hoverInfo.y, transform: 'translate(-50%, -120%)', background: 'rgba(30, 41, 59, 0.95)', color: 'white', padding: '6px 10px', borderRadius: RADIUS.xs, fontSize: '0.75rem', fontWeight: '600', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
-            {hoverInfo.feature.properties[`name_${i18n.language}`] || hoverInfo.feature.properties.name_en || t('countryFallback')}
-          </div>
+          <Popup
+            longitude={hoverInfo.longitude}
+            latitude={hoverInfo.latitude}
+            closeButton={false}
+            closeOnClick={false}
+            anchor="top"
+            offset={[0, -10]}
+          >
+            <div style={{ background: 'rgba(30, 41, 59, 0.95)', color: 'white', padding: '6px 10px', borderRadius: RADIUS.xs, fontSize: '0.75rem', fontWeight: '600', whiteSpace: 'nowrap' }}>
+              {hoverInfo.feature.properties[`name_${i18n.language}`] || hoverInfo.feature.properties.name_en || t('countryFallback')}
+            </div>
+          </Popup>
         )}
       </Map>
     </div>

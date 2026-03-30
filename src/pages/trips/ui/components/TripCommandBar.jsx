@@ -40,12 +40,7 @@ const TripCommandBar = ({ activeFilter, onFilterChange, logStats = null }) => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingBottom: '12px', borderBottom: `1px solid ${COLORS.border}` }}>
       {logStats && (
         <TravelStatsWidget
-          heroMetric={{ value: logStats.tripCount, label: t('stats.tripsCompleted') }}
-          stats={[
-            { value: logStats.totalDays, label: t('stats.totalDays') },
-            { value: logStats.totalCities, label: t('stats.registeredCities') },
-            { value: logStats.continents, label: t('stats.continents') },
-          ]}
+          logStats={logStats}
           ariaLabel={t('stats.tripSummary')}
           variant="trips"
         />

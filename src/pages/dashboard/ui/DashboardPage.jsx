@@ -96,7 +96,6 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
       <div style={styles.welcomeContainer}>
         <WelcomeBento 
           name={name}
-          visitedCount={visitedCount}
           level={level}
           nextLevel={next}
           logStatsDashboard={logStatsDashboard}

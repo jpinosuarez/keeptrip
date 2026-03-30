@@ -97,3 +97,10 @@ export const TRANSITIONS = {
   normal: 'all 0.25s ease',
   slow: 'all 0.4s ease'
 };
+
+export const ANIMATION_DELAYS = {
+  fast: 0.1,
+  normal: 0.15,
+  stagger: 0.05,
+  staggerLarge: 0.04,
+};

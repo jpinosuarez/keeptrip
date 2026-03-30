@@ -1,45 +1,164 @@
-import React, { memo, useEffect } from 'react';
-import { motion as Motion, useMotionValue, useTransform, animate } from 'framer-motion';
+import React, { useMemo } from 'react';
+import { motion as Motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { ANIMATION_DELAYS } from '@shared/config';
 import { styles } from './TravelStatsWidget.styles';
-const TravelStatsWidget = ({ heroMetric = null, stats = [], ariaLabel, variant = 'full', isMobile = false }) => {
-  if (stats.length === 0) return null;
 
-  // For 'home' variant (desktop horizontal): hero left + secondary stats right
-  if (variant === 'home') {
-    const displayed = stats.slice(0, 3);
-    if (!heroMetric) return null;
+// Format large numbers with thousands separator
+const formatStat = (value) => {
+  if (typeof value !== 'number' || Number.isNaN(value)) return '—';
+  return new Intl.NumberFormat('en-US').format(Math.round(value));
+};
+
+const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'home', isMobile = false }) => {
+  const { t } = useTranslation('dashboard');
+
+  // Ensure safe numeric values with fallback to 0
+  const safeValue = (val) => (typeof val === 'number' && !Number.isNaN(val) ? val : 0);
+
+  // 5 metrics: Hero (Trips) + 4 Secondary (Days, Cities, % World, Continents)
+  // Compute memoized values to prevent animation jank on re-renders
+  // ⚠️ CRITICAL: Must be BEFORE conditional returns to follow React Hooks Rules
+  const metrics = useMemo(() => {
+    // Return metrics even if logStats is null/empty (will show in empty state)
+    if (!logStats) {
+      return {
+        hero: { value: 0, label: t('stats.tripsCompleted'), displayValue: '0' },
+        secondary: [],
+      };
+    }
+
+    return {
+      hero: {
+        value: safeValue(logStats.tripCount),
+        label: t('stats.tripsCompleted'),
+        displayValue: formatStat(safeValue(logStats.tripCount)),
+      },
+      secondary: [
+        {
+          value: safeValue(logStats.totalDays),
+          label: t('stats.totalDays'),
+          hint: t('stats.totalDaysHint') || 'Days across all trips',
+          displayValue: formatStat(safeValue(logStats.totalDays)),
+        },
+        {
+          value: safeValue(logStats.totalCities),
+          label: t('stats.registeredCities'),
+          hint: t('stats.citiesHint') || 'Unique cities visited',
+          displayValue: formatStat(safeValue(logStats.totalCities)),
+        },
+        {
+          value: safeValue(logStats.percentOfWorld),
+          label: t('stats.percentOfWorld') || '% of World',
+          hint: t('stats.percentHint') || 'Of global 195 countries',
+          displayValue: `${Math.round(safeValue(logStats.percentOfWorld) * 10) / 10}%`,
+        },
+        {
+          value: safeValue(logStats.continents),
+          label: t('stats.continents'),
+          hint: t('stats.continentsHint') || 'Continents explored',
+          displayValue: formatStat(safeValue(logStats.continents)),
+        },
+      ],
+    };
+  }, [logStats, t]);
+
+  const heroMetric = metrics.hero;
+  const secondaryMetrics = metrics.secondary;
+
+  /* PHASE 3: Aspirational Empty State — if no trips or no data, render beautiful placeholder */
+  if (!logStats || safeValue(logStats.tripCount) === 0) {
     return (
-      <section role="region" aria-label={ariaLabel} className="travel-stats-home" style={styles.homeShell(isMobile)}>
-        <Motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.6 }} style={styles.homeHeroContainer}>
-          <span style={styles.homeHeroLabel}>{heroMetric.label}</span>
-          <AnimatedValue value={heroMetric.value} style={styles.homeHeroValue} />
+      <section role="region" aria-label={ariaLabel} style={styles.homeShell(isMobile)}>
+        <Motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: ANIMATION_DELAYS.fast, duration: 0.5 }}
+          style={styles.emptyStateContainer}
+        >
+          <span style={styles.emptyStateLabel}>{t('stats.emptyStateHint') || '✨ Your passport awaits'}</span>
+          <span style={styles.emptyStateMessage}>
+            {t('stats.emptyStateMessage') || 'Start your first adventure to see your travel story unfold'}
+          </span>
         </Motion.div>
-        {!isMobile && (
-          <div className="travel-stats-home-secondary" style={styles.homeSecondaryGrid}>
-            {displayed.map((stat, idx) => (
-              <Motion.div key={stat.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + idx * 0.05, duration: 0.5 }} style={styles.homeSecondaryStat}>
-                <StatDisplay stat={stat} />
-              </Motion.div>
-            ))}
-          </div>
-        )}
       </section>
     );
   }
 
-  // For 'trips' variant (compact command bar header)
+  if (variant === 'home') {
+    // Horizontal layout: Hero on left, secondary grid on right (always visible now)
+    return (
+      <section role="region" aria-label={ariaLabel} className="travel-stats-home" style={styles.homeShell(isMobile)}>
+        {/* PHASE 4: Fast staggered entry animation — fade-in + slide up on mount ONLY */}
+        <Motion.div
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: ANIMATION_DELAYS.fast, duration: 0.4 }}
+          style={styles.homeHeroContainer}
+        >
+          <span style={styles.homeHeroLabel} title={t('stats.tripsCompleted')}>{heroMetric.label}</span>
+          <span style={styles.homeHeroValue}>{heroMetric.displayValue}</span>
+        </Motion.div>
+
+        {/* Secondary metrics: Always render (unhidden mobile) */}
+        <div 
+          className="travel-stats-home-secondary" 
+          style={styles.homeSecondaryGrid(isMobile)}
+          role="group"
+          aria-label={t('stats.additionalMetrics') || 'Additional travel metrics'}
+        >
+          {secondaryMetrics.map((stat, idx) => (
+            <Motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              /* PHASE 4: Faster stagger, total sequence < 0.6s */
+              transition={{ delay: 0.15 + idx * 0.08, duration: 0.35 }}
+              style={styles.homeSecondaryStat}
+              role="doc-subtitle"
+              aria-label={`${stat.label}: ${stat.displayValue}. ${stat.hint}`}
+              title={stat.hint}
+            >
+              <StatDisplay stat={stat} />
+            </Motion.div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   if (variant === 'trips') {
-    const displayed = stats.slice(0, 3);
-    if (!heroMetric) return null;
+    // Compact layout: Hero scaled down on left with border, 4 secondary in compact grid
     return (
       <section role="region" aria-label={ariaLabel} className="travel-stats-trips" style={styles.tripsShell}>
-        <Motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.5 }} style={styles.tripsHeroContainer}>
+        <Motion.div
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: ANIMATION_DELAYS.fast, duration: 0.4 }}
+          style={styles.tripsHeroContainer}
+        >
           <span style={styles.tripsHeroLabel}>{heroMetric.label}</span>
-          <AnimatedValue value={heroMetric.value} style={styles.tripsHeroValue} />
+          <span style={styles.tripsHeroValue}>{heroMetric.displayValue}</span>
         </Motion.div>
-        <div className="travel-stats-trips-secondary" style={styles.tripsSecondaryGrid}>
-          {displayed.map((stat, idx) => (
-            <Motion.div key={stat.label} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + idx * 0.04, duration: 0.45 }} style={styles.tripsSecondaryStat}>
+
+        <div 
+          className="travel-stats-trips-secondary" 
+          style={styles.tripsSecondaryGrid}
+          role="group"
+          aria-label={t('stats.additionalMetrics') || 'Additional travel metrics'}
+        >
+          {secondaryMetrics.map((stat, idx) => (
+            <Motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              /* PHASE 4: Faster stagger */
+              transition={{ delay: 0.15 + idx * 0.08, duration: 0.35 }}
+              style={styles.tripsSecondaryStat}
+              role="doc-subtitle"
+              aria-label={`${stat.label}: ${stat.displayValue}. ${stat.hint}`}
+              title={stat.hint}
+            >
               <StatDisplay stat={stat} variant="trips" />
             </Motion.div>
           ))}
@@ -48,66 +167,19 @@ const TravelStatsWidget = ({ heroMetric = null, stats = [], ariaLabel, variant =
     );
   }
 
-  // Default 'full' variant (vertical, original)
-  const displayed = variant === 'compact' ? stats.slice(0, 2) : stats.slice(0, 4);
-  if (variant === 'compact' || !heroMetric) {
-    return (
-      <div role="region" aria-label={ariaLabel} className="travel-stats-grid travel-stats-grid-compact" style={styles.compactContainer}>
-        {displayed.map((stat) => (<StatDisplay key={stat.label} stat={stat} />))}
-      </div>
-    );
-  }
-  return (
-    <section role="region" aria-label={ariaLabel} className="travel-stats-shell" style={styles.shell}>
-      <Motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.6 }} style={styles.heroContainer}>
-        <span style={styles.heroLabel}>{heroMetric.label}</span>
-        <AnimatedValue value={heroMetric.value} style={styles.heroValue} />
-      </Motion.div>
-      <div className="travel-stats-grid travel-stats-secondary" style={styles.secondaryGrid}>
-        {displayed.map((stat, idx) => (
-          <Motion.div key={stat.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + idx * 0.05, duration: 0.5 }} style={styles.secondaryStat}>
-            <StatDisplay stat={stat} />
-          </Motion.div>
-        ))}
-      </div>
-    </section>
-  );
+  return null;
 };
-const StatDisplay = memo(({ stat, variant = 'default' }) => {
-  const numericValue = typeof stat.value === 'number' ? stat.value : Number.parseFloat(stat.value) || 0;
-  const count = useMotionValue(numericValue);
-  const rounded = useTransform(count, (latest) => Math.round(latest));
-  const prev = React.useRef(numericValue);
-  useEffect(() => {
-    if (prev.current !== numericValue) {
-      animate(count, numericValue, { duration: 0.8 });
-      prev.current = numericValue;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [numericValue]);
+
+const StatDisplay = ({ stat, variant = 'default' }) => {
   const valueStyle = variant === 'trips' ? styles.tripsValue : styles.value;
   const labelStyle = variant === 'trips' ? styles.tripsLabel : styles.label;
+
   return (
-    <>
-      <Motion.span style={valueStyle}>{typeof stat.value === 'number' ? rounded : stat.value}</Motion.span>
+    <div style={styles.statDisplayWrapper} title={stat.hint}>
+      <span style={valueStyle} role="doc-pagebreak">{stat.displayValue}</span>
       <span style={labelStyle}>{stat.label}</span>
-    </>
+    </div>
   );
-});
-StatDisplay.displayName = 'StatDisplay';
-const AnimatedValue = memo(({ value, style }) => {
-  const numericValue = typeof value === 'number' ? value : Number.parseFloat(value) || 0;
-  const count = useMotionValue(numericValue);
-  const rounded = useTransform(count, (latest) => Math.round(latest));
-  const prev = React.useRef(numericValue);
-  useEffect(() => {
-    if (prev.current !== numericValue) {
-      animate(count, numericValue, { duration: 0.8 });
-      prev.current = numericValue;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [numericValue]);
-  return (<Motion.span style={style}>{typeof value === 'number' ? rounded : value}</Motion.span>);
-});
-AnimatedValue.displayName = 'AnimatedValue';
-export default memo(TravelStatsWidget);
+};
+
+export default TravelStatsWidget;

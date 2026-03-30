@@ -224,11 +224,11 @@ const SearchModal = ({
               </div>
             )}
 
-            {results.map((item) => {
+            {results.map((item, itemIdx) => {
               const flagUrl = getFlagUrl(item.countryCode);
               return (
                 <div
-                  key={item.id}
+                  key={item.id || `search-result-${itemIdx}`}
                   style={styles.resultItem}
                   onClick={() => handleSelect(item)}
                   className="result-item-hover"

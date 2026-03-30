@@ -93,14 +93,14 @@ const CityManager = ({ t, paradas, setParadas }) => {
 
       {resultados.length > 0 && (
         <div style={styles.resultsList}>
-          {resultados.map(res => {
+          {resultados.map((res, resIdx) => {
             // Extraer país para el icono en resultados
             const contextCountry = res.context?.find(c => c.id.startsWith('country'));
             const code = contextCountry?.short_code?.toUpperCase();
             const flag = getFlagUrl(code);
 
             return (
-                <div key={res.id} style={styles.resultItem}>
+                <div key={res.id || `result-${resIdx}`} style={styles.resultItem}>
                 <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
                     {flag ? (
                       <img

@@ -5,7 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import { ENABLE_IMMERSIVE_VIEWER } from '@shared/config';
 import { welcomeStyles as styles } from './WelcomeBento.styles';
 import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
-const WelcomeBento = ({ name, visitedCount, level, nextLevel, logStatsDashboard, isMobile }) => {
+const WelcomeBento = ({ name, level, nextLevel, logStatsDashboard, isMobile }) => {
   const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
   const handleLevelClick = () => { navigate('/explorer'); };
@@ -42,15 +42,7 @@ const WelcomeBento = ({ name, visitedCount, level, nextLevel, logStatsDashboard,
       </div>
       <div style={styles.statsSection}>
         <TravelStatsWidget
-          heroMetric={{ value: visitedCount, label: t('stats.countriesVisited') }}
-          stats={[
-            { value: logStatsDashboard.tripCount, label: t('stats.tripsCompleted') },
-            { value: logStatsDashboard.totalDays, label: t('stats.totalDays') },
-            { value: logStatsDashboard.totalCities, label: t('stats.registeredCities') },
-            { value: logStatsDashboard.continents, label: t('stats.continents') },
-            { value: logStatsDashboard.longestTrip, label: t('stats.longestTrip') },
-            { value: logStatsDashboard.totalPhotos, label: t('stats.photos') },
-          ]}
+          logStats={logStatsDashboard}
           ariaLabel={t('stats.tripSummary')}
           variant="home"
           isMobile={isMobile}

@@ -288,7 +288,7 @@ export function GalleryGrid({ fotos = [], fotosSubiendo = [], onReintentarFoto, 
         {/* Fotos guardadas */}
         {fotos.map((foto, index) => (
           <LazyImage
-            key={foto.id}
+            key={foto.id || `saved-${index}`}
             src={foto.url}
             alt={foto.caption || `Foto ${index + 1}`}
             isPortada={foto.esPortada}
@@ -297,9 +297,9 @@ export function GalleryGrid({ fotos = [], fotosSubiendo = [], onReintentarFoto, 
         ))}
 
         {/* Fotos en proceso de subida */}
-        {fotosEnProceso.map((foto) => (
+        {fotosEnProceso.map((foto, uploadIndex) => (
           <UploadingImage
-            key={foto.id}
+            key={foto.id || `uploading-${uploadIndex}`}
             preview={foto.preview}
             status={foto.status}
             esPortada={foto.esPortada}

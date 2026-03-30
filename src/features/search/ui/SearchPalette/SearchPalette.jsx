@@ -424,7 +424,7 @@ const SearchPalette = ({
               <div style={styles.resultsList}>
                 {allResults.map((result, idx) => (
                   <RichResultCard
-                    key={result._type === 'trip' ? result._tripId : result.id}
+                    key={result._type === 'trip' ? (result._tripId || `trip-${idx}`) : (result.id || `result-${idx}`)}
                     item={result}
                     type={result._type}
                     isSelected={idx === selectedIndex}

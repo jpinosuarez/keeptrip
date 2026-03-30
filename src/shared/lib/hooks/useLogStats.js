@@ -1,5 +1,22 @@
 import { useMemo } from 'react';
 
+let getContinents;
+let getContinentsResolved = false;
+
+const resolveGetContinents = () => {
+  if (getContinentsResolved) return;
+  getContinentsResolved = true;
+  try {
+    // eslint-disable-next-line global-require, import/no-dynamic-require
+    ({ getContinents } = require('@features/gamification/model/achievementsEngine'));
+  } catch {
+    getContinents = (codes) => new Set(codes);
+  }
+};
+
+// Resolve on module load
+resolveGetContinents();
+
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 const EMPTY_TRIPS = [];
 const EMPTY_TRIP_DATA = {};
@@ -42,6 +59,7 @@ export const useLogStats = (trips = [], tripData = {}) => {
         tripCount: 0,
         totalDays: 0,
         totalCities: 0,
+        percentOfWorld: 0,
         averageRating: null,
         continents: 0,
         longestTrip: 0,
@@ -88,19 +106,18 @@ export const useLogStats = (trips = [], tripData = {}) => {
 
     const averageRating = ratedTripCount > 0 ? ratingSum / ratedTripCount : 0;
 
+    // Calculate % of World (ISO 3166-1: 195 recognized countries)
+    const uniqueCountries = continentCodes.size;
+    const percentOfWorld = Number(((uniqueCountries / 195) * 100).toFixed(1));
+
     // convert continent codes to count via achievementsEngine helper
-    let continents = 0;
-    try {
-      const { getContinents } = require('@features/gamification/model/achievementsEngine');
-      continents = getContinents([...continentCodes]).size;
-    } catch {
-      continents = continentCodes.size;
-    }
+    const continents = getContinents([...continentCodes]).size;
 
     return {
       tripCount: safeTrips.length,
       totalDays,
       totalCities,
+      percentOfWorld,
       averageRating: averageRating > 0 ? averageRating.toFixed(1) : null,
       continents,
       longestTrip: longestDays,
