@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { COLORS, RADIUS } from '@shared/config';
 import { setMapLanguage } from '@shared/lib/geo';
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-const HomeMap = ({ paisesVisitados = [] }) => {
+const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
   const { i18n, t } = useTranslation('dashboard');
   const [hoverInfo, setHoverInfo] = useState(null);
   const mapRef = useRef(null);
@@ -24,22 +24,56 @@ const HomeMap = ({ paisesVisitados = [] }) => {
     const map = e.target;
     mapRef.current = map;
     setMapLanguage(map, i18n.language);
+    
+    // Dynamic fitBounds: Frame the INHABITED WORLD (Northern Hemisphere emphasis)
+    // South: -60° (Cape Horn, Antarctica edge) | North: 80° (Greenland, Svalbard)
+    // This avoids over-weighting Antarctica, ensuring Europe/North America breathe
+    // Padding: 20px ensures content doesn't touch container edges
+    // Duration: 0 prevents initial animation jank
+    try {
+      map.fitBounds(
+        [
+          [-180, -60],
+          [180, 80]
+        ],
+        {
+          padding: 20,
+          duration: 0,
+          maxZoom: 2.5
+        }
+      );
+    } catch (error) {
+      console.error('fitBounds failed:', error);
+      // Fallback to initialViewState if fitBounds fails
+    }
   }, [i18n.language]);
 
   const listaPaises = paisesVisitados.length > 0 ? paisesVisitados : ['EMPTY_LIST'];
   return (
-    <div style={{ width: '100%', minWidth: 0, height: '100%', minHeight: 0, position: 'relative', background: COLORS.background, borderRadius: RADIUS.xl, overflow: 'hidden' }}>
+    <div style={{ 
+      width: '100%', 
+      minWidth: 0, 
+      height: '100%', 
+      minHeight: 0, 
+      position: 'relative', 
+      background: COLORS.background, 
+      borderRadius: RADIUS.xl, 
+      overflow: 'hidden',
+      margin: 0,
+      padding: 0
+    }}>
       <Map 
         style={{ width: '100%', minWidth: 0, height: '100%', minHeight: 0 }} 
-        initialViewState={{ longitude: 0, latitude: 20, zoom: 0.6 }} 
+        initialViewState={{ longitude: 0, latitude: 15, zoom: 1.5 }} 
         mapStyle="mapbox://styles/mapbox/light-v11" 
         mapboxAccessToken={MAPBOX_TOKEN} 
         projection="mercator" 
-        reuseMaps 
+        reuseMaps
+        preventStyleDiffing={true}
         interactive={true} 
         renderWorldCopies={false} 
         minZoom={0} 
-        maxZoom={3}
+        maxZoom={2.8}
         maxBounds={[[-180, -85], [180, 85]]} 
         boxZoom={false} 
         keyboard={false} 

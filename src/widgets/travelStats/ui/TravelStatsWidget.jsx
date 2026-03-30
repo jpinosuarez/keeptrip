@@ -128,7 +128,7 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'home', isMob
                   aria-label={`${stat.label}: ${stat.displayValue}. ${stat.hint}`}
                   title={stat.hint}
                 >
-                  <StatDisplay stat={stat} />
+                  <StatDisplay stat={stat} variant="biography" />
                 </Motion.div>
               ))}
             </div>
@@ -151,7 +151,7 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'home', isMob
                   aria-label={`${stat.label}: ${stat.displayValue}. ${stat.hint}`}
                   title={stat.hint}
                 >
-                  <StatDisplay stat={stat} />
+                  <StatDisplay stat={stat} variant="biography" />
                 </Motion.div>
               ))}
             </div>
@@ -209,11 +209,24 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'home', isMob
 };
 
 const StatDisplay = ({ stat, variant = 'default' }) => {
-  const valueStyle = variant === 'trips' ? styles.tripsValue : styles.value;
-  const labelStyle = variant === 'trips' ? styles.tripsLabel : styles.label;
+  let valueStyle;
+  let labelStyle;
+  let wrapperStyle = styles.statDisplayWrapper;
+
+  if (variant === 'trips') {
+    valueStyle = styles.tripsValue;
+    labelStyle = styles.tripsLabel;
+  } else if (variant === 'biography') {
+    valueStyle = styles.biographyStatValue;
+    labelStyle = styles.biographyStatLabel;
+    wrapperStyle = styles.biographyStat;
+  } else {
+    valueStyle = styles.value;
+    labelStyle = styles.label;
+  }
 
   return (
-    <div style={styles.statDisplayWrapper} title={stat.hint}>
+    <div style={wrapperStyle} title={stat.hint}>
       <span style={valueStyle} role="doc-pagebreak">{stat.displayValue}</span>
       <span style={labelStyle}>{stat.label}</span>
     </div>
