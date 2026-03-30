@@ -7,7 +7,8 @@ export const styles = {
     flexDirection: 'column',
     gap: isMobile ? '8px' : '12px',
     padding: isMobile ? '12px 12px 0' : '16px 18px 0',
-    height: isMobile ? '100%' : '100dvh',
+    height: '100%',
+    flex: 1,
     minHeight: 0,
     overflow: 'hidden',
     boxSizing: 'border-box',
@@ -21,7 +22,7 @@ export const styles = {
 
   mainGrid: (isMobile) => ({
     display: isMobile ? 'flex' : 'grid',
-    gridTemplateColumns: isMobile ? undefined : '60% 40%',
+    gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',
     flexDirection: isMobile ? 'column' : undefined,
     gap: isMobile ? '10px' : '12px',
     alignItems: isMobile ? undefined : 'stretch',
