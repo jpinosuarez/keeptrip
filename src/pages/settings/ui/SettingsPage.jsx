@@ -12,7 +12,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import {
-  User, Globe, Download, LogOut, ChevronRight,
+  User, Globe, LogOut, ChevronRight,
   CheckCircle, Camera, Pencil, Trash2
 } from 'lucide-react';
 import { useAuth } from '@app/providers/AuthContext';
@@ -37,67 +37,79 @@ const SettingsRow = ({
   danger = false,
   trailing,
   isLast = false,
-}) => (
-  <Motion.button
-    type="button"
-    onClick={onClick}
-    whileTap={{ scale: 0.98 }}
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '14px',
-      width: '100%',
-      minHeight: '56px',
-      padding: '14px 18px',
-      background: 'transparent',
-      border: 'none',
-      borderBottom: isLast ? 'none' : '1px solid rgba(0, 0, 0, 0.05)',
-      cursor: 'pointer',
-      textAlign: 'left',
-      transition: 'background 0.15s',
-    }}
-  >
-    <div style={{
-      width: '32px',
-      height: '32px',
-      borderRadius: RADIUS.md,
-      background: danger ? 'rgba(239, 68, 68, 0.08)' : `rgba(255, 107, 53, 0.08)`,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-    }}>
-      <Icon size={16} color={danger ? COLORS.danger : COLORS.atomicTangerine} strokeWidth={2} />
-    </div>
+}) => {
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick?.();
+    }
+  };
 
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <span style={{
-        display: 'block',
-        fontSize: '0.92rem',
-        fontWeight: 600,
-        color: danger ? COLORS.danger : COLORS.charcoalBlue,
-        lineHeight: 1.3,
+  return (
+    <Motion.div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={handleKeyDown}
+      whileTap={{ scale: 0.98 }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '14px',
+        width: '100%',
+        minHeight: '56px',
+        padding: '14px 18px',
+        background: 'transparent',
+        border: 'none',
+        borderBottom: isLast ? 'none' : '1px solid rgba(0, 0, 0, 0.05)',
+        cursor: 'pointer',
+        textAlign: 'left',
+        transition: 'background 0.15s',
+        outline: 'none',
+      }}
+    >
+      <div style={{
+        width: '32px',
+        height: '32px',
+        borderRadius: RADIUS.md,
+        background: danger ? 'rgba(239, 68, 68, 0.08)' : `rgba(255, 107, 53, 0.08)`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
       }}>
-        {label}
-      </span>
-      {description && (
+        <Icon size={16} color={danger ? COLORS.danger : COLORS.atomicTangerine} strokeWidth={2} />
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
         <span style={{
           display: 'block',
-          fontSize: '0.76rem',
-          color: COLORS.textSecondary,
-          marginTop: '1px',
+          fontSize: '0.92rem',
+          fontWeight: 600,
+          color: danger ? COLORS.danger : COLORS.charcoalBlue,
           lineHeight: 1.3,
         }}>
-          {description}
+          {label}
         </span>
-      )}
-    </div>
+        {description && (
+          <span style={{
+            display: 'block',
+            fontSize: '0.76rem',
+            color: COLORS.textSecondary,
+            marginTop: '1px',
+            lineHeight: 1.3,
+          }}>
+            {description}
+          </span>
+        )}
+      </div>
 
-    {trailing || (
-      <ChevronRight size={16} color={COLORS.textSecondary} style={{ flexShrink: 0, opacity: 0.5 }} />
-    )}
-  </Motion.button>
-);
+      {trailing || (
+        <ChevronRight size={16} color={COLORS.textSecondary} style={{ flexShrink: 0, opacity: 0.5 }} />
+      )}
+    </Motion.div>
+  );
+};
 
 /* ── Section Header (iOS uppercase group label) ──────────────────────── */
 const SectionHeader = ({ children }) => (
@@ -514,12 +526,6 @@ const SettingsPage = ({ log = [] }) => {
                 onToggle={(code) => i18n.changeLanguage(code)}
               />
             }
-          />
-          <SettingsRow
-            icon={Download}
-            label={t('settings:exportJSON')}
-            description={t('settings:legacyDataDesc')}
-            onClick={handleExport}
             isLast={true}
           />
         </GroupCard>

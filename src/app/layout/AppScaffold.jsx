@@ -15,7 +15,14 @@ import './AppScaffold.css';
 
 function AppScaffold({ invitationsCount, content, overlays, isMobile }) {
   return (
-    <div style={{ display: 'flex', backgroundColor: '#F8FAFC', minHeight: '100dvh', height: '100dvh', width: '100%', overflow: 'hidden' }}>
+    <div style={{
+        display: 'flex',
+        backgroundColor: '#F8FAFC',
+        minHeight: '100dvh',
+        height: isMobile ? 'auto' : '100dvh',
+        width: '100%',
+        overflow: isMobile ? 'visible' : 'hidden',
+      }}>
       <Sidebar />
 
       <main className="scaffold-main">

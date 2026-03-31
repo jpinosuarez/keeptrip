@@ -10,13 +10,17 @@ import { useDebounce } from '../../model/useDebounce';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
+/**
+ * Static popular destinations — names resolved via i18n t() hook.
+ * Only codes, coords, and structural data are stored here.
+ */
 const POPULAR_DESTINATIONS = [
-  { name: "Japan", code: "JP", icon: "🇯🇵" },
-  { name: "Italy", code: "IT", icon: "🇮🇹" },
-  { name: "France", code: "FR", icon: "🇫🇷" },
-  { name: "Mexico", code: "MX", icon: "🇲🇽" },
-  { name: "Argentina", code: "AR", icon: "🇦🇷" },
-  { name: "New York", code: "US", icon: "🗽", isCity: true, coords: [-74.006, 40.712] }
+  { key: "japan", code: "JP" },
+  { key: "italy", code: "IT" },
+  { key: "france", code: "FR" },
+  { key: "mexico", code: "MX" },
+  { key: "argentina", code: "AR" },
+  { key: "newYork", code: "US", isCity: true, coords: [-74.006, 40.712] },
 ];
 
 const SearchModal = ({
@@ -116,19 +120,20 @@ const SearchModal = ({
   }, [debouncedQuery, onSearchError, onNoResults, i18n.language]);
 
   const handleSelectPopular = (dest) => {
+    const name = t(`search:popular.${dest.key}`);
     if (dest.isCity) {
       selectPlace({
         isCountry: false,
-        name: dest.name,
+        name,
         coordinates: dest.coords,
         countryCode: dest.code,
-        countryName: "United States"
+        countryName: t('search:popular.unitedStates'),
       });
       return;
     }
     selectPlace({
       isCountry: true,
-      name: dest.name,
+      name,
       code: dest.code,
       coordinates: [0, 0]
     });
@@ -143,6 +148,13 @@ const SearchModal = ({
       countryCode: item.countryCode,
       code: item.countryCode
     });
+  };
+
+  const handleResultKeyDown = (e, item) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleSelect(item);
+    }
   };
 
   if (!isOpen) return null;
@@ -189,6 +201,7 @@ const SearchModal = ({
           </div>
 
           <div style={styles.listaContainer(isMobile)} className="custom-scroll">
+            {/* Popular destinations — no query */}
             {!query && (
               <div style={{ padding: "20px" }}>
                 <p style={{ fontSize: "0.75rem", fontWeight: "700", color: COLORS.mutedTeal, marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px", letterSpacing: "0.5px" }}>
@@ -196,27 +209,54 @@ const SearchModal = ({
                 </p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                   {POPULAR_DESTINATIONS.map((dest) => (
-                    <button key={dest.name} onClick={() => handleSelectPopular(dest)} style={styles.tagBtn}>
+                    <button key={dest.key} onClick={() => handleSelectPopular(dest)} style={styles.tagBtn}>
                       <img
                         src={`https://flagcdn.com/w32/${dest.code.toLowerCase()}.png`}
                         alt=""
                         style={{ width: '24px', height: '24px', objectFit: 'cover', borderRadius: RADIUS.full, verticalAlign: 'middle', flexShrink: 0 }}
                         onError={(e) => { e.target.style.display = 'none'; }}
                       />
-                      {dest.name}
+                      {t(`search:popular.${dest.key}`)}
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            {loading && (
-              <div style={{ textAlign: "center", padding: "30px", color: COLORS.textSecondary, fontStyle: "italic" }}>
-                {t('search:loading')}
+            {/* Minimum characters hint */}
+            {query && query.length < 3 && !loading && (
+              <div style={{
+                textAlign: 'center',
+                padding: '24px 20px',
+                color: COLORS.textSecondary,
+                fontSize: '0.88rem',
+                fontWeight: 500,
+              }}>
+                {t('search:minChars')}
               </div>
             )}
 
-            {results.length === 0 && query && !loading && (
+            {/* Skeleton loading state */}
+            {loading && (
+              <div style={{ padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {[0, 1, 2].map(i => (
+                  <div
+                    key={i}
+                    style={{
+                      height: '52px',
+                      borderRadius: RADIUS.md,
+                      background: `linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.07) 50%, rgba(0,0,0,0.04) 75%)`,
+                      backgroundSize: '200% 100%',
+                      animation: `shimmer 1.5s ease infinite`,
+                    }}
+                  />
+                ))}
+                <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {results.length === 0 && query && query.length >= 3 && !loading && (
               <div style={styles.emptyState}>
                 <Search size={44} style={styles.emptyIcon} />
                 <div style={styles.emptyText}>{t('search:noResults', { term: query })}</div>
@@ -224,20 +264,24 @@ const SearchModal = ({
               </div>
             )}
 
+            {/* Search results */}
             {results.map((item, itemIdx) => {
               const flagUrl = getFlagUrl(item.countryCode);
               return (
                 <div
                   key={item.id || `search-result-${itemIdx}`}
+                  role="button"
+                  tabIndex={0}
                   style={styles.resultItem}
                   onClick={() => handleSelect(item)}
+                  onKeyDown={(e) => handleResultKeyDown(e, item)}
                   className="result-item-hover"
                 >
                   <div style={styles.iconBox(item.type === "country")}> 
                     {flagUrl ? (
                       <img
                         src={flagUrl}
-                        alt="flag"
+                        alt=""
                         style={{
                           width: '28px',
                           height: '28px',

@@ -158,6 +158,23 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     <AnimatePresence>
       <Motion.div style={styles.overlay(isMobile)} onClick={isBusy ? undefined : onClose} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
         <Motion.div style={styles.modal(isMobile)} onClick={e => e.stopPropagation()} initial={{y:40,opacity:0}} animate={{y:0,opacity:1}} exit={{y:30,opacity:0}} transition={{duration:0.3,ease:[0.25,1,0.5,1]}}>
+          {/* Mobile drag-handle affordance */}
+          {isMobile && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: '10px 0 2px',
+              flexShrink: 0,
+              background: COLORS.charcoalBlue,
+            }}>
+              <div style={{
+                width: '36px',
+                height: '4px',
+                borderRadius: '2px',
+                background: 'rgba(255, 255, 255, 0.25)',
+              }} />
+            </div>
+          )}
           {/* Sección esencial: imágenes y fechas */}
           <EdicionHeaderSection
             styles={styles}

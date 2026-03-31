@@ -8,7 +8,6 @@ import { COLORS } from '@shared/config';
 import { styles } from './DashboardPage.styles';
 import { HomeMap } from '@features/mapa';
 import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
-import { getTravelerLevel, getNextLevel } from '@features/gamification';
 import { useLogStats } from '@shared/lib/hooks/useLogStats';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { SkeletonList, TripCardSkeleton } from '@shared/ui/components/Skeletons';
@@ -59,10 +58,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
 
   const logStatsDashboard = useLogStats(log, tripDataMap);
 
-  const visitedCount = countriesVisited.length;
 
-  const level = getTravelerLevel(visitedCount);
-  const next = getNextLevel(visitedCount);
 
   const mapFallback = (
     <div style={styles.mapErrorFallback(isMobile)} role="status" aria-live="polite">
@@ -97,8 +93,6 @@ const DashboardPage = ({ countriesVisited = [], log = [], isMobile = false, load
       <div style={styles.welcomeContainer}>
         <WelcomeBento 
           name={name}
-          level={level}
-          nextLevel={next}
           logStatsDashboard={logStatsDashboard}
           isMobile={isMobile}
           isNewTraveler={isNewTraveler}

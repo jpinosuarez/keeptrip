@@ -359,4 +359,58 @@ export const styles = {
     hyphens: 'auto',
     opacity: 0.7,
   },
+
+  /* ── MOBILE COMPACT: 2-col grid (replaces verbose biography on mobile) ── */
+  mobileCompactShell: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: SPACING.sm,
+    width: '100%',
+  },
+  mobileHeroRow: {
+    display: 'flex',
+    alignItems: 'baseline',
+    gap: SPACING.sm,
+  },
+  mobileHeroValue: {
+    fontSize: 'clamp(1.4rem, 5vw, 1.8rem)',
+    fontWeight: 900,
+    color: COLORS.atomicTangerine,
+    lineHeight: 1,
+    letterSpacing: '-0.02em',
+  },
+  mobileHeroLabel: {
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    color: COLORS.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+    opacity: 0.6,
+  },
+  mobileStatsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: `${SPACING.xs} ${SPACING.md}`,
+    width: '100%',
+  },
+  mobileStatCell: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1px',
+    padding: `${SPACING.xs} 0`,
+  },
+  mobileStatValue: {
+    fontSize: 'clamp(1.1rem, 4vw, 1.4rem)',
+    fontWeight: 800,
+    color: COLORS.charcoalBlue,
+    lineHeight: 1.1,
+    letterSpacing: '-0.01em',
+  },
+  mobileStatLabel: {
+    fontSize: '0.68rem',
+    fontWeight: 600,
+    color: COLORS.textSecondary,
+    opacity: 0.65,
+    lineHeight: 1.2,
+  },
 };

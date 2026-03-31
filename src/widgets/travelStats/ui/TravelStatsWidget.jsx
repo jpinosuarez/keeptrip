@@ -86,15 +86,49 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'home', isMob
   }
 
   if (variant === 'home') {
-    // PHASE 5: Traveler's Biography Layout — Hero % on left + Experience/Exploration groups on right
-    // Extract metrics for biography sections: Experience (Trips + Days) | Exploration (Cities + Continents)
     const percentMetric = secondaryMetrics[2]; // % of World
     const experienceMetrics = [heroMetric, secondaryMetrics[0]]; // Trips, Days
     const explorationMetrics = [secondaryMetrics[1], secondaryMetrics[3]]; // Cities, Continents
 
+    // MOBILE: Compact 2-col grid — Hero % spans full width, then 2×2 grid of stats below
+    if (isMobile) {
+      const allSecondary = [heroMetric, secondaryMetrics[0], secondaryMetrics[1], secondaryMetrics[3]];
+      return (
+        <section role="region" aria-label={ariaLabel} className="travel-stats-home" style={styles.mobileCompactShell}>
+          {/* Hero: % of World — full width accent row */}
+          <Motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: ANIMATION_DELAYS.fast, duration: 0.4 }}
+            style={styles.mobileHeroRow}
+          >
+            <span style={styles.mobileHeroValue}>{percentMetric.displayValue}</span>
+            <span style={styles.mobileHeroLabel}>{percentMetric.label}</span>
+          </Motion.div>
+
+          {/* 2×2 grid: Trips, Days, Cities, Continents */}
+          <div style={styles.mobileStatsGrid}>
+            {allSecondary.map((stat, idx) => (
+              <Motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.08 + idx * 0.05, duration: 0.3 }}
+                style={styles.mobileStatCell}
+                title={stat.hint}
+              >
+                <span style={styles.mobileStatValue}>{stat.displayValue}</span>
+                <span style={styles.mobileStatLabel}>{stat.label}</span>
+              </Motion.div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    // DESKTOP: Full Biography Layout — Hero % on left + Experience/Exploration groups on right
     return (
-      <section role="region" aria-label={ariaLabel} className="travel-stats-home" style={styles.homeShell(isMobile)}>
-        {/* PHASE 5a: % of World as Hero (left side) — the big "wow" metric */}
+      <section role="region" aria-label={ariaLabel} className="travel-stats-home" style={styles.homeShell(false)}>
         <Motion.div
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
@@ -105,16 +139,14 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'home', isMob
           <span style={styles.biographyHeroValue}>{percentMetric.displayValue}</span>
         </Motion.div>
 
-        {/* PHASE 5b: Biography Section (right side) — Experience and Exploration groups */}
         <Motion.div
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, duration: 0.35 }}
-          style={styles.biographySection(isMobile)}
+          style={styles.biographySection(false)}
           role="group"
           aria-label={t('stats.additionalMetrics') || 'Additional travel metrics'}
         >
-          {/* EXPERIENCE: Trips + Days */}
           <div style={styles.biographyGroup}>
             <div style={styles.groupTitle}>{t('stats.experience') || 'Experience'}</div>
             <div style={styles.groupStats}>
@@ -133,11 +165,7 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'home', isMob
               ))}
             </div>
           </div>
-
-          {/* Divider: • */}
           <div style={styles.groupDivider}>•</div>
-
-          {/* EXPLORATION: Cities + Continents */}
           <div style={styles.biographyGroup}>
             <div style={styles.groupTitle}>{t('stats.exploration') || 'Exploration'}</div>
             <div style={styles.groupStats}>
@@ -162,16 +190,46 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'home', isMob
   }
 
   if (variant === 'trips') {
-    // PHASE 6: Full Biography layout on Trips — EXACT parity with Home variant.
-    // Product Owner mandate: no compact bar, render the full "Traveler's Biography"
-    // with Hero % + Experience/Exploration groups, adapted to full-width container.
     const percentMetric = secondaryMetrics[2]; // % of World
     const experienceMetrics = [heroMetric, secondaryMetrics[0]]; // Trips, Days
     const explorationMetrics = [secondaryMetrics[1], secondaryMetrics[3]]; // Cities, Continents
 
+    // MOBILE: Same compact 2-col grid as home variant
+    if (isMobile) {
+      const allSecondary = [heroMetric, secondaryMetrics[0], secondaryMetrics[1], secondaryMetrics[3]];
+      return (
+        <section role="region" aria-label={ariaLabel} className="travel-stats-trips" style={styles.mobileCompactShell}>
+          <Motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: ANIMATION_DELAYS.fast, duration: 0.4 }}
+            style={styles.mobileHeroRow}
+          >
+            <span style={styles.mobileHeroValue}>{percentMetric.displayValue}</span>
+            <span style={styles.mobileHeroLabel}>{percentMetric.label}</span>
+          </Motion.div>
+          <div style={styles.mobileStatsGrid}>
+            {allSecondary.map((stat, idx) => (
+              <Motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.08 + idx * 0.05, duration: 0.3 }}
+                style={styles.mobileStatCell}
+                title={stat.hint}
+              >
+                <span style={styles.mobileStatValue}>{stat.displayValue}</span>
+                <span style={styles.mobileStatLabel}>{stat.label}</span>
+              </Motion.div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    // DESKTOP: Full Biography layout on Trips page
     return (
-      <section role="region" aria-label={ariaLabel} className="travel-stats-trips" style={styles.homeShell(isMobile)}>
-        {/* Hero: % of World — the big "wow" metric */}
+      <section role="region" aria-label={ariaLabel} className="travel-stats-trips" style={styles.homeShell(false)}>
         <Motion.div
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
@@ -181,17 +239,14 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'home', isMob
           <span style={styles.biographyHeroLabel} title={percentMetric.hint}>{percentMetric.label}</span>
           <span style={styles.biographyHeroValue}>{percentMetric.displayValue}</span>
         </Motion.div>
-
-        {/* Biography Section — Experience and Exploration groups */}
         <Motion.div
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, duration: 0.35 }}
-          style={styles.biographySection(isMobile)}
+          style={styles.biographySection(false)}
           role="group"
           aria-label={t('stats.additionalMetrics') || 'Additional travel metrics'}
         >
-          {/* EXPERIENCE: Trips + Days */}
           <div style={styles.biographyGroup}>
             <div style={styles.groupTitle}>{t('stats.experience') || 'Experience'}</div>
             <div style={styles.groupStats}>
@@ -210,11 +265,7 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'home', isMob
               ))}
             </div>
           </div>
-
-          {/* Divider: • */}
           <div style={styles.groupDivider}>•</div>
-
-          {/* EXPLORATION: Cities + Continents */}
           <div style={styles.biographyGroup}>
             <div style={styles.groupTitle}>{t('stats.exploration') || 'Exploration'}</div>
             <div style={styles.groupStats}>

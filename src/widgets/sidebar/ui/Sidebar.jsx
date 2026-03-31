@@ -250,8 +250,8 @@ const Sidebar = () => {
       role="navigation"
       aria-label={t('navLabel')}
     >
-      {/* Left 2 tabs */}
-      {PRIMARY_TABS.slice(0, 2).map((item) => {
+      {/* All navigation tabs in sequence */}
+      {PRIMARY_TABS.map((item) => {
         const active = isActive(item.id);
         const Icon = item.icon;
         return (
@@ -284,7 +284,7 @@ const Sidebar = () => {
         );
       })}
 
-      {/* Center + FAB */}
+      {/* + FAB — far right */}
       <Motion.button
         type="button"
         onClick={openTripSearch}
@@ -294,8 +294,8 @@ const Sidebar = () => {
           background: `linear-gradient(135deg, ${COLORS.atomicTangerine}, #ff9a4d)`,
           border: 'none',
           borderRadius: '50%',
-          width: '48px',
-          height: '48px',
+          width: '44px',
+          height: '44px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -308,40 +308,6 @@ const Sidebar = () => {
       >
         <Plus size={20} strokeWidth={2.5} />
       </Motion.button>
-
-      {/* Right 2 tabs */}
-      {PRIMARY_TABS.slice(2, 4).map((item) => {
-        const active = isActive(item.id);
-        const Icon = item.icon;
-        return (
-          <Motion.button
-            key={item.id}
-            type="button"
-            onClick={() => handleSelect(item.id)}
-            className={`mobile-tab-btn${active ? ' active' : ''}`}
-            whileTap={{ scale: 0.85 }}
-            aria-current={active ? 'page' : undefined}
-            style={{ position: 'relative' }}
-          >
-            <Motion.div
-              animate={{ y: active ? -1 : 0 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            >
-              <Icon
-                size={22}
-                strokeWidth={active ? 2.4 : 1.8}
-                fill="none"
-              />
-            </Motion.div>
-            <span className="mobile-tab-label" style={{
-              color: active ? COLORS.atomicTangerine : COLORS.textSecondary,
-              fontWeight: active ? 700 : 500,
-            }}>
-              {item.label}
-            </span>
-          </Motion.button>
-        );
-      })}
     </nav>
   );
 

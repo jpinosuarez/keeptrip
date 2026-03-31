@@ -10,5 +10,14 @@
   "emptyHelp": "You can search by name, country or city.",
   "minChars": "Type at least 3 characters to search",
   "country": "Country",
-  "add": "Add"
+  "add": "Add",
+  "popular": {
+    "japan": "Japan",
+    "italy": "Italy",
+    "france": "France",
+    "mexico": "Mexico",
+    "argentina": "Argentina",
+    "newYork": "New York",
+    "unitedStates": "United States"
+  }
 }

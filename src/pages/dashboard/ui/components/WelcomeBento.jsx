@@ -1,16 +1,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Compass } from 'lucide-react';
+import { Compass } from 'lucide-react';
 import { motion as Motion } from 'framer-motion';
-import { ENABLE_IMMERSIVE_VIEWER } from '@shared/config';
 import { welcomeStyles as styles } from './WelcomeBento.styles';
 import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
 
-const WelcomeBento = ({ name, level, nextLevel, logStatsDashboard, isMobile, isNewTraveler, onNewTrip }) => {
+const WelcomeBento = ({ name, logStatsDashboard, isMobile, isNewTraveler, onNewTrip }) => {
   const { t } = useTranslation('dashboard');
-  const navigate = useNavigate();
-  const handleLevelClick = () => { navigate('/explorer'); };
 
   return (
     <div style={styles.pageHeader(isMobile)}>
@@ -44,28 +40,9 @@ const WelcomeBento = ({ name, level, nextLevel, logStatsDashboard, isMobile, isN
               </Motion.button>
             </Motion.div>
           ) : (
-            /* ── Returning Traveler: Subtitle + Level Badge ── */
+            /* ── Returning Traveler: Clean subtitle, no gamification clutter ── */
             <>
               <p style={styles.subtitle}>{t('welcomeSubtitle')}</p>
-              <div style={styles.badgeRow}>
-                {ENABLE_IMMERSIVE_VIEWER ? (
-                  <button type="button" onClick={handleLevelClick} style={styles.badgeLevelButton}>
-                    <span style={styles.badgeLevel}>{level.icon} {level.label}</span>
-                    <ArrowRight size={16} />
-                  </button>
-                ) : (
-                  <span style={styles.badgeLevel}>{level.icon} {level.label}</span>
-                )}
-                {nextLevel.level && (
-                  <span style={styles.badgeProgress}>
-                    {t('nextLevelProgress', {
-                      remaining: nextLevel.remaining,
-                      countryWord: nextLevel.remaining !== 1 ? t('stats.countriesPlural') : t('stats.countrySingular'),
-                      level: nextLevel.level.label,
-                    })}
-                  </span>
-                )}
-              </div>
             </>
           )}
         </div>

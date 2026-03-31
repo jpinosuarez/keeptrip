@@ -19,7 +19,7 @@ export const mediaStyles = `
     z-index: ${Z_INDEX.sticky};
     padding: 0 12px;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-evenly;
   }
 
   .mobile-tab-label {

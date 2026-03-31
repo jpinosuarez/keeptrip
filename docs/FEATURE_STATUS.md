@@ -12,7 +12,7 @@
 | **Visor Inmersivo** | ✅ Sólido | `VisorViaje`, `DocumentaryHero` | Renderizado condicional según datos del viaje. |
 | **Dashboard y Stats** | ✅ Sólido | `DashboardPage`, `WelcomeBento`, `LogStats` | UX refinada (Patrón Bento Box). |
 | **Mapa Global** | ✅ Sólido | `HomeMap` (Mapbox), `TripSlideOver` | Previene "Efecto Matrix" (renderWorldCopies=false). |
-| **Gamificación (Logros)** | ✅ Sólido | `TravelerHub`, `AchievementsEngine` | Lógica de experiencia y subida de nivel validada. Accesibilidad A11y corregida. |
+| **Gamificación (Logros)** | 🟡 Postponed | `TravelerHub`, `AchievementsEngine` | Lógica validada pero **ocultada del MVP** (level badges, XP). Se reactiva post-lanzamiento. |
 | **Búsqueda Global** | ✅ Sólido | `SearchPalette`, Búsqueda difusa | Búsqueda por 3+ letras, optimizada. |
 | **Ajustes de Perfil** | ✅ Sólido | `SettingsPage`, `ProfileModal` | Subida de Avatar funcional y segura. |
 | **Internacionalización** | ✅ Sólido | `i18n`, locales (es/en) | Soporte multi-idioma estructural. |

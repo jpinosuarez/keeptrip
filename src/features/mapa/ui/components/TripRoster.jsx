@@ -1,9 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, ChevronUp, Globe2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Globe2, MapPin } from 'lucide-react';
 import { useAuth } from '@app/providers';
-import { getTravelerLevel } from '@features/gamification';
 import { useLogStats } from '@shared/lib/hooks/useLogStats';
 import { COLORS, RADIUS, SHADOWS, SPACING } from '@shared/config';
 import TripRosterItem from './TripRosterItem';
@@ -11,11 +10,9 @@ import TripRosterItem from './TripRosterItem';
 /**
  * TripRoster — The flight deck's trip mission control.
  *
- * Desktop: Floating glassmorphic drawer anchored bottom-left.
+ * Desktop: Floating glassmorphic drawer anchored top-left.
  *          Semi-expanded by default (badge + trip list). Collapsible via chevron.
  * Mobile:  Fixed bottom panel with peek state + expand gesture.
- *
- * Absorbs TravelerHud data (name, level, stats) in the header.
  */
 
 /* ── Glass tokens (Map overlay — only place glassmorphism is permitted) ── */
@@ -27,12 +24,11 @@ const GLASS_PANEL = {
   boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
 };
 
-/* ── Roster Header (Traveler Identity Badge) ─────────────────────────── */
+/* ── Roster Header (Traveler Identity Badge — no gamification) ─────────── */
 const RosterHeader = ({ paises, trips, tripData, isMobile, onToggle, isExpanded }) => {
   const { t } = useTranslation('dashboard');
   const { usuario } = useAuth();
   const stats = useLogStats(trips, tripData);
-  const level = getTravelerLevel(paises.length);
   const name = usuario?.displayName?.split(' ')[0] || t('fallbackName', 'Explorer');
 
   return (
@@ -52,7 +48,7 @@ const RosterHeader = ({ paises, trips, tripData, isMobile, onToggle, isExpanded 
         textAlign: 'left',
       }}
     >
-      {/* Level icon */}
+      {/* Identity icon — clean globe, no gamification level */}
       <div style={{
         width: '40px',
         height: '40px',
@@ -61,11 +57,11 @@ const RosterHeader = ({ paises, trips, tripData, isMobile, onToggle, isExpanded 
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '20px',
         flexShrink: 0,
         boxShadow: `0 4px 12px ${COLORS.atomicTangerine}30`,
+        color: '#fff',
       }}>
-        {level.icon}
+        <Globe2 size={20} strokeWidth={2} />
       </div>
 
       {/* Identity + stats */}
@@ -88,13 +84,11 @@ const RosterHeader = ({ paises, trips, tripData, isMobile, onToggle, isExpanded 
           alignItems: 'center',
           gap: '4px',
         }}>
-          <span style={{ color: COLORS.atomicTangerine, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            {level.label}
-          </span>
-          <span style={{ opacity: 0.4 }}>·</span>
           {paises.length} {paises.length === 1 ? t('hud.countrySingular', 'country') : t('hud.countryPlural', 'countries')}
           <span style={{ opacity: 0.4 }}>·</span>
           {stats.continents} <Globe2 size={10} />
+          <span style={{ opacity: 0.4 }}>·</span>
+          {trips.length} <MapPin size={10} />
         </p>
       </div>
 
