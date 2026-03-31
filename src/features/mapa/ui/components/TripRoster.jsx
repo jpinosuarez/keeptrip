@@ -111,8 +111,8 @@ const RosterHeader = ({ paises, trips, tripData, isMobile, onToggle, isExpanded 
         transition: 'background 0.2s',
       }}>
         {isExpanded
-          ? <ChevronDown size={14} color={COLORS.textSecondary} />
-          : <ChevronUp size={14} color={COLORS.textSecondary} />}
+          ? <ChevronUp size={14} color={COLORS.textSecondary} />
+          : <ChevronDown size={14} color={COLORS.textSecondary} />}
       </div>
     </button>
   );
@@ -229,13 +229,13 @@ const TripRoster = ({
   // ── Desktop: Floating bottom-left drawer ────────────────────────────
   return (
     <Motion.div
-      initial={{ opacity: 0, y: 30, x: -20 }}
+      initial={{ opacity: 0, y: -20, x: -20 }}
       animate={{ opacity: 1, y: 0, x: 0 }}
       transition={{ type: 'spring', stiffness: 100, damping: 20, delay: 0.15 }}
       style={{
         position: 'absolute',
-        bottom: '20px',
-        left: '20px',
+        top: '16px',
+        left: '16px',
         zIndex: 15,
         pointerEvents: 'auto',
         ...GLASS_PANEL,

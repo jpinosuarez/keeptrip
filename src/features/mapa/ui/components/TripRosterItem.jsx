@@ -31,10 +31,19 @@ const TripRosterItem = ({ trip, isActive = false, onSelect, index = 0 }) => {
     navigate({ pathname: '/trips', search: params.toString() });
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onSelect?.(trip);
+    }
+  };
+
   return (
-    <Motion.button
-      type="button"
+    <Motion.div
+      role="button"
+      tabIndex={0}
       onClick={() => onSelect?.(trip)}
+      onKeyDown={handleKeyDown}
       initial={{ opacity: 0, x: -12 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ type: 'spring', stiffness: 120, damping: 22, delay: index * 0.04 }}
@@ -53,6 +62,7 @@ const TripRosterItem = ({ trip, isActive = false, onSelect, index = 0 }) => {
         transition: 'background 0.2s ease',
         background: isActive ? 'rgba(255, 107, 53, 0.12)' : 'rgba(0, 0, 0, 0.02)',
         borderLeft: isActive ? `3px solid ${COLORS.atomicTangerine}` : '3px solid transparent',
+        outline: 'none',
       }}
     >
       {/* Thumbnail */}
@@ -174,7 +184,7 @@ const TripRosterItem = ({ trip, isActive = false, onSelect, index = 0 }) => {
           </Motion.div>
         )}
       </div>
-    </Motion.button>
+    </Motion.div>
   );
 };
 

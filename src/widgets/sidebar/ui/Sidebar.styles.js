@@ -22,15 +22,13 @@ export const mediaStyles = `
     justify-content: space-between;
   }
 
-  .tab-dot {
-    position: absolute;
-    bottom: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 6px;
-    height: 6px;
-    border-radius: 9999px;
-    background: ${COLORS.atomicTangerine};
+  .mobile-tab-label {
+    font-size: 10px;
+    line-height: 1;
+    margin-top: 2px;
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+    transition: color 0.2s, font-weight 0.15s;
   }
 
   .mobile-tab-btn {
@@ -40,12 +38,14 @@ export const mediaStyles = `
     justify-content: center;
     background: transparent;
     border: none;
-    width: 48px;
-    height: 48px;
-    flex: 0 0 48px;
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
     color: ${COLORS.textSecondary};
     cursor: pointer;
     transition: color 0.2s;
+    gap: 1px;
+    padding: 0;
   }
 
   .mobile-tab-btn.active {

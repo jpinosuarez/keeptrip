@@ -128,26 +128,25 @@ const RailButton = ({ item, active, onClick }) => {
         height: '48px',
         borderRadius: RADIUS.xl,
         border: 'none',
-        // Glass pill on active — soft, no color, just shape
         background: active
-          ? 'rgba(0, 0, 0, 0.08)'
+          ? 'rgba(255, 107, 53, 0.08)'
           : hovered
           ? 'rgba(0, 0, 0, 0.04)'
           : 'transparent',
-        color: active ? COLORS.charcoalBlue : COLORS.textSecondary,
+        color: active ? COLORS.atomicTangerine : COLORS.textSecondary,
         cursor: 'pointer',
         position: 'relative',
-        transition: 'background 0.2s, color 0.2s',
+        transition: 'background 0.2s, color 0.2s, box-shadow 0.2s',
+        boxShadow: active ? `inset 3px 0 0 ${COLORS.atomicTangerine}` : 'none',
       }}
     >
-      {/* Active: fill icon with currentColor (Lucide constraint) */}
       <Icon
         size={22}
         strokeWidth={active ? 2.5 : 1.8}
         stroke="currentColor"
         fill="none"
         style={{
-          filter: active ? `drop-shadow(0 0 6px ${COLORS.charcoalBlue}40)` : 'none',
+          filter: active ? `drop-shadow(0 0 6px ${COLORS.atomicTangerine}30)` : 'none',
           transition: 'filter 0.2s',
         }}
       />
@@ -266,16 +265,21 @@ const Sidebar = () => {
             style={{ position: 'relative' }}
           >
             <Motion.div
-              animate={{ y: active ? -2 : 0 }}
-              transition={{ type: 'spring', damping: 15 }}
+              animate={{ y: active ? -1 : 0 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
             >
               <Icon
-                size={24}
-                strokeWidth={2.2}
+                size={22}
+                strokeWidth={active ? 2.4 : 1.8}
                 fill="none"
               />
             </Motion.div>
-            {active && <span className="tab-dot" />}
+            <span className="mobile-tab-label" style={{
+              color: active ? COLORS.atomicTangerine : COLORS.textSecondary,
+              fontWeight: active ? 700 : 500,
+            }}>
+              {item.label}
+            </span>
           </Motion.button>
         );
       })}
@@ -320,16 +324,21 @@ const Sidebar = () => {
             style={{ position: 'relative' }}
           >
             <Motion.div
-              animate={{ y: active ? -2 : 0 }}
-              transition={{ type: 'spring', damping: 15 }}
+              animate={{ y: active ? -1 : 0 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
             >
               <Icon
-                size={24}
-                strokeWidth={2.2}
+                size={22}
+                strokeWidth={active ? 2.4 : 1.8}
                 fill="none"
               />
             </Motion.div>
-            {active && <span className="tab-dot" />}
+            <span className="mobile-tab-label" style={{
+              color: active ? COLORS.atomicTangerine : COLORS.textSecondary,
+              fontWeight: active ? 700 : 500,
+            }}>
+              {item.label}
+            </span>
           </Motion.button>
         );
       })}

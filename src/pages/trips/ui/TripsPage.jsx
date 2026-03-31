@@ -62,7 +62,7 @@ const TripsPage = () => {
   }, [trips, tripData, activeFilter, searchTerm]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', overflowY: 'auto', overflowX: 'hidden' }}>
       <TripCommandBar 
         activeFilter={activeFilter} 
         onFilterChange={setActiveFilter}

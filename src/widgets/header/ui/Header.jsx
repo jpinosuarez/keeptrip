@@ -214,10 +214,11 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              boxShadow: `0 6px 20px ${COLORS.atomicTangerine}35`,
+              boxShadow: `0 6px 20px ${COLORS.atomicTangerine}45`,
               fontSize: '0.88rem',
               minHeight: '40px',
               whiteSpace: 'nowrap',
+              transition: 'box-shadow 0.2s ease',
             }}
           >
             <Plus size={16} />
