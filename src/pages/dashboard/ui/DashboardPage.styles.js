@@ -40,6 +40,7 @@ mapSection: {
   minHeight: 0,
   overflow: 'hidden',
   width: '100%',
+  height: '100%',
   position: 'relative',
 },
 mapSectionTitle: {
@@ -50,21 +51,21 @@ mapSectionTitle: {
   textTransform: 'uppercase',
   letterSpacing: '0.4px',
   lineHeight: 1,
+  flex: '0 0 auto',
 },
 
   mapCard: (isMobile) => ({
     display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     flex: 1,
     borderRadius: RADIUS.xl,
     overflow: 'hidden',
     width: '100%',
     minWidth: 0,
-    maxWidth: '100%',
     minHeight: 0,
-    height: '100%',
     boxShadow: SHADOWS.md,
-    backgroundColor: COLORS.surface,
-    cursor: 'default',
+    backgroundColor: COLORS.background,
     position: 'relative',
   }),
 
