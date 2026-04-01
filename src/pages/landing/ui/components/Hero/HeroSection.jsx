@@ -68,8 +68,8 @@ const HeroSection = () => {
         </motion.button>
       </motion.div>
 
-      {/* Columna derecha: sneak-peek del producto (solo desktop) */}
-      {!isMobile && <InteractiveCardStack />}
+      {/* Columna derecha: sneak-peek del producto */}
+      <InteractiveCardStack isMobile={isMobile} />
     </motion.main>
   );
 };

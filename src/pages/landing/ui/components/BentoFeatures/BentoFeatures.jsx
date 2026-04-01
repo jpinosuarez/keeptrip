@@ -26,10 +26,10 @@ const BentoFeatures = () => {
 
   const rawGridCards = t('landing:mockTrips.grid', { returnObjects: true });
   const fallbackGrid = [
-    { id: "4", titulo: "Safari en el Serengeti", paisCodigo: "TZ", fechas: "Ago 2025", paradas: 5, coverUrl: "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=600&q=80" },
-    { id: "5", titulo: "Círculo Dorado", paisCodigo: "IS", fechas: "Nov 2025", paradas: 3, coverUrl: "https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=600&q=80" },
-    { id: "6", titulo: "Roadtrip Costa Oeste", paisCodigo: "US", fechas: "Abr 2026", paradas: 8, coverUrl: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=600&q=80" },
-    { id: "7", titulo: "Verano en Amalfi", paisCodigo: "IT", fechas: "Jul 2026", paradas: 4, coverUrl: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=600&q=80" }
+    { id: "4", titulo: "Safari en el Serengeti", mensaje: "Tanzania", paisCodigo: "TZ", fechas: "Ago 2025", paradas: 5, coverUrl: "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=90" },
+    { id: "5", titulo: "Círculo Dorado", mensaje: "Islandia", paisCodigo: "IS", fechas: "Nov 2025", paradas: 3, coverUrl: "https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=1200&q=90" },
+    { id: "6", titulo: "Roadtrip Costa Oeste", mensaje: "USA", paisCodigo: "US", fechas: "Abr 2026", paradas: 8, coverUrl: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=90" },
+    { id: "7", titulo: "Verano en Amalfi", mensaje: "Italia", paisCodigo: "IT", fechas: "Jul 2026", paradas: 4, coverUrl: "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=90" }
   ];
   const mockGrid = Array.isArray(rawGridCards) && rawGridCards.length > 0 ? rawGridCards : fallbackGrid;
 
@@ -79,35 +79,52 @@ const BentoFeatures = () => {
           <span style={styles.featureCardNum(COLORS.mutedTeal)}>02</span>
         </div>
 
-        {/* Mock LogStats UI */}
-        <motion.div 
-          style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1, paddingTop: '24px' }} 
-          variants={containerVariants}
-        >
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-            <motion.div variants={itemVariants} style={{ flex: 1, minWidth: '120px', background: 'rgba(56, 189, 248, 0.08)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(56, 189, 248, 0.15)' }}>
-               <Globe size={18} color={COLORS.mutedTeal} style={{ marginBottom: '8px' }} />
-               <h4 style={{ fontSize: '2rem', fontWeight: 800, color: COLORS.charcoalBlue, margin: 0, lineHeight: 1 }}>12</h4>
-               <span style={{ fontSize: '0.85rem', color: COLORS.mutedTeal, fontWeight: 600 }}>Países</span>
-            </motion.div>
-            <motion.div variants={itemVariants} style={{ flex: 1, minWidth: '120px', background: 'rgba(251, 146, 60, 0.08)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(251, 146, 60, 0.15)' }}>
-               <MapPin size={18} color={COLORS.atomicTangerine} style={{ marginBottom: '8px' }} />
-               <h4 style={{ fontSize: '2rem', fontWeight: 800, color: COLORS.charcoalBlue, margin: 0, lineHeight: 1 }}>15<span style={{fontSize: '1.2rem', color: COLORS.background}}>%</span></h4>
-               <span style={{ fontSize: '0.85rem', color: COLORS.atomicTangerine, fontWeight: 600 }}>Mundo visualizado</span>
-            </motion.div>
-          </div>
-          <motion.div variants={itemVariants} style={{ background: 'rgba(15, 23, 42, 0.04)', padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <CalendarDays size={20} color={COLORS.charcoalBlue} />
-            <div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: COLORS.charcoalBlue }}>142</div>
-              <div style={{ fontSize: '0.8rem', color: COLORS.border, fontWeight: 600 }}>Días viajando</div>
+        {/* Premium Marketing Stats UI */}
+        <div style={styles.statsGrid}>
+          <div style={styles.statsRow}>
+            <div style={styles.statSubCard}>
+              <div style={styles.statIconWrap}>
+                 <Globe size={20} color={COLORS.atomicTangerine} />
+              </div>
+              <div style={styles.statNumber}>
+                {t('landing:features.stats.países.value')}
+              </div>
+              <div style={styles.statLabel}>
+                {t('landing:features.stats.países.label')}
+              </div>
             </div>
-          </motion.div>
-        </motion.div>
+            
+            <div style={styles.statSubCard}>
+              <div style={styles.statIconWrap}>
+                 <MapPin size={20} color={COLORS.atomicTangerine} />
+              </div>
+              <div style={styles.statNumber}>
+                {t('landing:features.stats.mundo.value')}<span style={{fontSize: '1.5rem', color: COLORS.atomicTangerine, marginLeft: '2px'}}>%</span>
+              </div>
+              <div style={styles.statLabel}>
+                {t('landing:features.stats.mundo.label')}
+              </div>
+            </div>
+          </div>
+
+          <div style={{...styles.statSubCard, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px'}}>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
+              <div style={{...styles.statNumber, fontSize: '2.5rem'}}>
+                {t('landing:features.stats.destinos.value')}
+              </div>
+              <div style={styles.statLabel}>
+                {t('landing:features.stats.destinos.label')}
+              </div>
+            </div>
+            <div style={{width: '56px', height: '56px', borderRadius: '50%', background: `${COLORS.atomicTangerine}15`, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+               <Map size={28} color={COLORS.atomicTangerine} />
+            </div>
+          </div>
+        </div>
 
         <div style={{ marginTop: 'auto', paddingTop: '16px' }}>
-          <div style={styles.featureCardTitle(isMobile, 1)}>{typeof t('landing:features.stats.title') === 'string' ? t('landing:features.stats.title') : 'Travel Stats'}</div>
-          <p style={styles.featureDesc(isMobile, 1)}>{typeof t('landing:features.stats.description') === 'string' ? t('landing:features.stats.description') : 'Explore your impact...'}</p>
+          <div style={styles.featureCardTitle(isMobile, 1)}>{t('landing:features.stats.title')}</div>
+          <p style={styles.featureDesc(isMobile, 1)}>{t('landing:features.stats.description')}</p>
         </div>
       </motion.div>
 
@@ -125,21 +142,17 @@ const BentoFeatures = () => {
           <span style={styles.featureCardNum(COLORS.charcoalBlue)}>03</span>
         </div>
 
-        <motion.div 
-          style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: '16px', 
-            flex: 1, 
-            marginTop: '16px',
-            overflow: 'hidden',
-            maskImage: 'linear-gradient(to bottom, black 50%, transparent 95%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 95%)'
-          }} 
-          variants={containerVariants}
-        >
+        <div style={styles.masonryVisualContainer}>
           {mockGrid.map((card, idx) => (
-            <motion.div key={card.id || idx} variants={itemVariants}>
+            <motion.div 
+              key={card.id || idx} 
+              variants={itemVariants}
+              style={{ 
+                marginBottom: '16px', // Clean separation instead of overlapping
+                zIndex: 1,
+                opacity: 1
+              }}
+            >
               <div style={{ height: '220px', pointerEvents: 'none' }}>
                 <TripCard 
                   trip={{
@@ -155,9 +168,9 @@ const BentoFeatures = () => {
               </div>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
 
-        <div style={{ paddingTop: '16px', zIndex: 1 }}>
+        <div style={{ paddingTop: '12px', zIndex: 10, position: 'relative', background: 'white' }}>
           <div style={styles.featureCardTitle(isMobile, 2)}>{t('landing:features.gallery.title')}</div>
           <p style={styles.featureDesc(isMobile, 2)}>{t('landing:features.gallery.description')}</p>
         </div>

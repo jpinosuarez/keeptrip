@@ -14,18 +14,24 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: springTransition },
 };
 
-const InteractiveCardStack = () => {
+const InteractiveCardStack = ({ isMobile = false }) => {
   const { t } = useTranslation(['landing']);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
 
-  // Fallback data in case translations don't return objects properly
-  const rawHeroCards = t('landing:mockTrips.hero', { returnObjects: true });
+  // Fetch localized data with extreme safety
+  let heroData = t('landing:mockTrips.hero', { returnObjects: true });
+  
+  // High-fidelity fallback in case i18n is not ready or key is missing
   const fallbackHero = [
-    { id: "1", titulo: "Misterios de Kioto", paisCodigo: "JP", fechas: "Oct 2024 • 14 días", paradas: 6, coverUrl: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" },
-    { id: "2", titulo: "Expedición Patagonia", paisCodigo: "AR", fechas: "Ene 2025 • 10 días", paradas: 4, coverUrl: "https://images.unsplash.com/photo-1526761122248-c31c93f8b2b9?auto=format&fit=crop&w=600&q=80" },
-    { id: "3", titulo: "Fin de semana en París", paisCodigo: "FR", fechas: "Mar 2025 • 4 días", paradas: 2, coverUrl: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=600&q=80" }
+    { id: "1", titulo: "Misterios de Kioto", mensaje: "Japón", paisCodigo: "JP", fechas: "Oct 2024 • 14 días", paradas: 6, coverUrl: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=90" },
+    { id: "2", titulo: "Expedición Patagonia", mensaje: "Argentina", paisCodigo: "AR", fechas: "Ene 2025 • 10 días", paradas: 4, coverUrl: "https://images.unsplash.com/photo-1526761122248-c31c93f8b2b9?auto=format&fit=crop&w=1200&q=90" },
+    { id: "3", titulo: "Fin de semana en París", mensaje: "Francia", paisCodigo: "FR", fechas: "Mar 2025 • 4 días", paradas: 2, coverUrl: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1200&q=90" }
   ];
-  const HERO_CARDS = Array.isArray(rawHeroCards) && rawHeroCards.length > 0 ? rawHeroCards : fallbackHero;
+
+  // Robust array validation
+  const HERO_CARDS = Array.isArray(heroData) && heroData.length > 0 ? heroData : fallbackHero;
+
+  console.log('Keeptrip - Hero Cards Data:', { length: HERO_CARDS.length, isI18n: Array.isArray(heroData) });
 
   const handleNextCard = () => {
     setActiveCardIndex((prev) => (prev + 1) % HERO_CARDS.length);
@@ -61,21 +67,23 @@ const InteractiveCardStack = () => {
                     pointerEvents: isFront ? 'auto' : 'none',
                     transformOrigin: 'bottom center',
                   }}
-                  initial={false}
+                  initial={{ opacity: 0, scale: 0.9, y: 30 }}
                   animate={{
-                    opacity: offset === 2 ? 0 : 1 - (offset * 0.15),
+                    opacity: offset >= 2 ? 0 : 1 - (offset * 0.15),
                     scale: 1 - (offset * 0.05),
                     y: offset * 25,
                     rotate: offset === 0 ? 0 : (offset === 1 ? -4 : 4),
                   }}
+                  exit={{ opacity: 0, scale: 0.8, x: -100 }}
                   drag={isFront ? "x" : false}
                   dragConstraints={{ left: 0, right: 0 }}
                   dragElastic={0.8}
                   onDragEnd={(e, { offset }) => {
-                    if (offset.x > 50) handlePrevCard();
-                    else if (offset.x < -50) handleNextCard();
+                    const swipe = offset.x;
+                    if (swipe > 80) handlePrevCard();
+                    else if (swipe < -80) handleNextCard();
                   }}
-                  whileHover={isFront ? { scale: 1.02, y: -4, rotate: 2 } : {}}
+                  whileHover={isFront ? { scale: 1.05, y: -8, rotate: 1 } : {}}
                   transition={springTransition}
                 >
                   <div style={{ pointerEvents: 'none', width: '100%', height: '100%' }}>
@@ -87,7 +95,7 @@ const InteractiveCardStack = () => {
                         paradaCount: card.paradas,
                         banderas: card.paisCodigo ? [`https://flagcdn.com/${card.paisCodigo.toLowerCase()}.svg`] : [],
                       }} 
-                      isMobile={true} 
+                      isMobile={isMobile} 
                       variant="home" 
                     />
                   </div>

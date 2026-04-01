@@ -12,19 +12,30 @@
       "title": "Rutas Vivas",
       "description": "Tus viajes no son puntos estáticos. Documenta cada parada y deja que el mapa conecte tu historia en una interfaz diseñada para exploradores."
     },
-    "timeline": {
-      "title": "Relatos de Viaje",
-      "description": "Reemplaza la galería fría por una bitácora inmersiva. Agrega anécdotas, sensaciones y conecta cada fotografía con su momento histórico."
+    "stats": {
+      "title": "Estadísticas de Viaje",
+      "description": "Visualiza tu recorrido a través de los números. Un registro de alto impacto de los países, el porcentaje del mundo y los destinos que has explorado.",
+      "países": { "value": "14", "label": "Países" },
+      "mundo": { "value": "15", "label": "Mundo Visualizado" },
+      "destinos": { "value": "48", "label": "Destinos" }
     },
     "gallery": {
-      "title": "Archivo Digital Moderno",
-      "description": "Tus momentos inolvidables, curados automáticamente sin esfuerzo. Olvídate de carpetas perdidas y galerías genéricas."
+      "title": "Tu Archivo Digital",
+      "description": "Transforma tu historia en una galería premium. Una biblioteca de recuerdos en crecimiento con un diseño nativo irresistible."
     }
   },
-  "mockCards": {
-    "card1": { "title": "Tailandia Backpacking", "location": "Asia", "date": "Oct 2024 • 14 días" },
-    "card2": { "title": "París Inolvidable", "location": "Europa", "date": "Mar 2025 • 7 días" },
-    "card3": { "title": "Ruta 40", "location": "Sudamérica", "date": "Ene 2026 • 20 días" }
+  "mockTrips": {
+    "hero": [
+      { "id": "1", "titulo": "Misterios de Kioto", "paisCodigo": "JP", "fechas": "Oct 2024 • 14 días", "paradas": 6, "coverUrl": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "2", "titulo": "Expedición Patagonia", "paisCodigo": "AR", "fechas": "Ene 2025 • 10 días", "paradas": 4, "coverUrl": "https://images.unsplash.com/photo-1526761122248-c31c93f8b2b9?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "3", "titulo": "Fin de semana en París", "paisCodigo": "FR", "fechas": "Mar 2025 • 4 días", "paradas": 2, "coverUrl": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1200&q=90" }
+    ],
+    "grid": [
+      { "id": "4", "titulo": "Safari en el Serengeti", "paisCodigo": "TZ", "fechas": "Ago 2025", "paradas": 5, "coverUrl": "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "5", "titulo": "Círculo Dorado", "paisCodigo": "IS", "fechas": "Nov 2025", "paradas": 3, "coverUrl": "https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "6", "titulo": "Roadtrip Costa Oeste", "paisCodigo": "US", "fechas": "Abr 2026", "paradas": 8, "coverUrl": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "7", "titulo": "Verano en Amalfi", "paisCodigo": "IT", "fechas": "Jul 2026", "paradas": 4, "coverUrl": "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=90" }
+    ]
   },
   "footer": {
     "terms": "Términos de Servicio",

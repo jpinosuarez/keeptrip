@@ -100,76 +100,69 @@ export const styles = {
     justifyContent: 'center',
   },
 
-  // Timeline / Bitácora Fragment (Card 2)
-  timelineVisual: {
-    position: 'relative',
+  // Travel Stats Grid (Card 2 Refactor)
+  statsGrid: {
     display: 'flex',
     flexDirection: 'column',
     gap: '20px',
-    margin: '20px 0',
-    paddingLeft: '12px',
-    flexGrow: 1,
-    maxHeight: '160px',
-    overflow: 'hidden',
-    paddingTop: '12px',
-    maskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
-    WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)'
+    padding: '24px 0',
+    flex: 1,
   },
 
-  timelineLine: {
-    position: 'absolute',
-    left: '16px',
-    top: '10px',
-    bottom: '-20px',
-    width: '2px',
-    background: `${COLORS.mutedTeal}30`,
-    zIndex: 1,
-  },
-
-  timelineItem: {
+  statsRow: {
     display: 'flex',
-    alignItems: 'flex-start',
-    gap: '12px',
-    position: 'relative',
-    zIndex: 2,
+    gap: '16px',
+    width: '100%',
   },
 
-  timelineDot: {
-    width: '10px',
-    height: '10px',
-    borderRadius: '50%',
-    boxShadow: '0 0 0 3px rgba(255,255,255,1)',
-    flexShrink: 0,
-    marginTop: '4px',
-  },
-
-  timelineItemContent: {
+  statSubCard: {
+    flex: 1,
+    background: 'rgba(248, 250, 252, 0.8)', // Slate 50 with light transparency
+    padding: '24px 20px',
+    borderRadius: RADIUS.lg,
+    border: '1px solid rgba(226, 232, 240, 0.8)',
     display: 'flex',
     flexDirection: 'column',
+    gap: '8px',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+  },
+
+  statNumber: {
+    fontSize: '3.2rem', // Massive impactful numbers
+    fontWeight: '900',
+    color: COLORS.charcoalBlue,
+    lineHeight: 1,
+    letterSpacing: '-2px',
+    display: 'flex',
+    alignItems: 'baseline',
     gap: '2px',
   },
 
-  timelineItemDate: {
-    fontSize: '0.65rem',
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-    textTransform: 'uppercase',
-  },
-
-  timelineItemTitle: {
+  statLabel: {
     fontSize: '0.85rem',
     fontWeight: '800',
-    color: COLORS.charcoalBlue,
-    lineHeight: 1.2,
+    color: COLORS.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: '1px',
+  },
+
+  statIconWrap: {
+    marginBottom: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
   },
 
   // Masonry Gallery Mock (Card 3)
   masonryVisualContainer: {
     display: 'flex',
-    gap: '6px',
+    flexDirection: 'column',
+    gap: '16px',
     flex: 1,
     margin: '16px 0 0',
     overflow: 'hidden',
+    position: 'relative',
   },
 
   masonryCol: {

@@ -14,24 +14,27 @@
     },
     "stats": {
       "title": "Travel Stats",
-      "description": "Explore your travel statistics visually. A living record of the continents, countries, and cities you've discovered."
+      "description": "Visualize your journey through numbers. A high-impact record of the countries, world percentage, and destinations you've explored.",
+      "países": { "value": "14", "label": "Countries" },
+      "mundo": { "value": "15", "label": "World Explored" },
+      "destinos": { "value": "48", "label": "Destinations" }
     },
     "gallery": {
       "title": "Your Digital Archive",
-      "description": "Transform your travel history into a premium reel. A growing library with an irresistible native design."
+      "description": "Transform your history into a premium gallery. A growing library of memories with an irresistible native feel."
     }
   },
   "mockTrips": {
     "hero": [
-      { "id": "1", "titulo": "Mysteries of Kyoto", "paisCodigo": "JP", "fechas": "Oct 2024 • 14 days", "paradas": 6, "coverUrl": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" },
-      { "id": "2", "titulo": "Patagonia Expedition", "paisCodigo": "AR", "fechas": "Jan 2025 • 10 days", "paradas": 4, "coverUrl": "https://images.unsplash.com/photo-1526761122248-c31c93f8b2b9?auto=format&fit=crop&w=600&q=80" },
-      { "id": "3", "titulo": "Weekend in Paris", "paisCodigo": "FR", "fechas": "Mar 2025 • 4 days", "paradas": 2, "coverUrl": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=600&q=80" }
+      { "id": "1", "titulo": "Mysteries of Kyoto", "paisCodigo": "JP", "fechas": "Oct 2024 • 14 days", "paradas": 6, "coverUrl": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "2", "titulo": "Patagonia Expedition", "paisCodigo": "AR", "fechas": "Jan 2025 • 10 days", "paradas": 4, "coverUrl": "https://images.unsplash.com/photo-1526761122248-c31c93f8b2b9?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "3", "titulo": "Weekend in Paris", "paisCodigo": "FR", "fechas": "Mar 2025 • 4 days", "paradas": 2, "coverUrl": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1200&q=90" }
     ],
     "grid": [
-      { "id": "4", "titulo": "Serengeti Safari", "paisCodigo": "TZ", "fechas": "Aug 2025", "paradas": 5, "coverUrl": "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=600&q=80" },
-      { "id": "5", "titulo": "Golden Circle", "paisCodigo": "IS", "fechas": "Nov 2025", "paradas": 3, "coverUrl": "https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=600&q=80" },
-      { "id": "6", "titulo": "West Coast Roadtrip", "paisCodigo": "US", "fechas": "Apr 2026", "paradas": 8, "coverUrl": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=600&q=80" },
-      { "id": "7", "titulo": "Summer in Amalfi", "paisCodigo": "IT", "fechas": "Jul 2026", "paradas": 4, "coverUrl": "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=600&q=80" }
+      { "id": "4", "titulo": "Serengeti Safari", "paisCodigo": "TZ", "fechas": "Aug 2025", "paradas": 5, "coverUrl": "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "5", "titulo": "Golden Circle", "paisCodigo": "IS", "fechas": "Nov 2025", "paradas": 3, "coverUrl": "https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "6", "titulo": "West Coast Roadtrip", "paisCodigo": "US", "fechas": "Apr 2026", "paradas": 8, "coverUrl": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "7", "titulo": "Summer in Amalfi", "paisCodigo": "IT", "fechas": "Jul 2026", "paradas": 4, "coverUrl": "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=90" }
     ]
   },
   "footer": {

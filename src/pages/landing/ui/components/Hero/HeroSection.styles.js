@@ -4,11 +4,12 @@ export const styles = {
   hero: (isMobile) => ({
     maxWidth: '1200px',
     margin: '0 auto',
-    padding: isMobile ? '40px 24px 20px' : '90px 48px 80px',
+    padding: isMobile ? '20px 24px' : '0 48px',
     display: 'grid',
     gridTemplateColumns: isMobile ? '1fr' : '1.1fr 0.9fr',
     gap: isMobile ? '48px' : '72px',
     alignItems: 'center',
+    minHeight: 'calc(100svh - 88px)',
     zIndex: 10,
     position: 'relative',
   }),
