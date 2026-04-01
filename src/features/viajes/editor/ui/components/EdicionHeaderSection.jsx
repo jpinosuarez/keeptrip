@@ -146,7 +146,7 @@ const EdicionHeaderSection = ({
           <textarea
             id="trip-title-editor-input"
             name="titulo"
-            aria-label={t('tripTitleAriaLabel', 'Título de la bitácora')}
+            aria-label={t('tripTitleAriaLabel', 'Título del viaje')}
             value={formData?.titulo || ''}
             onChange={(e) => {
               onTituloChange(e.target.value);

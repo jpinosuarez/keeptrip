@@ -117,7 +117,7 @@
     "tripNeedsTitle": "A trip must include a title.",
     "tripNeedsStartDate": "A trip must include a start date.",
     "unsupportedFormat": "Only JPG or PNG photos are accepted. Choose a different file and try again.",
-    "optimizationFailed": "We couldn't process that photo. Try with a different image.",
+    "optimizationFailed": "We couldn't prepare that photo. Try a different image.",
     "saveFailed": "We couldn't save your log. Check your connection and try again.",
     "unexpectedError": "Something went wrong while saving. Wait a moment and try again.",
     "coverUpdateFailed": "We couldn't update the cover. Try again.",

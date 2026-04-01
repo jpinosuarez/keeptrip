@@ -34,7 +34,7 @@
     "mainRegion": "Main region",
     "countriesPlural": "countries",
     "countrySingular": "country",
-    "emptyStateHint": "✨ Your passport awaits",
+    "emptyStateHint": "✨ Your next journey awaits",
     "emptyStateMessage": "Start your first adventure to discover your explorer story",
     "additionalMetrics": "Additional travel metrics",
     "experience": "Experience",
@@ -81,7 +81,7 @@
     "emptyStateSubtitle": "Start exploring the world",
     "emptyStateDescription": "You have no destinations saved yet. The map awaits your stories.",
     "emptyStateCTA": "Register First Adventure",
-    "aspirationalMessage": "Your passport awaits its first stamp",
+    "aspirationalMessage": "Your next journey awaits its first highlight",
     "aspirationalCtaLabel": "Log your first adventure",
     "recentPlaceholder": "Your recent adventures will appear here"
   },

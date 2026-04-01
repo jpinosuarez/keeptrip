@@ -76,7 +76,7 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'home', isMob
           transition={{ delay: ANIMATION_DELAYS.fast, duration: 0.5 }}
           style={styles.emptyStateContainer}
         >
-          <span style={styles.emptyStateLabel}>{t('stats.emptyStateHint') || '✨ Your passport awaits'}</span>
+          <span style={styles.emptyStateLabel}>{t('stats.emptyStateHint') || '✨ Your next journey awaits'}</span>
           <span style={styles.emptyStateMessage}>
             {t('stats.emptyStateMessage') || 'Start your first adventure to see your travel story unfold'}
           </span>

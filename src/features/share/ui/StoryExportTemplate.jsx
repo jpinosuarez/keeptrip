@@ -8,7 +8,7 @@ import { COLORS, FONTS, RADIUS } from '@shared/config';
  * Variants:
  *  - "classic"  → Hero photo + title + dates + flags
  *  - "stats"    → Mind map with trip statistics
- *  - "stamp"    → Vintage passport stamp style
+ *  - "stamp"    → Vintage travel stamp style
  *
  * Rendered off-screen and captured with dom-to-image-more.
  *
@@ -149,7 +149,7 @@ const StatsStory = ({ data, t }) => (
   </div>
 );
 
-// ── Passport Stamp Variant ──
+// ── Travel Stamp Variant ──
 const StampStory = ({ data, t }) => (
   <div style={{
     ...base,

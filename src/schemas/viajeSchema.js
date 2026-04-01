@@ -116,7 +116,7 @@ export const ParadaSchema = z.object({
   transporte: z.enum(['avion','tren','auto','bus','otro']).optional(),
   // Nota corta vinculada a la parada (micro‑momento)
   notaCorta: z.string().max(200).optional().nullable(),
-  // Relato per-stop (bitácora fragmentada)
+  // Relato por parada (historia fragmentada)
   relato: z.string().max(3000).optional().nullable(),
   viajeId: z.string().optional() // Referencia al viaje padre
 });

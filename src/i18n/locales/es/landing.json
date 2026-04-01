@@ -3,8 +3,8 @@
     "kicker": "Para viajeros de alma",
     "titleTop": "Tus viajes merecen",
     "titleHighlight": "ser recordados.",
-    "subtitle": "Deja de perder tus recuerdos en galerías infinitas. Keeptrip transforma tus rutas, fotos y fechas en un pasaporte digital vivo que cuenta tu historia.",
-    "ctaButton": "Crear mi Pasaporte",
+    "subtitle": "Deja de perder tus recuerdos en galerías infinitas. Keeptrip transforma tus rutas, fotos y fechas en una historia de viaje viva que cuenta tu aventura.",
+    "ctaButton": "Crear mi Viaje",
     "ctaLoggedIn": "Ir a mi Dashboard"
   },
   "features": {
@@ -14,7 +14,7 @@
     },
     "stats": {
       "title": "Estadísticas de Viaje",
-      "description": "Visualiza tu recorrido a través de los números. Un registro de alto impacto de los países, el porcentaje del mundo y los destinos que has explorado.",
+      "description": "Visualiza tu recorrido a través de los números. Una vista de alto impacto de los países, el porcentaje del mundo y los destinos que has explorado.",
       "países": { "value": "14", "label": "Países" },
       "mundo": { "value": "15", "label": "Mundo Visualizado" },
       "destinos": { "value": "48", "label": "Destinos" }

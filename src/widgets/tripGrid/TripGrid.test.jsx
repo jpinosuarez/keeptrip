@@ -80,7 +80,7 @@ vi.mock('@pages/trips/ui/components/GhostEmptyState', () => {
       // The mockOpenBuscador is already defined in the mocked UIContext above
       return (
         <div data-testid="ghost-empty-state">
-          <h2>¡Tu bitácora espera aventuras!</h2>
+          <h2>¡Tu viaje espera aventuras!</h2>
           <p>Las mejores historias aún está por escribirse.</p>
           <button onClick={() => mockOpenBuscador()}>Registrar aventura</button>
         </div>
@@ -247,7 +247,7 @@ describe.skip('TripGrid', () => {
       />
     );
 
-    expect(screen.getByText(/bitácora espera aventuras/i)).toBeInTheDocument();
+    expect(screen.getByText(/viaje espera aventuras/i)).toBeInTheDocument();
 
     const ctaButton = screen.getByRole('button', { name: /registrar aventura/i });
     expect(ctaButton).toBeInTheDocument();

@@ -34,7 +34,7 @@
     "mainRegion": "Región predominante",
     "countriesPlural": "países",
     "countrySingular": "país",
-    "emptyStateHint": "✨ Tu pasaporte espera",
+    "emptyStateHint": "✨ Tu próxima aventura espera",
     "emptyStateMessage": "Comienza tu primer viaje para descubrir tu historia de explorador",
     "additionalMetrics": "Métricas de viaje adicionales",
     "experience": "Experiencia",
@@ -56,7 +56,7 @@
     "emptyStateSubtitle": "Comienza a explorar el mundo",
     "emptyStateDescription": "Aún no tienes destinos guardados. El mapa espera por tus historias.",
     "emptyStateCTA": "Registrar Primera Aventura",
-    "aspirationalMessage": "Tu pasaporte espera su primera marca",
+    "aspirationalMessage": "Tu próxima aventura espera su primera huella",
     "aspirationalCtaLabel": "Registra tu primera aventura",
     "recentPlaceholder": "Tus aventuras recientes aparecerán aquí"
   },
