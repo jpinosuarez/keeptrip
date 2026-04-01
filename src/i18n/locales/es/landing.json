@@ -1,22 +1,30 @@
 {
-  "title": "Tus viajes merecen ser recordados.",
-  "titleTop": "Tus viajes merecen",
-  "titleHighlight": "ser recordados.",
-  "subtitle": "Deja de perder tus recuerdos en galerías infinitas. Keeptrip transforma tus rutas, fotos y fechas en un pasaporte digital vivo que cuenta tu historia.",
-  "ctaButton": "Crear mi Pasaporte",
-  "peek": {
-    "passportLabel": "Tu Pasaporte Digital",
-    "level": "Nivel: Explorador",
-    "progress": "62% hacia Viajero Experto",
-    "chipText": "Buenos Aires conquistada"
+  "hero": {
+    "kicker": "Para viajeros de alma",
+    "titleTop": "Tus viajes merecen",
+    "titleHighlight": "ser recordados.",
+    "subtitle": "Deja de perder tus recuerdos en galerías infinitas. Keeptrip transforma tus rutas, fotos y fechas en un pasaporte digital vivo que cuenta tu historia.",
+    "ctaButton": "Crear mi Pasaporte",
+    "ctaLoggedIn": "Ir a mi Dashboard"
   },
-  "feature": {
-    "map": "Tu Mapa de Vida",
-    "mapDesc": "Visualiza todos los países y ciudades que has conquistado.",
-    "journal": "Pasaporte Digital",
-    "journalDesc": "Gana sellos y sube de nivel con cada nueva aventura.",
-    "security": "Memorias Intactas",
-    "securityDesc": "Guarda bitácoras, fotos y rutas sin depender de redes sociales."
+  "features": {
+    "liveRoutes": {
+      "title": "Rutas Vivas",
+      "description": "Tus viajes no son puntos estáticos. Documenta cada parada y deja que el mapa conecte tu historia en una interfaz diseñada para exploradores."
+    },
+    "timeline": {
+      "title": "Relatos de Viaje",
+      "description": "Reemplaza la galería fría por una bitácora inmersiva. Agrega anécdotas, sensaciones y conecta cada fotografía con su momento histórico."
+    },
+    "gallery": {
+      "title": "Archivo Digital Moderno",
+      "description": "Tus momentos inolvidables, curados automáticamente sin esfuerzo. Olvídate de carpetas perdidas y galerías genéricas."
+    }
+  },
+  "mockCards": {
+    "card1": { "title": "Tailandia Backpacking", "location": "Asia", "date": "Oct 2024 • 14 días" },
+    "card2": { "title": "París Inolvidable", "location": "Europa", "date": "Mar 2025 • 7 días" },
+    "card3": { "title": "Ruta 40", "location": "Sudamérica", "date": "Ene 2026 • 20 días" }
   },
   "footer": {
     "terms": "Términos de Servicio",

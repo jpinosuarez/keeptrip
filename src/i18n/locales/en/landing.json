@@ -1,27 +1,35 @@
 {
-  "title": "Your travels deserve to be remembered.",
-  "titleTop": "Your travels deserve",
-  "titleHighlight": "to be remembered.",
-  "subtitle": "Stop losing your memories in endless galleries. Keeptrip transforms your routes, photos, and dates into a living digital passport that tells your story.",
-  "ctaButton": "Create my Passport",
-  "peek": {
-    "passportLabel": "Your Digital Passport",
-    "level": "Level: Explorer",
-    "progress": "62% to Expert Traveler",
-    "chipText": "Buenos Aires unlocked"
+  "hero": {
+    "kicker": "For kindred souls",
+    "titleTop": "Your journeys deserve",
+    "titleHighlight": "to be remembered.",
+    "subtitle": "Stop losing memories in infinite camera rolls. Keeptrip transforms your routes, photos, and dates into a living digital passport that tells your story.",
+    "ctaButton": "Create my Passport",
+    "ctaLoggedIn": "Go to my Dashboard"
   },
-  "feature": {
-    "map": "Your Life Map",
-    "mapDesc": "See every country and city you've conquered.",
-    "journal": "Digital Passport",
-    "journalDesc": "Earn stamps and level up with each new adventure.",
-    "security": "Memories Intact",
-    "securityDesc": "Save logs, photos, and routes without relying on social media."
+  "features": {
+    "liveRoutes": {
+      "title": "Living Routes",
+      "description": "Your trips are not static points. Document each stop and let the map connect your story in an interface built for explorers."
+    },
+    "timeline": {
+      "title": "Travel Logs",
+      "description": "Replace the cold gallery with an immersive journal. Add anecdotes, feelings, and connect each photograph to its historical moment."
+    },
+    "gallery": {
+      "title": "Modern Digital Archive",
+      "description": "Your unforgettable moments, automatically curated effortlessly. Forget about lost folders and generic galleries."
+    }
+  },
+  "mockCards": {
+    "card1": { "title": "Thailand Backpacking", "location": "Asia", "date": "Oct 2024 • 14 days" },
+    "card2": { "title": "Unforgettable Paris", "location": "Europe", "date": "Mar 2025 • 7 days" },
+    "card3": { "title": "Route 40", "location": "South America", "date": "Jan 2026 • 20 days" }
   },
   "footer": {
     "terms": "Terms of Service",
-    "privacy": "Privacy Policy",
-    "contact": "Contact Us",
+    "privacy": "Privacy",
+    "contact": "Contact",
     "copyright": "All rights reserved.",
     "language": "Language"
   }
