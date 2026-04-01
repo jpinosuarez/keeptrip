@@ -1,11 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings, LogOut } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import BottomSheet from './BottomSheet';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUI } from '@app/providers/UIContext';
 
 const UserMenuBottomSheet = () => {
+  const { t } = useTranslation(['common', 'settings']);
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { userMenuOpen, closeUserMenu } = useUI();
@@ -36,7 +38,7 @@ const UserMenuBottomSheet = () => {
           style={styles.button}
         >
           <Settings size={18} />
-          <span style={styles.label}>Ajustes</span>
+          <span style={styles.label}>{t('settings:settings', 'Ajustes')}</span>
         </button>
 
         <button
@@ -45,7 +47,7 @@ const UserMenuBottomSheet = () => {
           style={styles.button}
         >
           <LogOut size={18} />
-          <span style={styles.label}>Cerrar Sesión</span>
+          <span style={styles.label}>{t('common:logout', 'Cerrar Sesión')}</span>
         </button>
       </div>
     </BottomSheet>

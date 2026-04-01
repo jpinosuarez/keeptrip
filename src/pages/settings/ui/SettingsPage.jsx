@@ -140,35 +140,89 @@ const GroupCard = ({ children, style = {} }) => (
 );
 
 /* ── Language Toggle Trailing ────────────────────────────────────────── */
-const LanguageToggle = ({ currentLang, onToggle }) => (
-  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-    {[{ code: 'es', flag: '🇪🇸' }, { code: 'en', flag: '🇺🇸' }].map(lang => {
-      const active = currentLang === lang.code;
-      return (
-        <button
-          key={lang.code}
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onToggle(lang.code); }}
-          style={{
-            width: '36px',
-            height: '28px',
-            borderRadius: RADIUS.sm,
-            border: active ? `2px solid ${COLORS.atomicTangerine}` : '1px solid rgba(0,0,0,0.1)',
-            background: active ? 'rgba(255, 107, 53, 0.08)' : 'transparent',
-            fontSize: '14px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s',
-          }}
-        >
-          {lang.flag}
-        </button>
-      );
-    })}
-  </div>
-);
+const LanguageToggle = ({ currentLang, onToggle }) => {
+  const languages = [
+    { code: 'es', flagEmoji: '🇪🇸', label: 'Español', flagUrl: 'https://flagcdn.com/es.svg' },
+    { code: 'en', flagEmoji: '🇺🇸', label: 'English', flagUrl: 'https://flagcdn.com/us.svg' },
+  ];
+
+  const iconStyle = {
+    width: '20px',
+    height: '20px',
+    display: 'inline-block',
+    textAlign: 'center',
+    lineHeight: '20px',
+    fontSize: '16px',
+    color: COLORS.charcoalBlue,
+    fontFamily: 'Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji, Android Emoji, sans-serif',
+    textIndent: 0,
+  };
+
+  return (
+    <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+      {languages.map((lang) => {
+        const active = currentLang === lang.code;
+        return (
+          <button
+            key={lang.code}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onToggle(lang.code); }}
+            style={{
+              width: '36px',
+              height: '28px',
+              borderRadius: RADIUS.sm,
+              border: active ? `2px solid ${COLORS.atomicTangerine}` : '1px solid rgba(0,0,0,0.1)',
+              background: active ? 'rgba(255, 107, 53, 0.08)' : 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s',
+              padding: 0,
+            }}
+            aria-label={
+              lang.code === 'es'
+                ? 'Cambiar a español'
+                : 'Switch to English'
+            }
+            title={lang.label}
+          >
+            <img
+              src={lang.flagUrl}
+              alt={lang.label}
+              style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '9999px',
+                objectFit: 'cover',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                display: 'block',
+              }}
+              onError={(e) => {
+                const target = e.target;
+                if (target && target instanceof HTMLImageElement) {
+                  target.style.display = 'none';
+                }
+              }}
+            />
+            <span style={{
+              ...iconStyle,
+              position: 'absolute',
+              width: '24px',
+              height: '24px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: 0.01,
+            }}>
+              {lang.flagEmoji}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+};
 
 /* ── Main SettingsPage ───────────────────────────────────────────────── */
 const SettingsPage = ({ log = [] }) => {
