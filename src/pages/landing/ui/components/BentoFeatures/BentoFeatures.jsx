@@ -1,11 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Map, BookOpen, Camera, MapPin, Sun, Coffee, Plus } from 'lucide-react';
+import { Map, BarChart2, Camera, MapPin, Globe, CalendarDays } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { COLORS, SHADOWS } from '@shared/config';
 import { WorldMapSVG } from '../../WorldMapSVG';
 import { styles } from './BentoFeatures.styles';
+import TripCard from '../../../../../widgets/tripGrid/ui/TripCard';
 
 const springTransition = { type: 'spring', damping: 20, stiffness: 100 };
 
@@ -22,6 +23,15 @@ const itemVariants = {
 const BentoFeatures = () => {
   const { t } = useTranslation(['landing']);
   const { isMobile } = useWindowSize();
+
+  const rawGridCards = t('landing:mockTrips.grid', { returnObjects: true });
+  const fallbackGrid = [
+    { id: "4", titulo: "Safari en el Serengeti", paisCodigo: "TZ", fechas: "Ago 2025", paradas: 5, coverUrl: "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=600&q=80" },
+    { id: "5", titulo: "Círculo Dorado", paisCodigo: "IS", fechas: "Nov 2025", paradas: 3, coverUrl: "https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=600&q=80" },
+    { id: "6", titulo: "Roadtrip Costa Oeste", paisCodigo: "US", fechas: "Abr 2026", paradas: 8, coverUrl: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=600&q=80" },
+    { id: "7", titulo: "Verano en Amalfi", paisCodigo: "IT", fechas: "Jul 2026", paradas: 4, coverUrl: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=600&q=80" }
+  ];
+  const mockGrid = Array.isArray(rawGridCards) && rawGridCards.length > 0 ? rawGridCards : fallbackGrid;
 
   return (
     <motion.section 
@@ -50,12 +60,12 @@ const BentoFeatures = () => {
         </div>
 
         <div>
-          <div style={styles.featureCardTitle(isMobile, 0)}>{t('landing:features.liveRoutes.title')}</div>
-          <p style={styles.featureDesc(isMobile, 0)}>{t('landing:features.liveRoutes.description')}</p>
+           <div style={styles.featureCardTitle(isMobile, 0)}>{typeof t('landing:features.liveRoutes.title') === 'string' ? t('landing:features.liveRoutes.title') : 'Living Routes'}</div>
+           <p style={styles.featureDesc(isMobile, 0)}>{typeof t('landing:features.liveRoutes.description') === 'string' ? t('landing:features.liveRoutes.description') : 'Document each stop...'}</p>
         </div>
       </motion.div>
 
-      {/* Card 2: Timeline (Index 1) */}
+      {/* Card 2: Travel Stats (Index 1) */}
       <motion.div
         style={styles.featureCard(isMobile, 1)}
         variants={itemVariants}
@@ -64,46 +74,44 @@ const BentoFeatures = () => {
       >
         <div style={styles.featureCardHeader}>
           <div style={styles.featureCardIconWrap(COLORS.mutedTeal)}>
-            <BookOpen size={24} color={COLORS.mutedTeal} strokeWidth={2} />
+            <BarChart2 size={24} color={COLORS.mutedTeal} strokeWidth={2} />
           </div>
           <span style={styles.featureCardNum(COLORS.mutedTeal)}>02</span>
         </div>
 
-        <motion.div style={styles.timelineVisual} variants={containerVariants}>
-           <div style={styles.timelineLine} />
-           
-           <motion.div style={styles.timelineItem} variants={itemVariants}>
-             <div style={{...styles.timelineDot, background: COLORS.mutedTeal, border: '2px solid #fff'}} />
-             <div style={styles.timelineItemContent}>
-               <span style={styles.timelineItemDate}>2 Mar, 10:00 AM</span>
-               <span style={styles.timelineItemTitle}>Aeropuerto Suvarnabhumi</span>
-             </div>
-           </motion.div>
-
-           <motion.div style={styles.timelineItem} variants={itemVariants}>
-             <div style={{...styles.timelineDot, background: COLORS.background, border: `2px solid ${COLORS.mutedTeal}`}} />
-             <div style={styles.timelineItemContent}>
-               <span style={styles.timelineItemDate}>2 Mar, 14:30 PM</span>
-               <span style={styles.timelineItemTitle}>Check-in Khaosan Road</span>
-             </div>
-           </motion.div>
-           
-           <motion.div style={styles.timelineItem} variants={itemVariants}>
-             <div style={{...styles.timelineDot, background: COLORS.background, border: `2px solid ${COLORS.border}`}} />
-             <div style={styles.timelineItemContent}>
-               <span style={styles.timelineItemDate}>3 Mar, 09:00 AM</span>
-               <span style={styles.timelineItemTitle}>Wat Pho</span>
-             </div>
-           </motion.div>
+        {/* Mock LogStats UI */}
+        <motion.div 
+          style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1, paddingTop: '24px' }} 
+          variants={containerVariants}
+        >
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+            <motion.div variants={itemVariants} style={{ flex: 1, minWidth: '120px', background: 'rgba(56, 189, 248, 0.08)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(56, 189, 248, 0.15)' }}>
+               <Globe size={18} color={COLORS.mutedTeal} style={{ marginBottom: '8px' }} />
+               <h4 style={{ fontSize: '2rem', fontWeight: 800, color: COLORS.charcoalBlue, margin: 0, lineHeight: 1 }}>12</h4>
+               <span style={{ fontSize: '0.85rem', color: COLORS.mutedTeal, fontWeight: 600 }}>Países</span>
+            </motion.div>
+            <motion.div variants={itemVariants} style={{ flex: 1, minWidth: '120px', background: 'rgba(251, 146, 60, 0.08)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(251, 146, 60, 0.15)' }}>
+               <MapPin size={18} color={COLORS.atomicTangerine} style={{ marginBottom: '8px' }} />
+               <h4 style={{ fontSize: '2rem', fontWeight: 800, color: COLORS.charcoalBlue, margin: 0, lineHeight: 1 }}>15<span style={{fontSize: '1.2rem', color: COLORS.background}}>%</span></h4>
+               <span style={{ fontSize: '0.85rem', color: COLORS.atomicTangerine, fontWeight: 600 }}>Mundo visualizado</span>
+            </motion.div>
+          </div>
+          <motion.div variants={itemVariants} style={{ background: 'rgba(15, 23, 42, 0.04)', padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <CalendarDays size={20} color={COLORS.charcoalBlue} />
+            <div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: COLORS.charcoalBlue }}>142</div>
+              <div style={{ fontSize: '0.8rem', color: COLORS.border, fontWeight: 600 }}>Días viajando</div>
+            </div>
+          </motion.div>
         </motion.div>
 
         <div style={{ marginTop: 'auto', paddingTop: '16px' }}>
-          <div style={styles.featureCardTitle(isMobile, 1)}>{t('landing:features.timeline.title')}</div>
-          <p style={styles.featureDesc(isMobile, 1)}>{t('landing:features.timeline.description')}</p>
+          <div style={styles.featureCardTitle(isMobile, 1)}>{typeof t('landing:features.stats.title') === 'string' ? t('landing:features.stats.title') : 'Travel Stats'}</div>
+          <p style={styles.featureDesc(isMobile, 1)}>{typeof t('landing:features.stats.description') === 'string' ? t('landing:features.stats.description') : 'Explore your impact...'}</p>
         </div>
       </motion.div>
 
-      {/* Card 3: Galería (Index 2) */}
+      {/* Card 3: Your Digital Archive (Index 2) */}
       <motion.div
         style={styles.featureCard(isMobile, 2)}
         variants={itemVariants}
@@ -117,44 +125,43 @@ const BentoFeatures = () => {
           <span style={styles.featureCardNum(COLORS.charcoalBlue)}>03</span>
         </div>
 
-        <motion.div style={styles.masonryVisualContainer} variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-           <div style={styles.masonryCol}>
-             <motion.div style={styles.masonryImg('https://images.unsplash.com/photo-1528181304800-259b08848526?q=80&w=300&auto=format&fit=crop', '140px')} variants={itemVariants}>
-               <div style={styles.galleryContextPill}>
-                 <Sun size={11} color={COLORS.atomicTangerine} />
-                 <span style={styles.galleryContextLabel}>32°C • Bangkok</span>
-               </div>
-             </motion.div>
-             <motion.div style={styles.masonryImg('https://images.unsplash.com/photo-1542051842920-c51d6ed5ec69?q=80&w=300&auto=format&fit=crop', '115px')} variants={itemVariants} />
-           </div>
-           <div style={{...styles.masonryCol, marginTop: '24px'}}>
-             <motion.div style={styles.masonryImg('https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=300&auto=format&fit=crop', '115px')} variants={itemVariants}>
-               <div style={styles.galleryContextPill}>
-                 <MapPin size={11} color={COLORS.charcoalBlue} />
-                 <span style={styles.galleryContextLabel}>Tour Eiffel</span>
-               </div>
-             </motion.div>
-             <motion.div style={styles.masonryImg('https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=300&auto=format&fit=crop', '148px')} variants={itemVariants}>
-               <div style={styles.galleryContextPill}>
-                 <Coffee size={11} color={COLORS.charcoalBlue} />
-                 <span style={styles.galleryContextLabel}>Café de Mago</span>
-               </div>
-             </motion.div>
-           </div>
-           <div style={styles.masonryCol}>
-             <motion.div style={styles.masonryImg('https://images.unsplash.com/photo-1596422846543-74fc8e6138c8?q=80&w=300&auto=format&fit=crop', '120px')} variants={itemVariants} />
-             <motion.div style={styles.masonryImg('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=300&auto=format&fit=crop', '140px')} variants={itemVariants}>
-               <div style={styles.masonryOverlayCount}><Plus size={14}/> 18</div>
-             </motion.div>
-           </div>
+        <motion.div 
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '16px', 
+            flex: 1, 
+            marginTop: '16px',
+            overflow: 'hidden',
+            maskImage: 'linear-gradient(to bottom, black 50%, transparent 95%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 95%)'
+          }} 
+          variants={containerVariants}
+        >
+          {mockGrid.map((card, idx) => (
+            <motion.div key={card.id || idx} variants={itemVariants}>
+              <div style={{ height: '220px', pointerEvents: 'none' }}>
+                <TripCard 
+                  trip={{
+                    ...card,
+                    foto: card.coverUrl,
+                    fechaInicio: card.fechas,
+                    paradaCount: card.paradas,
+                    banderas: card.paisCodigo ? [`https://flagcdn.com/${card.paisCodigo.toLowerCase()}.svg`] : [],
+                  }}
+                  isMobile={true}
+                  variant="list"
+                />
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
 
-        <div style={{ paddingTop: '16px' }}>
+        <div style={{ paddingTop: '16px', zIndex: 1 }}>
           <div style={styles.featureCardTitle(isMobile, 2)}>{t('landing:features.gallery.title')}</div>
           <p style={styles.featureDesc(isMobile, 2)}>{t('landing:features.gallery.description')}</p>
         </div>
       </motion.div>
-
     </motion.section>
   );
 };

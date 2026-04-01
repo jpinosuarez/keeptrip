@@ -4,6 +4,9 @@ import { ChevronLeft, ChevronRight, MapPin, Globe, Navigation } from 'lucide-rea
 import { useTranslation } from 'react-i18next';
 import { styles } from './InteractiveCardStack.styles';
 
+// Ensure we import TripCard
+import TripCard from '../../../../../widgets/tripGrid/ui/TripCard';
+
 const springTransition = { type: 'spring', damping: 20, stiffness: 100 };
 
 const itemVariants = {
@@ -15,11 +18,14 @@ const InteractiveCardStack = () => {
   const { t } = useTranslation(['landing']);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
 
-  const HERO_CARDS = [
-    { id: 1, title: t('landing:mockCards.card1.title', 'Tailandia Backpacking'), location: t('landing:mockCards.card1.location', 'Asia'), date: t('landing:mockCards.card1.date', 'Oct 2024 • 14 días'), icon: MapPin, img: 'https://images.unsplash.com/photo-1528181304800-259b08848526?q=80&w=800&auto=format&fit=crop' },
-    { id: 2, title: t('landing:mockCards.card2.title', 'París Inolvidable'), location: t('landing:mockCards.card2.location', 'Europa'), date: t('landing:mockCards.card2.date', 'Mar 2025 • 7 días'), icon: Globe, img: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=800&auto=format&fit=crop' },
-    { id: 3, title: t('landing:mockCards.card3.title', 'Ruta 40'), location: t('landing:mockCards.card3.location', 'Sudamérica'), date: t('landing:mockCards.card3.date', 'Ene 2026 • 20 días'), icon: Navigation, img: 'https://images.unsplash.com/photo-1596422846543-74fc8e6138c8?q=80&w=800&auto=format&fit=crop' }
+  // Fallback data in case translations don't return objects properly
+  const rawHeroCards = t('landing:mockTrips.hero', { returnObjects: true });
+  const fallbackHero = [
+    { id: "1", titulo: "Misterios de Kioto", paisCodigo: "JP", fechas: "Oct 2024 • 14 días", paradas: 6, coverUrl: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" },
+    { id: "2", titulo: "Expedición Patagonia", paisCodigo: "AR", fechas: "Ene 2025 • 10 días", paradas: 4, coverUrl: "https://images.unsplash.com/photo-1526761122248-c31c93f8b2b9?auto=format&fit=crop&w=600&q=80" },
+    { id: "3", titulo: "Fin de semana en París", paisCodigo: "FR", fechas: "Mar 2025 • 4 días", paradas: 2, coverUrl: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=600&q=80" }
   ];
+  const HERO_CARDS = Array.isArray(rawHeroCards) && rawHeroCards.length > 0 ? rawHeroCards : fallbackHero;
 
   const handleNextCard = () => {
     setActiveCardIndex((prev) => (prev + 1) % HERO_CARDS.length);
@@ -31,10 +37,8 @@ const InteractiveCardStack = () => {
 
   return (
     <motion.div style={styles.heroVisual} variants={itemVariants} aria-hidden="true">
-      {/* Orb atmosférico de fondo */}
       <div style={styles.heroBackground} />
       
-      {/* The Interactive Trip Cards Deck */}
       <div style={styles.tripCardsStack} role="region" aria-label="Tarjetas de muestra">
         <AnimatePresence>
           {HERO_CARDS.map((card, idx) => {
@@ -44,11 +48,18 @@ const InteractiveCardStack = () => {
 
               return (
                 <motion.div
-                  key={card.id}
+                  key={card.id || idx}
                   layout
                   style={{ 
-                    ...styles.tripCardMock, 
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
                     zIndex: HERO_CARDS.length - offset,
+                    cursor: isFront ? 'grab' : 'auto',
+                    pointerEvents: isFront ? 'auto' : 'none',
+                    transformOrigin: 'bottom center',
                   }}
                   initial={false}
                   animate={{
@@ -67,15 +78,18 @@ const InteractiveCardStack = () => {
                   whileHover={isFront ? { scale: 1.02, y: -4, rotate: 2 } : {}}
                   transition={springTransition}
                 >
-                  <div style={styles.tripCardMockImage(card.img)} />
-                  <div style={styles.tripCardMockOverlay}>
-                    <div style={styles.tripCardMockPill}>
-                      <card.icon size={10} style={{marginRight: 4}}/> {card.location}
-                    </div>
-                    <div style={styles.tripCardMockContent}>
-                      <h3 style={styles.tripCardMockTitle}>{card.title}</h3>
-                      <p style={styles.tripCardMockDate}>{card.date}</p>
-                    </div>
+                  <div style={{ pointerEvents: 'none', width: '100%', height: '100%' }}>
+                    <TripCard 
+                      trip={{
+                        ...card,
+                        foto: card.coverUrl,
+                        fechaInicio: card.fechas,
+                        paradaCount: card.paradas,
+                        banderas: card.paisCodigo ? [`https://flagcdn.com/${card.paisCodigo.toLowerCase()}.svg`] : [],
+                      }} 
+                      isMobile={true} 
+                      variant="home" 
+                    />
                   </div>
                 </motion.div>
               )

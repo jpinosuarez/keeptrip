@@ -4,8 +4,8 @@ export const styles = {
   footerContainer: {
     background: COLORS.charcoalBlue,
     color: COLORS.textSecondary,
-    padding: `${SPACING.xl} ${SPACING.lg}`,
-    marginTop: `${SPACING['3xl']}`,
+    padding: '80px 48px',
+    marginTop: '140px',
     borderTop: `1px solid ${COLORS.border}15`,
     zIndex: 5,
     position: 'relative',

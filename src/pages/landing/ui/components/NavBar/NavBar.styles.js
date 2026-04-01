@@ -2,12 +2,16 @@ import { FONTS, COLORS, RADIUS } from '@shared/config';
 
 export const styles = {
   nav: (isMobile) => ({
-    padding: isMobile ? '20px 24px' : '28px 48px',
+    padding: isMobile ? '20px 24px' : '20px 48px',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    zIndex: 10,
-    position: 'relative',
+    zIndex: 100,
+    position: 'sticky',
+    top: 0,
+    background: 'rgba(255, 255, 255, 0.8)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
   }),
 
   logo: {
