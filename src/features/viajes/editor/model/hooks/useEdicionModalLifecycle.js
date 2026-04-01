@@ -24,6 +24,7 @@ export function useEdicionModalLifecycle({
   const prevViajeIdRef = useRef(null);
   const initSignatureRef = useRef(null);
   const limpiarGaleriaRef = useRef(() => {});
+  const initializedParadasRef = useRef(false);
 
   useEffect(() => {
     limpiarGaleriaRef.current = galeria?.limpiar || (() => {});
@@ -39,6 +40,7 @@ export function useEdicionModalLifecycle({
       setCaptionDrafts({});
       limpiarGaleriaRef.current();
       prevViajeIdRef.current = currentViajeId;
+      initializedParadasRef.current = false; // Reset flag when trip changes
     }
   }, [setCaptionDrafts, setGalleryFiles, setGalleryPortada, viaje?.id]);
 
@@ -164,6 +166,7 @@ export function useEdicionModalLifecycle({
       setGalleryPortada(0);
       setCaptionDrafts({});
       setIsTituloAuto(true);
+      initializedParadasRef.current = false; // Reset flag on unmount
     };
   }, [setCaptionDrafts, setFormData, setGalleryFiles, setGalleryPortada, setParadas]);
 
@@ -240,7 +243,9 @@ export function useEdicionModalLifecycle({
       return changed ? next : prev;
     });
 
-    if (ciudadInicial && paradas.length === 0) {
+    // KILL ZOMBIE HOOK: Only initialize paradas on FIRST MOUNT, not when user deletes them
+    if (ciudadInicial && paradas.length === 0 && !initializedParadasRef.current) {
+      initializedParadasRef.current = true;
       setParadas([
         {
           id: 'init',
@@ -252,10 +257,10 @@ export function useEdicionModalLifecycle({
         },
       ]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     ciudadInicial,
     esBorrador,
-    paradas.length,
     setFormData,
     setParadas,
     viaje,

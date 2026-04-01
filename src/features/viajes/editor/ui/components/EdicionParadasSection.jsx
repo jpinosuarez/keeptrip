@@ -18,26 +18,62 @@ const EdicionParadasSection = ({ styles, t, paradas, setParadas, fechaRangoDispl
       {sinParadas && (
         <div
           style={{
-            marginTop: 8,
-            padding: '14px 16px',
-            borderRadius: 12,
-            border: `1px solid ${COLORS.border}`,
-            background: COLORS.surface,
-            boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+            marginTop: 16,
+            padding: '32px 24px',
+            borderRadius: 16,
+            border: `2px dashed ${COLORS.border}`,
+            background: COLORS.background,
             display: 'flex',
             flexDirection: 'column',
-            gap: 6,
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            gap: 12,
           }}
           role="status"
           aria-live="polite"
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: COLORS.charcoalBlue, fontWeight: 700 }}>
-            <MapPin size={14} color={COLORS.atomicTangerine} />
-            {t('labels.emptyStopsTitle', 'Tu ruta esta vacia')}
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: 12,
+            background: 'rgba(255, 107, 53, 0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <MapPin size={32} color={COLORS.atomicTangerine} strokeWidth={1.5} />
           </div>
-          <span style={{ fontSize: '0.86rem', color: COLORS.textSecondary, lineHeight: 1.4 }}>
-            {t('labels.emptyStopsDescription', 'Agrega tu primer destino para continuar.')}
-          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <h3 style={{
+              fontSize: '1rem',
+              fontWeight: 700,
+              color: COLORS.charcoalBlue,
+              margin: 0,
+              letterSpacing: '-0.01em',
+            }}>
+              {t('labels.emptyStopsTitle', 'Tu ruta está vacía')}
+            </h3>
+            <p style={{
+              fontSize: '0.9rem',
+              color: COLORS.textSecondary,
+              lineHeight: 1.5,
+              margin: 0,
+              maxWidth: '280px',
+            }}>
+              {t('labels.emptyStopsDescription', 'Agrega tu primer destino usando la barra de búsqueda arriba para comenzar.')}
+            </p>
+          </div>
+          <div style={{
+            marginTop: 8,
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: COLORS.atomicTangerine,
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            {t('labels.emptyStopsHint', 'Necesitas al menos 1 parada para guardar')}
+          </div>
         </div>
       )}
     </div>
