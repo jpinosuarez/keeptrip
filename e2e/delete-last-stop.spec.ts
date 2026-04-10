@@ -1,112 +1,120 @@
 import { test, expect } from '@playwright/test';
 
-/**
- * Test: Validar que al eliminar la última parada se muestra el empty state
- * y se bloquea el botón de guardar.
- */
-test('Delete last stop shows empty state and locks save button', async ({ page }) => {
-  // Configurar navegador para ver logs de console
-  page.on('console', msg => console.log(`[BROWSER] ${msg.text()}`));
+const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
 
-  // Navegar a la app
-  await page.goto('http://localhost:5173', { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(2000);
+async function createAuthUser(email: string, password = 'testpass') {
+  const signUpRes = await fetch(`${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, returnSecureToken: true })
+  });
+  const signUpJson = await signUpRes.json();
 
-  // Buscar el modal del editor
-  const editorModal = page.locator('[role="dialog"], [style*="overlay"]').first();
-  const isEditorOpen = await editorModal.isVisible({ timeout: 5000 }).catch(() => false);
-
-  if (!isEditorOpen) {
-    console.log('ℹ️ Editor modal not open - this is expected in initial state');
-    // El test pasa porque el flujo estaría en la página de inicio
-    return;
+  if (signUpJson?.error?.message === 'EMAIL_EXISTS') {
+    const signInRes = await fetch(`${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake-api-key`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, returnSecureToken: true })
+    });
+    return signInRes.json();
   }
 
-  // Dentro del editor, buscar la lista de paradas
-  const paradasList = page.locator('div').filter({ hasText: /Paradas|Stops/ }).first();
-  const isParadasVisible = await paradasList.isVisible({ timeout: 3000 }).catch(() => false);
+  return signUpJson;
+}
 
-  if (!isParadasVisible) {
-    console.log('ℹ️ Paradas section not visible');
-    return;
-  }
+async function signInInBrowser(page, email: string, password = 'testpass') {
+  await page.waitForFunction(() => typeof (window as any).__test_signInWithEmail === 'function');
+  await page.evaluate(({ email, password }) => (window as any).__test_signInWithEmail({ email, password }), { email, password });
+  await expect(page.getByTestId('header-avatar')).toBeVisible({ timeout: 15000 });
+}
 
-  // Buscar todos los botones de eliminar (Trash icon)
-  page.setDefaultTimeout(5000);
-  const deleteButtons = page.locator('button:has(svg[aria-label*="trash"], svg[class*="Trash"], svg[class*="trash"])');
-  let deleteCount = await deleteButtons.count();
+async function seedTripWithSingleStop(page, ownerUid: string, tripId: string) {
+  const tripWriteOk = await page.evaluate(({ ownerUid, tripId }) => {
+    return (window as any).__test_createDoc(`usuarios/${ownerUid}/viajes/${tripId}`, {
+      ownerId: ownerUid,
+      titulo: 'Delete Last Stop Trip',
+      nombreEspanol: 'Delete Stop City',
+      code: 'MX',
+      paisCodigo: 'MX',
+      fechaInicio: '2026-04-01',
+      fechaFin: '2026-04-07',
+      sharedWith: [],
+    });
+  }, { ownerUid, tripId });
+  expect(tripWriteOk).toBe(true);
 
-  if (deleteCount === 0) {
-    console.log('ℹ️ No delete buttons found - may mean no paradas to delete');
-    return;
-  }
+  const stopWriteOk = await page.evaluate(({ ownerUid, tripId }) => {
+    return (window as any).__test_createDoc(`usuarios/${ownerUid}/viajes/${tripId}/paradas/stop-1`, {
+      nombre: 'Delete Stop City',
+      coordenadas: [-99.1332, 19.4326],
+      paisCodigo: 'MX',
+      fechaLlegada: '01/04/2026',
+      fechaSalida: '07/04/2026',
+    });
+  }, { ownerUid, tripId });
+  expect(stopWriteOk).toBe(true);
 
-  console.log(`Found ${deleteCount} stops with delete buttons`);
+  const seededTrip = await page.evaluate((path) => (window as any).__test_readDoc(path), `usuarios/${ownerUid}/viajes/${tripId}`);
+  expect(seededTrip?.titulo).toBe('Delete Last Stop Trip');
+}
 
-  // Eliminar todas las paradas
-  while (deleteCount > 0) {
-    const lastDeleteBtn = deleteButtons.last();
-    const isVisible = await lastDeleteBtn.isVisible({ timeout: 1000 }).catch(() => false);
-    
-    if (isVisible) {
-      console.log(`Deleting stop ${deleteCount}...`);
-      await lastDeleteBtn.click();
-      await page.waitForTimeout(300);
+async function openEditorByTripId(page, tripId: string) {
+  const titleInput = page.getByLabel(/Trip title|Título del viaje/i);
+  const editorUrlPattern = new RegExp(`\\/(dashboard|trips)\\?.*editing=${tripId}`);
+  const tripCard = page.getByTestId(`trip-card-${tripId}`);
+
+  if (!(await tripCard.first().isVisible().catch(() => false))) {
+    const viewAllButton = page.getByRole('button', { name: /View all|Ver todo/i });
+    if (await viewAllButton.isVisible().catch(() => false)) {
+      await viewAllButton.click();
     }
-    
-    deleteCount = await deleteButtons.count();
   }
 
-  console.log('✓ All stops deleted');
+  await expect(tripCard).toBeVisible({ timeout: 20000 });
+  await tripCard.click();
+  await expect(titleInput).toBeVisible({ timeout: 10000 });
+  await expect(page).toHaveURL(editorUrlPattern);
+}
 
-  // VALIDACIÓN 1: Empty state debería aparecer
-  const emptyStateCard = page.locator('[role="status"]').filter({ hasText: /ruta|route/i });
-  const isEmptyStateVisible = await emptyStateCard.isVisible({ timeout: 3000 }).catch(() => false);
-  
-  if (isEmptyStateVisible) {
-    console.log('✅ Empty state card is visible');
-    
-    // Validar contenido
-    const emptyTitle = emptyStateCard.locator(':text("Tu ruta esta vacia"), :text("Your route is empty")').first();
-    const isTitleVisible = await emptyTitle.isVisible({ timeout: 1000 }).catch(() => false);
-    console.log(isTitleVisible ? '✅ Empty state title visible' : '⚠️ Empty state title NOT visible');
-    
-  } else {
-    console.log('⚠️ Empty state card NOT visible after deleting all stops');
-  }
+test('deleting the last stop shows empty state and disables save', async ({ page }) => {
+  const timestamp = Date.now();
+  const email = `delete-stop-${timestamp}@example.test`;
+  const password = 'testpass';
+  const user = await createAuthUser(email, password);
 
-  // VALIDACIÓN 2: Save button debería estar disabled
-  const saveButton = page.locator('button:has-text("Guardar"), button:has-text("Save")').first();
-  const isDisabled = await saveButton.evaluate(btn => 
-    (btn as HTMLButtonElement).hasAttribute('disabled') || 
-    (btn as HTMLButtonElement).getAttribute('aria-disabled') === 'true'
-  ).catch(() => false);
+  const ownerUid = user.localId;
+  const tripId = `delete-stop-trip-${timestamp}`;
 
-  console.log(isDisabled ? '✅ Save button is disabled' : '⚠️ Save button is NOT disabled');
+  await page.goto('/');
+  await signInInBrowser(page, email, password);
+  await seedTripWithSingleStop(page, ownerUid, tripId);
 
-  // VALIDACIÓN 3: Verificar aria-label
-  const ariaLabel = await saveButton.getAttribute('aria-label').catch(() => '');
-  if (ariaLabel && ariaLabel.includes('destino')) {
-    console.log(`✅ aria-label explains why: "${ariaLabel}"`);
-  } else if (ariaLabel) {
-    console.log(`⚠️ aria-label present but may not explain: "${ariaLabel}"`);
-  } else {
-    console.log('⚠️ No aria-label on save button');
-  }
+  await openEditorByTripId(page, tripId);
 
-  // VALIDACIÓN 4: CityManager should be empty
-  const cityManager = page.locator('[style*="flex"][style*="gap"]').filter({ hasText: /search|busca/i }).first();
-  const isCityManagerEmpty = await cityManager.evaluate(el => {
-    const items = el.querySelectorAll('[style*="background"][style*="border"]');
-    return items.length === 0;
-  }).catch(() => false);
+  const titleInput = page.getByLabel(/Trip title|Título del viaje/i);
+  await expect(titleInput).toBeVisible({ timeout: 15000 });
 
-  console.log(isCityManagerEmpty ? '✅ City manager is empty' : '⚠️ City manager still has items');
+  const stopLabel = page.getByText('Delete Stop City', { exact: true });
+  await expect(stopLabel).toBeVisible({ timeout: 15000 });
 
-  // Summary
-  console.log('\n=== AUDIT COMPLETE ===');
-  console.log(isEmptyStateVisible ? '✓ Empty state rendering: PASS' : '✗ Empty state rendering: FAIL');
-  console.log(isDisabled ? '✓ Save button lock: PASS' : '✗ Save button lock: FAIL');
-  console.log('========================\n');
+  const stopItem = page.getByTestId('editor-stop-item').filter({ hasText: 'Delete Stop City' }).first();
+  await expect(stopItem).toBeVisible({ timeout: 15000 });
+
+  const moveUpButton = stopItem.getByTestId('editor-stop-move-up');
+  const moveDownButton = stopItem.getByTestId('editor-stop-move-down');
+  const deleteButton = stopItem.getByTestId('editor-stop-delete');
+
+  await expect(moveUpButton).toBeDisabled();
+  await expect(moveDownButton).toBeDisabled();
+  await expect(deleteButton).toBeEnabled();
+  await deleteButton.click();
+
+  await expect(page.getByText(/Your route is empty|Tu ruta está vacía/i)).toBeVisible({ timeout: 15000 });
+
+  const saveButton = page.getByRole('button', {
+    name: /A trip must include at least one destination\.|El viaje debe tener al menos un destino\.|Save|Guardar/i,
+  }).first();
+  await expect(saveButton).toBeDisabled();
+  await expect(saveButton).toHaveAttribute('aria-disabled', 'true');
 });
 

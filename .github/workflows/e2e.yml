@@ -30,6 +30,10 @@ jobs:
         run: npm i -g firebase-tools@latest
       - name: Run Firestore rules tests + Playwright E2E with emulators
         # emulators:exec ensures emulators are running before tests start
+        env:
+          VITE_E2E_ENABLE_INVITATIONS: 'true'
+          VITE_E2E_ENABLE_IMMERSIVE_VIEWER: 'true'
+          VITE_E2E_ENABLE_GAMIFICATION: 'false'
         run: |
           firebase emulators:exec --only auth,firestore,storage --project keeptrip-app-b06b3 -- \
             bash -c "npm run test:rules && npx playwright test --reporter=list"

@@ -158,16 +158,42 @@ const CityManager = ({ t, paradas, setParadas }) => {
 
       <div style={styles.list}>
         {paradas.map((p, index) => (
-          <div key={p.id ?? `parada-${index}-${p.nombre}`} style={styles.item}>
+          <div key={p.id ?? `parada-${index}-${p.nombre}`} style={styles.item} data-testid="editor-stop-item">
             <div style={styles.itemHeader}>
                <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
                    {p.flag && <img src={p.flag} alt="flag" style={{width:'24px', borderRadius:RADIUS.xs, border:'1px solid #eee'}} />}
                    <span style={styles.cityName}>{p.nombre}</span>
                </div>
                <div style={styles.actions}>
-                  <button disabled={index === 0} onClick={() => moverParada(index, -1)} style={styles.actionBtn}><ArrowUp size={14} /></button>
-                  <button disabled={index === paradas.length - 1} onClick={() => moverParada(index, 1)} style={styles.actionBtn}><ArrowDown size={14} /></button>
-                  <button onClick={() => eliminarParada(index)} style={{...styles.actionBtn, color:COLORS.danger, background:'#FEF2F2'}}><Trash2 size={14} /></button>
+                  <button
+                    type="button"
+                    data-testid="editor-stop-move-up"
+                    aria-label={t('citymanager.moveStopUp', 'Move stop up')}
+                    disabled={index === 0}
+                    onClick={() => moverParada(index, -1)}
+                    style={styles.actionBtn}
+                  >
+                    <ArrowUp size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="editor-stop-move-down"
+                    aria-label={t('citymanager.moveStopDown', 'Move stop down')}
+                    disabled={index === paradas.length - 1}
+                    onClick={() => moverParada(index, 1)}
+                    style={styles.actionBtn}
+                  >
+                    <ArrowDown size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="editor-stop-delete"
+                    aria-label={t('citymanager.deleteStop', 'Delete stop')}
+                    onClick={() => eliminarParada(index)}
+                    style={{...styles.actionBtn, color:COLORS.danger, background:'#FEF2F2'}}
+                  >
+                    <Trash2 size={14} />
+                  </button>
                </div>
             </div>
             

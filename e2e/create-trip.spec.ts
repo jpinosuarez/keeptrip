@@ -23,6 +23,60 @@ async function createAuthUser(email: string, password = 'testpass') {
   return signUpJson;
 }
 
+async function signInInBrowser(page, email: string, password = 'testpass') {
+  await page.waitForFunction(() => typeof (window as any).__test_signInWithEmail === 'function');
+  await page.evaluate(({ email, password }) => (window as any).__test_signInWithEmail({ email, password }), { email, password });
+  await expect(page.getByTestId('header-avatar')).toBeVisible({ timeout: 15000 });
+}
+
+async function ensureAuthenticatedShell(page, email: string, password: string) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await signInInBrowser(page, email, password);
+    const onLanding = await page.getByRole('button', { name: /Log In|Iniciar sesion|Iniciar sesión/i }).isVisible().catch(() => false);
+    if (!onLanding) {
+      return;
+    }
+  }
+
+  throw new Error('Could not stabilize an authenticated app shell session.');
+}
+
+async function openSearchPalette(page, email: string, password: string) {
+  await ensureAuthenticatedShell(page, email, password);
+
+  const searchInputByRole = page.getByRole('textbox', { name: /Search|Buscar/i }).first();
+  if (await searchInputByRole.isVisible().catch(() => false)) {
+    return searchInputByRole;
+  }
+
+  const addTripButton = page.getByRole('button', { name: /Add Trip|Crear viaje|Agregar viaje|Registrar aventura/i }).first();
+  if (await addTripButton.isVisible().catch(() => false)) {
+    await expect(addTripButton).toBeEnabled({ timeout: 10000 });
+    await addTripButton.click();
+  }
+
+  if (!(await searchInputByRole.isVisible().catch(() => false))) {
+    const openSearchButton = page.getByRole('button', { name: /Open search|Abrir búsqueda/i }).first();
+    if (await openSearchButton.isVisible().catch(() => false)) {
+      await openSearchButton.click();
+    }
+  }
+
+  if (!(await searchInputByRole.isVisible().catch(() => false))) {
+    await page.waitForFunction(() => typeof (window as any).__test_abrirSearchPalette === 'function');
+    await page.evaluate(() => (window as any).__test_abrirSearchPalette());
+  }
+
+  const searchInputByPlaceholder = page.getByPlaceholder(/Type a country or city|Escribe un pais o ciudad|Escribe un país o ciudad|Type a country|ciudad/i).first();
+
+  if (await searchInputByRole.isVisible().catch(() => false)) {
+    return searchInputByRole;
+  }
+
+  await expect(searchInputByPlaceholder).toBeVisible({ timeout: 15000 });
+  return searchInputByPlaceholder;
+}
+
 test.describe('Create trip from search modal (E2E)', () => {
   test('search modal selection opens editor and create trip persists document', async ({ page }) => {
     const timestamp = Date.now();
@@ -38,47 +92,12 @@ test.describe('Create trip from search modal (E2E)', () => {
     });
 
     await page.goto('/');
-    await page.waitForFunction(() => typeof (window as any).__test_signInWithEmail === 'function');
-    await page.evaluate(({ email, password }) => (window as any).__test_signInWithEmail({ email, password }), { email: userEmail, password });
-    await page.waitForSelector('[data-testid="header-avatar"]');
+    await signInInBrowser(page, userEmail, password);
 
     // Assert no overflow style conflict warning appears
     await expect(consoleWarnings).not.toContainEqual(expect.stringContaining('Updating a style property during rerender (overflow)'));
 
-
-    await page.goto('/trips');
-    await page.waitForURL('**/trips');
-
-    // Session can occasionally bounce to landing in emulator boot races.
-    // If that happens, sign in again and retry /trips before continuing.
-    const isOnLanding = await page.getByRole('button', { name: /Log In|Iniciar sesion|Iniciar sesión/i }).count();
-    if (isOnLanding > 0) {
-      await page.waitForFunction(() => typeof (window as any).__test_signInWithEmail === 'function');
-      await page.evaluate(({ email, password }) => (window as any).__test_signInWithEmail({ email, password }), { email: userEmail, password });
-      await page.waitForSelector('[data-testid="header-avatar"]');
-      await page.goto('/trips');
-      await page.waitForURL('**/trips');
-    }
-
-    // Wait for trips list to load (grid or empty state)
-    await page.waitForTimeout(2000); // give the UI time to settle
-
-    // Refresh auth session once more before interacting with the search palette.
-    await page.waitForFunction(() => typeof (window as any).__test_signInWithEmail === 'function');
-    await page.evaluate(({ email, password }) => (window as any).__test_signInWithEmail({ email, password }), { email: userEmail, password });
-    await page.waitForSelector('[data-testid="header-avatar"]');
-    await page.goto('/trips');
-    await page.waitForURL('**/trips');
-
-    // Open the search palette (new 2026 UX). Prefer the Add Trip CTA; fallback to test helper.
-    await page.evaluate(() => (window as any).__test_abrirSearchPalette?.());
-    const addTripBtn = page.getByRole('button', { name: /Add Trip|Crear viaje|Agregar viaje/i }).first();
-    if (await addTripBtn.count() > 0) {
-      const isSearchVisible = await page.getByRole('textbox', { name: /Search|Buscar/i }).first().isVisible().catch(() => false);
-      if (!isSearchVisible) {
-        await addTripBtn.click();
-      }
-    }
+    await ensureAuthenticatedShell(page, userEmail, password);
 
     // Intercept Mapbox API to avoid external dependency and return a stable result
     await page.route('https://api.mapbox.com/**', (route) => {
@@ -107,9 +126,9 @@ test.describe('Create trip from search modal (E2E)', () => {
       });
     });
 
-    // Wait for the SearchPalette input to appear (label can change with active locale)
-    const searchInput = page.getByRole('textbox', { name: /Search|Buscar/i }).first();
-    await searchInput.waitFor({ state: 'visible', timeout: 10000 });
+    // Open the search palette through real UI interactions and wait for the input.
+    const searchInput = await openSearchPalette(page, userEmail, password);
+    await expect(searchInput).toBeVisible({ timeout: 15000 });
 
     // Type a destination and wait for the result to appear
     await searchInput.fill('New York');
@@ -120,16 +139,6 @@ test.describe('Create trip from search modal (E2E)', () => {
     await resultCard.click();
 
     // Wait for the editor to open (trip title input should appear)
-    await page.waitForTimeout(1000);
-    const allInputs = await page.$$('input');
-    console.log('DEBUG all inputs count:', allInputs.length);
-    for (const input of allInputs) {
-      const name = await input.getAttribute('name');
-      const placeholder = await input.getAttribute('placeholder');
-      const value = await input.inputValue();
-      console.log('DEBUG input', {name, placeholder, value});
-    }
-
     const titleInput = page.getByPlaceholder(/Trip Title|Título del viaje/i);
     await expect(titleInput).toBeVisible({ timeout: 10000 });
 
@@ -162,30 +171,27 @@ test.describe('Create trip from search modal (E2E)', () => {
     // Wait for the editor to close and the trip to appear in the grid
     await expect(page.getByRole('button', { name: /E2E Trip/i }).first()).toBeVisible({ timeout: 20000 });
 
-    // Wait for the modal to close and trip to be created
-    await page.waitForTimeout(3000);
-
     // Close any celebration modals that appear
     const closeModals = async () => {
       // Close level-up modal
       const levelUpModal = page.locator('text=New Level!');
       if (await levelUpModal.isVisible({ timeout: 1000 }).catch(() => false)) {
         await page.getByRole('button', { name: /Next|Siguiente/i }).first().click();
-        await page.waitForTimeout(500);
+        await expect(levelUpModal).toHaveCount(0, { timeout: 2000 });
       }
 
       // Close achievement modal
       const achievementModal = page.locator('text=Achievement unlocked!');
       if (await achievementModal.isVisible({ timeout: 1000 }).catch(() => false)) {
         await page.getByRole('button', { name: /Great|Genial|Excelente/i }).first().click();
-        await page.waitForTimeout(500);
+        await expect(achievementModal).toHaveCount(0, { timeout: 2000 });
       }
 
       // Close expedition summary modal (appears on big unlock bursts)
       const expeditionModal = page.locator('text=Expedition Summary!');
       if (await expeditionModal.isVisible({ timeout: 1000 }).catch(() => false)) {
         await page.getByRole('button', { name: /Amazing|Increíble|Asombroso/i }).first().click();
-        await page.waitForTimeout(500);
+        await expect(expeditionModal).toHaveCount(0, { timeout: 2000 });
       }
     };
 
@@ -200,13 +206,11 @@ test.describe('Create trip from search modal (E2E)', () => {
 
     await closeModals();
 
-    // Open the newly created trip using query param by extracting its ID from the displayed card.
+    // Open the newly created trip via real user interaction and verify editor state.
     const createdTripCard = page.locator('[data-testid^="trip-card-"]').first();
-    const createdTripTestId = await createdTripCard.getAttribute('data-testid');
-    const createdTripId = createdTripTestId?.replace('trip-card-', '');
-    expect(createdTripId).toBeTruthy();
+    await expect(createdTripCard).toBeVisible({ timeout: 10000 });
+    await createdTripCard.click();
 
-    await page.goto(`/trips?editing=${createdTripId}`);
     const existingTitleInput = page.getByPlaceholder(/Trip Title|Título del viaje/i);
     await expect(existingTitleInput).toBeVisible({ timeout: 10000 });
 
