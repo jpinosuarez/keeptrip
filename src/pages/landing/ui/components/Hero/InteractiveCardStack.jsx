@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, MapPin, Globe, Navigation } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { styles } from './InteractiveCardStack.styles';
@@ -42,7 +42,7 @@ const InteractiveCardStack = ({ isMobile = false }) => {
   };
 
   return (
-    <motion.div style={styles.heroVisual} variants={itemVariants} aria-hidden="true">
+    <Motion.div style={styles.heroVisual} variants={itemVariants} aria-hidden="true">
       <div style={styles.heroBackground} />
       
       <div style={styles.tripCardsStack} role="region" aria-label="Tarjetas de muestra">
@@ -53,7 +53,7 @@ const InteractiveCardStack = ({ isMobile = false }) => {
               const isFront = offset === 0;
 
               return (
-                <motion.div
+                <Motion.div
                   key={card.id || idx}
                   layout
                   style={{ 
@@ -99,32 +99,32 @@ const InteractiveCardStack = ({ isMobile = false }) => {
                       variant="home" 
                     />
                   </div>
-                </motion.div>
+                </Motion.div>
               )
           })}
         </AnimatePresence>
 
         {/* Glassmorphic Nav Buttons */}
         <div style={styles.heroNavControls}>
-          <motion.div 
+          <Motion.div 
               style={styles.heroNavBtn} 
               whileHover={{ scale: 1.05 }} 
               whileTap={{ scale: 0.95 }}
               onClick={handlePrevCard}
           >
             <ChevronLeft size={20} strokeWidth={2.5} />
-          </motion.div>
-          <motion.div 
+          </Motion.div>
+          <Motion.div 
               style={styles.heroNavBtn} 
               whileHover={{ scale: 1.05 }} 
               whileTap={{ scale: 0.95 }}
               onClick={handleNextCard}
           >
             <ChevronRight size={20} strokeWidth={2.5} />
-          </motion.div>
+          </Motion.div>
         </div>
       </div>
-    </motion.div>
+    </Motion.div>
   );
 };
 

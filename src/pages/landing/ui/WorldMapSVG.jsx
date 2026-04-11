@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import * as d3geo from 'd3-geo';
 import * as topojson from 'topojson-client';
 
@@ -32,7 +32,6 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
   const [geoData, setGeoData] = useState(null);
   const [hoveredCountry, setHoveredCountry] = useState(null);
   const [pinsReady, setPinsReady] = useState(false);
-  const projRef = useRef(null);
 
   // Measure container
   useEffect(() => {
@@ -63,7 +62,6 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
     .translate([w / 2, h * 0.55])
     .center([10, 12]);
 
-  projRef.current = projection;
   const pathGen = d3geo.geoPath().projection(projection);
 
   // Convert geo coords → SVG px. Returns null if outside viewport.
@@ -131,7 +129,7 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
               {ROUTES.map((route, i) => {
                 const d = buildArc(route.from, route.to);
                 return d ? (
-                  <motion.path
+                  <Motion.path
                     key={i}
                     d={d}
                     fill="none"
@@ -154,7 +152,7 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
                   if (!pt) return null;
                   const [px, py] = pt;
                   return (
-                    <motion.g 
+                    <Motion.g 
                       key={pin.name}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.98 }}
@@ -164,7 +162,7 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
                       <circle cx={px} cy={py} r={22} fill="transparent" />
                       
                       {/* Pulse ring */}
-                      <motion.circle
+                      <Motion.circle
                         cx={px} cy={py} r={9}
                         fill="none"
                         stroke={color}
@@ -178,7 +176,7 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
                       <circle cx={px} cy={py} r={6} fill="white" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }} />
                       
                       {/* Pin dot */}
-                      <motion.circle
+                      <Motion.circle
                         cx={px} cy={py} r={4.5}
                         fill={color}
                         stroke="white"
@@ -191,7 +189,7 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
 
                       {/* Glassmorphic Label Pill */}
                       <foreignObject x={px - 35} y={py - 32} width={70} height={20} style={{ pointerEvents: 'none' }}>
-                        <motion.div
+                        <Motion.div
                           initial={{ opacity: 0, y: 5 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.8 + i * 0.18 }}
@@ -215,9 +213,9 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
                           }}>
                             {pin.name.toUpperCase()}
                           </span>
-                        </motion.div>
+                        </Motion.div>
                       </foreignObject>
-                    </motion.g>
+                    </Motion.g>
                   );
                 })}
               </AnimatePresence>
@@ -240,7 +238,7 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
           const countryName = countryFeature?.properties?.name || 'Destino Guardado';
           
           return (
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -270,7 +268,7 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
               }}>
                 {countryName}
               </span>
-            </motion.div>
+            </Motion.div>
           );
         })()}
       </AnimatePresence>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -13,8 +13,7 @@ import { useUpload } from '@app/providers/UploadContext';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 
 // Import original editor sections (reusing existing components)
-import EdicionHeaderSection from './components/EdicionHeaderSection';
-import EdicionGallerySection from './components/EdicionGallerySection';
+import EditableTripHeader from './components/EditableTripHeader';
 import EdicionParadasSection from './components/EdicionParadasSection';
 
 /**
@@ -30,7 +29,6 @@ const EditorFocusPanel = ({
   paradas,
   setParadas,
   onSave,
-  isSaving = false,
   esBorrador = false,
   ciudadInicial = null,
   isProcessingImage = false,
@@ -38,22 +36,18 @@ const EditorFocusPanel = ({
   setGalleryFiles,
   galleryPortada,
   setGalleryPortada,
-  captionDrafts,
   setCaptionDrafts,
-  onCaptionChange,
-  onCaptionSave,
-  onSetPortadaExistente,
-  onEliminarFoto,
   galeria = { fotos: [], uploading: false },
   onAfterSave = null,
 }) => {
-  const { t } = useTranslation(['editor', 'countries']);
+  const { t, i18n } = useTranslation(['editor', 'countries']);
   const { isMobile } = useWindowSize(768);
   const { usuario } = useAuth();
   const uploadCtx = useUpload();
   const usuarioUid = usuario?.uid || null;
   const [isSavingManual, setIsSavingManual] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [deletedStopIds, setDeletedStopIds] = useState([]);
 
   // Track initial state for unsaved changes detection
   const initialFormDataRef = useRef(null);
@@ -66,13 +60,15 @@ const EditorFocusPanel = ({
   const [localParadas, setLocalParadas] = useState([]);
   const [localGalleryFiles, setLocalGalleryFiles] = useState([]);
   const [localGalleryPortada, setLocalGalleryPortada] = useState(0);
-  const [localCaptionDrafts, setLocalCaptionDrafts] = useState({});
+  const [, setLocalCaptionDrafts] = useState({});
 
   const effectiveFormData = formData ?? localFormData;
   const formDataWithFallback = {
     ...viaje,
     ...effectiveFormData,
-    titulo: effectiveFormData?.titulo || viaje?.titulo || viaje?.nombreEspanol || ''
+    titulo: effectiveFormData?.titulo !== undefined 
+      ? effectiveFormData.titulo 
+      : (viaje?.titulo || viaje?.nombreEspanol || '')
   };
   const effectiveSetFormData = setFormData ?? setLocalFormData;
   const effectiveParadas = paradas ?? localParadas;
@@ -81,19 +77,27 @@ const EditorFocusPanel = ({
   const effectiveSetGalleryFiles = setGalleryFiles ?? setLocalGalleryFiles;
   const effectiveGalleryPortada = galleryPortada ?? localGalleryPortada;
   const effectiveSetGalleryPortada = setGalleryPortada ?? setLocalGalleryPortada;
-  const effectiveCaptionDrafts = captionDrafts ?? localCaptionDrafts;
   const effectiveSetCaptionDrafts = setCaptionDrafts ?? setLocalCaptionDrafts;
+
+  const latestFormDataRef = useRef(effectiveFormData);
+  const latestParadasRef = useRef(effectiveParadas);
+
+  useEffect(() => {
+    latestFormDataRef.current = effectiveFormData;
+    latestParadasRef.current = effectiveParadas;
+  }, [effectiveFormData, effectiveParadas]);
 
   // Initialize tracking refs on mount (snapshots for change detection)
   useEffect(() => {
     // Reset flag when editing a new trip
     isClosingRef.current = false;
-    initialFormDataRef.current = structuredClone(effectiveFormData || {});
-    initialParadasRef.current = structuredClone(effectiveParadas || []);
+    setDeletedStopIds([]);
+    initialFormDataRef.current = structuredClone(latestFormDataRef.current || {});
+    initialParadasRef.current = structuredClone(latestParadasRef.current || []);
   }, [viaje?.id]);
 
   // Check for unsaved changes
-  const hasUnsavedChanges = () => {
+  const hasUnsavedChanges = useCallback(() => {
     const current = {
       form: structuredClone(effectiveFormData),
       paradas: structuredClone(effectiveParadas),
@@ -103,12 +107,13 @@ const EditorFocusPanel = ({
       paradas: initialParadasRef.current || [],
     };
     return JSON.stringify(current) !== JSON.stringify(initial);
-  };
+  }, [effectiveFormData, effectiveParadas]);
 
   const {
     isTituloAuto: autoTitleMode,
     setIsTituloAuto: setAutoTitleMode,
-    titlePulse: titlePulseState,
+    isHydratingStops,
+    titlePulse: _titlePulseState,
     limpiarEstado,
     handleTituloChange,
   } = useEdicionModalLifecycle({
@@ -125,6 +130,7 @@ const EditorFocusPanel = ({
     setGalleryPortada: effectiveSetGalleryPortada,
     setCaptionDrafts: effectiveSetCaptionDrafts,
     t,
+    i18n,
   });
 
   const iniciarSubida = uploadCtx?.iniciarSubida;
@@ -142,6 +148,7 @@ const EditorFocusPanel = ({
     viaje,
     ciudadInicial,
     paradas: effectiveParadas,
+    deletedStopIds,
     onSave,
     galleryFiles: effectiveGalleryFiles,
     galleryPortada: effectiveGalleryPortada,
@@ -150,6 +157,7 @@ const EditorFocusPanel = ({
     pushToast: () => {},
     t,
     limpiarEstado,
+    setDeletedStopIds,
     onClose,
     onAfterSave: () => {
       // Refresh initial state after successful save
@@ -159,7 +167,7 @@ const EditorFocusPanel = ({
   });
 
   // Manual save wrapper with loading state
-  const handleSaveWithLoading = async () => {
+  const handleSaveWithLoading = useCallback(async () => {
     setIsSavingManual(true);
     try {
       const savedId = await handleSaveManual();
@@ -179,7 +187,7 @@ const EditorFocusPanel = ({
     } finally {
       setIsSavingManual(false);
     }
-  };
+  }, [handleSaveManual, onAfterSave, limpiarEstado, onClose]);
 
   const handleConfirmClose = () => {
     setShowConfirmModal(false);
@@ -188,7 +196,7 @@ const EditorFocusPanel = ({
     onClose();
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (isClosingRef.current) return;
 
     // GUARDRAIL: Check for unsaved changes
@@ -200,7 +208,7 @@ const EditorFocusPanel = ({
     isClosingRef.current = true;
     limpiarEstado();
     onClose();
-  };
+  }, [hasUnsavedChanges, limpiarEstado, onClose]);
 
   // Prevent background scroll while the panel is open (iOS-friendly)
   useEffect(() => {
@@ -239,13 +247,15 @@ const EditorFocusPanel = ({
   }, [isOpen, handleClose, handleSaveWithLoading]);
 
   // Auto-set first photo as cover when gallery goes from 0→1 photos
+  const galleryPhotos = useMemo(() => galeria?.fotos || [], [galeria?.fotos]);
+
   useEffect(() => {
-    const currentGalleryLength = galeria?.fotos?.length || 0;
+    const currentGalleryLength = galleryPhotos.length;
     const prevLength = previousGalleryLengthRef.current;
 
     // Transition from 0→1+ photos: auto-set first photo as portada
     if (prevLength === 0 && currentGalleryLength > 0 && !effectiveFormData.portadaUrl) {
-      const firstPhotoUrl = galeria.fotos[0]?.url;
+      const firstPhotoUrl = galleryPhotos[0]?.url;
       if (firstPhotoUrl) {
         effectiveSetFormData((prev) => ({
           ...prev,
@@ -255,11 +265,9 @@ const EditorFocusPanel = ({
     }
 
     previousGalleryLengthRef.current = currentGalleryLength;
-  }, [galeria?.fotos?.length, effectiveFormData.portadaUrl, effectiveSetFormData]);
+  }, [galleryPhotos, effectiveFormData.portadaUrl, effectiveSetFormData]);
 
   if (!viaje) return null;
-
-  const isBusy = isSaving || isProcessingImage;
 
   // Animation variants
   const desktopVariants = {
@@ -283,14 +291,10 @@ const EditorFocusPanel = ({
   const panelStyle = isMobile ? styles.mobileSheet : styles.desktopPanel;
   const panelVariant = isMobile ? mobileVariants : desktopVariants;
 
-  const safeOnCaptionChange = onCaptionChange || (() => {});
-  const safeOnCaptionSave = onCaptionSave || (() => {});
-  const safeOnSetPortadaExistente = onSetPortadaExistente || (() => {});
-  const safeOnEliminarFoto = onEliminarFoto || (() => {});
   const hasValidStops = Array.isArray(effectiveParadas) && effectiveParadas.length > 0;
   const hasValidTitle = Boolean((formDataWithFallback?.titulo || '').trim());
   const hasValidStartDate = Boolean((effectiveFormData?.fechaInicio || viaje?.fechaInicio || '').toString().trim());
-  const canSave = hasValidStops && hasValidTitle && hasValidStartDate && !isSavingManual;
+  const canSave = hasValidStops && hasValidTitle && hasValidStartDate && !isSavingManual && !isHydratingStops;
 
   return (
     <>
@@ -320,20 +324,18 @@ const EditorFocusPanel = ({
       >
         {/* Scrollable Body */}
         <div style={styles.scrollableBody} className="custom-scroll">
-          {/* Header Section (Photo + Title) - PREMIUM LAYOUT */}
-          <EdicionHeaderSection
-            styles={edicionModalStyles}
-            t={t}
+          {/* Header Section (Photo + Title) - WYSIWYG LAYOUT */}
+          <EditableTripHeader
             formData={formDataWithFallback}
-            isMobile={isMobile}
-            isBusy={isBusy}
-            esBorrador={esBorrador}
-            isTituloAuto={autoTitleMode}
-            titlePulse={titlePulseState}
-            isProcessingImage={isProcessingImage}
+            setFormData={effectiveSetFormData}
             paradas={effectiveParadas}
+            galleryFiles={effectiveGalleryFiles}
+            setGalleryFiles={effectiveSetGalleryFiles}
+            isMobile={isMobile}
+            isProcessingImage={isProcessingImage}
             onTituloChange={handleTituloChange}
-            onToggleTituloAuto={() => setAutoTitleMode((prev) => !prev)}
+            isTituloAuto={autoTitleMode}
+            onRegenerateTitle={() => setAutoTitleMode(true)}
           />
 
           {/* Itinerary / Stops */}
@@ -343,32 +345,11 @@ const EditorFocusPanel = ({
               t={t}
               paradas={effectiveParadas}
               setParadas={effectiveSetParadas}
+              setDeletedStopIds={setDeletedStopIds}
               fechaRangoDisplay={`${effectiveFormData.fechaInicio} - ${effectiveFormData.fechaFin}`}
               sinParadas={effectiveParadas.length === 0}
             />
           )}
-
-          {/* Gallery Section */}
-          {effectiveGalleryFiles && (
-            <EdicionGallerySection
-              styles={edicionModalStyles}
-              t={t}
-              files={effectiveGalleryFiles}
-              onFilesChange={effectiveSetGalleryFiles}
-              portadaIndex={effectiveGalleryPortada}
-              onPortadaChange={(url) => effectiveSetFormData((prev) => ({ ...prev, portadaUrl: url }))}
-              portadaUrl={effectiveFormData.portadaUrl}
-              isBusy={isBusy}
-              isMobile={isMobile}
-              galeria={galeria}
-              captionDrafts={effectiveCaptionDrafts}
-              onCaptionChange={safeOnCaptionChange}
-              onCaptionSave={safeOnCaptionSave}
-              onSetPortadaExistente={safeOnSetPortadaExistente}
-              onEliminarFoto={safeOnEliminarFoto}
-            />
-          )}
-
         </div>
 
         <div style={styles.stickyBottomActionBar}>
@@ -389,7 +370,9 @@ const EditorFocusPanel = ({
             }}
             aria-disabled={!canSave}
             aria-label={
-              !hasValidStops
+              isHydratingStops
+                ? t('editor.saving.hydratingStops', 'Cargando paradas...')
+                : !hasValidStops
                 ? t('error.tripNeedsStop', 'El viaje debe tener al menos un destino')
                 : !hasValidTitle
                   ? t('error.tripNeedsTitle', 'El viaje debe tener un titulo')
@@ -398,7 +381,9 @@ const EditorFocusPanel = ({
                     : undefined
             }
             title={
-              !hasValidStops
+              isHydratingStops
+                ? t('editor.saving.hydratingStops', 'Cargando paradas...')
+                : !hasValidStops
                 ? t('error.tripNeedsStop', 'El viaje debe tener al menos un destino')
                 : !hasValidTitle
                   ? t('error.tripNeedsTitle', 'El viaje debe tener un titulo')
@@ -407,8 +392,10 @@ const EditorFocusPanel = ({
                     : ''
             }
           >
-            {isSavingManual && <LoaderCircle size={16} className="spin" />}
-            {t('button.save') || 'Guardar'}
+            {(isSavingManual || isHydratingStops) && <LoaderCircle size={16} className="spin" />}
+            {isHydratingStops
+              ? t('editor.saving.hydratingStops', 'Cargando paradas...')
+              : (t('button.save') || 'Guardar')}
           </button>
         </div>
 

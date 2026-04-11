@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useActiveParada } from '@shared/lib/hooks/useActiveParada';
 
 /**
@@ -10,7 +10,7 @@ import { useActiveParada } from '@shared/lib/hooks/useActiveParada';
  * - Scroll velocity tracking (for debounce)
  * - Map cinematic sync
  */
-export function useDocumentaryState({ paradas, isMobile, enabled = true }) {
+export function useDocumentaryState({ isMobile, enabled = true }) {
   // 1. Core intersection detection (uses standard hook but we wrap it)
   const { activeIndex, setParadaRef, getParadaNode } = useActiveParada(enabled);
   
@@ -18,7 +18,7 @@ export function useDocumentaryState({ paradas, isMobile, enabled = true }) {
   const [mapSyncIndex, setMapSyncIndex] = useState(0);
   const scrollPos = useRef(0);
   const scrollVelocity = useRef(0);
-  const lastScrollTime = useRef(Date.now());
+  const lastScrollTime = useRef(null);
   const syncTimeoutRef = useRef(null);
 
   // 3. Velocity tracking logic
@@ -27,6 +27,13 @@ export function useDocumentaryState({ paradas, isMobile, enabled = true }) {
 
     const handleScroll = () => {
       const now = Date.now();
+      // Initialize timestamp on first scroll
+      if (lastScrollTime.current === null) {
+        lastScrollTime.current = now;
+        scrollPos.current = window.scrollY;
+        return;
+      }
+      
       const dt = now - lastScrollTime.current;
       if (dt === 0) return;
 
@@ -73,6 +80,5 @@ export function useDocumentaryState({ paradas, isMobile, enabled = true }) {
     mapSyncIndex,
     setParadaRef,
     getParadaNode,
-    scrollVelocity: scrollVelocity.current
   };
 }

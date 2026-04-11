@@ -13,14 +13,14 @@
     "presupuesto": "Your approximate spending level."
   },
   "autoTitle": {
-    "fallback": "New Trip",
-    "noStops": "Trip without stops",
-    "oneCity": "Getaway to {{city}}",
-    "twoCities": "{{city1}} and {{city2}}",
-    "twoCountries": "Adventure between {{country1}} and {{country2}}",
-    "oneCountry": "Route through {{country}}",
-    "threeCountries": "Journey through {{countries}}",
-    "manyCountries": "Epic journey through {{firstTwo}} and {{others}} more"
+    "empty": "Trip draft",
+    "single": "Trip to {{city}}",
+    "twoCities": "Trip to {{city1}} and {{city2}}",
+    "twoCountries": "Trip through {{country1}} and {{country2}}",
+    "countryTour": "Grand tour through {{country}}",
+    "multiCountry": "Adventure through {{countries}}",
+    "expedition": "Expedition through {{country1}}, {{country2}} and more destinations",
+    "multiple": "Trip to {{cities}}"
   },
   "labels": {
     "draft": "Draft",

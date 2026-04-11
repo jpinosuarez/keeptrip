@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import { motion as Motion } from 'framer-motion';
 import { COLORS, RADIUS, FONTS, SHADOWS } from '@shared/config';
 import { TIER_COLORS, TIER_GLOW } from '../model/achievementDefinitions';
@@ -244,7 +244,7 @@ const styles = {
   },
 
   tierTag: {
-    display: 'inline-block',
+    display: 'inline-flex',
     padding: '8px 12px',
     borderRadius: RADIUS.full,
     fontSize: '0.65rem',
@@ -254,7 +254,6 @@ const styles = {
     border: '1px solid',
     width: 'fit-content',
     minHeight: '32px',
-    display: 'inline-flex',
     alignItems: 'center',
   },
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { X } from 'lucide-react';
 import { BottomSheet } from '@shared/ui/components';
 import { COLORS, RADIUS, SHADOWS, TRANSITIONS } from '@shared/config';
@@ -122,8 +122,7 @@ const CoverPickerModal = ({
     },
   };
 
-  // Memoize grid to avoid re-renders on every open
-  const photoGrid = useMemo(() => {
+  const photoGrid = (() => {
     if (fotos.length === 0) {
       return (
         <div style={styles.emptyState}>
@@ -167,7 +166,7 @@ const CoverPickerModal = ({
         })}
       </div>
     );
-  }, [fotos, currentPortadaUrl, onSelectCover, onClose, styles]);
+  })();
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose}>

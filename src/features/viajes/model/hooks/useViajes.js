@@ -3,6 +3,7 @@ import { db, storage } from '@shared/firebase';
 import { doc as fbDoc, query as fbQuery, where as fbWhere, onSnapshot as fbOnSnapshot, collection as fbCollection, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@app/providers/AuthContext';
 import { useToast } from '@app/providers/ToastContext';
+import { useTranslation } from 'react-i18next';
 import { obtenerClimaHistoricoSeguro } from '@shared/api/services/external/weatherService';
 import {
   suscribirViajesConParadas,
@@ -10,6 +11,7 @@ import {
   actualizarViaje,
   crearParada,
   actualizarParada,
+  eliminarParada as eliminarParadaRepo,
   eliminarViaje,
   subirFotoViaje
 } from '../../api/viajesRepository';
@@ -86,6 +88,7 @@ const validarDatosViaje = ({ datosViaje = {}, viajeActual = null, paradas = [], 
 export const useViajes = () => {
   const { usuario } = useAuth();
   const { pushToast } = useToast();
+  const { t, i18n } = useTranslation();
   const toast = {
     success: (message) => pushToast(message, 'success'),
     error: (message) => pushToast(message, 'error'),
@@ -108,6 +111,15 @@ export const useViajes = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [fetchError, setFetchError] = useState(null);
+
+  const bitacoraDataHydrated = useMemo(
+    () => construirBitacoraData(bitacora, todasLasParadas),
+    [bitacora, todasLasParadas]
+  );
+
+  useEffect(() => {
+    setBitacoraData(bitacoraDataHydrated);
+  }, [bitacoraDataHydrated]);
 
   useEffect(() => {
     if (!usuario) {
@@ -344,7 +356,7 @@ export const useViajes = () => {
       titulo: tituloPersonalizado
     };
 
-    const titulo = generarTituloInteligente(datosViajeNormalizados.nombreEspanol, paradas);
+    const titulo = generarTituloInteligente(paradas, t, i18n.language || 'es');
     const validacion = validarDatosViaje({ datosViaje: datosViajeNormalizados, paradas, tituloGenerado: titulo });
     if (!validacion.esValido) {
       logger.warn('Trip validation failed before save', {
@@ -671,6 +683,18 @@ export const useViajes = () => {
     }
   };
 
+  const eliminarParada = async (viajeId, paradaId) => {
+    if (!usuario || !viajeId || !paradaId) return false;
+
+    try {
+      await eliminarParadaRepo({ db, userId: usuario.uid, viajeId, paradaId });
+      return true;
+    } catch (err) {
+      logger.error('Error eliminando parada', { error: err.message, viajeId, paradaId });
+      return false;
+    }
+  };
+
   return {
     paisesVisitados,
     bitacora,
@@ -678,6 +702,7 @@ export const useViajes = () => {
     todasLasParadas,
     guardarNuevoViaje,
     agregarParada,
+    eliminarParada,
     actualizarParada: async (paradaData, viajeId) => {
       if (!usuario || !viajeId || !paradaData?.id) return false;
       try {

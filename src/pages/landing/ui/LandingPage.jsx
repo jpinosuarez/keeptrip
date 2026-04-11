@@ -1,5 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
+
 import { styles } from './LandingPage.styles';
 import NavBar from './components/NavBar/NavBar';
 import HeroSection from './components/Hero/HeroSection';
@@ -13,7 +14,7 @@ const containerVariants = {
 
 const LandingPage = () => {
   return (
-    <motion.div
+    <Motion.div
       style={styles.container}
       variants={containerVariants}
       initial="hidden"
@@ -26,7 +27,7 @@ const LandingPage = () => {
       <HeroSection />
       <BentoFeatures />
       <Footer />
-    </motion.div>
+    </Motion.div>
   );
 };
 

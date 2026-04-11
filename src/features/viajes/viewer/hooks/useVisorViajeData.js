@@ -223,7 +223,7 @@ export function useVisorViajeData({ viajeId, bitacoraData, bitacoraLista, usuari
   }, [viajeId, ownerUid]);
 
   return {
-    viajeBase,
+    viajeBase: tripBase,
     hasViajeData,
     data,
     ownerUid,

@@ -11,7 +11,6 @@ import { useTranslation } from 'react-i18next';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
 import { Share } from 'lucide-react';
 import { useToast } from '@app/providers';
-import { useAchievements } from '../model/useAchievements';
 import { BottomSheet, BottomSheetHeader, BottomSheetContent } from '@shared/ui/components';
 
 // Inject shimmer keyframes once
@@ -36,7 +35,7 @@ const injectShimmerCSS = () => {
  * - canvas-confetti unlock celebration on new achievement detection
  * - AchievementsGrid with 3D Prestige Tokens
  */
-const TravelerHub = ({ paisesVisitados, bitacora, achievementsWithProgress, stats }) => {
+const TravelerHub = ({ paisesVisitados, achievementsWithProgress }) => {
   const { isMobile } = useWindowSize(768);
   const { t } = useTranslation('hub');
   const { t: tNav } = useTranslation('nav');
@@ -89,12 +88,16 @@ const TravelerHub = ({ paisesVisitados, bitacora, achievementsWithProgress, stat
   const handleShare = useCallback(async () => {
     const url = window.location.href;
     if (navigator.share) {
-      try { await navigator.share({ title: tNav('hub'), url }); } catch {}
+      try { await navigator.share({ title: tNav('hub'), url }); } catch {
+        // Shareexnıot available
+      }
     } else if (navigator.clipboard) {
       try {
         await navigator.clipboard.writeText(url);
         pushToast(t('shareCopied'), 'success');
-      } catch {}
+      } catch {
+        // Clipboard not available
+      }
     }
   }, [pushToast, tNav, t]);
 

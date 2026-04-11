@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { 
   signInWithPopup, 
@@ -8,7 +8,7 @@ import {
   updateProfile,
   signInWithEmailAndPassword
 } from 'firebase/auth';
-import { auth, googleProvider } from '@shared/firebase';
+import { auth, db, googleProvider } from '@shared/firebase';
 
 const AuthContext = createContext();
 
@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }) => {
     return ADMIN_EMAILS.includes(usuario.email.toLowerCase());
   }, [usuario]);
 
-  const login = async () => {
+  const login = useCallback(async () => {
     const isEmulator = import.meta.env.VITE_USE_EMULATORS === 'true';
     const testEmail = import.meta.env.VITE_EMULATOR_TEST_EMAIL;
     const testPassword = import.meta.env.VITE_EMULATOR_TEST_PASSWORD;
@@ -46,12 +46,12 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Error al autenticar:", error);
     }
-  };
+  }, []);
 
-  const logout = () => signOut(auth);
+  const logout = useCallback(() => signOut(auth), []);
 
   // NUEVO: Función para actualizar perfil
-  const actualizarPerfilUsuario = async (nombre, fotoURL) => {
+  const actualizarPerfilUsuario = useCallback(async (nombre, fotoURL) => {
     if (!auth.currentUser) return;
     try {
       await updateProfile(auth.currentUser, {
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
       console.error("Error actualizando perfil:", error);
       return false;
     }
-  };
+  }, []);
   useEffect(() => {
     let mounted = true;
 
@@ -79,8 +79,6 @@ export const AuthProvider = ({ children }) => {
       // (usuarios/{uid}) — se crea/actualiza al iniciar sesión
       if (currentUser && currentUser.uid) {
         try {
-          // Import dinámico para evitar side-effects en tests donde firebase está mockeado
-          const { db } = await import('@shared/firebase');
           const { doc, setDoc } = await import('firebase/firestore');
           const perfilRef = doc(db, 'usuarios', currentUser.uid);
           await setDoc(perfilRef, {
@@ -123,7 +121,6 @@ export const AuthProvider = ({ children }) => {
     // Helper to create a Firestore document from the browser (uses current auth session)
     window.__test_createDoc = async (fullPath, documentData) => {
       try {
-        const { db } = await import('@shared/firebase');
         const { doc, setDoc } = await import('firebase/firestore');
         const ref = doc(db, fullPath);
         await setDoc(ref, documentData, { merge: true });
@@ -137,7 +134,6 @@ export const AuthProvider = ({ children }) => {
     // Helper to read a Firestore document from the browser (uses current auth session)
     window.__test_readDoc = async (fullPath) => {
       try {
-        const { db } = await import('@shared/firebase');
         const { doc, getDoc } = await import('firebase/firestore');
         const ref = doc(db, fullPath);
         const snap = await getDoc(ref);

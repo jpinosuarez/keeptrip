@@ -1,3 +1,4 @@
+/* global process */
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
 import fs from 'fs';
 import { beforeAll, afterAll, beforeEach, test, describe } from 'vitest';
@@ -37,12 +38,14 @@ beforeAll(async () => {
   // Check if emulator is available before trying to initialize
   isEmulatorAvailable = await checkEmulatorAvailable(emulatorHost, emulatorPort);
 
-  if (isEmulatorAvailable) {
-    testEnv = await initializeTestEnvironment({
-      projectId,
-      firestore: { host: emulatorHost, port: emulatorPort, rules }
-    });
+  if (!isEmulatorAvailable) {
+    throw new Error(`Firestore emulator is not available at ${emulatorHost}:${emulatorPort}`);
   }
+
+  testEnv = await initializeTestEnvironment({
+    projectId,
+    firestore: { host: emulatorHost, port: emulatorPort, rules }
+  });
 });
 
 afterAll(async () => {
@@ -53,10 +56,7 @@ beforeEach(async () => {
   if (testEnv) await testEnv.clearFirestore();
 });
 
-// Skip all tests if emulator is not available
-const describeIfEmulator = isEmulatorAvailable ? describe : describe.skip;
-
-describeIfEmulator('Firestore Rules', () => {
+describe('Firestore Rules', () => {
   test('invitee puede agregar su uid a sharedWith, pero no modificar otros campos', async () => {
     // preparar datos como admin
     await testEnv.withSecurityRulesDisabled(async (admin) => {

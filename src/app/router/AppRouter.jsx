@@ -33,9 +33,9 @@ const LandingPage = lazy(() => import('@pages/landing'));
 // ── Protected pages (lazy) ─────────────────────────────────────────────────────
 const DashboardPage  = lazy(() => import('@pages/dashboard/ui/DashboardPage'));
 const TripsPage      = lazy(() => import('@pages/trips/ui/TripsPage'));
-const MapaView       = lazy(() => import('@features/mapa/ui/MapaView'));
-const TravelerHub    = lazy(() => import('@features/gamification/ui/TravelerHub'));
-const InvitationsList = lazy(() => import('@features/invitations/ui/InvitationsList'));
+const MapaView       = lazy(() => import('@features/mapa/ui').then((mod) => ({ default: mod.MapaView })));
+const TravelerHub    = lazy(() => import('@features/gamification/ui').then((mod) => ({ default: mod.TravelerHub })));
+const InvitationsList = lazy(() => import('@features/invitations/ui').then((mod) => ({ default: mod.InvitationsList })));
 const SettingsPage   = lazy(() => import('@pages/settings/ui/SettingsPage'));
 
 // ── Raíz pública/autenticada ───────────────────────────────────────────────────

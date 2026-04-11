@@ -7,31 +7,6 @@ import styles from './ConfirmModal.styles.js';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import BottomSheet from '@shared/ui/components/BottomSheet';
 
-function trapFocus(ref) {
-  useEffect(() => {
-    if (!ref.current) return;
-    const focusable = ref.current.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    if (focusable.length) focusable[0].focus();
-    const handleKeyDown = (e) => {
-      if (e.key === 'Tab') {
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    };
-    ref.current.addEventListener('keydown', handleKeyDown);
-    return () => ref.current.removeEventListener('keydown', handleKeyDown);
-  }, [ref]);
-}
-
 const ConfirmModal = ({
   isOpen,
   title,
@@ -56,9 +31,26 @@ const ConfirmModal = ({
   }, [isOpen, isLoading, onClose]);
 
   useEffect(() => {
-    if (isOpen && modalRef.current) {
-      trapFocus(modalRef);
-    }
+    if (!isOpen || !modalRef.current) return;
+    const node = modalRef.current;
+    const focusable = node.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusable.length) focusable[0].focus();
+    const handleKeyDown = (event) => {
+      if (event.key !== 'Tab' || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    node.addEventListener('keydown', handleKeyDown);
+    return () => node.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
   const content = (

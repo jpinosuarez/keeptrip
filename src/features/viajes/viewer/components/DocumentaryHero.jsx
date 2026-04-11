@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { motion as Motion } from 'framer-motion';
 import { Calendar, ArrowLeft, Trash2, LoaderCircle, Edit3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -29,14 +29,6 @@ const DocumentaryHero = ({
   isRouteMode,
 }) => {
   const { t, i18n } = useTranslation(['countries', 'visor']);
-  const flags = useMemo(() => {
-    const uniqueCodes = [...new Set((data.banderas || []).map(b => {
-      // Banderas might be URLs or codes. Let's try to normalize.
-      if (b.startsWith('http')) return b;
-      return getFlagUrl(b);
-    }))].filter(Boolean);
-    return uniqueCodes;
-  }, [data.banderas]);
 
   const isDefaultPhoto = !fotoMostrada || fotoMostrada === FOTO_DEFAULT_URL;
   const countryCode = data?.paisCodigo || data?.code || viajeBase?.paisCodigo || viajeBase?.code || null;

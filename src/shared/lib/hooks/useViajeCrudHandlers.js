@@ -29,10 +29,17 @@ function rebuildStoryMetadata(datosViaje = {}, paradas = []) {
   };
 }
 
+function isPersistedStopId(id) {
+  if (!id) return false;
+  const value = id.toString();
+  return !value.startsWith('temp') && value !== 'init';
+}
+
 export function useViajeCrudHandlers({
   guardarNuevoViaje,
   actualizarDetallesViaje,
   actualizarParadaHook,
+  eliminarParadaHook = async () => true,
   eliminarViaje,
   agregarParada,
   ciudadInicialBorrador,
@@ -47,13 +54,37 @@ export function useViajeCrudHandlers({
   const [isSavingViewer, setIsSavingViewer] = useState(false);
   const [viajesEliminando, setViajesEliminando] = useState(new Set());
 
+  const executeStopMutations = useCallback(async ({ tripId, paradasNuevas = [], deletedStopIds = [] }) => {
+    const addOrUpdatePromises = (Array.isArray(paradasNuevas) ? paradasNuevas : []).map((parada) => {
+      const stopId = parada?.id;
+      const isNew = stopId && stopId.toString().startsWith('temp');
+      if (isNew) {
+        return agregarParada(parada, tripId);
+      }
+      if (isPersistedStopId(stopId)) {
+        return actualizarParadaHook(parada, tripId);
+      }
+      return Promise.resolve(true);
+    });
+
+    const deletePromises = [...new Set((Array.isArray(deletedStopIds) ? deletedStopIds : []).filter(isPersistedStopId))]
+      .map((paradaId) => eliminarParadaHook(tripId, paradaId));
+
+    const allResults = await Promise.allSettled([...addOrUpdatePromises, ...deletePromises]);
+    return allResults.every((result) => result.status === 'fulfilled' && result.value);
+  }, [agregarParada, actualizarParadaHook, eliminarParadaHook]);
+
   const isDeletingViaje = useCallback((id) => viajesEliminando.has(id), [viajesEliminando]);
 
   // PHASE 1: Pure database persistence (no UI side-effects)
   const saveTripToDb = useCallback(async (id, datosCombinados) => {
     // Aseguramos que valores falsy de id se traten como nuevo viaje para no fallar
     const targetId = id || 'new';
-    const { paradasNuevas, ...datosViaje } = datosCombinados;
+    const {
+      paradasNuevas,
+      deletedStopIds = [],
+      ...datosViaje
+    } = datosCombinados;
 
     console.log('[useViajeCrudHandlers] saveTripToDb targetId:', targetId, 'datosViaje:', datosViaje);
 
@@ -82,15 +113,9 @@ export function useViajeCrudHandlers({
 
       const datosViajeConStory = rebuildStoryMetadata(datosViaje, paradasNuevas);
       const okViaje = await actualizarDetallesViaje(id, datosViajeConStory);
-      let okParadas = true;
-
-      if (paradasNuevas && paradasNuevas.length > 0) {
-        const nuevasReales = paradasNuevas.filter((p) => p.id && p.id.toString().startsWith('temp'));
-        for (const parada of nuevasReales) {
-          const okParada = await agregarParada(parada, id);
-          if (!okParada) okParadas = false;
-        }
-      }
+      const okParadas = okViaje
+        ? await executeStopMutations({ tripId: id, paradasNuevas, deletedStopIds })
+        : false;
 
       if (okViaje && okParadas) {
         return id;
@@ -109,7 +134,7 @@ export function useViajeCrudHandlers({
     ciudadInicialBorrador,
     guardarNuevoViaje,
     actualizarDetallesViaje,
-    agregarParada,
+    executeStopMutations,
     pushToast,
     setViajeBorrador,
     setCiudadInicialBorrador,
@@ -140,25 +165,18 @@ export function useViajeCrudHandlers({
   const handleGuardarDesdeVisor = useCallback(async (id, datosCombinados) => {
     if (isSavingViewer) return false;
     setIsSavingViewer(true);
-    const { paradasNuevas, ...datosViaje } = datosCombinados;
+    const {
+      paradasNuevas,
+      deletedStopIds = [],
+      ...datosViaje
+    } = datosCombinados;
     const datosViajeConStory = rebuildStoryMetadata(datosViaje, paradasNuevas);
 
     try {
       const okViaje = await actualizarDetallesViaje(id, datosViajeConStory);
-      let okParadas = true;
-
-      if (paradasNuevas && paradasNuevas.length > 0) {
-        for (const parada of paradasNuevas) {
-          const isNew = parada.id && parada.id.toString().startsWith('temp');
-          if (isNew) {
-            const okParada = await agregarParada(parada, id);
-            if (!okParada) okParadas = false;
-          } else if (parada.id) {
-            const okParada = await actualizarParadaHook(parada, id);
-            if (!okParada) okParadas = false;
-          }
-        }
-      }
+      const okParadas = okViaje
+        ? await executeStopMutations({ tripId: id, paradasNuevas, deletedStopIds })
+        : false;
 
       if (okViaje && okParadas) {
         return id;
@@ -172,7 +190,7 @@ export function useViajeCrudHandlers({
     } finally {
       setIsSavingViewer(false);
     }
-  }, [isSavingViewer, actualizarDetallesViaje, agregarParada, actualizarParadaHook, pushToast]);
+  }, [isSavingViewer, actualizarDetallesViaje, executeStopMutations, pushToast]);
 
   const solicitarEliminarViaje = useCallback((id) => {
     if (!id || viajesEliminando.has(id)) return;

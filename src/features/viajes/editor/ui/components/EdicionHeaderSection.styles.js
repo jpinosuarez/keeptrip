@@ -118,7 +118,6 @@ export const styles = {
     margin: '0',
     caretColor: COLORS.atomicTangerine,
     whiteSpace: 'normal',
-    display: 'block',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     WebkitLineClamp: 2,

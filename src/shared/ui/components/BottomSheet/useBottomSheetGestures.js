@@ -16,7 +16,7 @@ const useBottomSheetGestures = ({ onClose, disabled, threshold = 80 }) => {
       if (!disabled && info.offset.y > threshold) {
         // Haptic feedback — safe guard for unsupported environments
         if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-          try { navigator.vibrate(15); } catch (_) { /* noop */ }
+          try { navigator.vibrate(15); } catch { /* noop */ }
         }
         onClose();
       }

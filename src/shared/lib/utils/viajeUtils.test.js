@@ -6,6 +6,7 @@ import {
   construirCiudadesViaje,
   construirParadaPayload,
   construirViajePayload,
+  construirBitacoraData,
   obtenerPaisesVisitados,
   parseFlexibleDate,
   formatDateSlash,
@@ -14,59 +15,52 @@ import {
 
 describe('viajeUtils', () => {
   it('genera titulo por ciudad unica', () => {
-    const titulo = generarTituloInteligente('Base', [{ nombre: 'Madrid', paisCodigo: 'ES' }]);
-    expect(titulo).toBe('Escapada a Madrid');
+    const titulo = generarTituloInteligente([{ nombre: 'Madrid', paisCodigo: 'ES' }]);
+    expect(titulo).toBe('Viaje a Madrid');
   });
 
   it('genera titulo por dos ciudades', () => {
-    const titulo = generarTituloInteligente('Base', [
+    const titulo = generarTituloInteligente([
       { nombre: 'Madrid', paisCodigo: 'ES' },
       { nombre: 'Barcelona', paisCodigo: 'ES' }
     ]);
-    expect(titulo).toBe('Madrid y Barcelona');
+    expect(titulo).toBe('Viaje a Madrid y Barcelona');
   });
 
   it('genera titulo por pais cuando hay varias ciudades del mismo pais', () => {
-    const titulo = generarTituloInteligente('Base', [
+    const titulo = generarTituloInteligente([
       { nombre: 'Madrid', paisCodigo: 'ES' },
       { nombre: 'Sevilla', paisCodigo: 'ES' },
       { nombre: 'Valencia', paisCodigo: 'ES' }
     ]);
-    expect(titulo.startsWith('Ruta por ')).toBe(true);
-    expect(titulo).not.toBe('Base');
+    expect(titulo).toBe('Gran tour por España');
   });
 
   it('genera titulo para dos paises', () => {
-    const titulo = generarTituloInteligente('Base', [
+    const titulo = generarTituloInteligente([
       { nombre: 'Madrid', paisCodigo: 'ES' },
       { nombre: 'Paris', paisCodigo: 'FR' }
     ]);
-    expect(titulo).toBe('Aventura entre España y Francia');
+    expect(titulo).toBe('Viaje por España y Francia');
   });
 
   it('genera titulo para multiples paises (3 paises)', () => {
-    const titulo = generarTituloInteligente('Base', [
+    const titulo = generarTituloInteligente([
       { nombre: 'Madrid', paisCodigo: 'ES' },
       { nombre: 'Paris', paisCodigo: 'FR' },
       { nombre: 'Roma', paisCodigo: 'IT' }
     ]);
-    expect(titulo.startsWith('Travesía por ')).toBe(true);
-    expect(titulo).toContain('España');
-    expect(titulo).toContain('Francia');
-    expect(titulo).toContain('Italia');
+    expect(titulo).toBe('Aventura por España, Francia e Italia');
   });
 
   it('genera titulo para mas de tres paises', () => {
-    const titulo = generarTituloInteligente('Base', [
+    const titulo = generarTituloInteligente([
       { nombre: 'Uno', paisCodigo: 'ES' },
       { nombre: 'Dos', paisCodigo: 'FR' },
       { nombre: 'Tres', paisCodigo: 'IT' },
       { nombre: 'Cuatro', paisCodigo: 'DE' }
     ]);
-    expect(titulo.startsWith('Gran travesía por ')).toBe(true);
-    expect(titulo).toContain('España');
-    expect(titulo).toContain('Francia');
-    expect(titulo).toContain('y 2 más');
+    expect(titulo).toBe('Expedición por España, Francia y más destinos');
   });
 
   it('prioriza banderas de paradas y elimina duplicados', () => {
@@ -154,6 +148,23 @@ describe('viajeUtils', () => {
   it('convierte Eslovaquia de ISO2 a ISO3 para mapas', () => {
     const paises = obtenerPaisesVisitados([{ code: 'SK' }], []);
     expect(paises).toEqual(['SVK']);
+  });
+
+  it('construye bitacoraData con paradas indexadas por viaje', () => {
+    const bitacoraData = construirBitacoraData(
+      [
+        { id: 'v1', titulo: 'A' },
+        { id: 'v2', titulo: 'B' }
+      ],
+      [
+        { id: 'p1', viajeId: 'v1', nombre: 'Madrid' },
+        { id: 'p2', viajeId: 'v1', nombre: 'Sevilla' },
+        { id: 'p3', viajeId: 'v2', nombre: 'Lima' }
+      ]
+    );
+
+    expect(bitacoraData.v1.paradas).toHaveLength(2);
+    expect(bitacoraData.v2.paradas).toHaveLength(1);
   });
 
   // ─── parseFlexibleDate ───

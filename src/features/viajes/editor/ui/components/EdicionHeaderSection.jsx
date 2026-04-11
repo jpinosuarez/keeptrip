@@ -20,7 +20,7 @@ const EdicionHeaderSection = ({
   const titleTextareaRef = React.useRef(null);
   const [titleFontSize, setTitleFontSize] = React.useState(isMobile ? 20 : 22);
 
-  const adjustTitleHeight = () => {
+  const adjustTitleHeight = React.useCallback(() => {
     const el = titleTextareaRef.current;
     if (!el) return;
     el.style.height = 'auto';
@@ -28,9 +28,9 @@ const EdicionHeaderSection = ({
     const maxHeight = lineHeight * 2;
     const nextHeight = Math.min(el.scrollHeight, maxHeight);
     el.style.height = `${nextHeight}px`;
-  };
+  }, []);
 
-  const adjustTitleFont = () => {
+  const adjustTitleFont = React.useCallback(() => {
     const el = titleTextareaRef.current;
     if (!el) return;
 
@@ -54,12 +54,12 @@ const EdicionHeaderSection = ({
     }
 
     el.style.fontSize = `${recalculated}px`;
-  };
+  }, [formData?.titulo, isMobile, titleFontSize]);
 
   React.useEffect(() => {
     adjustTitleFont();
     adjustTitleHeight();
-  }, [formData?.titulo, isMobile, titleFontSize]);
+  }, [adjustTitleFont, adjustTitleHeight]);
 
   const normalizedStopCountries = [...new Set(
     (Array.isArray(paradas) ? paradas : [])

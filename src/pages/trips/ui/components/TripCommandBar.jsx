@@ -4,7 +4,7 @@ import { LayoutGrid, List } from 'lucide-react';
 import { COLORS, RADIUS } from '@shared/config';
 import { useToast } from '@app/providers';
 
-const TripCommandBar = ({ activeFilter, onFilterChange, isMobile = false }) => {
+const TripCommandBar = ({ activeFilter, onFilterChange }) => {
   const { t } = useTranslation('dashboard');
   const { pushToast } = useToast();
   const handleListToggle = () => { pushToast(t('toast.comingSoon'), 'info'); };

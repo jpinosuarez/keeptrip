@@ -8,6 +8,7 @@ function buildParams(overrides = {}) {
     guardarNuevoViaje: vi.fn(),
     actualizarDetallesViaje: vi.fn(),
     actualizarParadaHook: vi.fn(),
+    eliminarParadaHook: vi.fn(),
     eliminarViaje: vi.fn(),
     agregarParada: vi.fn(),
     ciudadInicialBorrador: null,
@@ -40,7 +41,12 @@ describe('useViajeCrudHandlers', () => {
 
     expect(response).toBe('trip-1');
     expect(params.guardarNuevoViaje).toHaveBeenCalledTimes(1);
-    expect(params.guardarNuevoViaje.mock.calls[0][0]).toEqual({ titulo: 'Mi viaje' });
+    expect(params.guardarNuevoViaje.mock.calls[0][0]).toMatchObject({
+      titulo: 'Mi viaje',
+      ciudades: 'Madrid, Paris',
+    });
+    expect(params.guardarNuevoViaje.mock.calls[0][0].banderas).toEqual(['https://flagcdn.com/es.svg']);
+    expect(params.guardarNuevoViaje.mock.calls[0][0].flags).toEqual(['https://flagcdn.com/es.svg']);
     expect(params.guardarNuevoViaje.mock.calls[0][1][0]).toMatchObject({ nombre: 'Madrid' });
     expect(params.setViajeBorrador).toHaveBeenCalledWith(null);
     expect(params.setCiudadInicialBorrador).toHaveBeenCalledWith(null);
@@ -63,5 +69,37 @@ describe('useViajeCrudHandlers', () => {
     expect(params.eliminarViaje).toHaveBeenCalledWith('trip-42');
     expect(params.onAfterDelete).toHaveBeenCalledTimes(1);
     expect(params.setConfirmarEliminacion).toHaveBeenCalledWith(null);
+  });
+
+  test('en edición existente persiste altas, actualizaciones y bajas de paradas en paralelo', async () => {
+    const params = buildParams({
+      actualizarDetallesViaje: vi.fn().mockResolvedValue(true),
+      agregarParada: vi.fn().mockResolvedValue(true),
+      actualizarParadaHook: vi.fn().mockResolvedValue(true),
+      eliminarParadaHook: vi.fn().mockResolvedValue(true),
+    });
+
+    const { result } = renderHook(() => useViajeCrudHandlers(params));
+
+    let response;
+    await act(async () => {
+      response = await result.current.handleGuardarDesdeVisor('trip-99', {
+        titulo: 'Trip actualizado',
+        paradasNuevas: [
+          { id: 'temp-1', nombre: 'Paris' },
+          { id: 'stop-2', nombre: 'Lyon' },
+        ],
+        deletedStopIds: ['stop-3'],
+      });
+    });
+
+    expect(response).toBe('trip-99');
+    expect(params.actualizarDetallesViaje).toHaveBeenCalledWith(
+      'trip-99',
+      expect.objectContaining({ titulo: 'Trip actualizado' })
+    );
+    expect(params.agregarParada).toHaveBeenCalledWith(expect.objectContaining({ id: 'temp-1' }), 'trip-99');
+    expect(params.actualizarParadaHook).toHaveBeenCalledWith(expect.objectContaining({ id: 'stop-2' }), 'trip-99');
+    expect(params.eliminarParadaHook).toHaveBeenCalledWith('trip-99', 'stop-3');
   });
 });

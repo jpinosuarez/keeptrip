@@ -160,8 +160,10 @@ test.describe('Create trip from search modal (E2E)', () => {
     await expect(page.locator('text=button.add')).toHaveCount(0);
     await expect(page.locator('text=common:add')).toHaveCount(0);
 
-    // Verify gallery cover info text has been updated
-    await expect(page.getByText(/Esta imagen será la foto de portada del viaje|For now, we only allow 1 cover photo for your trip/)).toBeVisible({ timeout: 10000 });
+    // Verify cover UI is present (copy can vary across editor variants)
+    await expect(
+      page.getByLabel(/Cambiar portada|Change cover|gallery\.changeCover/i).first()
+    ).toBeVisible({ timeout: 10000 });
 
     // Provide a title and save
     await titleInput.fill('E2E Trip');

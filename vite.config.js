@@ -125,6 +125,9 @@ export default defineConfig({
     }),
   ],
   build: {
+    // Mapbox GL es pesado por naturaleza y se entrega en chunk lazy dedicado.
+    // Subimos el umbral para evitar warning de tamaño no accionable en CI.
+    chunkSizeWarningLimit: 1800,
     // Strip noisy console.* calls from production bundles, but retain errors/warnings.
     esbuild: {
       pure: ['console.log', 'console.info', 'console.debug'],

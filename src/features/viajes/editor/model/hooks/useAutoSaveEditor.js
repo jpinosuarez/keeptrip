@@ -140,7 +140,7 @@ export function useAutoSaveEditor(formData, viajeId, onSave, debounceMs = 1500, 
         console.warn('Auto-save retry limit reached');
       }
     }
-  }, [formData, viajeId, onSave, safeSetStatus]);
+  }, [formData, viajeId, onSave, onDraftPromoted, safeSetStatus]);
 
   const performAutoSaveRef = useRef(null);
 

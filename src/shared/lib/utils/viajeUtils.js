@@ -221,11 +221,25 @@ export const FOTO_DEFAULT_URL =
 
 export const getTodayIsoDate = () => new Date().toISOString().split('T')[0];
 
-export const construirBitacoraData = (viajes = []) =>
-  viajes.reduce((acc, viaje) => {
-    acc[viaje.id] = { ...viaje };
+export const construirBitacoraData = (viajes = [], todasLasParadas = []) => {
+  const stopsByTrip = new Map();
+
+  (Array.isArray(todasLasParadas) ? todasLasParadas : []).forEach((parada) => {
+    const tripId = parada?.viajeId;
+    if (!tripId) return;
+    const currentStops = stopsByTrip.get(tripId) || [];
+    currentStops.push(parada);
+    stopsByTrip.set(tripId, currentStops);
+  });
+
+  return viajes.reduce((acc, viaje) => {
+    acc[viaje.id] = {
+      ...viaje,
+      paradas: stopsByTrip.get(viaje.id) || [],
+    };
     return acc;
   }, {});
+};
 
 export const obtenerPaisesVisitados = (bitacora = [], todasLasParadas = []) => {
   const codigos = new Set();
@@ -244,91 +258,80 @@ export const obtenerPaisesVisitados = (bitacora = [], todasLasParadas = []) => {
 };
 
 const AUTO_TITLE_FALLBACK = {
-  'editor:autoTitle.fallback': () => 'Nuevo Viaje',
-  'editor:autoTitle.noStops': () => 'Viaje sin paradas',
-  'editor:autoTitle.oneCity': ({ city }) => `Escapada a ${city}`,
-  'editor:autoTitle.twoCities': ({ city1, city2 }) => `${city1} y ${city2}`,
-  'editor:autoTitle.twoCountries': ({ country1, country2 }) => `Aventura entre ${country1} y ${country2}`,
-  'editor:autoTitle.oneCountry': ({ country }) => `Ruta por ${country}`,
-  'editor:autoTitle.threeCountries': ({ countries }) => `Travesía por ${countries}`,
-  'editor:autoTitle.manyCountries': ({ firstTwo, others }) => `Gran travesía por ${firstTwo} y ${others} más`,
+  'editor.autoTitle.empty': () => 'Borrador de viaje',
+  'editor.autoTitle.single': ({ city }) => `Viaje a ${city}`,
+  'editor.autoTitle.twoCities': ({ city1, city2 }) => `Viaje a ${city1} y ${city2}`,
+  'editor.autoTitle.twoCountries': ({ country1, country2 }) => `Viaje por ${country1} y ${country2}`,
+  'editor.autoTitle.countryTour': ({ country }) => `Gran tour por ${country}`,
+  'editor.autoTitle.multiCountry': ({ countries }) => `Aventura por ${countries}`,
+  'editor.autoTitle.expedition': ({ country1, country2 }) => `Expedición por ${country1}, ${country2} y más destinos`,
 };
 
-export const generarTituloInteligente = (nombreBase, paradas = [], t) => {
-  const translate = typeof t === 'function'
-    ? t
-    : (key, options = {}) => {
-        if (options.defaultValue) return options.defaultValue;
-        const fallback = AUTO_TITLE_FALLBACK[key];
-        if (typeof fallback === 'function') return fallback(options);
-        if (fallback !== undefined) return fallback;
-        return key;
-      };
+export const generarTituloInteligente = (paradas = [], t, language = 'es') => {
+  const translate = (key, options = {}) => {
+    if (typeof t === 'function') {
+      const result = t(key, options);
+      // If i18next can't find the key, it returns the key string itself. We catch that here:
+      if (result !== key) return result;
+    }
+    // Fallback
+    const fallback = AUTO_TITLE_FALLBACK[key];
+    return typeof fallback === 'function' ? fallback(options) : (fallback || key);
+  };
 
   if (!paradas || paradas.length === 0) {
-    return translate('editor:autoTitle.noStops', { defaultValue: 'Viaje sin paradas' });
+    return translate('editor.autoTitle.empty');
   }
 
   const resolveCountryName = (code) => {
     const normalizedCode = normalizeCountryCode(code);
     if (!normalizedCode) return '';
     const localized = typeof t === 'function'
-      ? getLocalizedCountryName(normalizedCode, 'es', translate)
-      : getLocalizedCountryName(normalizedCode, 'es');
+      ? getLocalizedCountryName(normalizedCode, language, translate)
+      : getLocalizedCountryName(normalizedCode, language);
     return localized && localized !== normalizedCode ? localized : normalizedCode;
   };
 
   const ciudadesUnicas = [...new Set(paradas.map((p) => p.nombre).filter(Boolean))];
   const paisesUnicos = [...new Set(paradas.map((p) => p.paisCodigo).filter(Boolean))];
+  const nombresPaises = paisesUnicos.map((c) => resolveCountryName(c)).filter(Boolean);
 
-  if (paisesUnicos.length === 2) {
-    const nombresPaises = paisesUnicos.map((c) => resolveCountryName(c)).filter(Boolean);
-    if (nombresPaises.length === 2) {
-      return translate('editor:autoTitle.twoCountries', {
-        country1: nombresPaises[0],
-        country2: nombresPaises[1],
-      });
+  // 1 stop
+  if (ciudadesUnicas.length === 1) {
+    return translate('editor.autoTitle.single', { city: ciudadesUnicas[0] });
+  }
+
+  // 2 stops
+  if (ciudadesUnicas.length === 2) {
+    if (paisesUnicos.length === 1) {
+      // Same country
+      return translate('editor.autoTitle.twoCities', { city1: ciudadesUnicas[0], city2: ciudadesUnicas[1] });
+    } else {
+      // Different countries
+      if (nombresPaises.length === 2) {
+        return translate('editor.autoTitle.twoCountries', { country1: nombresPaises[0], country2: nombresPaises[1] });
+      }
     }
   }
 
-  if (ciudadesUnicas.length === 1) {
-    return translate('editor:autoTitle.oneCity', {
-      city: ciudadesUnicas[0],
-    });
-  }
-
-  if (ciudadesUnicas.length === 2) {
-    return translate('editor:autoTitle.twoCities', {
-      city1: ciudadesUnicas[0],
-      city2: ciudadesUnicas[1],
-    });
-  }
-
-  const nombresPaises = paisesUnicos.map((c) => resolveCountryName(c)).filter(Boolean);
-
+  // 3+ stops
   if (paisesUnicos.length === 1) {
-    const nombrePais = nombresPaises[0] || nombreBase;
-    return translate('editor:autoTitle.oneCountry', {
-      country: nombrePais,
-    });
+    // All same country
+    return translate('editor.autoTitle.countryTour', { country: nombresPaises[0] });
   }
 
-  if (paisesUnicos.length === 3) {
-    return translate('editor:autoTitle.threeCountries', {
-      countries: nombresPaises.join(', '),
-    });
+  if (paisesUnicos.length >= 2 && paisesUnicos.length <= 3) {
+    const listFormat = new Intl.ListFormat(language, { style: 'long', type: 'conjunction' });
+    const formattedList = listFormat.format(nombresPaises);
+    return translate('editor.autoTitle.multiCountry', { countries: formattedList });
   }
 
   if (paisesUnicos.length > 3) {
-    const firstTwo = nombresPaises.slice(0, 2).join(', ');
-    const others = nombresPaises.length - 2;
-    return translate('editor:autoTitle.manyCountries', {
-      firstTwo,
-      others,
-    });
+    return translate('editor.autoTitle.expedition', { country1: nombresPaises[0], country2: nombresPaises[1] });
   }
 
-  return translate('editor:autoTitle.fallback', { defaultValue: nombreBase || 'Nuevo Viaje' });
+  // Fallback
+  return translate('editor.autoTitle.empty');
 };
 
 export const construirBanderasViaje = (codigoPaisBase, paradas = []) => {
