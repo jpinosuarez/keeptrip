@@ -21,7 +21,7 @@ import EdicionHeaderSection from './components/EdicionHeaderSection';
 const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSaving = false, onAfterSave }) => {
   const { usuario } = useAuth();
   const { pushToast } = useToast();
-  const { t } = useTranslation(['editor', 'countries']);
+  const { t, i18n } = useTranslation(['editor', 'countries']);
   const {
     flags: { level: operationalLevel, appReadonlyMode },
   } = useOperationalFlags();
@@ -87,6 +87,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     setGalleryPortada,
     setCaptionDrafts,
     t,
+    i18n,
   });
 
   const { isUploading } = viaje?.id ? getEstadoViaje(viaje.id) : { isUploading: false };

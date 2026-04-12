@@ -107,6 +107,14 @@ The source of truth is the Firestore document:
 
 Runtime behavior is driven by a singleton listener (`useOperationalFlags`) so all active sessions react quickly to level updates.
 
+### 6.2.1 Operational UIDs (Environment Alignment)
+The founder UID must be configured per environment through `VITE_FOUNDER_UID`:
+
+- **Staging:** `8qWhUsYQBXO3bCiMXen8qiIYAUA2`
+- **Production:** `9dyI5iXXJRSTwO350Vnv3utZff52`
+
+These UIDs are used to grant emergency operational control access (including blackout recovery).
+
 ### 6.3 Level 4 Escape Hatch (Founder/Admin Recovery)
 To avoid founder lockout during blackout:
 

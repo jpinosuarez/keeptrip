@@ -48,7 +48,7 @@ const EditorFocusPanel = ({
   galeria = { fotos: [], uploading: false },
   onAfterSave = null,
 }) => {
-  const { t } = useTranslation(['editor', 'countries']);
+  const { t, i18n } = useTranslation(['editor', 'countries']);
   const { isMobile } = useWindowSize(768);
   const {
     flags: { level: operationalLevel, appReadonlyMode },
@@ -130,6 +130,7 @@ const EditorFocusPanel = ({
     setGalleryPortada: effectiveSetGalleryPortada,
     setCaptionDrafts: effectiveSetCaptionDrafts,
     t,
+    i18n,
   });
 
   const iniciarSubida = uploadCtx?.iniciarSubida;
