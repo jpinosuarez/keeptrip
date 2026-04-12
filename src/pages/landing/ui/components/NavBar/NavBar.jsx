@@ -1,5 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
+
 import { useAuth } from '@app/providers/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
@@ -23,9 +24,9 @@ const NavBar = () => {
   const { isMobile } = useWindowSize();
 
   return (
-    <motion.nav style={styles.nav(isMobile)} variants={itemVariants}>
+    <Motion.nav style={styles.nav(isMobile)} variants={itemVariants}>
       <div style={styles.logo}>Keeptrip</div>
-      <motion.button
+      <Motion.button
         onClick={login}
         className="tap-btn"
         style={styles.loginBtn}
@@ -34,8 +35,8 @@ const NavBar = () => {
         whileTap="tap"
       >
         {t('common:login')}
-      </motion.button>
-    </motion.nav>
+      </Motion.button>
+    </Motion.nav>
   );
 };
 

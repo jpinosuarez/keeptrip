@@ -14,7 +14,7 @@ import { compressImage } from '@shared/lib/utils/imageUtils';
 import { logger } from '@shared/lib/utils/logger';
 
 const isImageDataUrl = (value) =>
-  typeof value === 'string' && value.trim().startsWith('data:image/');
+  typeof value === 'string' && value.trim().startsWith('data:image/') && value.includes(';base64,');
 
 export const suscribirViajesConParadas = ({ db, userId, onData, onError }) => {
   const stopUnsubscribers = new Map();
@@ -55,11 +55,14 @@ export const suscribirViajesConParadas = ({ db, userId, onData, onError }) => {
       paradasRef,
       { includeMetadataChanges: true },
       (paradasSnap) => {
-        const tripStops = paradasSnap.docs.map((parada) => ({
-          id: parada.id,
-          viajeId: tripId,
-          ...parada.data({ serverTimestamps: 'estimate' })
-        }));
+        const tripStops = paradasSnap.docs.map((parada) => {
+          const data = parada.data({ serverTimestamps: 'estimate' });
+          return {
+            ...data,
+            id: parada.id,
+            viajeId: tripId,
+          };
+        });
 
         stopsByTrip.set(tripId, tripStops);
         emitSnapshot();
@@ -82,8 +85,8 @@ export const suscribirViajesConParadas = ({ db, userId, onData, onError }) => {
         .map((item) => {
           const data = item.data({ serverTimestamps: 'estimate' });
           return {
-            id: item.id,
             ...data,
+            id: item.id,
             createdAt:
               data.createdAt ??
               (item.metadata.hasPendingWrites ? new Date() : null),
@@ -151,11 +154,15 @@ export const guardarViajeConParadas = async ({ db, userId, viaje, paradas = [] }
 export const actualizarViaje = ({ db, userId, viajeId, data }) =>
   updateDoc(doc(db, `usuarios/${userId}/viajes`, viajeId), data);
 
-export const crearParada = ({ db, userId, viajeId, data }) =>
-  addDoc(collection(db, `usuarios/${userId}/viajes/${viajeId}/paradas`), data);
+export const crearParada = ({ db, userId, viajeId, data }) => {
+  const { id, ...cleanData } = data;
+  return addDoc(collection(db, `usuarios/${userId}/viajes/${viajeId}/paradas`), cleanData);
+};
 
-export const actualizarParada = ({ db, userId, viajeId, paradaId, data }) =>
-  updateDoc(doc(db, `usuarios/${userId}/viajes/${viajeId}/paradas`, paradaId), data);
+export const actualizarParada = ({ db, userId, viajeId, paradaId, data }) => {
+  const { id, ...cleanData } = data;
+  return updateDoc(doc(db, `usuarios/${userId}/viajes/${viajeId}/paradas`, paradaId), cleanData);
+};
 
 export const eliminarParada = ({ db, userId, viajeId, paradaId }) =>
   deleteDoc(doc(db, `usuarios/${userId}/viajes/${viajeId}/paradas`, paradaId));

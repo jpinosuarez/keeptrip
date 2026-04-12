@@ -26,7 +26,7 @@ const BLANK_STYLE = {
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
-const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
+const HomeMap = ({ paisesVisitados = [] }) => {
   const { i18n, t } = useTranslation('dashboard');
   const [hoverInfo, setHoverInfo] = useState(null);
   const mapRef = useRef(null);

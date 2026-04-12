@@ -165,7 +165,7 @@ test.describe('Invitations flow (E2E)', () => {
     await openInvitationsAndAssertRoute(page);
 
     // accept the invitation
-    const acceptButton = page.getByRole('button', { name: /Accept|Aceptar/i }).first();
+    const acceptButton = page.getByTestId(`inv-accept-${invitationId}`);
     await expect(acceptButton).toBeVisible({ timeout: 15000 });
     await acceptButton.click();
 
@@ -231,7 +231,7 @@ test.describe('Invitations flow (E2E)', () => {
     await stabilizeAuthenticatedSession(page, inviteeEmail, password);
     await openInvitationsAndAssertRoute(page);
 
-    const declineButton = page.getByRole('button', { name: /Decline|Rechazar/i }).first();
+    const declineButton = page.getByTestId(`inv-decline-${invitationId}`);
     await expect(declineButton).toBeVisible({ timeout: 15000 });
     await declineButton.click();
 

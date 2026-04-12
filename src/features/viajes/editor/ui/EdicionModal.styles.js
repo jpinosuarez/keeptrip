@@ -477,23 +477,6 @@ export const styles = {
     whiteSpace: 'nowrap',
   }),
 
-  // Sticky Footer: Manual Save + Cancel
-  stickyFooter: {
-    position: 'sticky',
-    bottom: 0,
-    zIndex: 50,
-    borderTop: `1px solid ${COLORS.border}`,
-    background: COLORS.surface,
-    padding: '16px 24px',
-    paddingBottom: 'max(16px, env(safe-area-inset-bottom, 0px))',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: '12px',
-    flexShrink: 0,
-    minHeight: '64px',
-  },
-
   secondaryFooterBtn: {
     background: 'transparent',
     border: `1.5px solid ${COLORS.border}`,

@@ -185,8 +185,8 @@ export const obtenerFotosViaje = async ({ db, userId, viajeId }) => {
     const snapshot = await getDocs(q);
 
     const fotos = snapshot.docs.map(doc => ({
-      id: doc.id,
       ...doc.data(),
+      id: doc.id,
       createdAt: doc.data().createdAt?.toDate() || null
     }));
 

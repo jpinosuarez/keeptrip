@@ -49,7 +49,7 @@ export const styles = {
     pointerEvents: 'none',
     zIndex: 5,
   },
-  heroBgContainer: (isMobile = false) => ({
+  heroBgContainer: () => ({
     position: 'absolute',
     inset: 0,
     height: '100%',

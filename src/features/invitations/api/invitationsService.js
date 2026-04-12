@@ -184,19 +184,19 @@ export const declineInvitation = async ({ db: _db, invitationId, declinerUid }) 
 
 export const listenToInvitationsForUser = (uid, onUpdate) => {
   const q = query(collection(db, 'invitations'), where('inviteeUid', '==', uid), orderBy('createdAt', 'desc'));
-  return onSnapshot(q, (snap) => onUpdate(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+  return onSnapshot(q, (snap) => onUpdate(snap.docs.map(d => ({ ...d.data(), id: d.id }))));
 };
 
 export const getInvitationsForUser = async ({ db: _db, uid }) => {
   const database = _db || db;
   const q = query(collection(database, 'invitations'), where('inviteeUid', '==', uid), orderBy('createdAt', 'desc'));
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return snap.docs.map(d => ({ ...d.data(), id: d.id }));
 };
 
 export const getInvitationsForEmail = async ({ db: _db, email }) => {
   const database = _db || db;
   const q = query(collection(database, 'invitations'), where('inviteeEmail', '==', email));
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return snap.docs.map(d => ({ ...d.data(), id: d.id }));
 };

@@ -13,6 +13,7 @@ export function useEdicionModalSave({
   viaje,
   ciudadInicial,
   paradas,
+  deletedStopIds = [],
   onSave,
   galleryFiles,
   galleryPortada,
@@ -21,6 +22,7 @@ export function useEdicionModalSave({
   pushToast,
   t,
   limpiarEstado,
+  setDeletedStopIds,
   onClose,
   onAfterSave,
 }) {
@@ -69,6 +71,7 @@ export function useEdicionModalSave({
           ciudadInicial?.coordenadas ||
           null,
         paradasNuevas: paradas,
+        deletedStopIds,
       };
 
       // Normalize date fields to prevent invalid values (Infinity / NaN) from
@@ -88,6 +91,11 @@ export function useEdicionModalSave({
       if (payload.portadaUrl) {
         payload.foto = payload.portadaUrl;
         payload.fotoPortada = payload.portadaUrl;
+      }
+
+      // Sanitize payload: remove 'new' ID to prevent contamination in Firestore operations
+      if (viaje.id === 'new') {
+        delete payload.id;
       }
 
       const saveResult = await onSave(viaje.id, payload);
@@ -119,6 +127,9 @@ export function useEdicionModalSave({
       }
 
       limpiarEstado();
+      if (typeof setDeletedStopIds === 'function') {
+        setDeletedStopIds([]);
+      }
       if (onAfterSave) {
         onAfterSave(savedViajeId);
       } else {

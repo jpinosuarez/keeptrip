@@ -5,8 +5,19 @@ import { describe, test, expect, vi } from 'vitest';
 
 // ── IMPORTANTE: los hooks mockeados deben retornar REFERENCIAS ESTABLES ─────
 // Si devuelven un objeto nuevo en cada llamada, los useEffect que dependen de
-// ellos entran en bucle infinito (re-render → nuevo objeto → efecto → setState
+// ellos entran en bucle infinito (re-render → nuevo objeto → setState
 // → re-render → ...) y el proceso OOM-ea.
+
+vi.mock('react-i18next', async () => {
+  const actual = await vi.importActual('react-i18next');
+  return {
+    ...actual,
+    useTranslation: vi.fn(() => ({ 
+      t: vi.fn((key) => key),
+      i18n: { language: 'es' }
+    }))
+  };
+});
 
 const mockUsuario = { uid: 'u1' };
 const mockAuthReturn = { usuario: mockUsuario };
@@ -37,11 +48,11 @@ vi.mock('firebase/firestore', () => ({
 }));
 
 import React from 'react';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, waitFor, cleanup, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
-import EdicionModal from '../EdicionModal';
+import EditorFocusPanel from '../EditorFocusPanel';
 
 afterEach(() => cleanup());
 beforeEach(() => vi.clearAllMocks());
@@ -49,7 +60,7 @@ beforeEach(() => vi.clearAllMocks());
 // Wrapper component to provide Router context for components using useNavigate
 const RouterWrapper = ({ children }) => <BrowserRouter>{children}</BrowserRouter>;
 
-describe('EdicionModal (borrador)', () => {
+describe('EditorFocusPanel (borrador)', () => {
   const defaultProps = {
     onClose: vi.fn(),
     onSave: vi.fn(async () => 'newId'),
@@ -69,12 +80,12 @@ describe('EdicionModal (borrador)', () => {
 
     const ciudadInicial = { nombre: 'Barcelona', coordenadas: [2.17, 41.38], paisCodigo: 'ESP' };
 
-    render(<EdicionModal viaje={viaje} esBorrador={true} ciudadInicial={ciudadInicial} {...defaultProps} />, { wrapper: RouterWrapper });
+    render(<EditorFocusPanel viaje={viaje} esBorrador={true} ciudadInicial={ciudadInicial} {...defaultProps} />, { wrapper: RouterWrapper });
 
     // Esperar que el input del título tenga el título generado
     await waitFor(() => {
       const input = screen.getByPlaceholderText(/tripTitlePlaceholder/i);
-      expect(input).toHaveValue('editor:autoTitle.oneCity');
+      expect(input).toHaveValue('Viaje a Barcelona');
     });
 
     // La galería del servidor no debe mostrarse para borradores
@@ -84,21 +95,21 @@ describe('EdicionModal (borrador)', () => {
   test('cambiar a Manual al tipear en el título', async () => {
     const user = userEvent.setup();
     const viaje = { id: 'new', nombreEspanol: 'Chile', titulo: '', fechaInicio: '2024-01-01', fechaFin: '2024-01-02' };
-    render(<EdicionModal viaje={viaje} esBorrador={true} {...defaultProps} />, { wrapper: RouterWrapper });
+    render(<EditorFocusPanel viaje={viaje} esBorrador={true} {...defaultProps} />, { wrapper: RouterWrapper });
 
     const input = await screen.findByPlaceholderText(/tripTitlePlaceholder/i);
-    // al inicio debe estar en Auto (badge)
-    expect(screen.getByRole('button', { name: /auto/i })).toHaveTextContent('labels.autoTitle');
+      
+      // al inicio debe mostrar el hint de título automático (editTitleHint) y no tener botón para título manual
+      expect(screen.getByText('editor.header.editTitleHint')).toBeTruthy();
 
-    // Limpiar y escribir manualmente
-    await user.clear(input);
-    await user.type(input, 'X');
+      // Limpiar y escribir manualmente
+      await user.clear(input);
+      await user.type(input, 'X');
 
-    // Badge debe indicar Manual (el nombre accesible viene del texto, no del title)
-    await waitFor(() => {
-      const btn = screen.getByRole('button', { name: /manual/i });
-      expect(btn).toHaveTextContent('labels.manualTitle');
-      expect(btn).toHaveAttribute('title', expect.stringMatching(/tooltip\.manualMode/i));
+      // Debe cambiar a modo manual (mostrar hint 'editor.header.manualTitleHint') y aparecer el botón de regenerar
+      await waitFor(() => {
+         expect(screen.getByText('editor.header.manualTitleHint')).toBeTruthy();
+         expect(screen.getByRole('button', { name: /editor\.header\.regenerateTitle/i })).toBeTruthy();
     });
   });
 
@@ -118,7 +129,7 @@ describe('EdicionModal (borrador)', () => {
     };
 
     const { container } = render(
-      <EdicionModal
+      <EditorFocusPanel
         viaje={viaje}
         esBorrador={true}
         onClose={onClose}
@@ -136,7 +147,7 @@ describe('EdicionModal (borrador)', () => {
 
     const saveBtn = screen
       .getAllByRole('button')
-      .find((btn) => /button\.createTrip/i.test(btn.textContent || ''));
+      .find((btn) => /button\.save/i.test(btn.textContent || ''));
     expect(saveBtn).toBeTruthy();
     saveBtn.click();
 
@@ -157,7 +168,7 @@ describe('EdicionModal (borrador)', () => {
     const onSave = vi.fn(async () => 'new-id');
 
     const { rerender } = render(
-      <EdicionModal
+      <EditorFocusPanel
         viaje={{ id: 'new', nombreEspanol: 'Chile', code: 'CL', titulo: '', fechaInicio: '2024-03-01', fechaFin: '2024-03-02' }}
         ciudadInicial={{ nombre: 'Santiago', coordenadas: [-70.6693, -33.4489], paisCodigo: 'CL' }}
         esBorrador={true}
@@ -170,7 +181,7 @@ describe('EdicionModal (borrador)', () => {
 
     const saveBtn1 = screen
       .getAllByRole('button')
-      .find((btn) => /button\.createTrip/i.test(btn.textContent || ''));
+      .find((btn) => /button\.save/i.test(btn.textContent || ''));
     expect(saveBtn1).toBeTruthy();
     saveBtn1.click();
 
@@ -184,7 +195,7 @@ describe('EdicionModal (borrador)', () => {
     });
 
     rerender(
-      <EdicionModal
+      <EditorFocusPanel
         viaje={{ id: 'new', nombreEspanol: 'Argentina', code: 'AR', titulo: '', fechaInicio: '2024-04-01', fechaFin: '2024-04-03' }}
         ciudadInicial={{ nombre: 'Buenos Aires', coordenadas: [-58.3816, -34.6037], paisCodigo: 'AR' }}
         esBorrador={true}
@@ -196,7 +207,7 @@ describe('EdicionModal (borrador)', () => {
 
     const saveBtn2 = screen
       .getAllByRole('button')
-      .find((btn) => /button\.createTrip/i.test(btn.textContent || ''));
+      .find((btn) => /button\.save/i.test(btn.textContent || ''));
     expect(saveBtn2).toBeTruthy();
     saveBtn2.click();
 
@@ -216,7 +227,7 @@ describe('EdicionModal (borrador)', () => {
     const onSave = vi.fn(async () => 'pais-new-id');
 
     render(
-      <EdicionModal
+      <EditorFocusPanel
         viaje={{
           id: 'new',
           nombreEspanol: 'Argentina',
@@ -237,10 +248,164 @@ describe('EdicionModal (borrador)', () => {
 
     const createBtn = screen
       .getAllByRole('button')
-      .find((btn) => /button\.createTrip/i.test(btn.textContent || ''));
+      .find((btn) => /button\.save/i.test(btn.textContent || ''));
     expect(createBtn).toBeTruthy();
     expect(createBtn).toBeDisabled();
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Borrador de viaje')).toBeInTheDocument();
+    });
+
     expect(onSave).not.toHaveBeenCalled();
+  });
+
+  test('en viaje existente hidrata y conserva el titulo guardado', async () => {
+    render(
+      <EditorFocusPanel
+        viaje={{
+          id: 'trip-001',
+          nombreEspanol: 'España',
+          code: 'ES',
+          titulo: 'Aventura Iberica',
+          fechaInicio: '2024-05-01',
+          fechaFin: '2024-05-04',
+        }}
+        esBorrador={false}
+        onClose={vi.fn()}
+        onSave={vi.fn(async () => true)}
+        isSaving={false}
+      />,
+      { wrapper: RouterWrapper }
+    );
+
+    await waitFor(() => {
+      const input = screen.getByPlaceholderText(/tripTitlePlaceholder/i);
+      expect(input).toHaveValue('Aventura Iberica');
+    });
+  });
+
+  test('en viaje existente permite regenerar titulo automatico', async () => {
+    const user = userEvent.setup();
+    render(
+      <EditorFocusPanel
+        viaje={{
+          id: 'trip-002',
+          nombreEspanol: 'España',
+          code: 'ES',
+          titulo: 'Titulo Manual',
+          fechaInicio: '2024-06-01',
+          fechaFin: '2024-06-04',
+        }}
+        esBorrador={false}
+        onClose={vi.fn()}
+        onSave={vi.fn(async () => true)}
+        isSaving={false}
+      />,
+      { wrapper: RouterWrapper }
+    );
+
+    const input = await screen.findByPlaceholderText(/tripTitlePlaceholder/i);
+    expect(input).toHaveValue('Titulo Manual');
+
+    // Manual mode visible before regenerate
+    expect(screen.getByText('editor.header.manualTitleHint')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: /editor\.header\.regenerateTitle/i }));
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Borrador de viaje')).toBeInTheDocument();
+      expect(screen.queryByText('editor.header.manualTitleHint')).toBeNull();
+      expect(screen.getByText('editor.header.editTitleHint')).toBeTruthy();
+    });
+  });
+
+  test('en modo auto el titulo se recalcula al cambiar paradas', async () => {
+    const ControlledEditor = () => {
+      const [controlledFormData, setControlledFormData] = React.useState({
+        id: 'new',
+        titulo: '',
+        nombreEspanol: 'España',
+        fechaInicio: '2024-06-01',
+        fechaFin: '2024-06-04',
+      });
+      const [controlledParadas, setControlledParadas] = React.useState([]);
+
+      return (
+        <>
+          <button
+            type="button"
+            onClick={() => {
+              setControlledParadas((prev) => [
+                ...prev,
+                {
+                  id: `new-${prev.length + 1}`,
+                  nombre: 'Barcelona',
+                  coordenadas: [2.1734, 41.3851],
+                  fecha: '2024-06-02',
+                  paisCodigo: 'ES',
+                },
+              ]);
+            }}
+          >
+            add-stop
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setControlledParadas((prev) => prev.slice(0, 1));
+            }}
+          >
+            remove-stop
+          </button>
+          <EditorFocusPanel
+            viaje={{
+              id: 'new',
+              nombreEspanol: 'España',
+              code: 'ES',
+              titulo: '',
+              fechaInicio: '2024-06-01',
+              fechaFin: '2024-06-04',
+            }}
+            formData={controlledFormData}
+            setFormData={setControlledFormData}
+            paradas={controlledParadas}
+            setParadas={setControlledParadas}
+            esBorrador={true}
+            ciudadInicial={{
+              nombre: 'Madrid',
+              coordenadas: [-3.7038, 40.4168],
+              paisCodigo: 'ES',
+            }}
+            onClose={vi.fn()}
+            onSave={vi.fn(async () => true)}
+            isSaving={false}
+          />
+        </>
+      );
+    };
+
+    const user = userEvent.setup();
+    render(<ControlledEditor />, { wrapper: RouterWrapper });
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Viaje a Madrid')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: 'add-stop' }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Viaje a Madrid y Barcelona')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: 'remove-stop' }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Viaje a Madrid')).toBeInTheDocument();
+    });
   });
 });
 

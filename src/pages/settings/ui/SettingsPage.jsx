@@ -38,6 +38,12 @@ const SettingsRow = ({
   trailing,
   isLast = false,
 }) => {
+  const iconNode = React.createElement(Icon, {
+    size: 16,
+    color: danger ? COLORS.danger : COLORS.atomicTangerine,
+    strokeWidth: 2,
+  });
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -78,7 +84,7 @@ const SettingsRow = ({
         justifyContent: 'center',
         flexShrink: 0,
       }}>
-        <Icon size={16} color={danger ? COLORS.danger : COLORS.atomicTangerine} strokeWidth={2} />
+        {iconNode}
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -225,7 +231,7 @@ const LanguageToggle = ({ currentLang, onToggle }) => {
 };
 
 /* ── Main SettingsPage ───────────────────────────────────────────────── */
-const SettingsPage = ({ log = [] }) => {
+const SettingsPage = () => {
   const {
     usuario: user,
     actualizarPerfilUsuario: updateUserProfile,
@@ -309,17 +315,6 @@ const SettingsPage = ({ log = [] }) => {
       setIsDeletingAccount(false);
       setShowDeleteConfirm(false);
     }
-  };
-
-  const handleExport = () => {
-    const data = JSON.stringify(log, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `keeptrip-export-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   const initials = user?.displayName?.trim()?.[0]?.toUpperCase() || '';

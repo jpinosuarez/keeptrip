@@ -48,14 +48,14 @@
     "manualTitle": "Manual"
   },
   "autoTitle": {
-    "fallback": "Nuevo Viaje",
-    "noStops": "Viaje sin paradas",
-    "oneCity": "Escapada a {{city}}",
-    "twoCities": "{{city1}} y {{city2}}",
-    "twoCountries": "Aventura entre {{country1}} y {{country2}}",
-    "oneCountry": "Ruta por {{country}}",
-    "threeCountries": "Travesía por {{countries}}",
-    "manyCountries": "Gran travesía por {{firstTwo}} y {{others}} más"
+    "empty": "Borrador de viaje",
+    "single": "Viaje a {{city}}",
+    "twoCities": "Viaje a {{city1}} y {{city2}}",
+    "twoCountries": "Viaje por {{country1}} y {{country2}}",
+    "countryTour": "Gran tour por {{country}}",
+    "multiCountry": "Aventura por {{countries}}",
+    "expedition": "Expedición por {{country1}}, {{country2}} y más destinos",
+    "multiple": "Viaje a {{cities}}"
   },
   "unsavedChanges": {
     "title": "¿Descartar cambios?",

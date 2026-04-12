@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { COLORS, RADIUS, SHADOWS, TRANSITIONS } from '@shared/config';
 import { getFlagUrl } from '@shared/lib/utils/countryUtils';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
-import { parseFlexibleDate, formatDateSlash } from '@shared/lib/utils/viajeUtils';
+import { parseFlexibleDate } from '@shared/lib/utils/viajeUtils';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 const createStopInstanceId = (feature) => {
@@ -16,9 +16,13 @@ const createStopInstanceId = (feature) => {
   return `temp-${baseId}-${uuid}`;
 };
 
+const isPersistedStop = (stopId) => {
+  if (!stopId) return false;
+  const value = stopId.toString();
+  return !value.startsWith('temp') && value !== 'init';
+};
 
-
-const CityManager = ({ t, paradas, setParadas }) => {
+const CityManager = ({ t, paradas, setParadas, setDeletedStopIds }) => {
   const { i18n } = useTranslation();
   const [busqueda, setBusqueda] = useState('');
   const [resultados, setResultados] = useState([]);
@@ -67,27 +71,43 @@ const CityManager = ({ t, paradas, setParadas }) => {
   };
 
   const moverParada = (index, direccion) => {
-    const nuevas = [...paradas];
-    const item = nuevas.splice(index, 1)[0];
-    nuevas.splice(index + direccion, 0, item);
-    setParadas(nuevas);
+    setParadas((prev) => {
+      const next = [...prev];
+      const item = next.splice(index, 1)[0];
+      next.splice(index + direccion, 0, item);
+      return next;
+    });
   };
 
   const actualizarDato = (index, campo, valor) => {
-    const nuevas = [...paradas];
-    nuevas[index][campo] = valor;
-    // Sincronizar fecha canónica: parsear texto flexible → ISO, actualizar .fecha
-    if (campo === 'fechaLlegada') {
-      const iso = parseFlexibleDate(valor);
-      if (iso) nuevas[index].fecha = iso;
-    }
-    setParadas(nuevas);
+    setParadas((prev) =>
+      prev.map((parada, i) => {
+        if (i !== index) return parada;
+
+        const updated = { ...parada, [campo]: valor };
+        // Sincronizar fecha canónica: parsear texto flexible → ISO, actualizar .fecha
+        if (campo === 'fechaLlegada') {
+          const iso = parseFlexibleDate(valor);
+          if (iso) updated.fecha = iso;
+        }
+        return updated;
+      })
+    );
   };
 
   const eliminarParada = (index) => {
-    const nuevas = [...paradas];
-    nuevas.splice(index, 1);
-    setParadas(nuevas);
+    setParadas((prev) => {
+      const stopToDelete = prev[index];
+
+      if (stopToDelete && isPersistedStop(stopToDelete.id) && typeof setDeletedStopIds === 'function') {
+        // Defer side-effect to keep this updater pure from nested state updates.
+        setTimeout(() => {
+          setDeletedStopIds((dPrev) => [...new Set([...(dPrev || []), stopToDelete.id])]);
+        }, 0);
+      }
+
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   return (

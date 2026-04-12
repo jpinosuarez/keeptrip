@@ -10,31 +10,28 @@ import styles from './OfflineBanner.styles';
 const OfflineBanner = () => {
   const { t } = useTranslation('common');
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [showBanner, setShowBanner] = useState(false);
-  const [justReconnected, setJustReconnected] = useState(false);
+  const [showBanner, setShowBanner] = useState(!navigator.onLine);
 
   useEffect(() => {
+    let reconnectTimer;
+
     const handleOffline = () => {
       setIsOffline(true);
       setShowBanner(true);
-      setJustReconnected(false);
     };
     const handleOnline = () => {
       setIsOffline(false);
       setShowBanner(true);
-      setJustReconnected(true);
-      setTimeout(() => {
+      reconnectTimer = window.setTimeout(() => {
         setShowBanner(false);
-        setJustReconnected(false);
       }, 2000);
     };
+
     window.addEventListener('offline', handleOffline);
     window.addEventListener('online', handleOnline);
-    // Show banner if offline on mount
-    if (!navigator.onLine) {
-      setShowBanner(true);
-    }
+
     return () => {
+      if (reconnectTimer) window.clearTimeout(reconnectTimer);
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('online', handleOnline);
     };

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@shared/firebase';
 import { generarTituloInteligente, parseFlexibleDate } from '@shared/lib/utils/viajeUtils';
+import { getFlagUrl } from '@shared/lib/utils/countryUtils';
 
 export function useEdicionModalLifecycle({
   viaje,
@@ -17,14 +18,30 @@ export function useEdicionModalLifecycle({
   setGalleryPortada,
   setCaptionDrafts,
   t,
+  i18n,
 }) {
   const [isTituloAuto, setIsTituloAuto] = useState(true);
   const [titlePulse, setTitlePulse] = useState(false);
+  const [isHydratingStops, setIsHydratingStops] = useState(false);
+  const language = i18n.language;
+
   const titlePulseRef = useRef(null);
   const prevViajeIdRef = useRef(null);
   const initSignatureRef = useRef(null);
   const limpiarGaleriaRef = useRef(() => {});
   const initializedParadasRef = useRef(false);
+  const hasHydratedRef = useRef(false);
+  const hasHydratedStopsRef = useRef(false);
+  const formDataRef = useRef(formData);
+  const tRef = useRef(t);
+
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
 
   useEffect(() => {
     limpiarGaleriaRef.current = galeria?.limpiar || (() => {});
@@ -41,6 +58,8 @@ export function useEdicionModalLifecycle({
       limpiarGaleriaRef.current();
       prevViajeIdRef.current = currentViajeId;
       initializedParadasRef.current = false; // Reset flag when trip changes
+      hasHydratedRef.current = false;
+      hasHydratedStopsRef.current = false;
     }
   }, [setCaptionDrafts, setGalleryFiles, setGalleryPortada, viaje?.id]);
 
@@ -51,10 +70,12 @@ export function useEdicionModalLifecycle({
       setGalleryFiles([]);
       setGalleryPortada(0);
       setCaptionDrafts({});
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsTituloAuto(true);
+      setIsHydratingStops(false);
       limpiarGaleriaRef.current();
       initSignatureRef.current = null;
+      hasHydratedRef.current = false;
+      hasHydratedStopsRef.current = false;
       return;
     }
 
@@ -87,6 +108,7 @@ export function useEdicionModalLifecycle({
     initSignatureRef.current = initSignature;
 
     if (esBorrador) {
+      setIsHydratingStops(false);
       setGalleryFiles([]);
       setGalleryPortada(0);
       setCaptionDrafts({});
@@ -117,6 +139,7 @@ export function useEdicionModalLifecycle({
     setIsTituloAuto(!viaje.titulo || viaje.titulo.trim() === '');
 
     if (esBorrador && ciudadInicial) {
+      setIsHydratingStops(false);
       setParadas([
         {
           id: 'init',
@@ -124,31 +147,53 @@ export function useEdicionModalLifecycle({
           coordenadas: ciudadInicial.coordenadas,
           fecha: viaje.fechaInicio || new Date().toISOString().split('T')[0],
           paisCodigo: ciudadInicial.paisCodigo,
-          flag: viaje.flag,
+          flag: ciudadInicial.flag || ciudadInicial.paisCodigo,
         },
       ]);
       return;
     }
 
-    if (!esBorrador && usuarioUid && viaje.id) {
+    if (!esBorrador && usuarioUid && viaje.id && !hasHydratedStopsRef.current) {
+      hasHydratedStopsRef.current = true;
+      setIsHydratingStops(true);
       const cargarParadas = async () => {
         try {
           const paradasRef = collection(db, `usuarios/${usuarioUid}/viajes/${viaje.id}/paradas`);
           const snap = await getDocs(paradasRef);
-          const loaded = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-          setParadas(loaded.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)));
+          const loaded = snap.docs.map((d) => {
+            const data = d.data();
+            return {
+              ...data,
+              id: d.id,
+              flag: data.flag || (data.paisCodigo ? getFlagUrl(data.paisCodigo) : ''),
+            };
+          });
+          const paradasOrdenadas = loaded.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+          setParadas(paradasOrdenadas);
+
+          // Restore auto-title mode if the saved title identically matches the generated one for these stops
+          if (!esBorrador && viaje.titulo) {
+            const tituloEsperado = generarTituloInteligente(paradasOrdenadas, tRef.current, language);
+            if (viaje.titulo === tituloEsperado) {
+              setIsTituloAuto(true);
+            }
+          }
         } catch {
           setParadas([]);
+        } finally {
+          setIsHydratingStops(false);
         }
       };
       void cargarParadas();
       return;
     }
 
+    setIsHydratingStops(false);
     setParadas([]);
   }, [
     ciudadInicial,
     esBorrador,
+    language,
     setCaptionDrafts,
     setFormData,
     setGalleryFiles,
@@ -166,23 +211,55 @@ export function useEdicionModalLifecycle({
       setGalleryPortada(0);
       setCaptionDrafts({});
       setIsTituloAuto(true);
+      setIsHydratingStops(false);
       initializedParadasRef.current = false; // Reset flag on unmount
+      hasHydratedRef.current = false;
+      hasHydratedStopsRef.current = false;
+      initSignatureRef.current = null;
     };
   }, [setCaptionDrafts, setFormData, setGalleryFiles, setGalleryPortada, setParadas]);
 
+  // Effect 1 (Hydration): habilita el motor reactivo y define estado inicial del titulo
   useEffect(() => {
-    if (!isTituloAuto) return;
+    const currentFormData = formDataRef.current || {};
+    const hasStableId = Boolean(viaje?.id && viaje.id !== 'new');
+    const isSameEntity = hasStableId && currentFormData?.id === viaje.id;
+    const isDraftWithoutStableId = esBorrador && !hasStableId;
+    const hasDraftContext = isDraftWithoutStableId && Boolean(currentFormData?.nombreEspanol || viaje?.nombreEspanol);
 
-    const tituloAuto = generarTituloInteligente(formData.nombreEspanol, paradas, t);
+    if (!isSameEntity && !hasDraftContext) {
+      return;
+    }
 
-    if (tituloAuto !== formData.titulo) {
+    if (!hasHydratedRef.current) {
+      hasHydratedRef.current = true;
+
+      if (isTituloAuto) {
+        const tituloAuto = generarTituloInteligente(paradas, tRef.current, language);
+        if (tituloAuto !== currentFormData.titulo) {
+          setFormData((prev) => ({ ...prev, titulo: tituloAuto }));
+          setTitlePulse(true);
+          if (titlePulseRef.current) clearTimeout(titlePulseRef.current);
+          titlePulseRef.current = setTimeout(() => setTitlePulse(false), 900);
+        }
+      }
+    }
+  }, [esBorrador, formData?.id, formData?.nombreEspanol, isTituloAuto, language, paradas, setFormData, viaje?.id, viaje?.nombreEspanol]);
+
+  // Effect 2 (Reactive Engine): reacciona a paradas + modo auto después de hidratar
+  useEffect(() => {
+    if (!hasHydratedRef.current || !isTituloAuto) return;
+
+    const currentFormData = formDataRef.current || {};
+    const tituloAuto = generarTituloInteligente(paradas, tRef.current, language);
+
+    if (tituloAuto !== currentFormData.titulo) {
       setFormData((prev) => ({ ...prev, titulo: tituloAuto }));
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTitlePulse(true);
       if (titlePulseRef.current) clearTimeout(titlePulseRef.current);
       titlePulseRef.current = setTimeout(() => setTitlePulse(false), 900);
     }
-  }, [formData.nombreEspanol, formData.titulo, isTituloAuto, paradas, setFormData, t]);
+  }, [isTituloAuto, language, paradas, setFormData]);
 
   useEffect(() => {
     return () => {
@@ -257,10 +334,10 @@ export function useEdicionModalLifecycle({
         },
       ]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     ciudadInicial,
     esBorrador,
+    paradas.length,
     setFormData,
     setParadas,
     viaje,
@@ -287,6 +364,7 @@ export function useEdicionModalLifecycle({
   return {
     isTituloAuto,
     setIsTituloAuto,
+    isHydratingStops,
     titlePulse,
     limpiarEstado,
     handleTituloChange,

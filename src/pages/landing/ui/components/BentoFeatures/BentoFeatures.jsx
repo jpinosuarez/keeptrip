@@ -1,6 +1,7 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+
 import { Map, BarChart2, Camera, MapPin, Globe, CalendarDays } from 'lucide-react';
+import { motion as Motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { COLORS, SHADOWS } from '@shared/config';
@@ -34,7 +35,7 @@ const BentoFeatures = () => {
   const mockGrid = Array.isArray(rawGridCards) && rawGridCards.length > 0 ? rawGridCards : fallbackGrid;
 
   return (
-    <motion.section 
+    <Motion.section 
       style={styles.featuresSection(isMobile)} 
       initial="hidden"
       whileInView="visible"
@@ -42,7 +43,7 @@ const BentoFeatures = () => {
       variants={containerVariants}
     >
       {/* Card 1: Rutas Vivas (Index 0) */}
-      <motion.div
+      <Motion.div
         style={styles.featureCard(isMobile, 0)}
         variants={itemVariants}
         whileHover={{ scale: 1.005, y: -4, boxShadow: SHADOWS?.float || '0 12px 32px rgba(0,0,0,0.08)' }}
@@ -63,10 +64,10 @@ const BentoFeatures = () => {
            <div style={styles.featureCardTitle(isMobile, 0)}>{typeof t('landing:features.liveRoutes.title') === 'string' ? t('landing:features.liveRoutes.title') : 'Living Routes'}</div>
            <p style={styles.featureDesc(isMobile, 0)}>{typeof t('landing:features.liveRoutes.description') === 'string' ? t('landing:features.liveRoutes.description') : 'Document each stop...'}</p>
         </div>
-      </motion.div>
+      </Motion.div>
 
       {/* Card 2: Travel Stats (Index 1) */}
-      <motion.div
+      <Motion.div
         style={styles.featureCard(isMobile, 1)}
         variants={itemVariants}
         whileHover={{ scale: 1.01, y: -4, boxShadow: SHADOWS?.float || '0 12px 32px rgba(0,0,0,0.08)' }}
@@ -126,10 +127,10 @@ const BentoFeatures = () => {
           <div style={styles.featureCardTitle(isMobile, 1)}>{t('landing:features.stats.title')}</div>
           <p style={styles.featureDesc(isMobile, 1)}>{t('landing:features.stats.description')}</p>
         </div>
-      </motion.div>
+      </Motion.div>
 
       {/* Card 3: Your Digital Archive (Index 2) */}
-      <motion.div
+      <Motion.div
         style={styles.featureCard(isMobile, 2)}
         variants={itemVariants}
         whileHover={{ scale: 1.01, y: -4, boxShadow: SHADOWS?.float || '0 12px 32px rgba(0,0,0,0.08)' }}
@@ -144,7 +145,7 @@ const BentoFeatures = () => {
 
         <div style={styles.masonryVisualContainer}>
           {mockGrid.map((card, idx) => (
-            <motion.div 
+            <Motion.div 
               key={card.id || idx} 
               variants={itemVariants}
               style={{ 
@@ -166,7 +167,7 @@ const BentoFeatures = () => {
                   variant="list"
                 />
               </div>
-            </motion.div>
+            </Motion.div>
           ))}
         </div>
 
@@ -174,8 +175,8 @@ const BentoFeatures = () => {
           <div style={styles.featureCardTitle(isMobile, 2)}>{t('landing:features.gallery.title')}</div>
           <p style={styles.featureDesc(isMobile, 2)}>{t('landing:features.gallery.description')}</p>
         </div>
-      </motion.div>
-    </motion.section>
+      </Motion.div>
+    </Motion.section>
   );
 };
 

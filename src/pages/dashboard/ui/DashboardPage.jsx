@@ -25,7 +25,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
   const { openBuscador } = useUI();
   const { t } = useTranslation('dashboard');
   const { t: tNav } = useTranslation('nav');
-  const { width, height } = useWindowSize();
+  const { width } = useWindowSize();
   const isDesktop = width >= 1024;
   const isMobileLayout = !isDesktop;
   useDocumentTitle(tNav('home'));

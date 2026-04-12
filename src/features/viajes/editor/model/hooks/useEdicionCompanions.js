@@ -24,7 +24,7 @@ export function useEdicionCompanions({ formData, setFormData, viaje, usuario, pu
       const usuariosRef = collection(db, 'usuarios');
       const qName = query(usuariosRef, where('displayName', '>=', q), where('displayName', '<=', `${q}\uf8ff`));
       const snap = await getDocs(qName);
-      const results = snap.docs.map((d) => ({ uid: d.id, ...d.data() }));
+      const results = snap.docs.map((d) => ({ ...d.data(), uid: d.id }));
       setCompanionResults(results.slice(0, 8));
     } catch {
       setCompanionResults([]);

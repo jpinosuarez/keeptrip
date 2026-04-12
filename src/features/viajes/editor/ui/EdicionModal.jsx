@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { Save, LoaderCircle } from 'lucide-react';
 import { styles } from './EdicionModal.styles';
@@ -20,7 +20,7 @@ import EdicionHeaderSection from './components/EdicionHeaderSection';
 const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSaving = false, onAfterSave }) => {
   const { usuario } = useAuth();
   const { pushToast } = useToast();
-  const { t } = useTranslation(['editor', 'countries']);
+  const { t, i18n } = useTranslation(['editor', 'countries']);
 
   // useUpload puede no estar disponible en tests aislados; usar fallback seguro
   let iniciarSubida = () => {};
@@ -45,11 +45,11 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     presupuesto: null,
   });
   const [paradas, setParadas] = useState([]);
+  const [deletedStopIds, setDeletedStopIds] = useState([]);
   const isProcessingImage = false;
   const [galleryFiles, setGalleryFiles] = useState([]);
   const [galleryPortada, setGalleryPortada] = useState(0);
   const [captionDrafts, setCaptionDrafts] = useState({});
-  const [hasTried, setHasTried] = useState(false);
 
   const handlePortadaChange = (value) => {
     if (typeof value === 'number') {
@@ -83,6 +83,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     setGalleryPortada,
     setCaptionDrafts,
     t,
+    i18n,
   });
 
   const { isUploading } = viaje?.id ? getEstadoViaje(viaje.id) : { isUploading: false };
@@ -103,6 +104,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     viaje,
     ciudadInicial,
     paradas,
+    deletedStopIds,
     onSave,
     galleryFiles,
     galleryPortada,
@@ -111,6 +113,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     pushToast,
     t,
     limpiarEstado,
+    setDeletedStopIds,
     onClose,
     onAfterSave: handleAfterSave,
   });
@@ -128,14 +131,20 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     t,
   });
 
+  const galleryPhotos = useMemo(() => galeria?.fotos || [], [galeria?.fotos]);
+
+  useEffect(() => {
+    setDeletedStopIds([]);
+  }, [viaje?.id]);
+
   // Auto-set first photo as cover when gallery goes from 0→1 photos
   useEffect(() => {
-    const currentGalleryLength = galeria?.fotos?.length || 0;
+    const currentGalleryLength = galleryPhotos.length;
     const prevLength = previousGalleryLengthRef.current;
 
     // Transition from 0→1+ photos: auto-set first photo as portada
     if (prevLength === 0 && currentGalleryLength > 0 && !formData.portadaUrl) {
-      const firstPhotoUrl = galeria.fotos[0]?.url;
+      const firstPhotoUrl = galleryPhotos[0]?.url;
       if (firstPhotoUrl) {
         setFormData((prev) => ({
           ...prev,
@@ -145,7 +154,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     }
 
     previousGalleryLengthRef.current = currentGalleryLength;
-  }, [galeria?.fotos?.length, formData.portadaUrl]);
+  }, [galleryPhotos, formData.portadaUrl]);
 
   if (!viaje) return null;
 
@@ -197,6 +206,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
             paradas={paradas}
             onTituloChange={handleTituloChange}
             onToggleTituloAuto={() => setIsTituloAuto((prev) => !prev)}
+            onRegenerateTitle={() => setIsTituloAuto(true)}
           />
           <div style={{ ...styles.body, paddingBottom: 'calc(16px + 64px)' }} className="custom-scroll">
             {/* Itinerary / Stops */}
@@ -205,6 +215,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
               t={t}
               paradas={paradas}
               setParadas={setParadas}
+              setDeletedStopIds={setDeletedStopIds}
               fechaRangoDisplay={fechaRangoDisplay}
               sinParadas={sinParadas}
             />
@@ -238,7 +249,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                 transition={{ duration: 0.15 }}
               >{t('button.cancel')}</Motion.button>
               <Motion.button
-                onClick={() => { setHasTried(true); handleSave(); }}
+                onClick={() => { handleSave(); }}
                 disabled={!canSave}
                 whileHover={canSave ? { scale: 1.02, boxShadow: '0 4px 20px rgba(255,107,53,0.35)' } : {}}
                 whileTap={canSave ? { scale: 0.97 } : {}}

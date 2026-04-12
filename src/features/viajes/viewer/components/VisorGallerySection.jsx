@@ -17,7 +17,6 @@ const VisorGallerySection = ({
   onSetPortada,
   onEliminarFoto,
   isBusy,
-  storyData, // passed from VisorViaje
 }) => {
   return (
     <div style={styles.recapGalleryWrapper}>

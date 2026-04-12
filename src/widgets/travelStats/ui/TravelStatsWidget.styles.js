@@ -49,8 +49,10 @@ export const styles = {
   compactGridDesktop: {
     display: 'grid',
     gap: SPACING.sm,
-    gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
-    alignItems: 'stretch',
+    gridTemplateColumns: 'repeat(5, minmax(max-content, 1fr))',
+    alignItems: 'center',
+    justifyItems: 'center',
+    justifyContent: 'space-between',
     width: '100%',
   },
   card: cardBase,
@@ -107,17 +109,17 @@ export const styles = {
   },
   // ----- NEW RULES FOR TRIPS PAGE ------
   compactSecondaryCardBody: {
-    justifyContent: 'flex-start', // Group elements to the left edge
-    flexDirection: 'row-reverse', // Visual layout: icon left, text right
+    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: '8px', // Valid 8-point spacing
+    gap: '6px',
     height: '100%',
     width: '100%',
   },
   compactSecondaryTextLayout: {
-    alignItems: 'flex-start', // Align number and label vertically to the left
-    textAlign: 'left',
-    flex: '1', // Take remaining available natural space
+    alignItems: 'center',
+    textAlign: 'center',
+    flex: '0 1 auto',
   },
   secondaryIconBadge: {
     width: '36px',

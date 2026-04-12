@@ -101,6 +101,24 @@ export const styles = {
     gap: '14px',
   },
 
+  regenerateBtn: (isBusy) => ({
+    minHeight: '40px',
+    alignSelf: 'flex-start',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    borderRadius: RADIUS.full,
+    padding: '0 14px',
+    background: `${COLORS.atomicTangerine}14`,
+    border: `1px solid ${COLORS.atomicTangerine}40`,
+    color: COLORS.atomicTangerine,
+    fontSize: '0.74rem',
+    fontWeight: 700,
+    cursor: isBusy ? 'not-allowed' : 'pointer',
+    opacity: isBusy ? 0.7 : 1,
+    transition: TRANSITIONS.fast,
+  }),
+
   titleInput: (isMobile) => ({
     width: '100%',
     background: 'transparent',
@@ -118,7 +136,6 @@ export const styles = {
     margin: '0',
     caretColor: COLORS.atomicTangerine,
     whiteSpace: 'normal',
-    display: 'block',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     WebkitLineClamp: 2,

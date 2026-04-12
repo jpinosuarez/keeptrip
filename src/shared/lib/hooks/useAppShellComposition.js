@@ -41,6 +41,7 @@ export function useAppShellComposition({
     guardarNuevoViaje,
     actualizarDetallesViaje,
     actualizarParadaHook,
+    eliminarParadaHook,
     eliminarViaje,
     agregarParada,
   } = viajes;
@@ -62,6 +63,7 @@ export function useAppShellComposition({
     guardarNuevoViaje,
     actualizarDetallesViaje,
     actualizarParadaHook,
+    eliminarParadaHook,
     eliminarViaje,
     agregarParada,
     ciudadInicialBorrador,

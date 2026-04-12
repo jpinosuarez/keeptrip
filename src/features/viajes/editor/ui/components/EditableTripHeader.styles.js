@@ -1,0 +1,252 @@
+import { COLORS, RADIUS, SHADOWS, FONTS, TRANSITIONS } from '@shared/config';
+
+export const styles = {
+  headerWrapper: (isMobile) => ({
+    position: 'relative',
+    width: '100%',
+    minHeight: isMobile ? '300px' : '360px',
+    borderRadius: isMobile ? '0 0 24px 24px' : '24px',
+    overflow: 'hidden',
+    backgroundColor: COLORS.slate50,
+    boxShadow: isMobile ? 'none' : SHADOWS.md,
+    display: 'flex',
+    flexDirection: 'column',
+    transition: 'height 0.2s ease',
+  }),
+
+  bgWrapper: {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: 0,
+  },
+
+  bgImageHolder: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+    backgroundColor: COLORS.charcoalBlue,
+  },
+
+  fallbackAuraContainer: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+    overflow: 'hidden',
+    backgroundColor: COLORS.charcoalBlue,
+  },
+
+  fallbackAuraTrack: {
+    display: 'grid',
+    width: '100%',
+    height: '100%',
+    gap: 0,
+  },
+
+  fallbackAuraFlag: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    filter: 'saturate(1.2) contrast(1.1)',
+  },
+
+  fallbackAuraOverlay: {
+    position: 'absolute',
+    inset: 0,
+    background: 'linear-gradient(135deg, rgba(44,62,80,0.4) 0%, rgba(69,176,168,0.4) 100%)',
+    mixBlendMode: 'overlay',
+  },
+
+  overlay: {
+    position: 'absolute',
+    inset: 0,
+    background: 'linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.85) 100%)',
+    zIndex: 1,
+    pointerEvents: 'none',
+  },
+
+  topContent: {
+    position: 'relative',
+    zIndex: 10,
+    display: 'flex',
+    justifyContent: 'flex-end',
+    padding: '16px',
+  },
+
+  cameraBtn: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    border: 'none',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    borderRadius: '50%',
+    width: '44px',
+    height: '44px',
+    padding: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#ffffff',
+    cursor: 'pointer',
+    transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.3)',
+  },
+
+  cameraMenuDesktop: {
+    position: 'absolute',
+    top: '64px',
+    right: '16px',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.md,
+    boxShadow: SHADOWS.lg,
+    padding: '4px',
+    display: 'flex',
+    flexDirection: 'column',
+    minWidth: '160px',
+    zIndex: 50,
+  },
+
+  cameraMenuMobileSheet: {
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: '24px',
+    borderTopRightRadius: '24px',
+    padding: '24px 16px 32px',
+    boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
+    zIndex: 1000,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+
+  mobileSheetOverlay: {
+    position: 'fixed',
+    inset: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 999,
+  },
+
+  menuItem: (isDanger) => ({
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    width: '100%',
+    padding: '10px 14px',
+    border: 'none',
+    borderRadius: RADIUS.sm,
+    color: isDanger ? COLORS.danger : COLORS.textPrimary,
+    fontSize: '0.95rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    textAlign: 'left',
+    minHeight: '44px',
+    transition: 'background-color 0.15s ease',
+  }),
+
+  bottomContent: {
+    position: 'relative',
+    marginTop: 'auto',
+    padding: '20px',
+    zIndex: 10,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+
+  titleWrapper: {
+    position: 'relative',
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    alignItems: 'flex-start',
+  },
+
+  regenerateBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '4px 10px',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    borderRadius: RADIUS.full,
+    color: '#ffffff',
+    fontSize: '0.8rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+    textShadow: '0px 1px 2px rgba(0,0,0,0.5)',
+  },
+
+  titleHint: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: '0.75rem',
+    fontWeight: '500',
+    textShadow: '0px 1px 3px rgba(0,0,0,0.8)',
+    marginTop: '2px',
+  },
+
+  titleAffordance: (isVisible) => ({
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: '0.75rem',
+    fontWeight: '500',
+    textShadow: '0px 1px 3px rgba(0,0,0,0.6)',
+    marginTop: '2px',
+    opacity: isVisible ? 1 : 0,
+    transition: 'opacity 0.2s ease',
+    pointerEvents: 'none',
+  }),
+
+  titleInput: {
+    width: '100%',
+    background: 'transparent',
+    border: 'none',
+    borderBottom: '1px dashed transparent',
+    outline: 'none',
+    color: '#ffffff',
+    fontFamily: FONTS.heading,
+    fontWeight: 800,
+    lineHeight: 1.2,
+    letterSpacing: '-0.02em',
+    padding: 0,
+    margin: 0,
+    caretColor: COLORS.atomicTangerine,
+    textShadow: '0px 1px 3px rgba(0,0,0,0.6), 0px 2px 8px rgba(0,0,0,0.4)',
+    resize: 'none',
+    overflow: 'hidden',
+    transition: 'border-color 0.2s',
+  },
+
+  titleInputFocus: {
+    borderBottom: '1px dashed rgba(255, 255, 255, 0.4)',
+  },
+
+  metaRow: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '8px',
+    alignItems: 'center',
+  },
+
+  glassPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '6px 12px',
+    borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    color: '#ffffff',
+    fontSize: '0.75rem',
+    fontWeight: '600',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+    textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+    minHeight: '32px',
+  },
+};

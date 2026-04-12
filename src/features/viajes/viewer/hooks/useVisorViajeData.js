@@ -127,7 +127,7 @@ export function useVisorViajeData({ viajeId, bitacoraData, bitacoraLista, usuari
         const viajeSnap = await getDoc(doc(db, 'usuarios', ownerId, 'viajes', viajeId));
         if (!mounted || !viajeSnap.exists()) return;
 
-        const tripFromOwner = { id: viajeSnap.id, ownerId, ...viajeSnap.data() };
+        const tripFromOwner = { ...viajeSnap.data(), id: viajeSnap.id, ownerId };
         setFallbackTrip(tripFromOwner);
         setFallbackOwnerId(ownerId);
         if (import.meta.env.DEV) {
@@ -190,7 +190,7 @@ export function useVisorViajeData({ viajeId, bitacoraData, bitacoraLista, usuari
     try {
       const ref = collection(db, `usuarios/${ownerUid}/viajes/${viajeId}/paradas`);
       const snap = await getDocs(ref);
-      const loaded = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const loaded = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
       setParadas(loaded.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)));
     } catch (err) {
       console.warn('Error reloading paradas:', err);
@@ -207,7 +207,7 @@ export function useVisorViajeData({ viajeId, bitacoraData, bitacoraLista, usuari
         const ref = collection(db, `usuarios/${ownerUid}/viajes/${viajeId}/paradas`);
         const snap = await getDocs(ref);
         if (!mounted) return;
-        const loaded = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const loaded = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
         setParadas(loaded.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)));
       } catch (err) {
         if (!mounted) return;
@@ -223,7 +223,7 @@ export function useVisorViajeData({ viajeId, bitacoraData, bitacoraLista, usuari
   }, [viajeId, ownerUid]);
 
   return {
-    viajeBase,
+    viajeBase: tripBase,
     hasViajeData,
     data,
     ownerUid,

@@ -20,7 +20,7 @@ export const styles = {
   },
 
   // ── Hero Card ──
-  heroCard: (levelColor) => ({
+  heroCard: () => ({
     background: `linear-gradient(145deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1)), linear-gradient(145deg, ${COLORS.linen} 0%, ${COLORS.surface} 60%)`,
     backgroundBlendMode: 'overlay',
     borderRadius: RADIUS.xl,

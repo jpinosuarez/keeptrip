@@ -94,9 +94,6 @@ test('deleting the last stop shows empty state and disables save', async ({ page
   const titleInput = page.getByLabel(/Trip title|Título del viaje/i);
   await expect(titleInput).toBeVisible({ timeout: 15000 });
 
-  const stopLabel = page.getByText('Delete Stop City', { exact: true });
-  await expect(stopLabel).toBeVisible({ timeout: 15000 });
-
   const stopItem = page.getByTestId('editor-stop-item').filter({ hasText: 'Delete Stop City' }).first();
   await expect(stopItem).toBeVisible({ timeout: 15000 });
 

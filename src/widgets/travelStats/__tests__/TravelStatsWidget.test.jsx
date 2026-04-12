@@ -12,18 +12,17 @@ vi.mock('react-i18next', async () => {
     useTranslation: () => ({
       t: (key) => {
         const translations = {
-          'stats.tripsCompleted': 'Trips completed',
+          'stats.completedTrips': 'Trips completed',
           'stats.totalDays': 'Total days',
           'stats.totalDaysHint': 'Days across all trips',
-          'stats.registeredCities': 'Registered cities',
-          'stats.citiesHint': 'Unique cities visited',
-          'stats.percentOfWorld': '% of World',
+          'stats.totalStops': 'Registered stops',
+          'stats.totalStopsHint': 'Stops across all trips',
+          'stats.uniqueCountries': 'Countries',
+          'stats.uniqueCountriesHint': 'Unique countries visited',
+          'stats.worldExploredPercentage': '% of World',
           'stats.percentHint': 'Of global 195 countries',
-          'stats.continents': 'Continents',
-          'stats.continentsHint': 'Continents explored',
-          'stats.experience': 'Experience',
-          'stats.exploration': 'Exploration',
-          'stats.additionalMetrics': 'Additional travel metrics',
+          'stats.emptyStateHint': 'No trips yet',
+          'stats.emptyStateMessage': 'Create your first trip',
         };
         return translations[key] || key;
       }
@@ -35,30 +34,23 @@ describe('TravelStatsWidget', () => {
   afterEach(() => cleanup());
 
   const mockLogStats = {
-    tripCount: 5,
+    completedTrips: 5,
     totalDays: 42,
-    totalCities: 8,
-    percentOfWorld: 4,
-    continents: 3,
-    averageRating: 4.5,
-    longestTrip: 14,
-    totalPhotos: 120,
+    totalStops: 8,
+    uniqueCountries: 4,
+    worldExploredPercentage: '4.0',
   };
 
   it('renders all stats in home variant with biography layout', () => {
-    render(
-      <TravelStatsWidget logStats={mockLogStats} ariaLabel="test" variant="home" />
-    );
+    render(<TravelStatsWidget logStats={mockLogStats} ariaLabel="test" variant="hero" />);
     expect(screen.getByRole('region', { name: 'test' })).toBeInTheDocument();
     expect(screen.getByText(/% of World/i)).toBeInTheDocument();
-    expect(screen.getByText(/Experience/i)).toBeInTheDocument();
-    expect(screen.getByText(/Exploration/i)).toBeInTheDocument();
+    expect(screen.getByText(/Countries/i)).toBeInTheDocument();
+    expect(screen.getByText(/Trips completed/i)).toBeInTheDocument();
   });
 
   it('renders compact layout in trips variant', () => {
-    render(
-      <TravelStatsWidget logStats={mockLogStats} ariaLabel="test" variant="trips" />
-    );
+    render(<TravelStatsWidget logStats={mockLogStats} ariaLabel="test" variant="compact" />);
     expect(screen.getByRole('region', { name: 'test' })).toBeInTheDocument();
     expect(screen.getByText(/% of World/i)).toBeInTheDocument();
   });

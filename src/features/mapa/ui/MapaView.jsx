@@ -171,20 +171,8 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   }, [paradas]);
 
   // Locate Me (geolocation)
-  const handleLocateMe = useCallback(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        mapRef.current?.flyTo({
-          center: [pos.coords.longitude, pos.coords.latitude],
-          zoom: 8,
-          duration: 1600,
-          essential: true,
-        });
-      },
-      () => { /* silent fail — geolocation denied */ }
-    );
-  }, []);
+  // Removed unused function handleLocateMe
+  
 
   // ── Render ───────────────────────────────────────────────────────────
   return (
