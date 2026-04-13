@@ -342,6 +342,7 @@ const EditorFocusPanel = ({
             paradas={effectiveParadas}
             onTituloChange={handleTituloChange}
             onToggleTituloAuto={() => setAutoTitleMode((prev) => !prev)}
+            onRegenerateTitle={() => setAutoTitleMode(true)}
           />
 
           {/* Itinerary / Stops */}

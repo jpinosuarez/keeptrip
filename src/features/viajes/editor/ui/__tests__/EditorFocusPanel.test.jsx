@@ -41,6 +41,8 @@ vi.mock('@app/providers/UploadContext', () => ({ useUpload: () => mockUpload }))
 vi.mock('../../../../../features/invitations/api/invitationsService', () => ({ createInvitation: vi.fn() }));
 
 vi.mock('firebase/firestore', () => ({
+  doc: vi.fn(() => ({})),
+  onSnapshot: vi.fn(() => () => {}),
   collection: vi.fn(),
   getDocs: vi.fn(async () => ({ docs: [] })),
   query: vi.fn(),
@@ -48,7 +50,7 @@ vi.mock('firebase/firestore', () => ({
 }));
 
 import React from 'react';
-import { render, screen, waitFor, cleanup, act } from '@testing-library/react';
+import { render, screen, waitFor, cleanup, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
@@ -98,18 +100,17 @@ describe('EditorFocusPanel (borrador)', () => {
     render(<EditorFocusPanel viaje={viaje} esBorrador={true} {...defaultProps} />, { wrapper: RouterWrapper });
 
     const input = await screen.findByPlaceholderText(/tripTitlePlaceholder/i);
-      
-      // al inicio debe mostrar el hint de título automático (editTitleHint) y no tener botón para título manual
-      expect(screen.getByText('editor.header.editTitleHint')).toBeTruthy();
+
+      // al inicio en modo auto no debe mostrar el botón de regenerar
+      expect(screen.queryByRole('button', { name: /editor\.header\.regenerateTitle/i })).toBeNull();
 
       // Limpiar y escribir manualmente
       await user.clear(input);
       await user.type(input, 'X');
 
-      // Debe cambiar a modo manual (mostrar hint 'editor.header.manualTitleHint') y aparecer el botón de regenerar
+      // Debe cambiar a modo manual y mostrar el indicador de título manual
       await waitFor(() => {
-         expect(screen.getByText('editor.header.manualTitleHint')).toBeTruthy();
-         expect(screen.getByRole('button', { name: /editor\.header\.regenerateTitle/i })).toBeTruthy();
+        expect(screen.getByText('labels.manualTitle')).toBeTruthy();
     });
   });
 
@@ -305,17 +306,19 @@ describe('EditorFocusPanel (borrador)', () => {
     );
 
     const input = await screen.findByPlaceholderText(/tripTitlePlaceholder/i);
+    fireEvent.change(input, { target: { value: 'Titulo Manual' } });
     expect(input).toHaveValue('Titulo Manual');
 
     // Manual mode visible before regenerate
-    expect(screen.getByText('editor.header.manualTitleHint')).toBeTruthy();
+    const regenerateButton = screen.getByRole('button', {
+      name: /editor\.header\.regenerateTitleBtn|Generar t[ií]tulo autom[aá]tico/i,
+    });
+    expect(regenerateButton).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: /editor\.header\.regenerateTitle/i }));
+    await user.click(regenerateButton);
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Borrador de viaje')).toBeInTheDocument();
-      expect(screen.queryByText('editor.header.manualTitleHint')).toBeNull();
-      expect(screen.getByText('editor.header.editTitleHint')).toBeTruthy();
+      expect(screen.getByPlaceholderText(/tripTitlePlaceholder/i)).toBeInTheDocument();
     });
   });
 

@@ -202,6 +202,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
             paradas={paradas}
             onTituloChange={handleTituloChange}
             onToggleTituloAuto={() => setIsTituloAuto((prev) => !prev)}
+            onRegenerateTitle={() => setIsTituloAuto(true)}
           />
           <div style={{ ...styles.body, paddingBottom: 'calc(16px + 64px)' }} className="custom-scroll">
             {/* Itinerary / Stops */}

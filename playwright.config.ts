@@ -5,6 +5,7 @@ export default defineConfig({
   timeout: 120000,
   expect: { timeout: 5000 },
   fullyParallel: false,
+  workers: 1,
   // Retries in CI to reduce flakiness on transient failures
   retries: process.env.CI ? 2 : 0,
   use: {
