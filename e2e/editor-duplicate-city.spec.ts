@@ -1,6 +1,44 @@
 import { test, expect } from '@playwright/test';
 import { e2eInitStorage, e2ePerformLogin, e2eCleanupTrip, mockAuthFlow } from './utils/e2e-auth';
 
+async function openSearchPalette(page) {
+  const searchInputByRole = page.getByRole('textbox', { name: /Search|Buscar/i }).first();
+  if (await searchInputByRole.isVisible().catch(() => false)) {
+    return searchInputByRole;
+  }
+
+  const addTripButton = page
+    .getByRole('button', { name: /Add Trip|Crear viaje|Agregar viaje|Registrar aventura/i })
+    .first();
+  if (await addTripButton.isVisible().catch(() => false)) {
+    await expect(addTripButton).toBeEnabled({ timeout: 10000 });
+    await addTripButton.click();
+  }
+
+  if (!(await searchInputByRole.isVisible().catch(() => false))) {
+    const openSearchButton = page.getByRole('button', { name: /Open search|Abrir búsqueda/i }).first();
+    if (await openSearchButton.isVisible().catch(() => false)) {
+      await openSearchButton.click();
+    }
+  }
+
+  if (!(await searchInputByRole.isVisible().catch(() => false))) {
+    await page.waitForFunction(() => typeof (window as any).__test_abrirSearchPalette === 'function');
+    await page.evaluate(() => (window as any).__test_abrirSearchPalette());
+  }
+
+  const searchInputByPlaceholder = page
+    .getByPlaceholder(/Type a country or city|Escribe un pais o ciudad|Escribe un país o ciudad|Type a country|ciudad/i)
+    .first();
+
+  if (await searchInputByRole.isVisible().catch(() => false)) {
+    return searchInputByRole;
+  }
+
+  await expect(searchInputByPlaceholder).toBeVisible({ timeout: 15000 });
+  return searchInputByPlaceholder;
+}
+
 test.describe('Duplicate city addition issue', () => {
   let initialTripId: string;
 
@@ -8,8 +46,6 @@ test.describe('Duplicate city addition issue', () => {
     await e2eInitStorage(page);
     await mockAuthFlow(page);
     await e2ePerformLogin(page);
-    await page.goto('/dashboard');
-    await page.waitForURL('**/dashboard**');
   });
 
   test.afterEach(async ({ page }) => {
@@ -27,36 +63,49 @@ test.describe('Duplicate city addition issue', () => {
       }
     });
 
-    // 1. Create a trip
-    await page.locator('[data-testid="create-trip-fab"], [data-testid="desktop-new-trip-btn"]').first().click();
-    await page.waitForSelector('[data-testid="city-manager-search"]');
+    // 1. Open global search palette and seed the first Madrid stop
+    const paletteSearchInput = await openSearchPalette(page);
+    await paletteSearchInput.fill('Madrid');
+
+    const resultCard = page.locator('[data-testid^="search-result-place-"]').first();
+    await expect(resultCard).toContainText(/Madrid/i, { timeout: 10000 });
+    await resultCard.click();
+
+    const reopenedTitleInput = page.getByLabel(/Trip title|Título del viaje/i);
+    await expect(reopenedTitleInput).toBeVisible({ timeout: 10000 });
+
+    // 2. Save initial trip
+    await page.getByRole('button', { name: /Save|Guardar/i }).first().click();
+    await expect(page.getByRole('button', { name: /Madrid/i }).first()).toBeVisible({ timeout: 20000 });
+
+    // Guardar ID si la ruta actual lo expone (puede variar según shell activo)
+    const firstSaveUrl = new URL(page.url());
+    initialTripId = firstSaveUrl.searchParams.get('editing') || '';
+
+    // Reabrir el viaje creado para continuar la edición
+    const createdTripButton = page.getByRole('button', { name: /Madrid/i }).first();
+    await expect(createdTripButton).toBeVisible({ timeout: 10000 });
+    await createdTripButton.click();
+
+    const titleInput = page.getByLabel(/Trip title|Título del viaje/i);
+    await expect(titleInput).toBeVisible({ timeout: 10000 });
+
+    // 3. Add "Madrid" again from the city manager input
+    const citySearchInput = page
+      .getByPlaceholder(/Type the city name|Escribe el nombre de la ciudad/i)
+      .first();
+    await expect(citySearchInput).toBeVisible({ timeout: 10000 });
+    await citySearchInput.fill('Madrid');
+
+    const addDestinationButton = page.getByRole('button', { name: /Agregar destino|Add destination|Agregar|Add/i }).first();
+    await expect(addDestinationButton).toBeVisible({ timeout: 10000 });
+    await addDestinationButton.click({ force: true });
     
-    // 2. Search for "Madrid"
-    await page.fill('[data-testid="city-manager-search"]', 'Madrid');
-    await page.waitForSelector('text=+ Agregar destino');
-    await page.locator('text=+ Agregar destino').first().click();
+    // 4. Save the trip again
+    await page.getByRole('button', { name: /Save|Guardar/i }).first().click();
+    await expect(page.getByRole('button', { name: /Madrid/i }).first()).toBeVisible({ timeout: 15000 });
 
-    // 3. Save the trip
-    await page.click('[data-testid="editor-save-btn"]');
-    await page.waitForSelector('text=Viaje guardado exitosamente');
-
-    // Guardar el ID del viaje creado leyendo la URL
-    await page.waitForURL(/.*editing=.+/);
-    const url = new URL(page.url());
-    initialTripId = url.searchParams.get('editing') || '';
-
-    // 4. Search for "Madrid" AGAIN
-    await page.fill('[data-testid="city-manager-search"]', 'Madrid');
-    await page.waitForSelector('text=+ Agregar destino');
-    
-    // 5. Add "Madrid" a second time
-    await page.locator('text=+ Agregar destino').first().click();
-    
-    // 6. Save the trip again
-    await page.click('[data-testid="editor-save-btn"]');
-    await page.waitForSelector('text=Viaje actualizado exitosamente');
-
-    // 7. Verify no key errors
+    // 5. Verify no key errors
     const keyErrors = errors.filter(e => e.includes('Encountered two children with the same key'));
     console.log('Key errors encountered:', keyErrors);
     expect(keyErrors).toHaveLength(0);

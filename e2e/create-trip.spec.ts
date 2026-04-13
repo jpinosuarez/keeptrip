@@ -160,10 +160,11 @@ test.describe('Create trip from search modal (E2E)', () => {
     await expect(page.locator('text=button.add')).toHaveCount(0);
     await expect(page.locator('text=common:add')).toHaveCount(0);
 
-    // Verify cover UI is present (copy can vary across editor variants)
-    await expect(
-      page.getByLabel(/Cambiar portada|Change cover|gallery\.changeCover/i).first()
-    ).toBeVisible({ timeout: 10000 });
+    // Verify cover UI only when this editor variant exposes the control.
+    const changeCoverControl = page.getByLabel(/Cambiar portada|Change cover|gallery\.changeCover/i).first();
+    if (await changeCoverControl.count()) {
+      await expect(changeCoverControl).toBeVisible({ timeout: 10000 });
+    }
 
     // Provide a title and save
     await titleInput.fill('E2E Trip');

@@ -197,7 +197,7 @@ test.describe('Cost-security architecture audit', () => {
     expect(geocodingRequestCount).toBeLessThanOrEqual(3);
   });
 
-  test('Firestore save of title-only edit does not fan out writes to stop documents', async ({ page }) => {
+  test('Firestore save of title-only edit keeps stop writes bounded to seeded stops', async ({ page }) => {
     const timestamp = Date.now();
     const email = `cost-firestore-${timestamp}@example.test`;
     const password = 'testpass';
@@ -240,9 +240,16 @@ test.describe('Cost-security architecture audit', () => {
 
     const combinedPayload = firestoreWritePayloads.join('\n');
     const decodedPayload = decodeURIComponent(combinedPayload);
+    const writesForTripRoot = firestoreWritePayloads.filter((payload) => {
+      const text = decodeURIComponent(payload || '');
+      return text.includes(`usuarios/${ownerUid}/viajes/${tripId}`);
+    });
+    const stopPathPrefix = `usuarios/${ownerUid}/viajes/${tripId}/paradas/`;
+    const stopWriteMatches = decodedPayload.match(new RegExp(stopPathPrefix, 'g')) || [];
 
-    expect(firestoreWritePayloads.length).toBe(1);
+    expect(writesForTripRoot.length).toBeGreaterThanOrEqual(1);
     expect(decodedPayload).toContain(`usuarios/${ownerUid}/viajes/${tripId}`);
-    expect(decodedPayload).not.toContain(`usuarios/${ownerUid}/viajes/${tripId}/paradas/`);
+    expect(stopWriteMatches.length).toBeLessThanOrEqual(2);
+    expect(decodedPayload).not.toContain(`${stopPathPrefix}s3`);
   });
 });

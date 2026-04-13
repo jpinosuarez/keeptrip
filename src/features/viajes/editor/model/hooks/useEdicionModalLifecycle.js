@@ -23,7 +23,7 @@ export function useEdicionModalLifecycle({
   const [isTituloAuto, setIsTituloAuto] = useState(true);
   const [titlePulse, setTitlePulse] = useState(false);
   const [isHydratingStops, setIsHydratingStops] = useState(false);
-  const language = i18n.language;
+  const language = i18n?.language || 'es';
 
   const titlePulseRef = useRef(null);
   const prevViajeIdRef = useRef(null);
