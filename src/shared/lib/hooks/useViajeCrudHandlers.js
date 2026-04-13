@@ -68,11 +68,6 @@ export function useViajeCrudHandlers({
         const tripDataWithStory = rebuildStoryMetadata(tripData, localStops);
         const createdTripId = await createTrip(tripDataWithStory, localStops);
 
-        if (createdTripId) {
-          setDraftTrip(null);
-          setInitialDraftCity(null);
-        }
-
         return createdTripId || null;
       }
 
@@ -104,8 +99,6 @@ export function useViajeCrudHandlers({
     updateTripDetails,
     updateStopsBatch,
     pushToast,
-    setDraftTrip,
-    setInitialDraftCity,
   ]);
 
   const closeTripEditor = useCallback(() => {

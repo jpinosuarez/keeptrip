@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, MapPin, Globe, Navigation } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { styles } from './InteractiveCardStack.styles';
 
 // Ensure we import TripCard
 import TripCard from '../../../../../widgets/tripGrid/ui/TripCard';
+import { mapLandingMockTripToCard } from '../../lib/mapLandingMockTripToCard';
 
 const springTransition = { type: 'spring', damping: 20, stiffness: 100 };
 
@@ -23,15 +24,13 @@ const InteractiveCardStack = ({ isMobile = false }) => {
   
   // High-fidelity fallback in case i18n is not ready or key is missing
   const fallbackHero = [
-    { id: "1", titulo: "Misterios de Kioto", mensaje: "Japón", paisCodigo: "JP", fechas: "Oct 2024 • 14 días", paradas: 6, coverUrl: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=90" },
-    { id: "2", titulo: "Expedición Patagonia", mensaje: "Argentina", paisCodigo: "AR", fechas: "Ene 2025 • 10 días", paradas: 4, coverUrl: "https://images.unsplash.com/photo-1526761122248-c31c93f8b2b9?auto=format&fit=crop&w=1200&q=90" },
-    { id: "3", titulo: "Fin de semana en París", mensaje: "Francia", paisCodigo: "FR", fechas: "Mar 2025 • 4 días", paradas: 2, coverUrl: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1200&q=90" }
+    { id: '1', titulo: 'Misterios de Kioto', paisCodigo: 'JP', fechaInicio: '2024-10-02', fechaFin: '2024-10-16', ciudades: 'Kioto, Nara, Osaka', coverUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=90' },
+    { id: '2', titulo: 'Expedición Patagonia', paisCodigo: 'AR', fechaInicio: '2025-01-11', fechaFin: '2025-01-21', ciudades: 'El Calafate, El Chalten, Ushuaia', coverUrl: 'https://images.unsplash.com/photo-1526761122248-c31c93f8b2b9?auto=format&fit=crop&w=1200&q=90' },
+    { id: '3', titulo: 'Fin de semana en Paris', paisCodigo: 'FR', fechaInicio: '2025-03-08', fechaFin: '2025-03-12', ciudades: 'Paris, Versalles', coverUrl: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1200&q=90' }
   ];
 
   // Robust array validation
   const HERO_CARDS = Array.isArray(heroData) && heroData.length > 0 ? heroData : fallbackHero;
-
-  console.log('Keeptrip - Hero Cards Data:', { length: HERO_CARDS.length, isI18n: Array.isArray(heroData) });
 
   const handleNextCard = () => {
     setActiveCardIndex((prev) => (prev + 1) % HERO_CARDS.length);
@@ -88,13 +87,7 @@ const InteractiveCardStack = ({ isMobile = false }) => {
                 >
                   <div style={{ pointerEvents: 'none', width: '100%', height: '100%' }}>
                     <TripCard 
-                      trip={{
-                        ...card,
-                        foto: card.coverUrl,
-                        fechaInicio: card.fechas,
-                        paradaCount: card.paradas,
-                        banderas: card.paisCodigo ? [`https://flagcdn.com/${card.paisCodigo.toLowerCase()}.svg`] : [],
-                      }} 
+                      trip={mapLandingMockTripToCard(card)}
                       isMobile={isMobile} 
                       variant="home" 
                     />

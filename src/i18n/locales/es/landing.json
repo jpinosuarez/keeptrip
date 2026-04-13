@@ -26,15 +26,15 @@
   },
   "mockTrips": {
     "hero": [
-      { "id": "1", "titulo": "Misterios de Kioto", "paisCodigo": "JP", "fechas": "Oct 2024 • 14 días", "paradas": 6, "coverUrl": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=90" },
-      { "id": "2", "titulo": "Expedición Patagonia", "paisCodigo": "AR", "fechas": "Ene 2025 • 10 días", "paradas": 4, "coverUrl": "https://images.unsplash.com/photo-1526761122248-c31c93f8b2b9?auto=format&fit=crop&w=1200&q=90" },
-      { "id": "3", "titulo": "Fin de semana en París", "paisCodigo": "FR", "fechas": "Mar 2025 • 4 días", "paradas": 2, "coverUrl": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1200&q=90" }
+      { "id": "1", "titulo": "Misterios de Kioto", "paisCodigo": "JP", "fechaInicio": "2024-10-02", "fechaFin": "2024-10-16", "ciudades": "Kioto, Nara, Osaka", "coverUrl": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "2", "titulo": "Expedición Patagonia", "paisCodigo": "AR", "fechaInicio": "2025-01-11", "fechaFin": "2025-01-21", "ciudades": "El Calafate, El Chalten, Ushuaia", "coverUrl": "https://images.unsplash.com/photo-1526761122248-c31c93f8b2b9?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "3", "titulo": "Fin de semana en París", "paisCodigo": "FR", "fechaInicio": "2025-03-08", "fechaFin": "2025-03-12", "ciudades": "París, Versalles", "coverUrl": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1200&q=90" }
     ],
     "grid": [
-      { "id": "4", "titulo": "Safari en el Serengeti", "paisCodigo": "TZ", "fechas": "Ago 2025", "paradas": 5, "coverUrl": "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=90" },
-      { "id": "5", "titulo": "Círculo Dorado", "paisCodigo": "IS", "fechas": "Nov 2025", "paradas": 3, "coverUrl": "https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=1200&q=90" },
-      { "id": "6", "titulo": "Roadtrip Costa Oeste", "paisCodigo": "US", "fechas": "Abr 2026", "paradas": 8, "coverUrl": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=90" },
-      { "id": "7", "titulo": "Verano en Amalfi", "paisCodigo": "IT", "fechas": "Jul 2026", "paradas": 4, "coverUrl": "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=90" }
+      { "id": "4", "titulo": "Safari en el Serengeti", "paisCodigo": "TZ", "fechaInicio": "2025-08-03", "fechaFin": "2025-08-11", "ciudades": "Arusha, Serengeti, Ngorongoro", "coverUrl": "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "5", "titulo": "Círculo Dorado", "paisCodigo": "IS", "fechaInicio": "2025-11-14", "fechaFin": "2025-11-18", "ciudades": "Reikiavik, Geysir, Gullfoss", "coverUrl": "https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "6", "titulo": "Roadtrip Costa Oeste", "paisCodigo": "US", "fechaInicio": "2026-04-05", "fechaFin": "2026-04-17", "ciudades": "Los Angeles, San Francisco, Yosemite", "coverUrl": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=90" },
+      { "id": "7", "titulo": "Verano en Amalfi", "paisCodigo": "IT", "fechaInicio": "2026-07-02", "fechaFin": "2026-07-08", "ciudades": "Napoles, Positano, Amalfi", "coverUrl": "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=90" }
     ]
   },
   "footer": {

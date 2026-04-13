@@ -156,11 +156,7 @@ const EditorFocusPanel = ({
     t,
     limpiarEstado,
     onClose,
-    onAfterSave: () => {
-      // Refresh initial state after successful save
-      initialFormDataRef.current = structuredClone(effectiveFormData);
-      initialParadasRef.current = structuredClone(effectiveParadas);
-    },
+    autoFinalize: false,
   });
 
   // Manual save wrapper with loading state

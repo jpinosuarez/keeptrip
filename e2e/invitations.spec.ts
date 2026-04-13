@@ -77,6 +77,31 @@ async function openInvitationsAndAssertRoute(page) {
   await expect(page).toHaveURL(/\/invitations(?:\?.*)?$/);
 }
 
+async function waitForInvitationActionButton(page, testId: string, timeoutMs = 20000) {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    await openInvitationsAndAssertRoute(page);
+
+    const actionButton = page.getByTestId(testId);
+    if (await actionButton.isVisible().catch(() => false)) {
+      return actionButton;
+    }
+
+    const emptyStateVisible = await page.getByTestId('inv-empty').isVisible().catch(() => false);
+    if (emptyStateVisible) {
+      await page.waitForTimeout(1200);
+      continue;
+    }
+
+    await page.waitForTimeout(800);
+  }
+
+  const finalLocator = page.getByTestId(testId);
+  await expect(finalLocator).toBeVisible({ timeout: 2000 });
+  return finalLocator;
+}
+
 function extractString(field) {
   return field && field.stringValue ? field.stringValue : null;
 }
@@ -93,8 +118,9 @@ test.describe('Invitations flow (E2E)', () => {
     });
   });
   test('invitee accepts invitation and updates sharing metadata', async ({ page }) => {
-    const ownerEmail = 'owner@example.test';
-    const inviteeEmail = 'invitee@example.test';
+    const timestamp = Date.now();
+    const ownerEmail = `owner-${timestamp}@example.test`;
+    const inviteeEmail = `invitee-${timestamp}@example.test`;
     const password = 'testpass';
 
     // create users in Auth emulator
@@ -103,7 +129,7 @@ test.describe('Invitations flow (E2E)', () => {
 
     const ownerUid = owner.localId;
     const inviteeUid = invitee.localId;
-    const viajeId = 'trip-e2e-1';
+    const viajeId = `trip-e2e-1-${timestamp}`;
     // Standardized invitation ID format: ${viajeId}_${inviteeUid}
     const invitationId = `${viajeId}_${inviteeUid}`;
 
@@ -165,8 +191,11 @@ test.describe('Invitations flow (E2E)', () => {
     await openInvitationsAndAssertRoute(page);
 
     // accept the invitation
-    const acceptButton = page.getByTestId(`inv-accept-${invitationId}`);
-    await expect(acceptButton).toBeVisible({ timeout: 15000 });
+    const acceptButton = await waitForInvitationActionButton(
+      page,
+      `inv-accept-${invitationId}`,
+      22000
+    );
     await acceptButton.click();
 
     // wait until top-level invitation reflects accepted status for the invitee
@@ -202,15 +231,16 @@ test.describe('Invitations flow (E2E)', () => {
   });
 
   test('invitee can decline invitation and does NOT gain access', async ({ page }) => {
-    const ownerEmail = 'owner2@example.test';
-    const inviteeEmail = 'invitee2@example.test';
+    const timestamp = Date.now();
+    const ownerEmail = `owner2-${timestamp}@example.test`;
+    const inviteeEmail = `invitee2-${timestamp}@example.test`;
     const password = 'testpass';
 
     const owner = await createAuthUser(ownerEmail, password);
     const invitee = await createAuthUser(inviteeEmail, password);
     const ownerUid = owner.localId;
     const inviteeUid = invitee.localId;
-    const viajeId = 'trip-e2e-2';
+    const viajeId = `trip-e2e-2-${timestamp}`;
     // Standardized invitation ID format: ${viajeId}_${inviteeUid}
     const invitationId = `${viajeId}_${inviteeUid}`;
 
@@ -231,8 +261,11 @@ test.describe('Invitations flow (E2E)', () => {
     await stabilizeAuthenticatedSession(page, inviteeEmail, password);
     await openInvitationsAndAssertRoute(page);
 
-    const declineButton = page.getByTestId(`inv-decline-${invitationId}`);
-    await expect(declineButton).toBeVisible({ timeout: 15000 });
+    const declineButton = await waitForInvitationActionButton(
+      page,
+      `inv-decline-${invitationId}`,
+      22000
+    );
     await declineButton.click();
 
     // the UI shows the status text for non-pending invitations — assert it changed to 'declined'

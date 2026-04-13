@@ -18,7 +18,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev -- --port 5173',
     port: 5173,
-    reuseExistingServer: true,
+    reuseExistingServer: false,
     env: {
       VITE_USE_EMULATORS: 'true',
       VITE_ENABLE_TEST_LOGIN: 'true',

@@ -158,6 +158,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
             visibleRecentTrips.map((trip, index) => {
               const isThreeItems = visibleRecentTrips.length === 3;
               const isFirstOfThree = isThreeItems && index === 0;
+              const enrichedTrip = tripDataMap[trip.id] || trip;
               return (
                 <div 
                   key={trip.id} 
@@ -169,7 +170,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
                   }}
                 >
                   <TripCard 
-                    trip={trip} 
+                    trip={enrichedTrip} 
                     isMobile={isMobileLayout} 
                     variant="home"
                     onClick={() => openTripEditor(trip.id)} 

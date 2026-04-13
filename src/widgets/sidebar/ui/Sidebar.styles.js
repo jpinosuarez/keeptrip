@@ -58,12 +58,12 @@ export const mediaStyles = `
     position: fixed;
     top: 0;
     left: 0;
-    height: 100vh;
+    height: 100dvh;
     width: 80px; /* Slim rail */
     background: transparent;
     flex-direction: column;
     align-items: center;
-    padding: 24px 0;
+    padding: max(24px, env(safe-area-inset-top, 0px)) 0 24px;
     z-index: ${Z_INDEX.sticky};
     border-right: 1px solid rgba(0,0,0,0.05); /* Very subtle if any */
   }

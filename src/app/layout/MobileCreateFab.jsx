@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
-import { COLORS, SHADOWS } from '@shared/config';
+import { COLORS, SHADOWS, Z_INDEX } from '@shared/config';
 import { useUI } from '@app/providers/UIContext';
 import { useTranslation } from 'react-i18next';
 
@@ -21,7 +21,7 @@ const MobileCreateFab = () => {
       disabled={isReadOnlyMode}
       style={{
         position: 'fixed',
-        bottom: '24px',
+        bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
         right: '24px',
         width: '56px',
         height: '56px',
@@ -33,7 +33,7 @@ const MobileCreateFab = () => {
         alignItems: 'center',
         justifyContent: 'center',
         boxShadow: `0 8px 24px ${COLORS.atomicTangerine}60, 0 4px 12px rgba(0,0,0,0.2)`,
-        zIndex: 1000, 
+        zIndex: Z_INDEX.sticky + 1,
         cursor: isReadOnlyMode ? 'not-allowed' : 'pointer',
         opacity: isReadOnlyMode ? 0.55 : 1,
       }}

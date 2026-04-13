@@ -7,6 +7,16 @@ Este proyecto usa emuladores para el desarrollo diario y un proyecto Firebase de
 - Desarrollo diario (emuladores): `npm run dev`
 - Staging (Firebase real): `npm run dev:staging`
 
+### Emuladores con UID estable (recomendado para kill switch)
+
+Para que el UID de Authentication no cambie en cada reinicio, ejecuta emuladores con import/export persistente:
+
+- Terminal 1: `npm run emulators:start:persist`
+- Terminal 2: `npm run dev`
+
+Esto guarda el estado local en `.emulator-data/` y lo reutiliza al siguiente arranque.
+Si cambias `VITE_FOUNDER_UID` en `.env.local`, reinicia `npm run dev` para que Vite tome el nuevo valor.
+
 Mas detalle en [docs/flujo-entornos.md](docs/flujo-entornos.md).
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "dev:staging": "vite --mode staging",
+    "emulators:start:persist": "firebase emulators:start --only auth,firestore,storage --project keeptrip-app-b06b3 --import ./.emulator-data --export-on-exit",
+    "emulators:exec:persist": "firebase emulators:exec --only auth,firestore,storage --project keeptrip-app-b06b3 --import ./.emulator-data --export-on-exit",
     "build": "vite build",
     "build:staging": "vite build --mode staging",
     "deploy:staging": "npm run build:staging && firebase deploy --only hosting --project staging",

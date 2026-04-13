@@ -87,7 +87,9 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: isMobile ? '0 16px' : '0 24px',
+        padding: isMobile
+          ? 'var(--safe-area-top-padding) 16px 8px 16px'
+          : 'var(--safe-area-top-padding) 24px 8px 24px',
         gap: isMobile ? '8px' : '16px',
         // Ambient Glass BG — Framer Motion MotionValues, animates outside React render cycle
         backgroundColor: animBgColor,

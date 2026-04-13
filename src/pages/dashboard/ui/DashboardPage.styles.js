@@ -7,7 +7,7 @@ export const styles = {
     minWidth: 0,
     ...(isDesktop
       ? {
-          height: '100vh',
+          height: '100dvh',
           overflow: 'hidden',
           display: 'grid',
           gridTemplateColumns: 'minmax(350px, 5fr) minmax(400px, 7fr)',

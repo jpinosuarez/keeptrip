@@ -15,6 +15,8 @@ service cloud.firestore {
         && request.auth.uid in [
           // Local/dev founder UID (.env.local)
           'f8a2ANPUI4VW8SOzUmcJtFumOFSm',
+          // Local/dev founder UID (current)
+          'jXpeKNBz9YjRyHm5LFWIANCIpGv3',
           // Staging founder UID
           '8qWhUsYQBXO3bCiMXen8qiIYAUA2',
           // Production founder UID

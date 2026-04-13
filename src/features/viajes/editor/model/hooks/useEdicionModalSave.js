@@ -25,6 +25,7 @@ export function useEdicionModalSave({
   limpiarEstado,
   onClose,
   onAfterSave,
+  autoFinalize = true,
 }) {
   const {
     flags: { level: operationalLevel },
@@ -144,11 +145,13 @@ export function useEdicionModalSave({
         }
       }
 
-      limpiarEstado();
-      if (onAfterSave) {
-        onAfterSave(savedTripId);
-      } else {
-        onClose();
+      if (autoFinalize) {
+        limpiarEstado();
+        if (onAfterSave) {
+          onAfterSave(savedTripId);
+        } else {
+          onClose();
+        }
       }
 
       return savedTripId;

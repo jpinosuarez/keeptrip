@@ -109,9 +109,14 @@ export const useViajes = () => {
   const [bitacora, setBitacora] = useState([]);
   const [bitacoraData, setBitacoraData] = useState({});
   const [todasLasParadas, setTodasLasParadas] = useState([]);
+  const allStopsRef = useRef([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [fetchError, setFetchError] = useState(null);
+
+  useEffect(() => {
+    allStopsRef.current = Array.isArray(todasLasParadas) ? todasLasParadas : [];
+  }, [todasLasParadas]);
 
   const bitacoraDataHydrated = useMemo(
     () => construirBitacoraData(bitacora, todasLasParadas),
@@ -171,7 +176,8 @@ export const useViajes = () => {
               !viajesConOwner.some((viaje) => viaje.id === item.id)
           );
           const next = [...viajesConOwner, ...pendingPersonal, ...compartidos];
-          setBitacoraData(construirBitacoraData(next));
+          const sharedStops = allStopsRef.current.filter((item) => item.ownerId !== userUid);
+          setBitacoraData(construirBitacoraData(next, [...paradasConOwner, ...sharedStops]));
           return next;
         });
         setTodasLasParadas((prev) => {
@@ -205,7 +211,7 @@ export const useViajes = () => {
         const personales = prev.filter((item) => item.ownerId === userUid);
         const compartidos = prev.filter((item) => item.ownerId !== userUid && `${item.ownerId}/${item.id}` !== key);
         const next = [...personales, ...compartidos, { ...viaje, ownerId }];
-        setBitacoraData(construirBitacoraData(next));
+        setBitacoraData(construirBitacoraData(next, allStopsRef.current));
         return next;
       });
     };
@@ -215,7 +221,10 @@ export const useViajes = () => {
 
       setBitacora((prev) => {
         const next = prev.filter((item) => `${item.ownerId}/${item.id}` !== key);
-        setBitacoraData(construirBitacoraData(next));
+        const nextStops = allStopsRef.current.filter(
+          (parada) => !(parada.ownerId === ownerId && parada.viajeId === viajeId)
+        );
+        setBitacoraData(construirBitacoraData(next, nextStops));
         return next;
       });
 
@@ -416,10 +425,16 @@ export const useViajes = () => {
       paradas: paradasProcesadas,
       isPending: true
     };
+    const optimisticStops = paradasProcesadas.map((parada, index) => ({
+      ...parada,
+      id: parada.id || `optimistic-stop-${optimisticTripId}-${index}`,
+      viajeId: optimisticTripId,
+      ownerId: usuario.uid,
+    }));
     pendingTripIdsRef.current.add(optimisticTripId);
     setBitacora((prev) => {
       const next = [optimisticTrip, ...prev.filter((item) => item.id !== optimisticTripId)];
-      setBitacoraData(construirBitacoraData(next));
+      setBitacoraData(construirBitacoraData(next, [...allStopsRef.current, ...optimisticStops]));
       return next;
     });
 
@@ -456,6 +471,12 @@ export const useViajes = () => {
         paradas: paradasProcesadas,
         isPending: true,
       };
+      const persistedStops = paradasProcesadas.map((parada, index) => ({
+        ...parada,
+        id: parada.id || `optimistic-stop-${viajeId}-${index}`,
+        viajeId,
+        ownerId: usuario.uid,
+      }));
       setBitacora((prev) => {
         const withoutPending = prev.filter((item) => item.id !== optimisticTripId);
         const hasSyncedTrip = withoutPending.some((item) => item.id === viajeId);
@@ -465,7 +486,7 @@ export const useViajes = () => {
         const next = hasSyncedTrip
           ? withoutPending.map((item) => (item.id === viajeId ? { ...item, isPending: false } : item))
           : [persistedTrip, ...withoutPending];
-        setBitacoraData(construirBitacoraData(next));
+        setBitacoraData(construirBitacoraData(next, [...allStopsRef.current, ...persistedStops]));
         return next;
       });
 
@@ -499,7 +520,7 @@ export const useViajes = () => {
       pendingTripIdsRef.current.delete(optimisticTripId);
       setBitacora((prev) => {
         const next = prev.filter((item) => item.id !== optimisticTripId);
-        setBitacoraData(construirBitacoraData(next));
+        setBitacoraData(construirBitacoraData(next, allStopsRef.current));
         return next;
       });
       logger.error('Error guardando viaje', { 
@@ -590,7 +611,7 @@ export const useViajes = () => {
 
       setBitacora((prev) => {
         const next = prev.map((viaje) => (viaje.id === id ? updatedViaje : viaje));
-        setBitacoraData(construirBitacoraData(next));
+        setBitacoraData(construirBitacoraData(next, allStopsRef.current));
         return next;
       });
 

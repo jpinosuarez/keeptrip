@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
-import { Map, BarChart2, Camera, MapPin, Globe, CalendarDays } from 'lucide-react';
+import { Map, BarChart2, Camera, MapPin, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { COLORS, SHADOWS } from '@shared/config';
 import { WorldMapSVG } from '@shared/ui/components/WorldMapSVG';
 import { styles } from './BentoFeatures.styles';
 import TripCard from '../../../../../widgets/tripGrid/ui/TripCard';
+import { mapLandingMockTripToCard } from '../../lib/mapLandingMockTripToCard';
 
 const springTransition = { type: 'spring', damping: 20, stiffness: 100 };
 
@@ -26,10 +27,10 @@ const BentoFeatures = () => {
 
   const rawGridCards = t('landing:mockTrips.grid', { returnObjects: true });
   const fallbackGrid = [
-    { id: "4", titulo: "Safari en el Serengeti", mensaje: "Tanzania", paisCodigo: "TZ", fechas: "Ago 2025", paradas: 5, coverUrl: "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=90" },
-    { id: "5", titulo: "Círculo Dorado", mensaje: "Islandia", paisCodigo: "IS", fechas: "Nov 2025", paradas: 3, coverUrl: "https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=1200&q=90" },
-    { id: "6", titulo: "Roadtrip Costa Oeste", mensaje: "USA", paisCodigo: "US", fechas: "Abr 2026", paradas: 8, coverUrl: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=90" },
-    { id: "7", titulo: "Verano en Amalfi", mensaje: "Italia", paisCodigo: "IT", fechas: "Jul 2026", paradas: 4, coverUrl: "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=90" }
+    { id: '4', titulo: 'Safari en el Serengeti', paisCodigo: 'TZ', fechaInicio: '2025-08-03', fechaFin: '2025-08-11', ciudades: 'Arusha, Serengeti, Ngorongoro', coverUrl: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=90' },
+    { id: '5', titulo: 'Circulo Dorado', paisCodigo: 'IS', fechaInicio: '2025-11-14', fechaFin: '2025-11-18', ciudades: 'Reikiavik, Geysir, Gullfoss', coverUrl: 'https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=1200&q=90' },
+    { id: '6', titulo: 'Roadtrip Costa Oeste', paisCodigo: 'US', fechaInicio: '2026-04-05', fechaFin: '2026-04-17', ciudades: 'Los Angeles, San Francisco, Yosemite', coverUrl: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=90' },
+    { id: '7', titulo: 'Verano en Amalfi', paisCodigo: 'IT', fechaInicio: '2026-07-02', fechaFin: '2026-07-08', ciudades: 'Napoles, Positano, Amalfi', coverUrl: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=90' }
   ];
   const mockGrid = Array.isArray(rawGridCards) && rawGridCards.length > 0 ? rawGridCards : fallbackGrid;
 
@@ -155,13 +156,7 @@ const BentoFeatures = () => {
             >
               <div style={{ height: '220px', pointerEvents: 'none' }}>
                 <TripCard 
-                  trip={{
-                    ...card,
-                    foto: card.coverUrl,
-                    fechaInicio: card.fechas,
-                    paradaCount: card.paradas,
-                    banderas: card.paisCodigo ? [`https://flagcdn.com/${card.paisCodigo.toLowerCase()}.svg`] : [],
-                  }}
+                  trip={mapLandingMockTripToCard(card)}
                   isMobile={true}
                   variant="list"
                 />

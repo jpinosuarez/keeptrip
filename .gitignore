@@ -27,6 +27,7 @@ playwright-report/
 
 # Firebase Emulator & Local Debug Artifacts
 firestore-debug.log
+.emulator-data/
 *.log
 
 # Editor directories and files

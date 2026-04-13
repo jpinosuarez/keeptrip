@@ -107,9 +107,12 @@ test.describe('Editor Auto-Title Reactivity (E2E)', () => {
 // 3. Open editor
     await openEditorByTripId(page, tripId);
     
-    // Verify initial title
+    // Existing trips now open in auto-title mode.
+    // Verify the initial value is already the generated title from seeded stops.
     const titleInput = page.getByLabel(/Trip title|Título del viaje/i);
-    await expect(titleInput).toHaveValue(initialSavedTitle);
+    await expect(titleInput).toHaveValue(/New York/);
+    await expect(titleInput).toHaveValue(/Boston/);
+    await expect(titleInput).not.toHaveValue(initialSavedTitle);
 
     // 5. Type to force manual mode
     await titleInput.fill('My Forced Manual Title');
@@ -118,8 +121,7 @@ test.describe('Editor Auto-Title Reactivity (E2E)', () => {
     const regenerateBtn = page.getByRole('button', { name: /Generar|Regenerate/i });
     await regenerateBtn.click();
 
-    // 6. Verify title changed to an auto-title (e.g. including New York and Boston)
-    await expect(titleInput).not.toHaveValue(initialSavedTitle);
+    // 6. Verify title is in auto mode (including New York and Boston)
     await expect(titleInput).toHaveValue(/New York/);
     await expect(titleInput).toHaveValue(/Boston/);
 
