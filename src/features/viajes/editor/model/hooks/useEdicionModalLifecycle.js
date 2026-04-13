@@ -32,8 +32,26 @@ export function useEdicionModalLifecycle({
   const initializedParadasRef = useRef(false);
   const hasHydratedRef = useRef(false);
   const hasHydratedStopsRef = useRef(false);
+  const prevIsHydratingStopsRef = useRef(false);
+  const previousAutoModeRef = useRef(true);
+  const initialStopsSignatureRef = useRef(null);
+  const hasStopsChangedSinceOpenRef = useRef(false);
+  const deferAutoTitleUntilStopsChangeRef = useRef(false);
   const formDataRef = useRef(formData);
   const tRef = useRef(t);
+
+  const buildStopsSignature = useCallback((stops = []) => {
+    const safeStops = Array.isArray(stops) ? stops : [];
+    const normalized = safeStops.map((stop) => ({
+      id: stop?.id || null,
+      nombre: stop?.nombre || '',
+      paisCodigo: stop?.paisCodigo || stop?.countryCode || stop?.code || '',
+      fecha: stop?.fecha || stop?.fechaLlegada || stop?.fechaSalida || '',
+      lat: Array.isArray(stop?.coordenadas) ? stop.coordenadas[1] ?? null : null,
+      lng: Array.isArray(stop?.coordenadas) ? stop.coordenadas[0] ?? null : null,
+    }));
+    return JSON.stringify(normalized);
+  }, []);
 
   useEffect(() => {
     formDataRef.current = formData;
@@ -60,6 +78,11 @@ export function useEdicionModalLifecycle({
       initializedParadasRef.current = false; // Reset flag when trip changes
       hasHydratedRef.current = false;
       hasHydratedStopsRef.current = false;
+      prevIsHydratingStopsRef.current = false;
+      previousAutoModeRef.current = true;
+      initialStopsSignatureRef.current = null;
+      hasStopsChangedSinceOpenRef.current = false;
+      deferAutoTitleUntilStopsChangeRef.current = false;
     }
   }, [setCaptionDrafts, setGalleryFiles, setGalleryPortada, viaje?.id]);
 
@@ -76,6 +99,11 @@ export function useEdicionModalLifecycle({
       initSignatureRef.current = null;
       hasHydratedRef.current = false;
       hasHydratedStopsRef.current = false;
+      prevIsHydratingStopsRef.current = false;
+      previousAutoModeRef.current = true;
+      initialStopsSignatureRef.current = null;
+      hasStopsChangedSinceOpenRef.current = false;
+      deferAutoTitleUntilStopsChangeRef.current = false;
       return;
     }
 
@@ -136,7 +164,12 @@ export function useEdicionModalLifecycle({
       companions: viaje.companions || [],
     });
 
-    setIsTituloAuto(!viaje.titulo || viaje.titulo.trim() === '');
+    const hasStoredTitle = Boolean(viaje.titulo && viaje.titulo.trim());
+    // Existing trips start in auto mode to react on the first stop mutation.
+    setIsTituloAuto(esBorrador ? !hasStoredTitle : true);
+    deferAutoTitleUntilStopsChangeRef.current = !esBorrador && hasStoredTitle;
+    hasStopsChangedSinceOpenRef.current = false;
+    initialStopsSignatureRef.current = null;
 
     if (esBorrador && ciudadInicial) {
       setIsHydratingStops(false);
@@ -176,6 +209,7 @@ export function useEdicionModalLifecycle({
             const tituloEsperado = generarTituloInteligente(paradasOrdenadas, tRef.current, language);
             if (viaje.titulo === tituloEsperado) {
               setIsTituloAuto(true);
+              deferAutoTitleUntilStopsChangeRef.current = false;
             }
           }
         } catch {
@@ -216,8 +250,43 @@ export function useEdicionModalLifecycle({
       hasHydratedRef.current = false;
       hasHydratedStopsRef.current = false;
       initSignatureRef.current = null;
+      prevIsHydratingStopsRef.current = false;
+      previousAutoModeRef.current = true;
+      initialStopsSignatureRef.current = null;
+      hasStopsChangedSinceOpenRef.current = false;
+      deferAutoTitleUntilStopsChangeRef.current = false;
     };
   }, [setCaptionDrafts, setFormData, setGalleryFiles, setGalleryPortada, setParadas]);
+
+  useEffect(() => {
+    // Explicit re-activation (manual -> auto) should regenerate immediately.
+    if (isTituloAuto && !previousAutoModeRef.current) {
+      deferAutoTitleUntilStopsChangeRef.current = false;
+    }
+    previousAutoModeRef.current = isTituloAuto;
+  }, [isTituloAuto]);
+
+  useEffect(() => {
+    if (!isTituloAuto) return;
+
+    const currentSignature = buildStopsSignature(paradas);
+
+    if (isHydratingStops) {
+      prevIsHydratingStopsRef.current = true;
+      return;
+    }
+
+    if (initialStopsSignatureRef.current === null || prevIsHydratingStopsRef.current) {
+      initialStopsSignatureRef.current = currentSignature;
+      hasStopsChangedSinceOpenRef.current = false;
+      prevIsHydratingStopsRef.current = false;
+      return;
+    }
+
+    if (currentSignature !== initialStopsSignatureRef.current) {
+      hasStopsChangedSinceOpenRef.current = true;
+    }
+  }, [buildStopsSignature, isHydratingStops, isTituloAuto, paradas]);
 
   // Effect 1 (Hydration): habilita el motor reactivo y define estado inicial del titulo
   useEffect(() => {
@@ -234,6 +303,13 @@ export function useEdicionModalLifecycle({
     if (!hasHydratedRef.current) {
       hasHydratedRef.current = true;
 
+      if (
+        deferAutoTitleUntilStopsChangeRef.current &&
+        !hasStopsChangedSinceOpenRef.current
+      ) {
+        return;
+      }
+
       if (isTituloAuto) {
         const tituloAuto = generarTituloInteligente(paradas, tRef.current, language);
         if (tituloAuto !== currentFormData.titulo) {
@@ -249,6 +325,13 @@ export function useEdicionModalLifecycle({
   // Effect 2 (Reactive Engine): reacciona a paradas + modo auto después de hidratar
   useEffect(() => {
     if (!hasHydratedRef.current || !isTituloAuto) return;
+
+    if (
+      deferAutoTitleUntilStopsChangeRef.current &&
+      !hasStopsChangedSinceOpenRef.current
+    ) {
+      return;
+    }
 
     const currentFormData = formDataRef.current || {};
     const tituloAuto = generarTituloInteligente(paradas, tRef.current, language);

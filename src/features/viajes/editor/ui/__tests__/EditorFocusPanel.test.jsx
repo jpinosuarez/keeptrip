@@ -50,7 +50,7 @@ vi.mock('firebase/firestore', () => ({
 }));
 
 import React from 'react';
-import { render, screen, waitFor, cleanup, act, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, cleanup, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
@@ -101,16 +101,18 @@ describe('EditorFocusPanel (borrador)', () => {
 
     const input = await screen.findByPlaceholderText(/tripTitlePlaceholder/i);
 
-      // al inicio en modo auto no debe mostrar el botón de regenerar
-      expect(screen.queryByRole('button', { name: /editor\.header\.regenerateTitle/i })).toBeNull();
+    // Al inicio en modo auto muestra hint de edición y no muestra botón de regenerar
+    expect(screen.getByText('editor.header.editTitleHint')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /editor\.header\.regenerateTitle/i })).toBeNull();
 
-      // Limpiar y escribir manualmente
-      await user.clear(input);
-      await user.type(input, 'X');
+    // Limpiar y escribir manualmente
+    await user.clear(input);
+    await user.type(input, 'X');
 
-      // Debe cambiar a modo manual y mostrar el indicador de título manual
-      await waitFor(() => {
-        expect(screen.getByText('labels.manualTitle')).toBeTruthy();
+    // Debe cambiar a modo manual y mostrar el indicador + botón para regenerar
+    await waitFor(() => {
+      expect(screen.getByText('editor.header.manualTitleHint')).toBeTruthy();
+      expect(screen.getByRole('button', { name: /editor\.header\.regenerateTitle/i })).toBeTruthy();
     });
   });
 
@@ -285,8 +287,7 @@ describe('EditorFocusPanel (borrador)', () => {
     });
   });
 
-  test('en viaje existente permite regenerar titulo automatico', async () => {
-    const user = userEvent.setup();
+  test('en viaje existente inicia en modo auto y oculta regenerar', async () => {
     render(
       <EditorFocusPanel
         viaje={{
@@ -305,21 +306,11 @@ describe('EditorFocusPanel (borrador)', () => {
       { wrapper: RouterWrapper }
     );
 
-    const input = await screen.findByPlaceholderText(/tripTitlePlaceholder/i);
-    fireEvent.change(input, { target: { value: 'Titulo Manual' } });
-    expect(input).toHaveValue('Titulo Manual');
-
-    // Manual mode visible before regenerate
-    const regenerateButton = screen.getByRole('button', {
-      name: /editor\.header\.regenerateTitleBtn|Generar t[ií]tulo autom[aá]tico/i,
-    });
-    expect(regenerateButton).toBeTruthy();
-
-    await user.click(regenerateButton);
-
     await waitFor(() => {
-      expect(screen.getByPlaceholderText(/tripTitlePlaceholder/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/tripTitlePlaceholder/i)).toHaveValue('Titulo Manual');
     });
+
+    expect(screen.queryByRole('button', { name: /editor\.header\.regenerateTitle/i })).toBeNull();
   });
 
   test('en modo auto el titulo se recalcula al cambiar paradas', async () => {
@@ -408,6 +399,77 @@ describe('EditorFocusPanel (borrador)', () => {
 
     await waitFor(() => {
       expect(screen.getByDisplayValue('Viaje a Madrid')).toBeInTheDocument();
+    });
+  });
+
+  test('en viaje existente auto-regenera al primer cambio de paradas sin click en regenerar', async () => {
+    const ControlledExistingEditor = () => {
+      const [controlledFormData, setControlledFormData] = React.useState({
+        id: 'trip-003',
+        titulo: 'Aventura Iberica',
+        nombreEspanol: 'España',
+        fechaInicio: '2024-07-01',
+        fechaFin: '2024-07-04',
+      });
+      const [controlledParadas, setControlledParadas] = React.useState([]);
+
+      return (
+        <>
+          <button
+            type="button"
+            onClick={() => {
+              setControlledParadas((prev) => [
+                ...prev,
+                {
+                  id: `existing-${prev.length + 1}`,
+                  nombre: 'Barcelona',
+                  coordenadas: [2.1734, 41.3851],
+                  fecha: '2024-07-02',
+                  paisCodigo: 'ES',
+                },
+              ]);
+            }}
+          >
+            add-stop-existing
+          </button>
+          <EditorFocusPanel
+            viaje={{
+              id: 'trip-003',
+              nombreEspanol: 'España',
+              code: 'ES',
+              titulo: 'Aventura Iberica',
+              fechaInicio: '2024-07-01',
+              fechaFin: '2024-07-04',
+            }}
+            formData={controlledFormData}
+            setFormData={setControlledFormData}
+            paradas={controlledParadas}
+            setParadas={setControlledParadas}
+            esBorrador={false}
+            onClose={vi.fn()}
+            onSave={vi.fn(async () => true)}
+            isSaving={false}
+          />
+        </>
+      );
+    };
+
+    const user = userEvent.setup();
+    render(<ControlledExistingEditor />, { wrapper: RouterWrapper });
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Aventura Iberica')).toBeInTheDocument();
+    });
+
+    // Existing trip opens in auto mode: regenerate button should not be visible initially.
+    expect(screen.queryByRole('button', { name: /editor\.header\.regenerateTitle/i })).toBeNull();
+
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: 'add-stop-existing' }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Viaje a Barcelona')).toBeInTheDocument();
     });
   });
 });

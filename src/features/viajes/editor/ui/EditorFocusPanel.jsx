@@ -13,9 +13,8 @@ import { useAuth } from '@app/providers/AuthContext';
 import { useUpload } from '@app/providers/UploadContext';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 
-// Import original editor sections (reusing existing components)
-import EdicionHeaderSection from './components/EdicionHeaderSection';
-import EdicionGallerySection from './components/EdicionGallerySection';
+// Import editor sections
+import EditableTripHeader from './components/EditableTripHeader';
 import EdicionParadasSection from './components/EdicionParadasSection';
 
 /**
@@ -267,8 +266,6 @@ const EditorFocusPanel = ({
 
   if (!viaje) return null;
 
-  const isBusy = isSaving || isProcessingImage;
-
   // Animation variants
   const desktopVariants = {
     hidden: { x: '100%', opacity: 0 },
@@ -291,10 +288,6 @@ const EditorFocusPanel = ({
   const panelStyle = isMobile ? styles.mobileSheet : styles.desktopPanel;
   const panelVariant = isMobile ? mobileVariants : desktopVariants;
 
-  const safeOnCaptionChange = onCaptionChange || (() => {});
-  const safeOnCaptionSave = onCaptionSave || (() => {});
-  const safeOnSetPortadaExistente = onSetPortadaExistente || (() => {});
-  const safeOnEliminarFoto = onEliminarFoto || (() => {});
   const hasValidStops = Array.isArray(effectiveParadas) && effectiveParadas.length > 0;
   const hasValidTitle = Boolean((formDataWithFallback?.titulo || '').trim());
   const hasValidStartDate = Boolean((effectiveFormData?.fechaInicio || viaje?.fechaInicio || '').toString().trim());
@@ -328,20 +321,17 @@ const EditorFocusPanel = ({
       >
         {/* Scrollable Body */}
         <div style={styles.scrollableBody} className="custom-scroll">
-          {/* Header Section (Photo + Title) - PREMIUM LAYOUT */}
-          <EdicionHeaderSection
-            styles={edicionModalStyles}
-            t={t}
+          {/* Header Section (WYSIWYG) */}
+          <EditableTripHeader
             formData={formDataWithFallback}
-            isMobile={isMobile}
-            isBusy={isBusy}
-            esBorrador={esBorrador}
-            isTituloAuto={autoTitleMode}
-            titlePulse={titlePulseState}
-            isProcessingImage={isProcessingImage}
+            setFormData={effectiveSetFormData}
             paradas={effectiveParadas}
+            galleryFiles={effectiveGalleryFiles}
+            setGalleryFiles={effectiveSetGalleryFiles}
+            isMobile={isMobile}
+            isProcessingImage={isProcessingImage}
             onTituloChange={handleTituloChange}
-            onToggleTituloAuto={() => setAutoTitleMode((prev) => !prev)}
+            isTituloAuto={autoTitleMode}
             onRegenerateTitle={() => setAutoTitleMode(true)}
           />
 
@@ -354,28 +344,6 @@ const EditorFocusPanel = ({
               setParadas={effectiveSetParadas}
               fechaRangoDisplay={`${effectiveFormData.fechaInicio} - ${effectiveFormData.fechaFin}`}
               sinParadas={effectiveParadas.length === 0}
-              isReadOnlyMode={isReadOnlyMode}
-            />
-          )}
-
-          {/* Gallery Section */}
-          {effectiveGalleryFiles && (
-            <EdicionGallerySection
-              styles={edicionModalStyles}
-              t={t}
-              files={effectiveGalleryFiles}
-              onFilesChange={effectiveSetGalleryFiles}
-              portadaIndex={effectiveGalleryPortada}
-              onPortadaChange={(url) => effectiveSetFormData((prev) => ({ ...prev, portadaUrl: url }))}
-              portadaUrl={effectiveFormData.portadaUrl}
-              isBusy={isBusy}
-              isMobile={isMobile}
-              galeria={galeria}
-              captionDrafts={effectiveCaptionDrafts}
-              onCaptionChange={safeOnCaptionChange}
-              onCaptionSave={safeOnCaptionSave}
-              onSetPortadaExistente={safeOnSetPortadaExistente}
-              onEliminarFoto={safeOnEliminarFoto}
               isReadOnlyMode={isReadOnlyMode}
             />
           )}
