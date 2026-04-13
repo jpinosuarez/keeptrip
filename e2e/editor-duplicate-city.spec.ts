@@ -76,6 +76,7 @@ test.describe('Duplicate city addition issue', () => {
 
     // 2. Save initial trip
     await page.getByRole('button', { name: /Save|Guardar/i }).first().click();
+    await expect(page.getByLabel(/Trip title|Título del viaje/i)).toHaveCount(0, { timeout: 15000 });
     await expect(page.getByRole('button', { name: /Madrid/i }).first()).toBeVisible({ timeout: 20000 });
 
     // Guardar ID si la ruta actual lo expone (puede variar según shell activo)
@@ -97,7 +98,9 @@ test.describe('Duplicate city addition issue', () => {
     await expect(citySearchInput).toBeVisible({ timeout: 10000 });
     await citySearchInput.fill('Madrid');
 
-    const addDestinationButton = page.getByRole('button', { name: /Agregar destino|Add destination|Agregar|Add/i }).first();
+    const addDestinationButton = page
+      .getByRole('button', { name: /^Add$/i })
+      .first();
     await expect(addDestinationButton).toBeVisible({ timeout: 10000 });
     await addDestinationButton.click({ force: true });
     

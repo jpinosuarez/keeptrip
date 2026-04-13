@@ -47,6 +47,11 @@ export function useViajeCrudHandlers({
 
   const isDeletingTrip = useCallback((id) => deletingTripIds.has(id), [deletingTripIds]);
 
+  const closeTripEditor = useCallback(() => {
+    setDraftTrip(null);
+    setInitialDraftCity(null);
+  }, [setDraftTrip, setInitialDraftCity]);
+
   const saveTripToDb = useCallback(async (id, formPayload, existingStops = []) => {
     const targetTripId = id || 'new';
     const newStops = formPayload?.newStops || formPayload?.paradasNuevas || [];
@@ -67,6 +72,10 @@ export function useViajeCrudHandlers({
 
         const tripDataWithStory = rebuildStoryMetadata(tripData, localStops);
         const createdTripId = await createTrip(tripDataWithStory, localStops);
+
+        if (createdTripId) {
+          closeTripEditor();
+        }
 
         return createdTripId || null;
       }
@@ -98,13 +107,9 @@ export function useViajeCrudHandlers({
     createTrip,
     updateTripDetails,
     updateStopsBatch,
+    closeTripEditor,
     pushToast,
   ]);
-
-  const closeTripEditor = useCallback(() => {
-    setDraftTrip(null);
-    setInitialDraftCity(null);
-  }, [setDraftTrip, setInitialDraftCity]);
 
   const handleSaveModal = useCallback(async (id, formPayload, existingStops = []) => {
     if (isSavingModal) return null;

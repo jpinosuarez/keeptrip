@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '@shared/config';
 import { styles } from './EditorFocusPanel.styles';
 import { styles as edicionModalStyles } from './EdicionModal.styles';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
@@ -30,7 +29,6 @@ const EditorFocusPanel = ({
   paradas,
   setParadas,
   onSave,
-  isSaving = false,
   esBorrador = false,
   ciudadInicial = null,
   isProcessingImage = false,
@@ -38,12 +36,7 @@ const EditorFocusPanel = ({
   setGalleryFiles,
   galleryPortada,
   setGalleryPortada,
-  captionDrafts,
   setCaptionDrafts,
-  onCaptionChange,
-  onCaptionSave,
-  onSetPortadaExistente,
-  onEliminarFoto,
   galeria = { fotos: [], uploading: false },
   onAfterSave = null,
 }) => {
@@ -58,10 +51,12 @@ const EditorFocusPanel = ({
   const usuarioUid = usuario?.uid || null;
   const [isSavingManual, setIsSavingManual] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isClosingAfterSave, setIsClosingAfterSave] = useState(false);
 
   // Track initial state for unsaved changes detection
   const initialFormDataRef = useRef(null);
   const initialParadasRef = useRef(null);
+  const initialTripIdRef = useRef(null);
   const isClosingRef = useRef(false);
   const previousGalleryLengthRef = useRef(0);
 
@@ -70,7 +65,7 @@ const EditorFocusPanel = ({
   const [localParadas, setLocalParadas] = useState([]);
   const [localGalleryFiles, setLocalGalleryFiles] = useState([]);
   const [localGalleryPortada, setLocalGalleryPortada] = useState(0);
-  const [localCaptionDrafts, setLocalCaptionDrafts] = useState({});
+  const [, setLocalCaptionDrafts] = useState({});
 
   const effectiveFormData = formData ?? localFormData;
   const formDataWithFallback = {
@@ -85,19 +80,30 @@ const EditorFocusPanel = ({
   const effectiveSetGalleryFiles = setGalleryFiles ?? setLocalGalleryFiles;
   const effectiveGalleryPortada = galleryPortada ?? localGalleryPortada;
   const effectiveSetGalleryPortada = setGalleryPortada ?? setLocalGalleryPortada;
-  const effectiveCaptionDrafts = captionDrafts ?? localCaptionDrafts;
   const effectiveSetCaptionDrafts = setCaptionDrafts ?? setLocalCaptionDrafts;
 
   // Initialize tracking refs on mount (snapshots for change detection)
   useEffect(() => {
+    if (!viaje?.id) return;
+
+    const isDraftTrip = viaje.id === 'new';
+    const hasHydratedFormState =
+      isDraftTrip ||
+      Boolean((effectiveFormData && Object.keys(effectiveFormData).length > 0) || (effectiveParadas && effectiveParadas.length > 0));
+
+    if (!hasHydratedFormState) return;
+    if (initialTripIdRef.current === viaje.id && initialFormDataRef.current !== null) return;
+
     // Reset flag when editing a new trip
+    initialTripIdRef.current = viaje.id;
     isClosingRef.current = false;
+    setIsClosingAfterSave(false);
     initialFormDataRef.current = structuredClone(effectiveFormData || {});
     initialParadasRef.current = structuredClone(effectiveParadas || []);
-  }, [viaje?.id]);
+  }, [viaje?.id, effectiveFormData, effectiveParadas]);
 
   // Check for unsaved changes
-  const hasUnsavedChanges = () => {
+  const hasUnsavedChanges = useCallback(() => {
     const current = {
       form: structuredClone(effectiveFormData),
       paradas: structuredClone(effectiveParadas),
@@ -107,12 +113,11 @@ const EditorFocusPanel = ({
       paradas: initialParadasRef.current || [],
     };
     return JSON.stringify(current) !== JSON.stringify(initial);
-  };
+  }, [effectiveFormData, effectiveParadas]);
 
   const {
     isTituloAuto: autoTitleMode,
     setIsTituloAuto: setAutoTitleMode,
-    titlePulse: titlePulseState,
     limpiarEstado,
     handleTituloChange,
   } = useEdicionModalLifecycle({
@@ -159,8 +164,13 @@ const EditorFocusPanel = ({
     autoFinalize: false,
   });
 
+  const hasValidStops = Array.isArray(effectiveParadas) && effectiveParadas.length > 0;
+  const hasValidTitle = Boolean((formDataWithFallback?.titulo || '').trim());
+  const hasValidStartDate = Boolean((effectiveFormData?.fechaInicio || viaje?.fechaInicio || '').toString().trim());
+  const canSave = hasValidStops && hasValidTitle && hasValidStartDate && !isSavingManual && !isReadOnlyMode;
+
   // Manual save wrapper with loading state
-  const handleSaveWithLoading = async () => {
+  const handleSaveWithLoading = useCallback(async () => {
     if (!canSave) return;
 
     setIsSavingManual(true);
@@ -171,6 +181,9 @@ const EditorFocusPanel = ({
         return;
       }
 
+      initialFormDataRef.current = structuredClone(effectiveFormData || {});
+      initialParadasRef.current = structuredClone(effectiveParadas || []);
+      setIsClosingAfterSave(true);
       onAfterSave?.(savedId);
 
       // After successful save, close the editor (AppModalsManager will navigate if needed)
@@ -182,7 +195,7 @@ const EditorFocusPanel = ({
     } finally {
       setIsSavingManual(false);
     }
-  };
+  }, [canSave, handleSaveManual, onAfterSave, limpiarEstado, onClose, effectiveFormData, effectiveParadas]);
 
   const handleConfirmClose = () => {
     setShowConfirmModal(false);
@@ -191,7 +204,7 @@ const EditorFocusPanel = ({
     onClose();
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (isClosingRef.current) return;
 
     // GUARDRAIL: Check for unsaved changes
@@ -203,7 +216,7 @@ const EditorFocusPanel = ({
     isClosingRef.current = true;
     limpiarEstado();
     onClose();
-  };
+  }, [limpiarEstado, onClose, hasUnsavedChanges]);
 
   // Prevent background scroll while the panel is open (iOS-friendly)
   useEffect(() => {
@@ -245,10 +258,10 @@ const EditorFocusPanel = ({
   useEffect(() => {
     const currentGalleryLength = galeria?.fotos?.length || 0;
     const prevLength = previousGalleryLengthRef.current;
+    const firstPhotoUrl = galeria?.fotos?.[0]?.url;
 
     // Transition from 0→1+ photos: auto-set first photo as portada
     if (prevLength === 0 && currentGalleryLength > 0 && !effectiveFormData.portadaUrl) {
-      const firstPhotoUrl = galeria.fotos[0]?.url;
       if (firstPhotoUrl) {
         effectiveSetFormData((prev) => ({
           ...prev,
@@ -258,7 +271,7 @@ const EditorFocusPanel = ({
     }
 
     previousGalleryLengthRef.current = currentGalleryLength;
-  }, [galeria?.fotos?.length, effectiveFormData.portadaUrl, effectiveSetFormData]);
+  }, [galeria?.fotos, galeria?.fotos?.length, effectiveFormData.portadaUrl, effectiveSetFormData]);
 
   if (!viaje) return null;
 
@@ -284,18 +297,16 @@ const EditorFocusPanel = ({
   const panelStyle = isMobile ? styles.mobileSheet : styles.desktopPanel;
   const panelVariant = isMobile ? mobileVariants : desktopVariants;
 
-  const hasValidStops = Array.isArray(effectiveParadas) && effectiveParadas.length > 0;
-  const hasValidTitle = Boolean((formDataWithFallback?.titulo || '').trim());
-  const hasValidStartDate = Boolean((effectiveFormData?.fechaInicio || viaje?.fechaInicio || '').toString().trim());
-  const canSave = hasValidStops && hasValidTitle && hasValidStartDate && !isSavingManual && !isReadOnlyMode;
-
   return (
     <>
       <AnimatePresence>
         {/* Scrim */}
         <Motion.div
         key="scrim"
-        style={isMobile ? styles.mobileScrim : styles.desktopScrim}
+        style={{
+          ...(isMobile ? styles.mobileScrim : styles.desktopScrim),
+          pointerEvents: isClosingAfterSave ? 'none' : 'auto',
+        }}
         variants={scrimVariants}
         initial="hidden"
         animate="visible"
@@ -307,7 +318,10 @@ const EditorFocusPanel = ({
       {/* Panel */}
       <Motion.div
         key="panel"
-        style={panelStyle}
+        style={{
+          ...panelStyle,
+          pointerEvents: isClosingAfterSave ? 'none' : 'auto',
+        }}
         variants={panelVariant}
         initial="hidden"
         animate="visible"
