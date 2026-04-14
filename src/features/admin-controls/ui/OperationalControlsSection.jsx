@@ -85,7 +85,11 @@ const OperationalControlsSection = ({
       closeConfirm();
     } catch (updateError) {
       console.error('Operational level update failed:', updateError);
-      onNotify?.(t('settings:operationalControls.toast.error'), 'error');
+      const errorKey =
+        updateError?.code === 'permission-denied'
+          ? 'settings:operationalControls.toast.permissionDenied'
+          : 'settings:operationalControls.toast.error';
+      onNotify?.(t(errorKey), 'error');
       setIsConfirmOpen(false);
       setPendingLevel(null);
     } finally {

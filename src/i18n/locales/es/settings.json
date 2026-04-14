@@ -65,7 +65,8 @@
     "confirmButton": "Aplicar nivel",
     "toast": {
       "success": "Nivel operativo actualizado a {{levelName}}.",
-      "error": "No se pudo actualizar el nivel operativo. Intenta de nuevo."
+      "error": "No se pudo actualizar el nivel operativo. Intenta de nuevo.",
+      "permissionDenied": "Sin permisos para cambiar el nivel operativo. Verifica UID fundadora y despliegue de Firestore rules."
     },
     "levels": {
       "0": {

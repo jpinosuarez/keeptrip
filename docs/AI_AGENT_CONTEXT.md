@@ -113,13 +113,27 @@ The founder UID must be configured per environment through `VITE_FOUNDER_UID`:
 - **Staging:** `8qWhUsYQBXO3bCiMXen8qiIYAUA2`
 - **Production:** `9dyI5iXXJRSTwO350Vnv3utZff52`
 
-These UIDs are used to grant emergency operational control access (including blackout recovery).
+These UIDs are used to grant emergency operational control writes.
+Firestore rules for `system/operational_flags` currently authorize founder UIDs only.
 
-### 6.3 Level 4 Escape Hatch (Founder/Admin Recovery)
+### 6.3 Level 4 Escape Hatch (Founder Recovery)
 To avoid founder lockout during blackout:
 
 - The maintenance screen keeps an **Escape Hatch**.
-- If the current user is Founder/Admin, the screen renders `OperationalControlsSection` directly in blackout mode.
+- If the current user UID matches the configured founder UID, the screen renders `OperationalControlsSection` directly in blackout mode.
 - This allows lowering level back to `0` without needing access to `/settings`.
 
-Operational intent: even under global blackout, authorized operators always retain an in-app recovery path.
+Operational intent: even under global blackout, the founder account retains an in-app recovery path.
+
+### 6.4 Deployment Guardrail (Mandatory)
+- Never deploy kill-switch UI changes with hosting-only deploys.
+- Use `npm run deploy:staging` / `npm run deploy:prod` for operational changes.
+- These scripts deploy `hosting + firestore:rules + storage` in a single rollout.
+- Use `deploy:staging:hosting` / `deploy:prod:hosting` only for static hosting-only hotfixes unrelated to operational control access.
+
+### 6.5 Permission Failure Quick Check
+If `Missing or insufficient permissions` appears while changing operational level:
+
+1. Confirm logged-in UID matches `VITE_FOUNDER_UID` for the environment.
+2. Confirm latest Firestore rules were deployed to that project.
+3. Retry from Settings or Maintenance escape hatch.

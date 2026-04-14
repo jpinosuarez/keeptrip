@@ -10,12 +10,13 @@ const FOUNDER_UID_FALLBACK = 'FOUNDER_UID_HERE';
 
 const MaintenanceScreen = () => {
   const { t } = useTranslation('common');
-  const { usuario: user, isAdmin } = useAuth();
+  const { usuario: user } = useAuth();
   const { pushToast } = useToast();
 
   const founderUid = import.meta.env.VITE_FOUNDER_UID || FOUNDER_UID_FALLBACK;
   const hasFounderUidAccess = Boolean(user?.uid && user.uid === founderUid);
-  const canManageOperationalFlags = Boolean(isAdmin || hasFounderUidAccess);
+  // Firestore rules allow writes to operational_flags only for founder UIDs.
+  const canManageOperationalFlags = hasFounderUidAccess;
 
   return (
     <div

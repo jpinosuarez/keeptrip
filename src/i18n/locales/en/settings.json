@@ -65,7 +65,8 @@
     "confirmButton": "Apply level",
     "toast": {
       "success": "Operational level updated to {{levelName}}.",
-      "error": "Could not update the operational level. Please try again."
+      "error": "Could not update the operational level. Please try again.",
+      "permissionDenied": "No permission to change operational level. Verify founder UID alignment and Firestore rules deployment."
     },
     "levels": {
       "0": {

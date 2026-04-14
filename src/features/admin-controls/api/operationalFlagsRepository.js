@@ -5,6 +5,23 @@ const OPERATIONAL_FLAGS_REF = doc(db, 'system', 'operational_flags');
 const MIN_LEVEL = 0;
 const MAX_LEVEL = 4;
 
+const isPermissionDeniedError = (error) => {
+  return (
+    error?.code === 'permission-denied'
+    || error?.code === 'PERMISSION_DENIED'
+    || /missing or insufficient permissions/i.test(error?.message || '')
+  );
+};
+
+const buildPermissionDeniedError = (error) => {
+  const wrappedError = new Error(
+    'Permission denied updating operational flags. Verify founder UID alignment and deploy Firestore rules.'
+  );
+  wrappedError.code = 'permission-denied';
+  wrappedError.cause = error;
+  return wrappedError;
+};
+
 const coerceLevel = (rawLevel) => {
   const parsed = Number(rawLevel);
   if (!Number.isInteger(parsed) || parsed < MIN_LEVEL || parsed > MAX_LEVEL) {
@@ -28,6 +45,13 @@ export const buildOperationalFlagsPayload = ({ level, updatedByUid, reason }) =>
 
 export const updateOperationalFlagsLevel = async ({ level, updatedByUid, reason }) => {
   const payload = buildOperationalFlagsPayload({ level, updatedByUid, reason });
-  await setDoc(OPERATIONAL_FLAGS_REF, payload, { merge: true });
+  try {
+    await setDoc(OPERATIONAL_FLAGS_REF, payload, { merge: true });
+  } catch (error) {
+    if (isPermissionDeniedError(error)) {
+      throw buildPermissionDeniedError(error);
+    }
+    throw error;
+  }
   return payload;
 };

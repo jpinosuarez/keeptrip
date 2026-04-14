@@ -250,7 +250,8 @@ const SettingsPage = () => {
 
   const founderUid = import.meta.env.VITE_FOUNDER_UID || FOUNDER_UID_FALLBACK;
   const hasFounderUidAccess = Boolean(user?.uid && user.uid === founderUid);
-  const canManageOperationalFlags = Boolean(isAdmin || hasFounderUidAccess);
+  // Firestore rules allow writes to operational_flags only for founder UIDs.
+  const canManageOperationalFlags = hasFounderUidAccess;
 
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [photoUrl, setPhotoUrl] = useState(user?.photoURL || '');

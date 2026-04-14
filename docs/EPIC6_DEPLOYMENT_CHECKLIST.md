@@ -22,7 +22,7 @@ This document provides step-by-step instructions for deploying the Keeptrip PWA 
 
 ## Phase 1: Firebase Hosting & Custom Domain Setup
 
-### Step 1.1: Deploy to Firebase Hosting
+### Step 1.1: Deploy to Firebase Hosting + Rules
 
 1. **Ensure `storage.rules` is committed with cross-service Firestore allowlist:**
    ```bash
@@ -36,10 +36,12 @@ This document provides step-by-step instructions for deploying the Keeptrip PWA 
    npm run build
    ```
 
-3. **Deploy to Firebase Hosting:**
+3. **Deploy production bundle + security rules:**
    ```bash
-   firebase deploy --only hosting
+   npm run deploy:prod
    ```
+
+   This command deploys Hosting, Firestore rules, and Storage rules in one rollout.
 
    Expected output:
    ```
@@ -461,7 +463,7 @@ If critical issues arise in production:
 2. **Short-term: Revert storage.rules**
    ```bash
    git revert [commit-with-storage-rules-update]
-   firebase deploy --only firestore:rules storage:rules
+   firebase deploy --only firestore:rules,storage
    ```
 
 3. **Medium-term: Investigate & fix**

@@ -1,6 +1,6 @@
 # 📋 Checklist Pre-Despliegue — Keeptrip
 
-**Última actualización:** 11 de abril de 2026  
+**Última actualización:** 14 de abril de 2026  
 **Audiencia:** Equipo de desarrollo & Agentes de IA  
 **Objetivo:** Validar calidad, seguridad y estabilidad antes de llevar cambios a producción
 
@@ -310,6 +310,7 @@ Asegurar que las credenciales de Firebase, Mapbox y otros servicios estén corre
   VITE_FIREBASE_AUTH_DOMAIN=keeptrip-app-staging.firebaseapp.com
   VITE_FIREBASE_STORAGE_BUCKET=keeptrip-app-staging.firebasestorage.app
   VITE_USE_EMULATORS=false         # ✅ Conecta a Firebase real
+  VITE_FOUNDER_UID=8qWhUsYQBXO3bCiMXen8qiIYAUA2
   VITE_MAPBOX_TOKEN=pk.eyJ1...
   ```
 
@@ -319,12 +320,14 @@ Asegurar que las credenciales de Firebase, Mapbox y otros servicios estén corre
   VITE_FIREBASE_AUTH_DOMAIN=keeptrip-app-b06b3.firebaseapp.com
   VITE_FIREBASE_STORAGE_BUCKET=keeptrip-app-b06b3.firebasestorage.app
   VITE_USE_EMULATORS=false         # ✅ CRÍTICO: DEBE SER FALSE
+  VITE_FOUNDER_UID=9dyI5iXXJRSTwO350Vnv3utZff52
   VITE_MAPBOX_TOKEN=pk.eyJ1...
   ```
 
 - [ ] **Validación final**:
   - ✅ `VITE_USE_EMULATORS=false` en staging Y producción
   - ✅ Los `FIREBASE_PROJECT_ID` son correctos (staging ≠ prod)
+  - ✅ `VITE_FOUNDER_UID` coincide con la whitelist de `isFounder()` en `firestore.rules`
   - ✅ Los tokens de Mapbox están presentes en ambos
   - ✅ No hay valores de desarrollo (`your_key_here`, etc.)
 
@@ -361,7 +364,12 @@ Subir los cambios a un clon de producción donde puedes hacer QA sin afectar usu
   ```bash
   npm run deploy:staging
   ```
-  *(Esto corre `build:staging` + `firebase deploy --only hosting --project staging`)*
+  *(Esto corre `build:staging` + `firebase deploy --only hosting,firestore:rules,storage --project staging`)*
+
+- [ ] Verifica en output que se desplegaron los tres bloques:
+  - ✅ Hosting
+  - ✅ Firestore rules
+  - ✅ Storage rules
 
 - [ ] Verifica el despliegue:
   - ✅ Output muestra "Deploy complete!"
@@ -562,7 +570,12 @@ Llevar los cambios verificados a usuarios reales.
   ```bash
   npm run deploy:prod
   ```
-  *(Esto corre `build` + `firebase deploy --only hosting --project default`)*
+  *(Esto corre `build` + `firebase deploy --only hosting,firestore:rules,storage --project default`)*
+
+- [ ] Verifica en output que se desplegaron los tres bloques:
+  - ✅ Hosting
+  - ✅ Firestore rules
+  - ✅ Storage rules
 
 - [ ] Espera a que termine (2–3 minutos)
 
