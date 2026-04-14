@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { lazy, Suspense, useMemo, useState } from 'react';
 import { WifiOff, AlertTriangle, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -6,7 +6,6 @@ import { useAuth } from '@app/providers/AuthContext';
 import { useUI } from '@app/providers/UIContext';
 import { COLORS } from '@shared/config';
 import { styles } from './DashboardPage.styles';
-import { HomeMap } from '@features/mapa';
 import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { useLogStats } from '@features/gamification/model';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
@@ -17,6 +16,8 @@ import WelcomeBento from './components/WelcomeBento';
 import EmptyDashboardState from './components/EmptyDashboardState';
 import TripCard from '@widgets/tripGrid/ui/TripCard';
 import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
+
+const HomeMap = lazy(() => import('@features/mapa/ui/HomeMap'));
 
 const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading = false, isError = false, fetchError = null }) => {
   const { usuario } = useAuth();
@@ -90,6 +91,19 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
     </div>
   );
 
+  const mapLoadingFallback = (
+    <div style={styles.mapErrorFallback(isMobileLayout)} role="status" aria-live="polite">
+      <div style={styles.mapErrorBackdrop} aria-hidden="true">
+        <div style={styles.mapErrorGlowA} />
+        <div style={styles.mapErrorGlowB} />
+        <div style={styles.mapErrorGrid} />
+      </div>
+      <div style={styles.mapErrorPanel}>
+        <p style={styles.mapErrorText}>{t('mapLoading', { defaultValue: 'Cargando mapa...' })}</p>
+      </div>
+    </div>
+  );
+
   const openTripEditor = (tripId) => {
     const params = new URLSearchParams(location.search);
     params.set('editing', tripId);
@@ -121,7 +135,9 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
           <h3 style={styles.mapSectionTitle}>{t('explorationMap')}</h3>
           <div style={styles.mapCard(isDesktop)}>
             <ErrorBoundary fallback={mapFallback}>
-              <HomeMap key={mapRenderKey} paisesVisitados={countriesVisited} isMobile={isMobileLayout} />
+              <Suspense fallback={mapLoadingFallback}>
+                <HomeMap key={mapRenderKey} paisesVisitados={countriesVisited} isMobile={isMobileLayout} />
+              </Suspense>
             </ErrorBoundary>
           </div>
         </div>

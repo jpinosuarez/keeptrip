@@ -8,7 +8,6 @@ import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { BentoCardSkeleton } from '@shared/ui/components';
 import UserMenuBottomSheet from '@widgets/userMenu/ui/UserMenuBottomSheet';
-import { MiniMapaRuta } from '@features/mapa';
 import { COLORS, RADIUS, SHADOWS } from '@shared/config';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 
@@ -23,9 +22,8 @@ const EditorFocusPanel = lazy(() =>
     return import('@features/viajes/editor/ui/EditorFocusPanel');
   })
 );
-const SearchModal  = lazy(() => import('@features/search/ui/SearchModal/SearchModal'));
-const EdicionModal = lazy(() => import('@features/viajes/editor/ui/EdicionModal'));
 const VisorViaje   = lazy(() => import('@features/viajes/viewer/VisorViaje'));
+const MiniMapaRuta = lazy(() => import('@features/mapa/ui/components/MiniMapaRuta'));
 
 /**
  * Skeleton de pantalla completa para la carga inicial de VisorViaje.
@@ -172,23 +170,25 @@ function AppModalsManager({
 
   return (
     <>
-      <ErrorBoundary fallback={searchPaletteFallback}>
-        <Suspense fallback={null}>
-          <SearchPalette
-            isOpen={searchPaletteOpen}
-            onClose={closeSearchPalette}
-            allTrips={bitacora}
-            onSelectPlace={onLugarSeleccionado}
-            onSelectTrip={(tripId) => navigate({ pathname: '/trips', search: `editing=${tripId}` })}
-          />
-        </Suspense>
-      </ErrorBoundary>
+      {searchPaletteOpen && (
+        <ErrorBoundary fallback={searchPaletteFallback}>
+          <Suspense fallback={searchPaletteFallback}>
+            <SearchPalette
+              isOpen={searchPaletteOpen}
+              onClose={closeSearchPalette}
+              allTrips={bitacora}
+              onSelectPlace={onLugarSeleccionado}
+              onSelectTrip={(tripId) => navigate({ pathname: '/trips', search: `editing=${tripId}` })}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      )}
 
       <UserMenuBottomSheet />
 
       {viajeParaEditar && (
         <ErrorBoundary>
-          <Suspense fallback={null}>
+          <Suspense fallback={<VisorViajeFallback />}>
             <EditorFocusPanel
               viaje={viajeParaEditar}
               bitacoraData={bitacoraData}

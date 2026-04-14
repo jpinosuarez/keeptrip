@@ -136,23 +136,13 @@ export default defineConfig({
       output: {
         /**
          * Divide las dependencias de terceros en chunks cacheables independientemente.
-         * vendor-map (~2.5MB) solo se descarga cuando el usuario abre el mapa o VisorViaje.
+         * Nota: no forzamos chunk manual para Mapbox porque en rolldown-vite puede
+         * terminar como dependencia base del entry. Dejamos que el bundler lo mantenga
+         * ligado a las rutas lazy de mapa/visor.
          * vendor-firebase y vendor-motion se separan para que un cambio en el código de la
          * app no invalide la caché de estas librerías estables.
          */
         manualChunks(id) {
-          if (
-            id.includes('/node_modules/mapbox-gl') ||
-            id.includes('/node_modules/react-map-gl')
-          ) {
-            return 'vendor-map';
-          }
-          if (id.includes('/node_modules/firebase')) {
-            return 'vendor-firebase';
-          }
-          if (id.includes('/node_modules/framer-motion')) {
-            return 'vendor-motion';
-          }
           if (
             id.includes('/node_modules/react/') ||
             id.includes('/node_modules/react-dom/') ||
@@ -161,8 +151,11 @@ export default defineConfig({
           ) {
             return 'vendor-react';
           }
-          if (id.includes('/node_modules/')) {
-            return 'vendor-misc';
+          if (id.includes('/node_modules/firebase')) {
+            return 'vendor-firebase';
+          }
+          if (id.includes('/node_modules/framer-motion')) {
+            return 'vendor-motion';
           }
         },
       },

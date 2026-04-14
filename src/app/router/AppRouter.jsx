@@ -39,14 +39,15 @@ const MapaView       = lazy(() => import('@features/mapa/ui').then((mod) => ({ d
 const TravelerHub    = lazy(() => import('@features/gamification/ui').then((mod) => ({ default: mod.TravelerHub })));
 const InvitationsList = lazy(() => import('@features/invitations/ui').then((mod) => ({ default: mod.InvitationsList })));
 const SettingsPage   = lazy(() => import('@pages/settings/ui/SettingsPage'));
+const suspenseFallback = <PageLoader />;
 
 // ── Raíz pública/autenticada ───────────────────────────────────────────────────
 function RootRoute() {
   const { usuario, cargando } = useAuth();
-  if (cargando) return null;
+  if (cargando) return <PageLoader />;
   if (usuario) return <Navigate to="/dashboard" replace />;
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={suspenseFallback}>
       <LandingPage />
     </Suspense>
   );
@@ -60,7 +61,7 @@ function RootRoute() {
 function DashboardRoute() {
   const { data, view } = useOutletContext();
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={suspenseFallback}>
       <DashboardPage
         countriesVisited={data.paisesVisitados}
         log={data.bitacora}
@@ -76,7 +77,7 @@ function DashboardRoute() {
 
 function TripsRoute() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={suspenseFallback}>
       <TripsPage />
     </Suspense>
   );
@@ -85,7 +86,7 @@ function TripsRoute() {
 function MapRoute() {
   const { data } = useOutletContext();
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={suspenseFallback}>
       <MapaView
         paises={data.paisesVisitados}
         paradas={data.todasLasParadas}
@@ -99,7 +100,7 @@ function MapRoute() {
 function ExplorerRoute() {
   const { data, gamification } = useOutletContext();
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={suspenseFallback}>
       <TravelerHub
         paisesVisitados={data.paisesVisitados}
         bitacora={data.bitacora}
@@ -113,7 +114,7 @@ function ExplorerRoute() {
 function InvitationsRoute() {
   const { invitations } = useOutletContext();
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={suspenseFallback}>
       <InvitationsList hook={invitations} />
     </Suspense>
   );
@@ -122,7 +123,7 @@ function InvitationsRoute() {
 function SettingsRoute() {
   const { data } = useOutletContext();
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={suspenseFallback}>
       <SettingsPage log={data.bitacora} />
     </Suspense>
   );
@@ -132,12 +133,7 @@ function SettingsRoute() {
 function AppRouter() {
   const {
     flags: { level, appMaintenanceMode },
-    loading,
   } = useOperationalFlags();
-
-  if (loading) {
-    return <PageLoader />;
-  }
 
   const isMaintenanceMode = Boolean(appMaintenanceMode) || Number(level || 0) >= 4;
   if (isMaintenanceMode) {

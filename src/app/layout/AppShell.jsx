@@ -19,7 +19,7 @@ import PWAUpdatePrompt from '@shared/ui/components/PWAUpdatePrompt';
 import ReadOnlyModeBanner from '@shared/ui/components/ReadOnlyModeBanner';
 import OfflineBanner from '@shared/ui/components/OfflineBanner';
 
-import { useViajes } from '@features/viajes';
+import { useViajes } from '@features/viajes/model/hooks/useViajes';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { useAppShellComposition } from '@shared/lib/hooks/useAppShellComposition';
 import { useAuth, useToast, useSearch, useUI } from '@app/providers';

@@ -6,13 +6,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#FF6B35" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="description" content="Registra, revive y comparte tus aventuras — Keeptrip" />
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
     <title>Keeptrip</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://keeptrip.app/" />
+    <meta property="og:title" content="Keeptrip — Tu pasaporte digital" />
+    <meta property="og:description" content="Transforma tus rutas, fotos y destinos en una bitácora viva. Comparte tus aventuras con el mundo." />
+    <meta property="og:image" content="https://keeptrip.app/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Keeptrip" />
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://keeptrip.app/" />
+    <meta property="twitter:title" content="Keeptrip — Tu pasaporte digital" />
+    <meta property="twitter:description" content="Transforma tus rutas, fotos y destinos en una bitácora viva. Comparte tus aventuras con el mundo." />
+    <meta property="twitter:image" content="https://keeptrip.app/og-image.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&family=JetBrains+Mono:wght@500&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&family=JetBrains+Mono:wght@500&display=swap"
+      />
+    </noscript>
+    <script>
+      window.addEventListener('load', function () {
+        var emojiFont = document.createElement('link');
+        emojiFont.rel = 'stylesheet';
+        emojiFont.href = 'https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap';
+        document.head.appendChild(emojiFont);
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>

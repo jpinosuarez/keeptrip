@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@app/providers';
+import PageLoader from '@shared/ui/components/PageLoader';
 
 /**
  * Protege todas las rutas de la app autenticada.
@@ -11,7 +12,7 @@ import { useAuth } from '@app/providers';
 function AuthGuard() {
   const { usuario, cargando } = useAuth();
 
-  if (cargando) return null;
+  if (cargando) return <PageLoader />;
   if (!usuario) return <Navigate to="/" replace />;
 
   return <Outlet />;
