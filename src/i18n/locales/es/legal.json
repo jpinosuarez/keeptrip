@@ -1,0 +1,328 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "effectiveDate": "2026-04-16",
+    "lastUpdated": "2026-04-15",
+    "jurisdiction": "UE (GDPR)",
+    "language": "es",
+    "product": "Keeptrip",
+    "controller": {
+      "name": "Keeptrip",
+      "contactEmail": "privacy@keeptrip.app"
+    }
+  },
+  "ui": {
+    "title": "Documentacion legal",
+    "subtitle": "Lee estos documentos antes de continuar.",
+    "tabs": {
+      "privacy": "Privacidad",
+      "terms": "Terminos",
+      "cookies": "Cookies"
+    },
+    "clickwrap": {
+      "prefix": "Al continuar, aceptas nuestros",
+      "termsLink": "Terminos de Servicio",
+      "and": "y",
+      "privacyLink": "Politica de Privacidad",
+      "cookiesLink": "Politica de Cookies",
+      "suffix": "."
+    },
+    "actions": {
+      "close": "Cerrar",
+      "back": "Volver",
+      "openFull": "Ver completo"
+    }
+  },
+  "privacyPolicy": {
+    "title": "Politica de Privacidad",
+    "summary": "Esta Politica describe como Keeptrip recopila, usa, conserva y protege datos personales de Exploradores en la Union Europea, de conformidad con el Reglamento (UE) 2016/679 (GDPR).",
+    "sections": [
+      {
+        "id": "scope",
+        "title": "1. Alcance y objeto",
+        "paragraphs": [
+          "Esta Politica aplica al uso de Keeptrip como aplicacion web progresiva para crear y gestionar bitacoras de viaje.",
+          "Al utilizar Keeptrip, declaras haber leido esta Politica y comprender como tratamos tus datos personales."
+        ]
+      },
+      {
+        "id": "controller",
+        "title": "2. Responsable del tratamiento",
+        "paragraphs": [
+          "El responsable del tratamiento es Keeptrip.",
+          "Para consultas de privacidad o ejercicio de derechos, puedes escribir a privacy@keeptrip.app."
+        ]
+      },
+      {
+        "id": "data-collected",
+        "title": "3. Datos que recopilamos",
+        "paragraphs": [
+          "Datos de cuenta y autenticacion: nombre visible, correo electronico, identificador de usuario (UID) y foto de perfil proporcionados por Google OAuth.",
+          "Datos de uso del servicio: rutas, ciudades, fechas de viaje, descripciones y metadatos que guardas en tu bitacora.",
+          "Contenido subido por el Explorador: fotografias y archivos relacionados almacenados para prestarte el servicio.",
+          "Datos tecnicos minimos: informacion de dispositivo, navegador e IP necesaria para seguridad, entrega tecnica y prevencion de abuso.",
+          "Datos de mapas: consultas y coordenadas necesarias para renderizado con Mapbox."
+        ]
+      },
+      {
+        "id": "purposes-basis",
+        "title": "4. Finalidades y bases juridicas (GDPR)",
+        "paragraphs": [
+          "Prestacion del servicio (art. 6.1.b GDPR): crear tu cuenta, mostrar tu bitacora, almacenar contenido y sincronizar tus datos.",
+          "Seguridad e integridad (art. 6.1.f GDPR): proteger la plataforma contra uso indebido, fraude o accesos no autorizados.",
+          "Cumplimiento legal (art. 6.1.c GDPR): atender obligaciones legales y requerimientos de autoridades competentes.",
+          "Mejora del producto en MVP (art. 6.1.f GDPR): mantener estabilidad y calidad tecnica del servicio sin perfilado comercial."
+        ]
+      },
+      {
+        "id": "processors",
+        "title": "5. Encargados y terceros",
+        "paragraphs": [
+          "Firebase (Google Cloud): autenticacion, base de datos Firestore y almacenamiento de archivos.",
+          "Mapbox: renderizado y servicios de mapas interactivos.",
+          "No vendemos datos personales ni compartimos tus datos para publicidad comportamental en esta fase MVP.",
+          "Cuando un proveedor actua como encargado, Keeptrip exige compromisos contractuales de proteccion de datos acordes a GDPR."
+        ]
+      },
+      {
+        "id": "international-transfers",
+        "title": "6. Transferencias internacionales",
+        "paragraphs": [
+          "Parte del tratamiento puede implicar transferencia de datos fuera del Espacio Economico Europeo a infraestructura operada por proveedores globales.",
+          "Cuando proceda, Keeptrip aplica mecanismos de transferencia adecuados, como Clausulas Contractuales Tipo (SCC) u otras garantias validas bajo GDPR."
+        ]
+      },
+      {
+        "id": "retention",
+        "title": "7. Conservacion de datos",
+        "paragraphs": [
+          "Conservamos tus datos mientras tu cuenta permanezca activa y sea necesario para prestar Keeptrip.",
+          "Si eliminas tu cuenta o solicitas supresion, eliminaremos o anonimizaremos tus datos en plazos razonables, salvo obligacion legal de conservacion.",
+          "Copias de seguridad y registros tecnicos pueden mantenerse temporalmente por seguridad y continuidad operativa."
+        ]
+      },
+      {
+        "id": "rights",
+        "title": "8. Tus derechos (GDPR)",
+        "paragraphs": [
+          "Puedes ejercer los derechos de acceso, rectificacion, supresion, limitacion, oposicion y portabilidad cuando resulten aplicables.",
+          "Tambien puedes retirar consentimiento cuando la base juridica sea el consentimiento, sin efectos retroactivos.",
+          "Para ejercer derechos, contacta a privacy@keeptrip.app. Responderemos dentro de los plazos legales.",
+          "Si consideras que existe una infraccion, puedes presentar reclamacion ante la autoridad de control competente en tu pais de residencia en la UE."
+        ]
+      },
+      {
+        "id": "security",
+        "title": "9. Medidas de seguridad",
+        "paragraphs": [
+          "Aplicamos medidas tecnicas y organizativas razonables para proteger confidencialidad, integridad y disponibilidad de los datos.",
+          "Ningun sistema es totalmente infalible; por ello mantenemos procesos de mejora y respuesta a incidentes."
+        ]
+      },
+      {
+        "id": "children",
+        "title": "10. Menores de edad",
+        "paragraphs": [
+          "Keeptrip no esta dirigido a menores de 16 anos.",
+          "Si detectamos tratamiento de datos de un menor sin base legal adecuada, adoptaremos medidas para eliminarlos."
+        ]
+      },
+      {
+        "id": "changes",
+        "title": "11. Cambios en esta Politica",
+        "paragraphs": [
+          "Podemos actualizar esta Politica para reflejar cambios legales, tecnicos o del producto.",
+          "Publicaremos la version vigente con fecha de actualizacion. El uso continuado del servicio tras cambios materiales implicara aceptacion de la nueva version, en la medida permitida por ley."
+        ]
+      },
+      {
+        "id": "contact",
+        "title": "12. Contacto",
+        "paragraphs": [
+          "Canal de privacidad: privacy@keeptrip.app.",
+          "Canal general: contact@keeptrip.app."
+        ]
+      }
+    ]
+  },
+  "termsOfService": {
+    "title": "Terminos de Servicio",
+    "summary": "Estos Terminos regulan el acceso y uso de Keeptrip. Al continuar con autenticacion en Keeptrip, aceptas este acuerdo.",
+    "sections": [
+      {
+        "id": "acceptance",
+        "title": "1. Aceptacion del acuerdo",
+        "paragraphs": [
+          "Al usar Keeptrip, confirmas que tienes capacidad legal para aceptar estos Terminos.",
+          "Si no estas de acuerdo, debes abstenerte de usar el servicio."
+        ]
+      },
+      {
+        "id": "service-description",
+        "title": "2. Descripcion del servicio",
+        "paragraphs": [
+          "Keeptrip es una PWA para documentar viajes mediante rutas, fechas, ubicaciones, notas y contenido multimedia.",
+          "En esta fase MVP, el servicio se ofrece de forma gratuita y para uso personal."
+        ]
+      },
+      {
+        "id": "account",
+        "title": "3. Cuenta y acceso",
+        "paragraphs": [
+          "El acceso actual se realiza mediante Google OAuth.",
+          "Eres responsable de mantener la seguridad de tu cuenta y de cualquier actividad realizada con ella.",
+          "Podemos suspender o restringir cuentas ante indicios razonables de uso abusivo, fraudulento o contrario a estos Terminos."
+        ]
+      },
+      {
+        "id": "user-content",
+        "title": "4. Contenido del Explorador",
+        "paragraphs": [
+          "Mantienes la titularidad de los derechos sobre el contenido que subes a Keeptrip.",
+          "Nos otorgas una licencia no exclusiva, mundial y libre de regalias, limitada a operar, alojar, reproducir tecnicamente y mostrar tu contenido dentro de Keeptrip para prestar el servicio.",
+          "No adquirimos derecho de comercializar tu contenido fuera de la operacion del servicio sin base legal adicional.",
+          "Declaras que cuentas con los derechos necesarios sobre el contenido que compartes y que este no infringe derechos de terceros."
+        ]
+      },
+      {
+        "id": "acceptable-use",
+        "title": "5. Uso permitido y prohibiciones",
+        "paragraphs": [
+          "Debes usar Keeptrip de forma legal, respetuosa y acorde al proposito del producto.",
+          "Esta prohibido publicar contenido ilicito, infractor, violento, discriminatorio, spam o que vulnere derechos de terceros.",
+          "Esta prohibido intentar acceder sin autorizacion, interferir con la seguridad, automatizar scraping no permitido o realizar ingenieria inversa del servicio en contra de la ley aplicable."
+        ]
+      },
+      {
+        "id": "intellectual-property",
+        "title": "6. Propiedad intelectual de Keeptrip",
+        "paragraphs": [
+          "La marca Keeptrip, el diseno de interfaz, el software y sus elementos distintivos son propiedad de Keeptrip o de sus licenciantes.",
+          "Salvo autorizacion expresa, no se concede licencia para explotar comercialmente estos activos."
+        ]
+      },
+      {
+        "id": "as-is",
+        "title": "7. Servicio AS IS (sin garantias)",
+        "paragraphs": [
+          "Keeptrip se proporciona tal cual y segun disponibilidad, sin garantias expresas o implicitas sobre continuidad, exactitud o adecuacion para un proposito particular.",
+          "No garantizamos ausencia total de errores, interrupciones o indisponibilidad temporal."
+        ]
+      },
+      {
+        "id": "liability",
+        "title": "8. Limitacion de responsabilidad",
+        "paragraphs": [
+          "En la medida maxima permitida por ley, Keeptrip no sera responsable por danos indirectos, incidentales, especiales, punitivos o lucro cesante derivados del uso o imposibilidad de uso del servicio.",
+          "Nada en estos Terminos excluye responsabilidad cuando dicha exclusion este prohibida por la normativa aplicable."
+        ]
+      },
+      {
+        "id": "termination",
+        "title": "9. Suspensiones y terminacion",
+        "paragraphs": [
+          "Puedes dejar de usar Keeptrip en cualquier momento.",
+          "Podemos suspender, limitar o terminar acceso por incumplimientos graves, obligaciones legales o riesgos de seguridad.",
+          "Podemos modificar, pausar o discontinuar funcionalidades del MVP, procurando aviso razonable cuando sea posible."
+        ]
+      },
+      {
+        "id": "law",
+        "title": "10. Ley aplicable y jurisdiccion",
+        "paragraphs": [
+          "Estos Terminos se interpretan conforme a la normativa de proteccion de consumidores y datos aplicable en la UE para el lanzamiento MVP.",
+          "Cualquier controversia se resolvera ante la jurisdiccion competente conforme al domicilio del consumidor cuando la ley asi lo exija."
+        ]
+      },
+      {
+        "id": "updates",
+        "title": "11. Cambios de Terminos",
+        "paragraphs": [
+          "Podemos actualizar estos Terminos para adaptarlos a cambios legales, tecnicos o del modelo de producto.",
+          "Publicaremos la version vigente con fecha de actualizacion."
+        ]
+      },
+      {
+        "id": "contact",
+        "title": "12. Contacto",
+        "paragraphs": [
+          "Consultas legales: legal@keeptrip.app.",
+          "Consultas generales: contact@keeptrip.app."
+        ]
+      }
+    ]
+  },
+  "cookiePolicy": {
+    "title": "Politica de Cookies",
+    "summary": "Esta Politica explica que tecnologias de almacenamiento y seguimiento puede usar Keeptrip durante el uso del servicio.",
+    "sections": [
+      {
+        "id": "what-are-cookies",
+        "title": "1. Que son las cookies",
+        "paragraphs": [
+          "Las cookies son pequenos archivos que se almacenan en tu dispositivo para recordar informacion de navegacion y mejorar funcionalidades.",
+          "Tambien pueden utilizarse tecnologias similares, como almacenamiento local del navegador."
+        ]
+      },
+      {
+        "id": "types-used",
+        "title": "2. Categorias utilizadas en MVP",
+        "paragraphs": [
+          "Cookies o almacenamiento estrictamente necesario: permiten autenticacion, seguridad basica de sesion y funcionamiento esencial de la app.",
+          "Almacenamiento funcional: puede recordar preferencias como idioma o estado de interfaz para mejorar experiencia.",
+          "Cache tecnica de PWA: usada para rendimiento, disponibilidad y funcionamiento offline del servicio."
+        ]
+      },
+      {
+        "id": "analytics-future",
+        "title": "3. Analitica y monitoreo (planificado)",
+        "paragraphs": [
+          "Keeptrip planea integrar analitica y monitoreo de errores en fases posteriores del producto.",
+          "Cuando dichas herramientas se activen, esta Politica se actualizara para detallar proveedor, finalidad, base juridica y controles de consentimiento que correspondan bajo GDPR y ePrivacy."
+        ]
+      },
+      {
+        "id": "mapbox",
+        "title": "4. Servicios de mapas",
+        "paragraphs": [
+          "Keeptrip utiliza Mapbox para renderizar mapas interactivos.",
+          "El uso de funciones de mapa puede implicar intercambio de datos tecnicos de conexion con Mapbox para entregar la funcionalidad solicitada."
+        ]
+      },
+      {
+        "id": "management",
+        "title": "5. Gestion de cookies",
+        "paragraphs": [
+          "Puedes configurar tu navegador para bloquear o eliminar cookies, aunque esto puede afectar funcionalidades esenciales de Keeptrip.",
+          "En navegadores compatibles, tambien puedes borrar almacenamiento local y datos del sitio desde ajustes de privacidad."
+        ]
+      },
+      {
+        "id": "legal-basis",
+        "title": "6. Base juridica",
+        "paragraphs": [
+          "Para tecnologias estrictamente necesarias, la base juridica es el interes legitimo de operar un servicio seguro y funcional.",
+          "Para futuras tecnologias no esenciales, aplicaremos los mecanismos de consentimiento previos que exija la normativa aplicable."
+        ]
+      },
+      {
+        "id": "updates",
+        "title": "7. Cambios de esta Politica",
+        "paragraphs": [
+          "Podemos modificar esta Politica para reflejar cambios tecnicos o regulatorios.",
+          "La version vigente estara siempre disponible con su fecha de actualizacion."
+        ]
+      },
+      {
+        "id": "contact",
+        "title": "8. Contacto",
+        "paragraphs": [
+          "Para dudas sobre cookies o privacidad, escribe a privacy@keeptrip.app."
+        ]
+      }
+    ]
+  },
+  "disclaimer": {
+    "text": "Este contenido se proporciona como plantilla informativa y de cumplimiento general. Debe ser revisado por un abogado cualificado para asesoramiento legal especifico de tu situacion."
+  }
+}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { useAuth } from '@app/providers/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { Globe, ArrowRight } from 'lucide-react';
 import { motion as Motion } from 'framer-motion';
 import { COLORS } from '@shared/config';
+import AuthModal from '@features/auth/ui/AuthModal';
 import { styles } from './HeroSection.styles';
 import InteractiveCardStack from './InteractiveCardStack';
 
@@ -24,54 +25,63 @@ const hoverScaleVariants = {
 };
 
 const HeroSection = () => {
-  const { user, login } = useAuth();
+  const { usuario: user, login } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation(['landing']);
   const { isMobile } = useWindowSize();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const handleCtaClick = () => {
     if (user) {
       navigate('/dashboard');
     } else {
-      login();
+      setIsAuthModalOpen(true);
     }
   };
 
   return (
-    <Motion.main style={styles.hero(isMobile)} variants={itemVariants}>
-      {/* Columna izquierda: copy */}
-      <Motion.div style={styles.content} variants={itemVariants}>
-        <Motion.div style={styles.kicker} variants={itemVariants}>
-          <Globe size={14} color={COLORS.mutedTeal} strokeWidth={2.5} />
-          {t('landing:hero.kicker', 'Para viajeros de alma')}
+    <>
+      <Motion.main style={styles.hero(isMobile)} variants={itemVariants}>
+        {/* Columna izquierda: copy */}
+        <Motion.div style={styles.content} variants={itemVariants}>
+          <Motion.div style={styles.kicker} variants={itemVariants}>
+            <Globe size={14} color={COLORS.mutedTeal} strokeWidth={2.5} />
+            {t('landing:hero.kicker', 'Para viajeros de alma')}
+          </Motion.div>
+
+          <Motion.h1 style={styles.title(isMobile)} variants={itemVariants}>
+            {t('landing:hero.titleTop')}
+            <br />
+            <span style={styles.highlight}>{t('landing:hero.titleHighlight')}</span>
+          </Motion.h1>
+
+          <Motion.p style={styles.subtitle} variants={itemVariants}>
+            {t('landing:hero.subtitle')}
+          </Motion.p>
+
+          <Motion.button
+            onClick={handleCtaClick}
+            className="tap-btn"
+            style={styles.ctaBtn}
+            variants={hoverScaleVariants}
+            whileHover="hover"
+            whileTap="tap"
+          >
+            {user ? t('landing:hero.ctaLoggedIn') : t('landing:hero.ctaButton')}
+            <ArrowRight size={18} strokeWidth={2.5} />
+          </Motion.button>
         </Motion.div>
 
-        <Motion.h1 style={styles.title(isMobile)} variants={itemVariants}>
-          {t('landing:hero.titleTop')}
-          <br />
-          <span style={styles.highlight}>{t('landing:hero.titleHighlight')}</span>
-        </Motion.h1>
+        {/* Columna derecha: sneak-peek del producto */}
+        <InteractiveCardStack isMobile={isMobile} />
+      </Motion.main>
 
-        <Motion.p style={styles.subtitle} variants={itemVariants}>
-          {t('landing:hero.subtitle')}
-        </Motion.p>
-
-        <Motion.button
-          onClick={handleCtaClick}
-          className="tap-btn"
-          style={styles.ctaBtn}
-          variants={hoverScaleVariants}
-          whileHover="hover"
-          whileTap="tap"
-        >
-          {user ? t('landing:hero.ctaLoggedIn') : t('landing:hero.ctaButton')}
-          <ArrowRight size={18} strokeWidth={2.5} />
-        </Motion.button>
-      </Motion.div>
-
-      {/* Columna derecha: sneak-peek del producto */}
-      <InteractiveCardStack isMobile={isMobile} />
-    </Motion.main>
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onContinue={login}
+      />
+    </>
   );
 };
 

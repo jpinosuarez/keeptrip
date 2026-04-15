@@ -19,6 +19,7 @@ import {
 import { useAuth } from '@app/providers/AuthContext';
 import { useSearch, useUI } from '@app/providers/UIContext';
 import { COLORS, RADIUS, Z_INDEX, ENABLE_INVITATIONS } from '@shared/config';
+import AuthModal from '@features/auth/ui/AuthModal';
 import { useTranslation } from 'react-i18next';
 
 const PAGE_TITLES = {
@@ -40,6 +41,7 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
   const { t } = useTranslation(['nav', 'common']);
   const [failedPhoto, setFailedPhoto] = useState(null);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -348,7 +350,7 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
           <button
             type="button"
             data-testid="header-login-button"
-            onClick={login}
+            onClick={() => setIsAuthModalOpen(true)}
             style={{
               backgroundColor: COLORS.mutedTeal,
               color: '#fff',
@@ -363,6 +365,12 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
           </button>
         )}
       </div>
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onContinue={login}
+      />
 
       {/* Mobile Search Dropdown */}
       {isMobile && showSearch && isMobileSearchOpen && (

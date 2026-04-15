@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { COLORS } from '@shared/config';
@@ -21,8 +22,8 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const footerLinks = [
-    { label: t('footer.terms'), href: '#terms' },
-    { label: t('footer.privacy'), href: '#privacy' },
+    { label: t('footer.terms'), href: '/legal#terms' },
+    { label: t('footer.privacy'), href: '/legal#privacy' },
     { label: t('footer.contact'), href: '#contact' },
   ];
 
@@ -36,13 +37,23 @@ const Footer = () => {
           </div>
           <nav style={styles.footerLinks(isMobile)} aria-label="Footer navigation">
             {footerLinks.map((link, index) => (
-              <a
-                key={index}
-                href={link.href}
-                style={styles.footerLink}
-              >
-                {link.label}
-              </a>
+              link.href.startsWith('/') ? (
+                <Link
+                  key={index}
+                  to={link.href}
+                  style={styles.footerLink}
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={index}
+                  href={link.href}
+                  style={styles.footerLink}
+                >
+                  {link.label}
+                </a>
+              )
             ))}
           </nav>
         </div>
