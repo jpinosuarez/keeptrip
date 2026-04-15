@@ -158,6 +158,9 @@ export default defineConfig({
           if (id.includes('/node_modules/framer-motion')) {
             return 'vendor-motion';
           }
+          if (id.includes('/node_modules/mapbox-gl') || id.includes('/node_modules/react-map-gl')) {
+            return 'vendor-map';
+          }
         },
       },
     },
