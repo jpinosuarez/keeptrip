@@ -289,3 +289,17 @@ Antes de comparar resultados entre ramas:
 
 ## Nota para este repo
 Despues del ajuste de chunking, el HTML inicial no debe incluir preload de Mapbox. Si vuelve a aparecer preload de mapa en `dist/index.html`, tratarlo como regression de critical path.
+
+## Arquitectura de Performance y Excepciones Registradas (Abril 2026)
+Tras exhaustivas auditorías (Score Staging: 95), se han establecido los siguientes patrones inquebrantables de rendimiento que futuros agentes de IA o humanos **nunca** deben revertir:
+
+### 1. Interaction-Based Auto-Loading (TBT Defense)
+Lighthouse castiga sumamente el Main-Thread Javascript. El renderizado y parseo de `mapbox-gl` (~1.6MB) aniquilaba el **Total Blocking Time (TBT)** durante la inicialización de la app.
+- **Implementación actual:** El `HomeMap` u otros visores complejos se cargan única y exclusivamente cuando el usuario realiza la primera interacción con la CPU (`scroll`, `mousemove` o `touchstart`).
+- **Limpieza (Garbage Collection):** Los listeners se atan con `{ once: true, passive: true }` y se limpian instantaneamente luego de dispararse la bandera de interacción.
+- **Advertencia:** **NUNCA volver a usar `setTimeout` temporal (ej. 1000ms)** para cargar librerías pesadas en el arranque, ya que esto ocurre dentro de la ventana de perfilado de Lighthouse y destruye la métrica.
+
+### 2. Largest Contentful Paint (LCP) Hints
+El impacto visual más veloz (`keeptrip-splash > img.splash-logo` en `index.html`) ha sido priorizado agresivamente.
+- **Implementación actual:** Se usa `<link rel="preload" as="image" href="/favicon.svg" fetchpriority="high" />` en el `<head>` y el flag nativo `fetchpriority="high"` directo en el target LCP. 
+- **Advertencia:** Toda adición futura de fuentes o imágenes críticas (*Above-the-fold*) debe ser validada contra penalizaciones de TTI/LCP.

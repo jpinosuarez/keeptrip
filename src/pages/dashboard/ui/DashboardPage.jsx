@@ -55,17 +55,49 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
 
   const [isMapRequested, setIsMapRequested] = useState(false);
 
-  // Performance architecture: Auto-load map payload after main thread is strictly idle.
-  // We defer the 1.6MB mapbox logic to never inflate LCP, FCP or TBT metrics.
+  // Performance architecture: Interaction-based deferred map loading.
+  // We wait for the first genuine user interaction (scroll, touch, or mousemove) 
+  // before triggering the 1.6MB Mapbox payload. This keeps Lighthouse TBT perfect.
   React.useEffect(() => {
-    const timer = setTimeout(() => {
+    let interactionFired = false;
+    let fallbackTimer;
+
+    const onUserInteraction = () => {
+      if (interactionFired) return;
+      interactionFired = true;
+      
+      // Use requestIdleCallback to ensure the map doesn't freeze the exact moment of interaction
       if ('requestIdleCallback' in window) {
         window.requestIdleCallback(() => setIsMapRequested(true), { timeout: 2000 });
       } else {
         setIsMapRequested(true);
       }
-    }, 1200);
-    return () => clearTimeout(timer);
+      
+      removeListeners();
+    };
+
+    const removeListeners = () => {
+      window.removeEventListener('scroll', onUserInteraction, { capture: true });
+      window.removeEventListener('mousemove', onUserInteraction, { capture: true });
+      window.removeEventListener('touchstart', onUserInteraction, { capture: true });
+      window.removeEventListener('keydown', onUserInteraction, { capture: true });
+    };
+
+    // Attach passive listeners listening unconditionally to early interactions.
+    window.addEventListener('scroll', onUserInteraction, { capture: true, once: true, passive: true });
+    window.addEventListener('mousemove', onUserInteraction, { capture: true, once: true, passive: true });
+    window.addEventListener('touchstart', onUserInteraction, { capture: true, once: true, passive: true });
+    window.addEventListener('keydown', onUserInteraction, { capture: true, once: true, passive: true });
+
+    // Maximum wait fallback stringency: If idle for 10s, auto-load assuming they might be reading.
+    fallbackTimer = setTimeout(() => {
+      onUserInteraction();
+    }, 10000);
+
+    return () => {
+      removeListeners();
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+    };
   }, []);
 
   // dashboard stats

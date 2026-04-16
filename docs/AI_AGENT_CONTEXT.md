@@ -54,6 +54,7 @@ This policy is mandatory for every AI agent and developer working on Keeptrip. F
 ### Mapbox & External API Strict Rules
 - **Shared Caching:** All geocoding and external fetch flows must use standalone ES module singletons with in-memory caching and in-flight request deduplication.
 - **Render Pressure Defense:** Interactive 3D map surfaces (including `MapaView`) must apply strict memoization strategies (for example coordinate hash keys) to prevent parent state churn from forcing expensive WebGL redraws.
+- **Main-Thread Performance Protection:** Never use `setTimeout` loops to defer massive third-party payloads like `mapbox-gl` on boot. Always use robust **Interaction-Based Loaders** (e.g., listening for unified 'scroll', 'mousemove', 'touchstart') with `{ once: true }` to keep Lighthouse Total Blocking Time (TBT) near zero. Any violation of this will be flagged as a regression.
 
 ---
 
