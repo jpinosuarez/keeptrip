@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useMemo, useState } from 'react';
 import { WifiOff, AlertTriangle, ArrowRight, Map } from 'lucide-react';
+import { motion as Motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@app/providers/AuthContext';
@@ -146,7 +147,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
         <div style={styles.mapErrorGrid} />
       </div>
       <div style={styles.mapErrorPanel}>
-        <p style={styles.mapErrorText}>{t('mapLoading', { defaultValue: 'Cargando mapa...' })}</p>
+        <p style={styles.mapErrorText}>{t('mapLoading')}</p>
       </div>
     </div>
   );
@@ -179,7 +180,18 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
 
       <div style={styles.mapContainer(isDesktop)}>
         <div style={styles.mapSection}>
-          <h2 style={styles.mapSectionTitle}>{t('explorationMap')}</h2>
+          <div style={styles.sectionHeader}>
+            <h2 style={styles.sectionTitle}>{t('explorationMap')}</h2>
+            <Motion.button
+              onClick={() => navigate('/map')}
+              style={styles.viewAllBtn}
+              aria-label={t('viewFullMap')}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {t('viewFullMap')} <Map size={14} />
+            </Motion.button>
+          </div>
           <div style={styles.mapCard(isDesktop)}>
             <ErrorBoundary fallback={mapFallback}>
               {isMapRequested ? (
@@ -206,14 +218,16 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
       <div style={styles.recentsContainer(isDesktop)}>
         <div style={styles.sectionHeader}>
           <h2 style={styles.sectionTitle}>{t('recentAdventures')}</h2>
-          {!isNewTraveler && (
-            <button
+          {log.length > 0 && (
+            <Motion.button
               onClick={() => navigate('/trips')}
               style={styles.viewAllBtn}
               aria-label={t('viewAllTripSummary')}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               {t('viewAll')} <ArrowRight size={14} />
-            </button>
+            </Motion.button>
           )}
         </div>
 

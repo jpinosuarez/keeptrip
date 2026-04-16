@@ -7,7 +7,7 @@
  *   - No `useState` attached to `window.addEventListener('scroll')`.
  *   - The animations run directly on the DOM via Framer's Motion Values.
  */
-import React, { useState, useEffect, lazy, Suspense, useMemo } from 'react';
+import React, { useState, lazy, Suspense, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Plus, LogOut, User, X, Bell, Disc } from 'lucide-react';
 import {

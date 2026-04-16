@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import { BottomSheet } from '@shared/ui/components';
 import { COLORS, RADIUS, SPACING, FONTS, SHADOWS } from '@shared/config';
@@ -16,7 +16,7 @@ const DOC_TYPES = {
 // --- Google Official Button UI ---
 const GoogleSignInButton = ({ onClick, disabled, isSubmitting, t }) => {
   return (
-    <motion.button
+    <Motion.button
       type="button"
       onClick={onClick}
       disabled={disabled || isSubmitting}
@@ -52,7 +52,7 @@ const GoogleSignInButton = ({ onClick, disabled, isSubmitting, t }) => {
         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.16 7.07l3.68 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
       </svg>
       {isSubmitting ? t('common:loading') : t('common:auth.continueWithGoogle')}
-    </motion.button>
+    </Motion.button>
   );
 };
 
@@ -71,7 +71,7 @@ const CenteredModal = ({ isOpen, onClose, children }) => {
     <AnimatePresence>
       {isOpen && (
         <React.Fragment key="centered-modal-frag">
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -96,7 +96,7 @@ const CenteredModal = ({ isOpen, onClose, children }) => {
               padding: SPACING.md,
             }}
           >
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -117,7 +117,7 @@ const CenteredModal = ({ isOpen, onClose, children }) => {
               }}
             >
               {children}
-            </motion.div>
+            </Motion.div>
           </div>
         </React.Fragment>
       )}
@@ -159,7 +159,7 @@ const AuthModalContent = ({ activeDoc, setActiveDoc, isSubmitting, handleContinu
     <div style={{ position: 'relative', width: '100%' }}>
       <AnimatePresence mode="wait">
         {activeDoc ? (
-          <motion.div
+          <Motion.div
             key="legal-view"
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -207,9 +207,9 @@ const AuthModalContent = ({ activeDoc, setActiveDoc, isSubmitting, handleContinu
             <div style={{ position: 'relative' }}>
               <LegalDocumentViewer docType={activeDoc} />
             </div>
-          </motion.div>
+          </Motion.div>
         ) : (
-          <motion.div
+          <Motion.div
             key="auth-view"
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -236,7 +236,7 @@ const AuthModalContent = ({ activeDoc, setActiveDoc, isSubmitting, handleContinu
               <GoogleSignInButton onClick={handleContinue} isSubmitting={isSubmitting} t={t} />
               {renderClickwrapText()}
             </div>
-          </motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
     </div>

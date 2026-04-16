@@ -1,4 +1,4 @@
-import { COLORS, SHADOWS, RADIUS } from '@shared/config';
+import { COLORS, SHADOWS, RADIUS, FONTS } from '@shared/config';
 
 export const styles = {
   dashboardContainer: (isDesktop) => ({
@@ -93,20 +93,6 @@ export const styles = {
     height: '100%',
     minWidth: 0,
     minHeight: 0,
-  },
-
-  mapSectionTitle: {
-    display: 'flex',
-    alignItems: 'center',
-    margin: 0,
-    fontSize: '0.8rem',
-    fontWeight: '800',
-    color: COLORS.charcoalBlue,
-    textTransform: 'uppercase',
-    letterSpacing: '0.4px',
-    lineHeight: 1,
-    flexShrink: 0,
-    minHeight: '44px',
   },
 
   mapCard: (isDesktop) => ({
@@ -247,18 +233,20 @@ export const styles = {
   viewAllBtn: {
     display: 'flex',
     alignItems: 'center',
-    gap: '4px',
-    background: 'rgba(255, 107, 53, 0.1)',
-    border: '1px solid rgba(255, 107, 53, 0.2)',
+    gap: '6px',
+    background: 'rgba(255, 107, 53, 0.06)',
+    border: '1px solid rgba(255, 107, 53, 0.15)',
     cursor: 'pointer',
-    fontSize: '0.75rem',
-    fontWeight: '700',
+    fontSize: '0.82rem',
+    fontFamily: FONTS.body,
+    fontWeight: '800',
     color: COLORS.atomicTangerine,
-    padding: '10px 16px',
-    minHeight: '44px',
-    borderRadius: RADIUS.sm,
+    padding: '8px 18px',
+    minHeight: '40px',
+    borderRadius: RADIUS.full,
     whiteSpace: 'nowrap',
     flexShrink: 0,
+    transition: 'all 0.2s ease',
   },
 
   cardsList: (isDesktop, count = 0) => {

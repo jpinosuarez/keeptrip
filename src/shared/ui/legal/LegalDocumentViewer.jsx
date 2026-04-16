@@ -14,8 +14,7 @@ const LegalDocumentViewer = ({ docType = 'privacy' }) => {
   const { t } = useTranslation('legal');
   const documentKey = DOC_MAP[docType] || DOC_MAP.privacy;
   
-  // Use returnObjects: true to extract the entire legal object tree for mapping
-  const documentData = t(documentKey, { returnObjects: true }) || {};
+  const documentData = useMemo(() => t(documentKey, { returnObjects: true }) || {}, [t, documentKey]);
 
   const sections = useMemo(() => {
     if (!Array.isArray(documentData?.sections)) return [];

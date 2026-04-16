@@ -22,16 +22,7 @@
     "test:rules": "vitest run src/__tests__/firestore.rules.test.js",
     "test:e2e": "firebase emulators:exec --only auth,firestore,storage --project keeptrip-app-b06b3 \"npx playwright test\"",
     "test:ci": "vitest run && playwright test",
-    "lh:run": "node scripts/lighthouse/run-batch.mjs",
-    "lh:help": "node scripts/lighthouse/run-batch.mjs --help",
-    "lh:open:prod-profile": "node scripts/lighthouse/open-profile.mjs --baseUrl=https://keeptrip.app --route=/dashboard --userDataDir=.lighthouse-profile-prod",
-    "lh:open:staging-profile": "node scripts/lighthouse/open-profile.mjs --baseUrl=https://keeptrip-app-staging.web.app --route=/dashboard --userDataDir=.lighthouse-profile-staging",
-    "lh:prod:dashboard:light": "npm run lh:run -- --baseUrl=https://keeptrip.app --route=/dashboard --env=prod --profile=light --runs=5 --device=mobile --userDataDir=.lighthouse-profile-prod",
-    "lh:prod:dashboard:heavy": "npm run lh:run -- --baseUrl=https://keeptrip.app --route=/dashboard --env=prod --profile=heavy --runs=5 --device=mobile --userDataDir=.lighthouse-profile-prod",
-    "lh:prod:dashboard:light:robust": "npm run lh:run -- --baseUrl=https://keeptrip.app --route=/dashboard --env=prod --profile=light --runs=5 --device=mobile --userDataDir=.lighthouse-profile-prod --retryPerRun=3 --tempDir=.lighthouse-temp-prod",
-    "lh:staging:dashboard:light": "npm run lh:run -- --baseUrl=https://keeptrip-app-staging.web.app --route=/dashboard --env=staging --profile=light --runs=5 --device=mobile --userDataDir=.lighthouse-profile-staging",
-    "lh:staging:dashboard:heavy": "npm run lh:run -- --baseUrl=https://keeptrip-app-staging.web.app --route=/dashboard --env=staging --profile=heavy --runs=5 --device=mobile --userDataDir=.lighthouse-profile-staging",
-    "lh:staging:dashboard:light:robust": "npm run lh:run -- --baseUrl=https://keeptrip-app-staging.web.app --route=/dashboard --env=staging --profile=light --runs=5 --device=mobile --userDataDir=.lighthouse-profile-staging --retryPerRun=3 --tempDir=.lighthouse-temp-staging"
+    "test:ci": "vitest run && playwright test"
   },
   "dependencies": {
     "browser-image-compression": "^2.0.2",

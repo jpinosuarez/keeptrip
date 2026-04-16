@@ -7,6 +7,8 @@
   "world": "Mundo",
   "recentAdventures": "Aventuras recientes",
   "viewAll": "Ver todo",
+  "viewFullMap": "Ver mapa completo",
+  "mapLoading": "Cargando mapa...",
   "emptyLog": "¡Aún no tienes viajes guardados!",
   "firstTripMessage": "Comienza tu aventura registrando tu primer destino.",
   "addFirstTrip": "Agregar primer viaje",

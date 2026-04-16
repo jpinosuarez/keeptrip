@@ -7,7 +7,7 @@
  *  3. Disc logomark at top of Rail (desktop); brand always visible
  *  4. CSS-first responsive strategy preserved — zero JS breakpoint detection
  */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {

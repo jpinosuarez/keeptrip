@@ -7,6 +7,8 @@
   "world": "World",
   "recentAdventures": "Recent adventures",
   "viewAll": "View all",
+  "viewFullMap": "View full map",
+  "mapLoading": "Loading map...",
   "emptyLog": "Your travel log is empty!",
   "firstTripMessage": "Start your adventure by registering your first destination.",
   "addFirstTrip": "Add first trip",

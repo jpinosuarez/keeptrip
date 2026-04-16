@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { COLORS, FONTS, SHADOWS, SPACING, RADIUS } from '@shared/config';
 import LegalDocumentViewer from '@shared/ui/legal/LegalDocumentViewer';
@@ -22,16 +22,9 @@ const LegalPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const initialDoc = useMemo(() => normalizeHashToDoc(location.hash), [location.hash]);
-  const [activeDoc, setActiveDoc] = useState(initialDoc);
-
-  useEffect(() => {
-    const nextDoc = normalizeHashToDoc(location.hash);
-    setActiveDoc(nextDoc);
-  }, [location.hash]);
+  const activeDoc = useMemo(() => normalizeHashToDoc(location.hash), [location.hash]);
 
   const handleSwitchDoc = (docKey) => {
-    setActiveDoc(docKey);
     navigate(`/legal#${docKey}`, { replace: true });
   };
 
