@@ -43,6 +43,13 @@ const EditableTripHeader = ({
   const [isTitleFocused, setIsTitleFocused] = useState(false);
   const [isCameraHovered, setIsCameraHovered] = useState(false);
 
+  // Drag logic for Cover image
+  const [dragProgress, setDragProgress] = useState(formData?.coverPositionY ?? 50);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartY = useRef(0);
+  const dragStartProgress = useRef(0);
+  const imageContainerRef = useRef(null);
+
   // Derivar preview actual (fotoFile tiene precedencia, luego portadaUrl)
   const currentPreview = useMemo(() => {
     if (galleryFiles && galleryFiles.length > 0 && galleryFiles[0]) {
@@ -127,6 +134,36 @@ const EditableTripHeader = ({
     setGalleryFiles([]);
     setFormData(prev => ({ ...prev, portadaUrl: null }));
     setShowMenu(false);
+  };
+
+  // Drag Handlers para Reposicionamiento Vertical
+  const handlePointerDown = (e) => {
+    if (!currentPreview || isMobile) return;
+    setIsDragging(true);
+    dragStartY.current = e.clientY;
+    dragStartProgress.current = dragProgress;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e) => {
+    if (!isDragging || !imageContainerRef.current) return;
+    const deltaY = e.clientY - dragStartY.current;
+    
+    const containerHeight = imageContainerRef.current.offsetHeight;
+    const scrollableRatio = 1; // Controla la sensibilidad del drag
+    const deltaPercent = (deltaY / Math.max(containerHeight, 1)) * 100 * scrollableRatio;
+    
+    const newProgress = Math.max(0, Math.min(100, dragStartProgress.current - deltaPercent));
+    setDragProgress(newProgress);
+  };
+
+  const handlePointerUp = (e) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    if (dragProgress !== formData?.coverPositionY) {
+      setFormData(prev => ({ ...prev, coverPositionY: Math.round(dragProgress) }));
+    }
   };
 
   // Pills format
@@ -232,12 +269,26 @@ const EditableTripHeader = ({
     <div style={styles.headerWrapper(isMobile)}>
       {/* Dynamic Background */}
       <div style={styles.bgWrapper}>
-        <div style={styles.bgImageHolder}>
+        <div 
+          ref={imageContainerRef}
+          style={{ ...styles.bgImageHolder, cursor: isMobile ? 'default' : (isDragging ? 'grabbing' : 'grab') }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerUp} // cancel Si el ratón sale mientras arrastra
+        >
           {currentPreview ? (
             <img 
               src={currentPreview} 
               alt="Cover preview" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              draggable={false} // previene el arrastre nativo de imagen
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'cover',
+                objectPosition: `center ${dragProgress}%`,
+                userSelect: 'none'
+              }} 
             />
           ) : (
             <div style={styles.fallbackAuraContainer} aria-hidden="true">

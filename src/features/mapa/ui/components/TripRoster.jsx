@@ -43,24 +43,54 @@ const RosterHeader = ({ paises, trips, tripData, isMobile, onToggle, isExpanded 
   const { t } = useTranslation('dashboard');
   const { usuario } = useAuth();
   const continentsCount = useMemo(() => countContinents(trips, tripData), [trips, tripData]);
+
+  // Calculate unique countries and total stops securely
+  const { uniqueCountries, totalStops } = useMemo(() => {
+    const countries = new Set();
+    let stops = 0;
+
+    trips.forEach((trip) => {
+      const details = tripData[trip.id] || trip;
+      // Extract stops
+      const paradas = details.paradas || details.ciudades || [];
+      stops += paradas.length;
+
+      // Extract unique countries
+      paradas.forEach((p) => {
+        const code = p.countryCode || p.paisCodigo;
+        if (code) countries.add(code.toUpperCase());
+      });
+
+      // Fallback if no stops but has a destination country
+      const fallbackCode = details.code || details.paisCodigo || details.countryCode;
+      if (fallbackCode) countries.add(fallbackCode.toUpperCase());
+    });
+
+    // Directly use Set size which accurately deduplicates countries across all trips
+    return {
+      uniqueCountries: countries.size,
+      totalStops: stops,
+    };
+  }, [trips, tripData, paises]);
+
   const name = usuario?.displayName?.split(' ')[0] || t('fallbackName', 'Explorer');
 
   return (
     <button
       type="button"
-      onClick={onToggle}
+      onClick={isMobile ? undefined : onToggle}
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
         width: '100%',
-        padding: isMobile ? '14px 16px' : '14px 18px',
+        padding: isMobile ? '0 16px' : '14px 18px', // Mobile spacing adjusted for touch target above
         background: 'transparent',
         borderLeft: 'none',
         borderRight: 'none',
         borderTop: 'none',
         borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-        cursor: 'pointer',
+        cursor: isMobile ? 'default' : 'pointer',
         textAlign: 'left',
       }}
     >
@@ -81,7 +111,7 @@ const RosterHeader = ({ paises, trips, tripData, isMobile, onToggle, isExpanded 
       </div>
 
       {/* Identity + stats */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 0, paddingBottom: isMobile ? '12px' : 0 }}>
         <p style={{
           margin: 0,
           fontSize: '0.95rem',
@@ -99,31 +129,34 @@ const RosterHeader = ({ paises, trips, tripData, isMobile, onToggle, isExpanded 
           display: 'flex',
           alignItems: 'center',
           gap: '4px',
+          flexWrap: 'wrap',
         }}>
-          {paises.length} {paises.length === 1 ? t('hud.countrySingular', 'country') : t('hud.countryPlural', 'countries')}
+          <span title={t('hud.uniqueCountries', 'Países únicos visitados')}>{uniqueCountries} {uniqueCountries === 1 ? t('hud.countrySingular', 'País') : t('hud.countryPlural', 'Países')}</span>
           <span style={{ opacity: 0.4 }}>·</span>
-          {continentsCount} <Globe2 size={10} />
+          <span title={t('hud.continents', 'Continentes')}>{continentsCount} <Globe2 size={10} style={{ display: 'inline' }} /></span>
           <span style={{ opacity: 0.4 }}>·</span>
-          {trips.length} <MapPin size={10} />
+          <span title={t('hud.tripsAndStops', 'Viajes / Paradas')}>{trips.length} Viajes ({totalStops} Paradas) <MapPin size={10} style={{ display: 'inline' }} /></span>
         </p>
       </div>
 
-      {/* Collapse/Expand chevron */}
-      <div style={{
-        width: '28px',
-        height: '28px',
-        borderRadius: RADIUS.full,
-        background: 'rgba(0, 0, 0, 0.05)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-        transition: 'background 0.2s',
-      }}>
-        {isExpanded
-          ? <ChevronDown size={14} color={COLORS.textSecondary} />
-          : <ChevronUp size={14} color={COLORS.textSecondary} />}
-      </div>
+      {/* Collapse/Expand chevron (Hidden on Mobile) */}
+      {!isMobile && (
+        <div style={{
+          width: '28px',
+          height: '28px',
+          borderRadius: RADIUS.full,
+          background: 'rgba(0, 0, 0, 0.05)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          transition: 'background 0.2s',
+        }}>
+          {isExpanded
+            ? <ChevronDown size={14} color={COLORS.textSecondary} />
+            : <ChevronUp size={14} color={COLORS.textSecondary} />}
+        </div>
+      )}
     </button>
   );
 };
@@ -156,9 +189,23 @@ const TripRoster = ({
   if (isMobile) {
     return (
       <Motion.div
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 100, damping: 22, delay: 0.2 }}
+        initial={false}
+        animate={{ 
+          y: 0, 
+          opacity: 1, 
+          height: isExpanded ? '55dvh' : '90px' 
+        }}
+        transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={0.2}
+        onDragEnd={(e, info) => {
+          if (info.offset.y > 50 || info.velocity.y > 500) {
+            setIsExpanded(false);
+          } else if (info.offset.y < -50 || info.velocity.y < -500) {
+            setIsExpanded(true);
+          }
+        }}
         style={{
           position: 'absolute',
           bottom: 0,
@@ -172,11 +219,10 @@ const TripRoster = ({
           borderLeft: '1px solid rgba(226, 232, 240, 0.5)',
           borderRight: '1px solid rgba(226, 232, 240, 0.5)',
           borderBottom: 'none',
-          maxHeight: isExpanded ? '55dvh' : '80px',
-          transition: 'max-height 0.35s cubic-bezier(0.25, 0.8, 0.25, 1)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
+          touchAction: 'none'
         }}
       >
         {/* Drag handle */}
@@ -184,10 +230,12 @@ const TripRoster = ({
           onClick={toggleExpand}
           style={{
             width: '100%',
+            height: '44px',
             display: 'flex',
             justifyContent: 'center',
-            padding: '8px 0 2px',
-            cursor: 'pointer',
+            alignItems: 'center',
+            cursor: 'grab',
+            flexShrink: 0,
           }}
         >
           <div style={{

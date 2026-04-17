@@ -42,14 +42,9 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
     });
   }, [log]);
 
-  const recentTripsLimit = useMemo(() => {
-    if (isMobileLayout) return 2;
-    return Math.min(recentTrips.length, 4);
-  }, [isMobileLayout, recentTrips.length]);
-
   const visibleRecentTrips = useMemo(
-    () => (isDesktop ? recentTrips : recentTrips.slice(0, recentTripsLimit)),
-    [isDesktop, recentTrips, recentTripsLimit]
+    () => recentTrips.slice(0, 4),
+    [recentTrips]
   );
   const isNewTraveler = log.length === 0;
   const [mapRenderKey, setMapRenderKey] = useState(0);
@@ -231,7 +226,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
           )}
         </div>
 
-        <div style={styles.cardsList(isDesktop, visibleRecentTrips.length)} className="custom-scroll">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 w-full custom-scroll" style={{ alignItems: 'start', minWidth: 0 }}>
           {loading ? (
             <SkeletonList count={2} Component={TripCardSkeleton} />
           ) : isError ? (
@@ -246,8 +241,6 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
             </div>
           ) : !isNewTraveler ? (
             visibleRecentTrips.map((trip, index) => {
-              const isThreeItems = visibleRecentTrips.length === 3;
-              const isFirstOfThree = isThreeItems && index === 0;
               const enrichedTrip = tripDataMap[trip.id] || trip;
               return (
                 <div 
@@ -255,14 +248,14 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
                   style={{ 
                     minHeight: 0, 
                     height: '100%', 
-                    gridColumn: isDesktop && isFirstOfThree ? '1 / -1' : undefined,
                     overflow: 'hidden'
                   }}
                 >
                   <TripCard 
                     trip={enrichedTrip} 
                     isMobile={isMobileLayout} 
-                    variant="home" priorityImage={index === 0}
+                    variant="home" 
+                    priorityImage={index === 0}
                     onClick={() => openTripEditor(trip.id)} 
                   />
                 </div>

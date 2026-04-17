@@ -15,15 +15,15 @@ import './AppScaffold.css';
 
 function AppScaffold({ invitationsCount, content, overlays, isMobile }) {
   return (
-    <div style={{
+    <div 
+      className="w-full bg-slate-50 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]" // Safe area insets
+      style={{
         display: 'flex',
-        backgroundColor: '#F8FAFC',
         minHeight: '100dvh',
         height: '100dvh',
-        width: '100%',
         overflow: 'hidden',
-      }}>
-      <Sidebar />
+      }}
+    >
 
       <main className="scaffold-main">
         <Header

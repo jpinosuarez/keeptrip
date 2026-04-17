@@ -19,7 +19,7 @@ const createStopInstanceId = (feature) => {
 
 
 
-const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
+const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = false }) => {
   const { i18n, t: searchT } = useTranslation(['search', 'common']);
   const {
     flags: { level: operationalLevel, appReadonlyMode },
@@ -111,6 +111,15 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
     setParadas(nuevas);
   };
 
+  const getMinArrivalDate = (index) => {
+    if (index > 0) {
+      const prev = paradas[index - 1];
+      if (prev.fechaSalida) return prev.fechaSalida.split('/').reverse().join('-');
+      if (prev.fechaLlegada) return prev.fechaLlegada.split('/').reverse().join('-');
+    }
+    return tripStartDate ? tripStartDate.split('/').reverse().join('-') : '';
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.searchRow}>
@@ -123,7 +132,7 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
               setSearchQuery(value);
               if (value.length < 3) setSearchResults([]);
             }}
-            placeholder={t('citymanager.searchPlaceholder') || 'Type the city name...'}
+            placeholder={t('citymanager.searchPlaceholder', '🔍 Añadir nueva parada a tu ruta')}
             style={styles.searchInput}
             disabled={isSearchPaused || isReadOnlyActive}
           />
@@ -249,6 +258,7 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
                     <input
                       type="date"
                       value={p.fechaLlegada ? p.fechaLlegada.split('/').reverse().join('-') : ''}
+                      min={getMinArrivalDate(index)}
                       onChange={(e) => {
                         const val = e.target.value;
                         if (!val) {
@@ -268,6 +278,7 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
                     <input
                       type="date"
                       value={p.fechaSalida ? p.fechaSalida.split('/').reverse().join('-') : ''}
+                      min={p.fechaLlegada ? p.fechaLlegada.split('/').reverse().join('-') : getMinArrivalDate(index)}
                       onChange={(e) => {
                         const val = e.target.value;
                         if (!val) {
@@ -326,8 +337,8 @@ const styles = {
   cityName: { fontWeight: '700', fontSize: '0.95rem', color: COLORS.charcoalBlue },
   actions: { display: 'flex', gap: '6px' },
   actionBtn: { background: COLORS.background, border: 'none', minHeight: '44px', minWidth: '44px', padding: '12px', borderRadius: RADIUS.xs, cursor: 'pointer', color: COLORS.textSecondary, display:'flex', alignItems:'center', justifyContent:'center' },
-  datesRow: { display: 'flex', gap: '15px' },
-  dateGroup: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' },
+  datesRow: { display: 'flex', gap: '15px', flexWrap: 'wrap' },
+  dateGroup: { flex: '1 1 120px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' },
   transportRow: { display: 'flex', gap: '12px', alignItems: 'center', marginTop: 10 },
   transportBtn: (active) => ({ padding: '10px 14px', borderRadius: RADIUS.sm, border: active ? '1px solid #3b82f6' : `1px solid ${COLORS.border}`, background: active ? '#eff6ff' : COLORS.surface, cursor: 'pointer' }),
   label: { fontSize: '0.7rem', textTransform:'uppercase', color:COLORS.textSecondary, fontWeight:'700' },

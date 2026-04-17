@@ -249,45 +249,6 @@ export const styles = {
     transition: 'all 0.2s ease',
   },
 
-  cardsList: (isDesktop, count = 0) => {
-    let gridTemplateColumns = 'repeat(1, minmax(0, 1fr))';
-    let gridTemplateRows = 'minmax(0, 1fr)';
-
-    if (isDesktop) {
-      if (count === 1) {
-        gridTemplateColumns = 'minmax(0, 1fr)';
-        gridTemplateRows = 'minmax(0, 1fr)';
-      } else if (count === 2) {
-        gridTemplateColumns = 'minmax(0, 1fr)';
-        gridTemplateRows = 'repeat(2, minmax(0, 1fr))';
-      } else if (count >= 3) {
-        gridTemplateColumns = 'repeat(2, minmax(0, 1fr))';
-        gridTemplateRows = 'repeat(2, minmax(0, 1fr))';
-      }
-    } else {
-      gridTemplateColumns = 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))';
-      gridTemplateRows = 'auto';
-    }
-
-    return {
-      display: 'grid',
-      gridTemplateColumns,
-      gridTemplateRows,
-      alignItems: 'stretch',
-      gap: '12px',
-      minWidth: 0,
-      minHeight: 0,
-      ...(isDesktop
-        ? {
-            flex: 1,
-            overflow: 'hidden',
-          }
-        : {
-            overflow: 'visible',
-          }),
-    };
-  },
-
   dashboardErrorCard: {
     gridColumn: '1 / -1',
     display: 'flex',

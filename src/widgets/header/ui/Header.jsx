@@ -9,7 +9,7 @@
  */
 import React, { useState, lazy, Suspense, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Plus, LogOut, User, X, Bell, Disc } from 'lucide-react';
+import { Search, Plus, User, X, Bell, Disc } from 'lucide-react';
 import {
   motion as Motion,
   useScroll,
@@ -38,7 +38,7 @@ const PAGE_TITLES = {
 const COMPACT_LOGO_ROUTES = ['/trips', '/map'];
 
 const Header = ({ isMobile = false, invitationsCount = 0 }) => {
-  const { usuario: user, login, logout } = useAuth();
+  const { usuario: user, login } = useAuth();
   const { openBuscador: openTripSearch, openUserMenu, isReadOnlyMode } = useUI();
   const { busqueda: query, setBusqueda: setQuery, limpiarBusqueda: clearQuery } = useSearch();
   const { t } = useTranslation(['nav', 'common']);
@@ -286,68 +286,46 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
               </button>
             )}
 
-            {/* Avatar */}
-            <button
-              type="button"
-              data-testid="header-avatar"
-              onClick={() => openUserMenu()}
-              title={t('nav:settings')}
-              aria-label={t('nav:settings')}
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: RADIUS.full,
-                backgroundColor: COLORS.mutedTeal,
-                border: '2px solid rgba(255,255,255,0.8)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontWeight: 'bold',
-                fontSize: '0.85rem',
-                flexShrink: 0,
-                cursor: 'pointer',
-                overflow: 'hidden',
-              }}
-            >
-              {canShowPhoto ? (
-                <img
-                  src={photoUrl}
-                  alt={t('nav:avatarAlt', { name: user.displayName || '' })}
-                  style={{ width: '100%', height: '100%', borderRadius: RADIUS.full, objectFit: 'cover' }}
-                  onError={() => setFailedPhoto(photoUrl)}
-                />
-              ) : initials ? (
-                <span style={{ fontWeight: '700', fontSize: '0.8rem' }}>{initials}</span>
-              ) : (
-                <User size={18} />
-              )}
-            </button>
-
-            {/* Desktop Logout (subtle) */}
-            {!isMobile && (
+            {/* Avatar (Mobile Only) */}
+            <div className="md:hidden">
               <button
                 type="button"
-                data-testid="header-logout-button"
-                onClick={logout}
+                data-testid="header-avatar"
+                onClick={() => openUserMenu()}
+                title={t('nav:settings')}
+                aria-label={t('nav:settings')}
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: COLORS.textSecondary,
-                  minWidth: '44px',
-                  minHeight: '44px',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: RADIUS.full,
+                  backgroundColor: COLORS.mutedTeal,
+                  border: '2px solid rgba(255,255,255,0.8)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  opacity: 0.6,
+                  color: '#fff',
+                  fontWeight: 'bold',
+                  fontSize: '0.85rem',
+                  flexShrink: 0,
+                  cursor: 'pointer',
+                  overflow: 'hidden',
                 }}
-                title={t('common:logout')}
               >
-                <LogOut size={16} />
+                {canShowPhoto ? (
+                  <img
+                    src={photoUrl}
+                    alt={t('nav:avatarAlt', { name: user.displayName || '' })}
+                    style={{ width: '100%', height: '100%', borderRadius: RADIUS.full, objectFit: 'cover' }}
+                    onError={() => setFailedPhoto(photoUrl)}
+                  />
+                ) : initials ? (
+                  <span style={{ fontWeight: '700', fontSize: '0.8rem' }}>{initials}</span>
+                ) : (
+                  <User size={18} />
+                )}
               </button>
-            )}
+            </div>
           </div>
         ) : (
           <button

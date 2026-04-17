@@ -1,6 +1,6 @@
-import React, { useRef } from 'react';
-import { motion as Motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
-import { Compass, Calendar, MapPin, Trash2, Clock } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { motion as Motion, useMotionValue, useTransform, useSpring, AnimatePresence } from 'framer-motion';
+import { Compass, Calendar, MapPin, Trash2, Clock, MoreVertical, Edit2, Share2, Copy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { tripStyles as styles } from './TripCard.styles';
 import {
@@ -35,8 +35,23 @@ const getAuraFlagStyle = (count, index) => {
  * Cinematic TripCard (2026 Restyle)
  * Features full-bleed images, floating glass pills, and 3D parallax on desktop hovering.
  */
-const TripCard = ({ trip, onClick, onDelete, isMobile = false, variant = 'list', priorityImage = false }) => {
+const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMobile = false, variant = 'list', priorityImage = false }) => {
   const { t, i18n } = useTranslation(['countries', 'dashboard', 'common']);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
+
   const flags =
     (Array.isArray(trip.banderas) && trip.banderas.filter(Boolean).length > 0 && trip.banderas.filter(Boolean)) ||
     (Array.isArray(trip.flags) && trip.flags.filter(Boolean).length > 0 && trip.flags.filter(Boolean)) ||
@@ -118,17 +133,10 @@ const TripCard = ({ trip, onClick, onDelete, isMobile = false, variant = 'list',
         rotateY: isMobile ? 0 : rotateY,
         willChange: 'transform' // Performance constraint
       }}
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      }}
       initial={priorityImage ? false : { opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-      whileHover={!isMobile ? { scale: 1.02, zIndex: 10 } : {}}
+      whileHover={!isMobile && !isMenuOpen ? { scale: 1.02, zIndex: 10 } : {}}
       whileTap={{ scale: 0.96 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -181,21 +189,325 @@ const TripCard = ({ trip, onClick, onDelete, isMobile = false, variant = 'list',
              </div>
           )}
           
-          {onDelete && (
+          <div ref={menuRef} style={{ position: 'relative' }}>
             <button
               className="tap-icon"
-              style={styles.actionBtn}
+              style={{
+                ...styles.actionBtn,
+                minWidth: '44px',
+                minHeight: '44px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.4)')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.25)')}
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete(trip.id);
+                e.preventDefault();
+                setIsMenuOpen((prev) => !prev);
               }}
-              aria-label="Eliminar Viaje"
+              aria-label="Abrir opciones de viaje"
             >
-              <Trash2 size={16} color="white" />
+              <MoreVertical size={20} color="white" />
             </button>
-          )}
+
+            <AnimatePresence>
+              {isMenuOpen && (
+                <Motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                  transition={{ duration: 0.15 }}
+                  style={{
+                    position: 'absolute',
+                    top: '52px',
+                    right: 0,
+                    width: '180px',
+                    background: 'rgba(255, 255, 255, 0.85)',
+                    backdropFilter: 'blur(12px)',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.07)',
+                    padding: '8px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    zIndex: 50,
+                  }}
+                  onClick={(e) => e.stopPropagation()} // Prevent bubble up to Immersive Viewer
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setIsMenuOpen(false);
+                      if (onEdit) onEdit(trip.id);
+                      if (onClick) onClick(); // Fallback temporal si no se provee onEdit
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      padding: '12px',
+                      border: 'none',
+                      background: 'transparent',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      color: '#1E293B',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    <Edit2 size={16} /> <span>✏️ Editar viaje</span>
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setIsMenuOpen(false);
+                      if (onShare) onShare(trip.id);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      padding: '12px',
+                      border: 'none',
+                      background: 'transparent',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      color: '#1E293B',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    <Share2 size={16} /> <span>🔗 Compartir ruta</span>
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setIsMenuOpen(false);
+                      if (onDuplicate) onDuplicate(trip);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      padding: '12px',
+                      border: 'none',
+                      background: 'transparent',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      color: '#1E293B',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    <Copy size={16} /> <span>📋 Duplicar</span>
+                  </button>
+
+                  <div style={{ height: '1px', background: 'rgba(0,0,0,0.1)', margin: '4px 0' }} />
+
+                  {onDelete && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setIsMenuOpen(false);
+                        onDelete(trip.id);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        width: '100%',
+                        padding: '12px',
+                        border: 'none',
+                        background: 'transparent',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        color: '#EF4444',
+                        textAlign: 'left',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.1)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    >
+                      <Trash2 size={16} /> <span>🗑️ Eliminar</span>
+                    </button>
+                  )}
+                </Motion.div>
+              )}
+            </AnimatePresence>
+          </div>    e.stopPropagation();
+                e.preventDefault();
+                setIsMenuOpen((prev) => !prev);
+              }}
+              aria-label="Abrir opciones de viaje"
+            >
+              <MoreVertical size={20} color="white" />
+            </button>
+
+            <AnimatePresence>
+              {isMenuOpen && (
+                <Motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                  transition={{ duration: 0.15 }}
+                  style={{
+                    position: 'absolute',
+                    top: '52px',
+                    right: 0,
+                    width: '180px',
+                    background: 'rgba(255, 255, 255, 0.85)',
+                    backdropFilter: 'blur(12px)',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.07)',
+                    padding: '8px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    zIndex: 50,
+                  }}
+                  onClick={(e) => e.stopPropagation()} // Prevent bubble up to Immersive Viewer
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setIsMenuOpen(false);
+                      if (onEdit) onEdit(trip.id);
+                      if (onClick) onClick(); // Fallback temporal si no se provee onEdit
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      padding: '12px',
+                      border: 'none',
+                      background: 'transparent',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      color: '#1E293B',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    <Edit2 size={16} /> <span>✏️ Editar viaje</span>
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setIsMenuOpen(false);
+                      if (onShare) onShare(trip.id);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      padding: '12px',
+                      border: 'none',
+                      background: 'transparent',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      color: '#1E293B',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    <Share2 size={16} /> <span>🔗 Compartir ruta</span>
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setIsMenuOpen(false);
+                      if (onDuplicate) onDuplicate(trip);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      padding: '12px',
+                      border: 'none',
+                      background: 'transparent',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      color: '#1E293B',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    <Copy size={16} /> <span>📋 Duplicar</span>
+                  </button>
+
+                  <div style={{ height: '1px', background: 'rgba(0,0,0,0.1)', margin: '4px 0' }} />
+
+                  {onDelete && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setIsMenuOpen(false);
+                        onDelete(trip.id);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        width: '100%',
+                        padding: '12px',
+                        border: 'none',
+                        background: 'transparent',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        color: '#EF4444',
+                        textAlign: 'left',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.1)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    >
+                      <Trash2 size={16} /> <span>🗑️ Eliminar</span>
+                    </button>
+                  )}
+                </Motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 
