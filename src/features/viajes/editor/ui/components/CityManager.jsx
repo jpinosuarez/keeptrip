@@ -19,7 +19,7 @@ const createStopInstanceId = (feature) => {
 
 
 
-const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
+const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false, tripStartDate = null }) => {
   const { i18n, t: searchT } = useTranslation(['search', 'common']);
   const {
     flags: { level: operationalLevel, appReadonlyMode },
@@ -123,7 +123,7 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
               setSearchQuery(value);
               if (value.length < 3) setSearchResults([]);
             }}
-            placeholder={t('citymanager.searchPlaceholder') || 'Type the city name...'}
+            placeholder={t('citymanager.searchPlaceholder', { defaultValue: 'Añadir nueva parada a tu ruta' })}
             style={styles.searchInput}
             disabled={isSearchPaused || isReadOnlyActive}
           />
@@ -248,6 +248,7 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
                     <label style={styles.label}>{t('citymanager.arrival') || 'Arrival'}</label>
                     <input
                       type="date"
+                      min={tripStartDate ? (tripStartDate.includes('/') ? tripStartDate.split('/').reverse().join('-') : tripStartDate) : undefined}
                       value={p.fechaLlegada ? p.fechaLlegada.split('/').reverse().join('-') : ''}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -267,6 +268,7 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
                     <label style={styles.label}>{t('citymanager.departure') || 'Departure'}</label>
                     <input
                       type="date"
+                      min={p.fechaLlegada ? p.fechaLlegada.split('/').reverse().join('-') : (tripStartDate ? (tripStartDate.includes('/') ? tripStartDate.split('/').reverse().join('-') : tripStartDate) : undefined)}
                       value={p.fechaSalida ? p.fechaSalida.split('/').reverse().join('-') : ''}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -341,8 +343,8 @@ const styles = {
     MozAppearance: 'none',
     border: `1px solid ${COLORS.border}`,
     borderRadius: RADIUS.md,
-    padding: '12px 14px',
-    fontSize: '1rem',
+    padding: '12px 8px',
+    fontSize: '0.9rem',
     fontFamily: 'inherit',
     color: COLORS.charcoalBlue,
     backgroundColor: COLORS.background,

@@ -54,8 +54,8 @@
   "hud": {
     "countrySingular": "country",
     "countryPlural": "countries",
-    "documentedTripSingular": "documented trip",
-    "documentedTripPlural": "documented trips"
+    "documentedTripSingular": "trip",
+    "documentedTripPlural": "trips"
   },
   "tooltip": {
     "awaitingFirstCountry": "You haven't registered any country yet.",

@@ -25,13 +25,14 @@ import { useAppShellComposition } from '@shared/lib/hooks/useAppShellComposition
 import { useAuth, useToast, useSearch, useUI } from '@app/providers';
 import { useAchievements } from '@features/gamification';
 import { useInvitations } from '@features/invitations';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 function AppShell() {
   const { isAdmin } = useAuth();
   const { pushToast } = useToast();
   const { isMobile } = useWindowSize(768);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Splash Handoff — Performance Architecture v6
   //
@@ -186,7 +187,11 @@ function AppShell() {
       achievementStats,
     },
     invitations: invitationsHook,
-    onAfterDelete: () => navigate('/trips'),
+    onAfterDelete: () => {
+      if (location.pathname.startsWith('/trips/')) {
+        navigate('/trips');
+      }
+    },
   });
 
   return (

@@ -8,7 +8,7 @@ import React from 'react';
 const BottomSheetContent = ({ children, style }) => (
   <div
     style={{
-      padding: '0 0 max(16px, env(safe-area-inset-bottom, 0px))',
+      padding: '0 0 max(24px, env(safe-area-inset-bottom, 0px))',
       overflowY: 'auto',
       WebkitOverflowScrolling: 'touch',
       flex: 1,

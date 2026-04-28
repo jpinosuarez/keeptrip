@@ -12,6 +12,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Plus, LogOut, User, X, Bell, Disc } from 'lucide-react';
 import {
   motion as Motion,
+  AnimatePresence,
   useScroll,
   useTransform,
   useSpring,
@@ -83,7 +84,7 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
   return (
     <Motion.header
       role="banner"
-      className="app-shell-focus"
+      className="app-shell-focus app-header"
       style={{
         position: 'sticky',
         top: 0,
@@ -92,9 +93,6 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: isMobile
-          ? 'var(--safe-area-top-padding) 16px 8px 16px'
-          : 'var(--safe-area-top-padding) 24px 8px 24px',
         gap: isMobile ? '8px' : '16px',
         // Ambient Glass BG — Framer Motion MotionValues, animates outside React render cycle
         backgroundColor: animBgColor,
@@ -293,6 +291,7 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
               onClick={() => openUserMenu()}
               title={t('nav:settings')}
               aria-label={t('nav:settings')}
+              className="header-avatar-btn"
               style={{
                 width: '44px',
                 height: '44px',
@@ -326,28 +325,27 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
             </button>
 
             {/* Desktop Logout (subtle) */}
-            {!isMobile && (
-              <button
-                type="button"
-                data-testid="header-logout-button"
-                onClick={logout}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: COLORS.textSecondary,
-                  minWidth: '44px',
-                  minHeight: '44px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  opacity: 0.6,
-                }}
-                title={t('common:logout')}
-              >
-                <LogOut size={16} />
-              </button>
-            )}
+            <button
+              type="button"
+              data-testid="header-logout-button"
+              onClick={logout}
+              className="header-logout-btn"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: COLORS.textSecondary,
+                minWidth: '44px',
+                minHeight: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: 0.6,
+              }}
+              title={t('common:logout')}
+            >
+              <LogOut size={16} />
+            </button>
           </div>
         ) : (
           <button
@@ -379,54 +377,76 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
         </Suspense>
       )}
 
-      {/* Mobile Search Dropdown */}
-      {isMobile && showSearch && isMobileSearchOpen && (
-        <Motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ type: 'spring', damping: 20 }}
-          style={{
-            position: 'absolute',
-            top: 'calc(64px + var(--safe-area-inset-top, 0px))',
-            left: '16px',
-            right: '16px',
-            background: 'rgba(255,255,255,0.95)',
-            backdropFilter: 'blur(20px)',
-            borderRadius: RADIUS.lg,
-            border: '1px solid rgba(0,0,0,0.08)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-            padding: '12px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            zIndex: 100,
-          }}
-        >
-          <Search size={16} color={COLORS.textSecondary} />
-          <input
-            type="text"
-            placeholder={searchPlaceholder}
-            aria-label={t('nav:searchJournal')}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            autoFocus
+      {/* Mobile Search - Full-Screen Overlay (Architect Approved) */}
+      <AnimatePresence>
+        {isMobile && showSearch && isMobileSearchOpen && (
+          <Motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             style={{
-              border: 'none',
-              background: 'none',
-              fontSize: '1rem',
-              color: COLORS.charcoalBlue,
-              width: '100%',
-              outline: 'none',
+              position: 'fixed',
+              inset: 0,
+              background: COLORS.background, // Full solid background for focus
+              zIndex: Z_INDEX.modal + 10,
+              display: 'flex',
+              flexDirection: 'column',
+              padding: 'var(--safe-area-top-padding) 16px 16px 16px',
             }}
-          />
-          {query && (
-            <button type="button" onClick={clearQuery} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: COLORS.textSecondary, display: 'flex' }}>
-              <X size={14} />
-            </button>
-          )}
-        </Motion.div>
-      )}
+          >
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 0',
+              borderBottom: '1px solid rgba(0,0,0,0.06)'
+            }}>
+              <Search size={20} color={COLORS.atomicTangerine} />
+              <input
+                type="text"
+                placeholder={searchPlaceholder}
+                aria-label={t('nav:searchJournal')}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                autoFocus
+                style={{
+                  border: 'none',
+                  background: 'none',
+                  fontSize: '1.1rem',
+                  fontWeight: 500,
+                  color: COLORS.charcoalBlue,
+                  width: '100%',
+                  outline: 'none',
+                }}
+              />
+              <button 
+                type="button" 
+                onClick={() => setIsMobileSearchOpen(false)} 
+                style={{ 
+                  border: 'none', 
+                  background: 'rgba(0,0,0,0.05)', 
+                  borderRadius: RADIUS.full,
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <X size={18} color={COLORS.textSecondary} />
+              </button>
+            </div>
+            
+            {/* Optional: Results area hint */}
+            <div style={{ flex: 1, paddingTop: '20px', color: COLORS.textSecondary, fontSize: '0.9rem', textAlign: 'center' }}>
+              {query 
+                ? t('common:searching', 'Escaneando tus aventuras...') 
+                : t('common:searchHint', 'Escribe para buscar por destino o título')}
+            </div>
+          </Motion.div>
+        )}
+      </AnimatePresence>
     </Motion.header>
   );
 };

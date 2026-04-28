@@ -4,10 +4,15 @@ export const styles = {
   overlay: (isMobile) => ({
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
     ...GLASS.overlay, backgroundColor: undefined,
-    zIndex: 2000, display: 'flex', alignItems: isMobile ? 'stretch' : 'center', justifyContent: 'center',
+    zIndex: 2000, 
+    display: 'flex', 
+    justifyContent: 'center',
     padding: isMobile ? '0' : '20px',
-    minWidth: '320px', // Adapt: mínimo seguro para móviles
-    overflowX: 'hidden', // Audit: evitar scroll horizontal
+    minWidth: '320px', 
+    overflowX: 'hidden',
+    outline: 'none',
+    isolation: 'isolate', // Audit: prevent backdrop-filter artifacts
+    willChange: 'opacity', // Hint to compositor
   }),
   modal: (isMobile) => ({
     width: isMobile ? 'min(100vw, 400px)' : 'min(640px, 100%)',
@@ -18,8 +23,12 @@ export const styles = {
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
-    boxShadow: SHADOWS.float,
-    border: `1px solid ${COLORS.border}`,
+    // Resolved: Replace physical border with composited shadow ring to eliminate subpixel artifacts
+    boxShadow: `${SHADOWS.float}, 0 0 0 1px ${COLORS.border}`,
+    outline: 'none',
+    backfaceVisibility: 'hidden', // GPU stability
+    WebkitFontSmoothing: 'antialiased',
+    transform: 'translateZ(0)', // Force compositor layer
   }),
   header: (img, isMobile) => ({
     height: isMobile ? '160px' : '200px', position: 'relative',

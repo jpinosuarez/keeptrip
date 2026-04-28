@@ -244,24 +244,19 @@ export const styles = {
     gridRow: '2',
   },
   compactHeroPositionDesktop: {
-    gridColumn: '1',
-    gridRow: '1',
+    flex: '0 0 auto',
   },
   compactUniqueCountriesPositionDesktop: {
-    gridColumn: '2',
-    gridRow: '1',
+    flex: '0 0 auto',
   },
   compactCompletedTripsPositionDesktop: {
-    gridColumn: '3',
-    gridRow: '1',
+    flex: '0 0 auto',
   },
   compactTotalDaysPositionDesktop: {
-    gridColumn: '4',
-    gridRow: '1',
+    flex: '0 0 auto',
   },
   compactTotalStopsPositionDesktop: {
-    gridColumn: '5',
-    gridRow: '1',
+    flex: '0 0 auto',
   },
   compactHeroPositionMobile: {
     gridColumn: '1 / -1',

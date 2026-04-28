@@ -11,6 +11,7 @@ const EdicionParadasSection = ({
   fechaRangoDisplay,
   sinParadas,
   isReadOnlyMode = false,
+  tripStartDate = null,
 }) => {
   return (
     <div style={styles.section}>
@@ -22,7 +23,13 @@ const EdicionParadasSection = ({
           {`📅 ${fechaRangoDisplay}`}
         </span>
       )}
-      <CityManager t={t} paradas={paradas} setParadas={setParadas} isReadOnlyMode={isReadOnlyMode} />
+      <CityManager 
+        t={t} 
+        paradas={paradas} 
+        setParadas={setParadas} 
+        isReadOnlyMode={isReadOnlyMode} 
+        tripStartDate={tripStartDate}
+      />
       {sinParadas && (
         <div
           style={{

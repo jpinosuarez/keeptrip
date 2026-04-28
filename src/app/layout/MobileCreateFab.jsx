@@ -21,7 +21,7 @@ const MobileCreateFab = () => {
       disabled={isReadOnlyMode}
       style={{
         position: 'fixed',
-        bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
+        bottom: 'calc(80px + max(16px, env(safe-area-inset-bottom, 0px)))',
         right: 'max(24px, env(safe-area-inset-right, 24px))',
         width: '56px',
         height: '56px',

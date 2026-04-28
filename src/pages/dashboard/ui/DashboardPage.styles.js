@@ -64,7 +64,7 @@ export const styles = {
           gridRow: '2',
           minHeight: 0,
           height: '100%',
-          overflow: 'hidden',
+          overflow: 'visible',
         }
       : {
           width: '100%',
@@ -249,42 +249,24 @@ export const styles = {
     transition: 'all 0.2s ease',
   },
 
-  cardsList: (isDesktop, count = 0) => {
-    let gridTemplateColumns = 'repeat(1, minmax(0, 1fr))';
-    let gridTemplateRows = 'minmax(0, 1fr)';
-
+  cardsList: (isDesktop) => {
     if (isDesktop) {
-      if (count === 1) {
-        gridTemplateColumns = 'minmax(0, 1fr)';
-        gridTemplateRows = 'minmax(0, 1fr)';
-      } else if (count === 2) {
-        gridTemplateColumns = 'minmax(0, 1fr)';
-        gridTemplateRows = 'repeat(2, minmax(0, 1fr))';
-      } else if (count >= 3) {
-        gridTemplateColumns = 'repeat(2, minmax(0, 1fr))';
-        gridTemplateRows = 'repeat(2, minmax(0, 1fr))';
-      }
-    } else {
-      gridTemplateColumns = 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))';
-      gridTemplateRows = 'auto';
+      return {
+        flex: 1,
+        minWidth: 0,
+        minHeight: 0,
+        overflow: 'visible',
+      };
     }
-
     return {
       display: 'grid',
-      gridTemplateColumns,
-      gridTemplateRows,
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))',
+      gridTemplateRows: 'auto',
       alignItems: 'stretch',
       gap: '12px',
       minWidth: 0,
       minHeight: 0,
-      ...(isDesktop
-        ? {
-            flex: 1,
-            overflow: 'hidden',
-          }
-        : {
-            overflow: 'visible',
-          }),
+      overflow: 'visible',
     };
   },
 

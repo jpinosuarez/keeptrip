@@ -20,7 +20,7 @@ import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
 
 const HomeMap = lazy(() => import('@features/mapa/ui/HomeMap'));
 
-const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading = false, isError = false, fetchError = null }) => {
+const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading = false, isError = false, fetchError = null, handleDelete }) => {
   const { usuario } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -42,15 +42,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
     });
   }, [log]);
 
-  const recentTripsLimit = useMemo(() => {
-    if (isMobileLayout) return 2;
-    return Math.min(recentTrips.length, 4);
-  }, [isMobileLayout, recentTrips.length]);
-
-  const visibleRecentTrips = useMemo(
-    () => (isDesktop ? recentTrips : recentTrips.slice(0, recentTripsLimit)),
-    [isDesktop, recentTrips, recentTripsLimit]
-  );
+  const visibleRecentTrips = useMemo(() => recentTrips.slice(0, 4), [recentTrips]);
   const isNewTraveler = log.length === 0;
   const [mapRenderKey, setMapRenderKey] = useState(0);
 
@@ -231,7 +223,11 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
           )}
         </div>
 
-        <div style={styles.cardsList(isDesktop, visibleRecentTrips.length)} className="custom-scroll">
+        <div 
+          className="recent-adventures-grid"
+          data-total={visibleRecentTrips.length}
+          style={styles.cardsList(isDesktop)}
+        >
           {loading ? (
             <SkeletonList count={2} Component={TripCardSkeleton} />
           ) : isError ? (
@@ -246,30 +242,25 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
             </div>
           ) : !isNewTraveler ? (
             visibleRecentTrips.map((trip, index) => {
-              const isThreeItems = visibleRecentTrips.length === 3;
-              const isFirstOfThree = isThreeItems && index === 0;
               const enrichedTrip = tripDataMap[trip.id] || trip;
               return (
                 <div 
                   key={trip.id} 
-                  style={{ 
-                    minHeight: 0, 
-                    height: '100%', 
-                    gridColumn: isDesktop && isFirstOfThree ? '1 / -1' : undefined,
-                    overflow: 'hidden'
-                  }}
+                  className="recent-adventures-item"
                 >
                   <TripCard 
                     trip={enrichedTrip} 
                     isMobile={isMobileLayout} 
-                    variant="home" priorityImage={index === 0}
+                    variant="home" 
+                    priorityImage={index === 0}
                     onClick={() => openTripEditor(trip.id)} 
+                    onDelete={handleDelete ? () => handleDelete(trip.id) : undefined}
                   />
                 </div>
               );
             })
           ) : (
-            <div style={{ gridColumn: '1 / -1', minWidth: 0, minHeight: 0, width: '100%' }}>
+            <div className="col-span-full min-w-0 min-h-0 w-full">
               <EmptyDashboardState />
             </div>
           )}

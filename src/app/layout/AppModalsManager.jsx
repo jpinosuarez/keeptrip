@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
-import { BentoCardSkeleton } from '@shared/ui/components/Skeletons';
+import { LoaderCircle } from 'lucide-react';
 import UserMenuBottomSheet from '@widgets/userMenu/ui/UserMenuBottomSheet';
 import { COLORS, RADIUS, SHADOWS } from '@shared/config';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
@@ -43,7 +43,11 @@ function VisorViajeFallback() {
         justifyContent: 'center',
       }}
     >
-      <BentoCardSkeleton />
+      <LoaderCircle 
+        className="animate-spin" 
+        size={32} 
+        color={COLORS.atomicTangerine} 
+      />
     </div>,
     document.body
   );

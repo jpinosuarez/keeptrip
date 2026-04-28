@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
-import { motion as Motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
-import { Compass, Calendar, MapPin, Trash2, Clock } from 'lucide-react';
+import { motion as Motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { Compass, Calendar, MapPin, Trash2, Clock, MoreVertical, Edit2, Share2, Copy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import PortalDropdown from '@shared/ui/components/PortalDropdown/PortalDropdown';
 import { tripStyles as styles } from './TripCard.styles';
 import {
   FOTO_DEFAULT_URL,
@@ -9,6 +10,7 @@ import {
   formatCitiesSummary,
   calculateTripDays,
 } from '@shared/lib/utils/viajeUtils';
+import { COLORS, RADIUS } from '@shared/config';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 
 const getAuraGridStyle = (count) => {
@@ -36,6 +38,8 @@ const getAuraFlagStyle = (count, index) => {
  * Features full-bleed images, floating glass pills, and 3D parallax on desktop hovering.
  */
 const TripCard = ({ trip, onClick, onDelete, isMobile = false, variant = 'list', priorityImage = false }) => {
+  const [showMenu, setShowMenu] = React.useState(false);
+  const triggerRef = useRef(null);
   const { t, i18n } = useTranslation(['countries', 'dashboard', 'common']);
   const flags =
     (Array.isArray(trip.banderas) && trip.banderas.filter(Boolean).length > 0 && trip.banderas.filter(Boolean)) ||
@@ -107,22 +111,24 @@ const TripCard = ({ trip, onClick, onDelete, isMobile = false, variant = 'list',
   return (
     <Motion.div
       data-testid={`trip-card-${trip.id}`}
+      className="trip-card"
+      data-variant={variant}
       ref={cardRef}
-      role="button"
-      tabIndex={0}
       aria-label={cardAriaLabel}
       style={{
-        ...styles.cardBase(isMobile, variant),
+        ...styles.cardBase(variant),
         perspective: 1000,
         rotateX: isMobile ? 0 : rotateX,
         rotateY: isMobile ? 0 : rotateY,
         willChange: 'transform' // Performance constraint
       }}
-      onClick={onClick}
+      onClick={(e) => {
+        // Card click disabled per Director's UX request. Navigation only via Menu actions.
+        e.stopPropagation();
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          onClick();
         }
       }}
       initial={priorityImage ? false : { opacity: 0, y: 15 }}
@@ -169,52 +175,96 @@ const TripCard = ({ trip, onClick, onDelete, isMobile = false, variant = 'list',
         <div style={styles.overlay} />
       </div>
       
-      <div style={styles.topContent}>
-        <div style={styles.flagsRow}>
+      <div className="top-content">
+        <div className="flags-row">
           {flags.length > 0 ? (
             flags.map((flag, idx) => (
-              <img key={idx} src={flag} alt="Bandera" style={styles.flagImg} loading={priorityImage ? "eager" : "lazy"} />
+              <img key={idx} src={flag} alt={t('tripCard.flagAlt', { ns: 'dashboard', defaultValue: 'Bandera' })} className="flag-img" loading={priorityImage ? "eager" : "lazy"} />
             ))
           ) : (
-             <div style={styles.glassPill}>
+             <div className="glass-pill">
                  <Compass size={14} color="white" />
              </div>
           )}
           
-          {onDelete && (
+          <div style={{ position: 'relative' }}>
             <button
-              className="tap-icon"
-              style={styles.actionBtn}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.4)')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.25)')}
+              ref={triggerRef}
+              className={`trip-card-menu-btn ${showMenu ? 'active' : ''}`}
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete(trip.id);
+                e.preventDefault();
+                setShowMenu(!showMenu);
               }}
-              aria-label="Eliminar Viaje"
+              aria-label={t('button.actionMenu', { ns: 'common', defaultValue: 'Menú de acciones' })}
             >
-              <Trash2 size={16} color="white" />
+              <MoreVertical size={16} color="white" />
             </button>
-          )}
+
+            <PortalDropdown
+              isOpen={showMenu}
+              onClose={() => setShowMenu(false)}
+              triggerRef={triggerRef}
+            >
+              <button 
+                className="portal-menu-item"
+                style={{ ...menuItemStyle, color: COLORS.charcoalBlue }} 
+                onClick={(e) => { e.stopPropagation(); setShowMenu(false); onClick(); }}
+              >
+                <Edit2 size={16} /> {t('common.edit', 'Editar')}
+              </button>
+              
+              <div style={{ height: '1px', background: '#eee', margin: '4px 0' }} />
+              
+              <button 
+                className="portal-menu-item danger"
+                style={{ ...menuItemStyle, color: '#ef4444' }} 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  setShowMenu(false); 
+                  onDelete && onDelete(trip.id); 
+                }}
+              >
+                <Trash2 size={16} /> {t('common.delete', 'Eliminar')}
+              </button>
+            </PortalDropdown>
+          </div>
         </div>
       </div>
 
-      <div style={styles.bottomContent}>
-        <h4 style={styles.title}>{title}</h4>
-        <div style={styles.metaRow}>
-          <span style={styles.glassPill}>
+      <div className="bottom-content">
+        <h4 className="title">{title}</h4>
+        <div className="meta-row">
+          <span className="glass-pill">
             <Calendar size={14} /> {datePillText}
           </span>
-          <span style={styles.glassPill}>
+          <span className="glass-pill">
             <MapPin size={14} /> {citiesPillText}
           </span>
-          <span style={styles.glassPill}>
+          <span className="glass-pill">
             <Clock size={14} /> {durationPillText}
           </span>
         </div>
       </div>
     </Motion.div>
   );
+};
+
+const menuItemStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  width: '100%',
+  padding: '10px 12px',
+  border: 'none',
+  background: 'transparent',
+  borderRadius: RADIUS.sm,
+  fontSize: '0.88rem',
+  fontWeight: 500,
+  cursor: 'pointer',
+  textAlign: 'left',
+  transition: 'background 0.2s',
+  ':hover': { background: '#f5f5f5' }
 };
 
 export default TripCard;
