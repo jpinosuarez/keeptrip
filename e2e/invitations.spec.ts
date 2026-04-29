@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { openTripActionMenu } from './utils/trip-interactions';
 
 const FIREBASE_PROJECT = process.env.VITE_FIREBASE_PROJECT_ID || 'keeptrip-app-b06b3';
 const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
@@ -413,11 +414,11 @@ test.describe('Invitations flow (E2E)', () => {
     await navigateInApp(page, '/trips');
     
     // Wait until the shared trip card is visible.
-    const sharedCard = page.getByRole('button', { name: /Ruta compartida E2E/i });
+    const sharedCard = page.getByLabel(/Ruta compartida E2E/i);
     await expect(sharedCard).toBeVisible({ timeout: 20000 });
     
     // Open shared trip.
-    await sharedCard.click();
+    await openTripActionMenu(page, sharedCard, /Editar|Edit|Ver|View/i);
     await expect(page).toHaveURL(new RegExp(`/trips(?:/${viajeId}|\\?editing=${viajeId})(?:\\?.*)?$`));
 
     const viewerTitle = page.getByTestId('visor-title');

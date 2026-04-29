@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { openTripEditorById } from './utils/trip-interactions';
 
 const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
 
@@ -58,23 +59,6 @@ async function seedTripWithSingleStop(page, ownerUid: string, tripId: string) {
   expect(seededTrip?.titulo).toBe('Delete Last Stop Trip');
 }
 
-async function openEditorByTripId(page, tripId: string) {
-  const titleInput = page.getByLabel(/Trip title|Título del viaje/i);
-  const editorUrlPattern = new RegExp(`\\/(dashboard|trips)\\?.*editing=${tripId}`);
-  const tripCard = page.getByTestId(`trip-card-${tripId}`);
-
-  if (!(await tripCard.first().isVisible().catch(() => false))) {
-    const viewAllButton = page.getByRole('button', { name: /View all|Ver todo/i });
-    if (await viewAllButton.isVisible().catch(() => false)) {
-      await viewAllButton.click();
-    }
-  }
-
-  await expect(tripCard).toBeVisible({ timeout: 20000 });
-  await tripCard.click();
-  await expect(titleInput).toBeVisible({ timeout: 10000 });
-  await expect(page).toHaveURL(editorUrlPattern);
-}
 
 test('deleting the last stop shows empty state and disables save', async ({ page }) => {
   const timestamp = Date.now();
@@ -89,7 +73,7 @@ test('deleting the last stop shows empty state and disables save', async ({ page
   await signInInBrowser(page, email, password);
   await seedTripWithSingleStop(page, ownerUid, tripId);
 
-  await openEditorByTripId(page, tripId);
+  await openTripEditorById(page, tripId);
 
   const titleInput = page.getByLabel(/Trip title|Título del viaje/i);
   await expect(titleInput).toBeVisible({ timeout: 15000 });

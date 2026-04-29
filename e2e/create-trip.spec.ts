@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { openTripActionMenu } from './utils/trip-interactions';
 
 const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
 
@@ -172,7 +173,7 @@ test.describe('Create trip from search modal (E2E)', () => {
     await saveBtn.click();
 
     // Wait for the editor to close and the trip to appear in the grid
-    await expect(page.getByRole('button', { name: /E2E Trip/i }).first()).toBeVisible({ timeout: 20000 });
+    await expect(page.getByLabel(/E2E Trip/i).first()).toBeVisible({ timeout: 20000 });
 
     // Close any celebration modals that appear
     const closeModals = async () => {
@@ -212,7 +213,7 @@ test.describe('Create trip from search modal (E2E)', () => {
     // Open the newly created trip via real user interaction and verify editor state.
     const createdTripCard = page.locator('[data-testid^="trip-card-"]').first();
     await expect(createdTripCard).toBeVisible({ timeout: 10000 });
-    await createdTripCard.click();
+    await openTripActionMenu(page, createdTripCard, /Editar|Edit/i);
 
     const existingTitleInput = page.getByPlaceholder(/Trip Title|Título del viaje/i);
     await expect(existingTitleInput).toBeVisible({ timeout: 10000 });
@@ -223,6 +224,6 @@ test.describe('Create trip from search modal (E2E)', () => {
     await existingTitleInput.fill('E2E Trip Edited');
     const saveUpdatedBtn = page.getByRole('button', { name: /Save|Guardar/i }).first();
     await saveUpdatedBtn.click();
-    await expect(page.getByRole('button', { name: /E2E Trip Edited/i }).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByLabel(/E2E Trip Edited/i).first()).toBeVisible({ timeout: 15000 });
   });
 });
