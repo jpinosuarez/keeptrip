@@ -4,8 +4,9 @@ import { motion as Motion } from 'framer-motion';
 import { styles } from './LandingPage.styles';
 import NavBar from './components/NavBar/NavBar';
 import HeroSection from './components/Hero/HeroSection';
-import BentoFeatures from './components/BentoFeatures/BentoFeatures';
-import Footer from './components/Footer';
+
+const BentoFeatures = React.lazy(() => import('./components/BentoFeatures/BentoFeatures'));
+const Footer = React.lazy(() => import('./components/Footer'));
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -41,8 +42,10 @@ const LandingPage = () => {
 
       <NavBar />
       <HeroSection />
-      <BentoFeatures />
-      <Footer />
+      <React.Suspense fallback={<div style={{ minHeight: '800px' }} />}>
+        <BentoFeatures />
+        <Footer />
+      </React.Suspense>
     </Motion.div>
   );
 };

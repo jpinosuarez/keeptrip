@@ -131,6 +131,15 @@ const RichResultCard = ({
       data-testid={`search-result-${type}-${isTrip ? item._tripId : item.id}`}
       style={styles.container}
       onClick={onClick}
+      role="option"
+      aria-selected={isSelected}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       {/* Thumbnail */}
       {thumbnailUrl ? (

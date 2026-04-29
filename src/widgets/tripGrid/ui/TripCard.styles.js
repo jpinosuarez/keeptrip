@@ -1,10 +1,12 @@
 import { COLORS, SHADOWS, RADIUS } from '@shared/config';
 
 export const tripStyles = {
-  cardBase: () => {
+  cardBase: (variant) => {
     return {
       position: 'relative',
       cursor: 'default',
+      aspectRatio: variant === 'list' ? undefined : '4/5',
+      minHeight: variant === 'list' ? '120px' : undefined,
     };
   },
 

@@ -15,7 +15,6 @@ import AppScaffold from './AppScaffold';
 
 import { CelebrationQueue } from '@features/gamification/ui/components';
 import { ENABLE_GAMIFICATION } from '@shared/config';
-import PWAUpdatePrompt from '@shared/ui/components/PWAUpdatePrompt';
 import ReadOnlyModeBanner from '@shared/ui/components/ReadOnlyModeBanner';
 import OfflineBanner from '@shared/ui/components/OfflineBanner';
 
@@ -216,7 +215,6 @@ function AppShell() {
               onDismissAll={dismissAll}
             />
           )}
-          <PWAUpdatePrompt />
           <OfflineBanner />
           <ReadOnlyModeBanner />
         </>

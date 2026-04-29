@@ -18,13 +18,13 @@ const baseAliases = {
 // https://vite.dev/config/
 export default defineConfig({
   optimizeDeps: {
-    include: ['react-simple-maps', 'prop-types', 'topojson-client'],
+    include: ['prop-types', 'topojson-client'],
   },
   plugins: [
     react(),
     // Excluir VitePWA en tests para evitar errores de módulos virtuales
     !process.env.VITEST && VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['favicon.svg', 'icons/*.png'],
       cleanupOutdatedCaches: true,
       manifest: {
@@ -62,7 +62,6 @@ export default defineConfig({
         ],
       },
       workbox: {
-        skipWaiting: true,
         clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB — vendor-map (mapbox-gl ~2.5MB raw) necesita margen

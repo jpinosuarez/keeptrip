@@ -154,7 +154,6 @@ export const styles = {
     justifyContent: 'flex-start',
   },
 
-  // Masonry Gallery Mock (Card 3)
   masonryVisualContainer: {
     display: 'flex',
     flexDirection: 'column',
@@ -164,60 +163,4 @@ export const styles = {
     overflow: 'hidden',
     position: 'relative',
   },
-
-  masonryCol: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-    flex: 1,
-  },
-
-  masonryImg: (url, height) => ({
-    width: '100%',
-    height: height,
-    backgroundImage: `url("${url}")`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    borderRadius: RADIUS.lg,
-    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-    position: 'relative',
-    overflow: 'hidden',
-  }),
-
-  galleryContextPill: {
-    position: 'absolute',
-    bottom: '8px',
-    left: '8px',
-    background: 'rgba(255, 255, 255, 0.85)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    borderRadius: RADIUS.full,
-    padding: '4px 8px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.07)',
-  },
-
-  galleryContextLabel: {
-    fontSize: '0.65rem',
-    fontWeight: '800',
-    color: COLORS.charcoalBlue,
-    letterSpacing: '0.5px',
-  },
-
-  masonryOverlayCount: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    borderRadius: RADIUS.lg,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#fff',
-    fontSize: '1.2rem',
-    fontWeight: '800',
-    gap: '4px',
-  }
-
 };

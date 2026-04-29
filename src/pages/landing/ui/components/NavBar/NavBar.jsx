@@ -4,8 +4,9 @@ import { motion as Motion } from 'framer-motion';
 import { useAuth } from '@app/providers/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
-import AuthModal from '@features/auth/ui/AuthModal';
 import { styles } from './NavBar.styles';
+
+const AuthModal = React.lazy(() => import('@features/auth/ui/AuthModal'));
 
 const springTransition = { type: 'spring', damping: 20, stiffness: 100 };
 
@@ -41,11 +42,13 @@ const NavBar = () => {
         </Motion.button>
       </Motion.nav>
 
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        onContinue={login}
-      />
+      <React.Suspense fallback={null}>
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onContinue={login}
+        />
+      </React.Suspense>
     </>
   );
 };

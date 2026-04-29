@@ -109,22 +109,26 @@ const InteractiveCardStack = ({ isMobile = false }) => {
 
         {/* Glassmorphic Nav Buttons */}
         <div style={styles.heroNavControls}>
-          <Motion.div 
-              style={styles.heroNavBtn} 
+          <Motion.button 
+              type="button"
+              style={{ ...styles.heroNavBtn, border: 'none', background: 'transparent' }} 
               whileHover={{ scale: 1.05 }} 
               whileTap={{ scale: 0.95 }}
               onClick={handlePrevCard}
+              aria-label={t('nav:prev', 'Anterior')}
           >
             <ChevronLeft size={20} strokeWidth={2.5} />
-          </Motion.div>
-          <Motion.div 
-              style={styles.heroNavBtn} 
+          </Motion.button>
+          <Motion.button 
+              type="button"
+              style={{ ...styles.heroNavBtn, border: 'none', background: 'transparent' }} 
               whileHover={{ scale: 1.05 }} 
               whileTap={{ scale: 0.95 }}
               onClick={handleNextCard}
+              aria-label={t('nav:next', 'Siguiente')}
           >
             <ChevronRight size={20} strokeWidth={2.5} />
-          </Motion.div>
+          </Motion.button>
         </div>
       </div>
     </Motion.div>
