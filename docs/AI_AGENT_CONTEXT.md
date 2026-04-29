@@ -138,3 +138,99 @@ If `Missing or insufficient permissions` appears while changing operational leve
 1. Confirm logged-in UID matches `VITE_FOUNDER_UID` for the environment.
 2. Confirm latest Firestore rules were deployed to that project.
 3. Retry from Settings or Maintenance escape hatch.
+
+---
+
+## 🚀 7. VERSIONING & RELEASE PROTOCOL
+
+### 7.1 Semantic Versioning (SemVer) Policy
+Keetrip follows **Semantic Versioning (MAJOR.MINOR.PATCH)**:
+- **MAJOR:** Breaking changes to API, data model, or user experience (backward incompatible).
+- **MINOR:** New features and non-breaking improvements (backward compatible).
+- **PATCH:** Bug fixes and maintenance (backward compatible).
+
+**Example:** v2.1.3 = major version 2, minor version 1, patch version 3.
+
+### 7.2 Single Source of Truth
+- **Authority:** `package.json` is the **ONLY** source of truth for application versioning.
+- **Prohibition:** Never hardcode versions in other files (no `VERSION` constants in config, no version strings in UI components).
+- **Read-Time Injection:** The build system injects the version at compile-time via Vite's `define` mechanism.
+
+### 7.3 Client Injection Mechanism (Vite Build-Time)
+**Configuration:** `vite.config.js`
+```javascript
+define: {
+  __APP_VERSION__: JSON.stringify(pkg.version),
+}
+```
+
+**Usage in Components:**
+```javascript
+// In any React component:
+const version = __APP_VERSION__;  // e.g., "1.2.3"
+// Render in UI:
+<span>App v{__APP_VERSION__}</span>
+```
+
+**Zero-Overhead:** Version is injected as a string literal during build — no runtime cost.
+
+### 7.4 Client-Facing Version Display
+- **Location:** Settings Page footer (`src/pages/settings/ui/SettingsPage.jsx`)
+- **Format:** "App Version • v{version}" (e.g., "App Version • v1.2.3")
+- **i18n Key:** `settings:footer.appVersion` (fallback: "App Version")
+- **Styling:** Slate 500 text, 0.75rem font size, centered alignment below Account section.
+
+### 7.5 PWA & Service Worker Cache Sync Strategy
+**Objective:** When the web app version changes, the Service Worker must detect it and refresh cached assets.
+
+**Implementation:**
+1. **Version Header in Workbox Config:** Add version to cache key (vite.config.js workbox config).
+2. **Cache Invalidation:** Service Worker compares versions on boot.
+3. **Skip Waiting:** On version mismatch, SW triggers `skipWaiting()` to activate the new version immediately.
+4. **User UX:** Browser will show "Update available" prompt (PWA install prompt behavior).
+
+**Code Pattern (Workbox Config in vite.config.js):**
+```javascript
+workbox: {
+  // Cache versioning: if app version changes, SW invalidates old caches
+  navigateFallback: '/index.html',
+  clientsClaim: true,
+  skipWaiting: false, // Let user choose when to update
+  // Caches named with version for auto-invalidation on version bump
+}
+```
+
+### 7.6 CI/CD & Automated Versioning (GitHub Actions)
+**Responsibility:** GitHub Actions workflow (`/.github/workflows/`) should auto-bump version on merge to main.
+
+**Recommended Tool:** Use `semantic-release` or `standard-version` npm packages:
+- On every PR merge to `main`, parse commit messages (Conventional Commits).
+- Auto-increment MAJOR/MINOR/PATCH in `package.json`.
+- Create git tag (e.g., `v1.2.3`) on main branch.
+- Trigger deployment workflow.
+
+**Current State:** Manual versioning. Set up CI/CD workflow per team preference.
+
+### 7.7 Release Tagging & Branches
+- **Git Tags:** Use SemVer tag format: `v{MAJOR}.{MINOR}.{PATCH}` (e.g., `v1.0.0`, `v2.1.3`).
+- **Tag Branch:** Tags should be on `main` branch only (releases are immutable).
+- **Release Workflow:** On tag creation, optionally trigger a dedicated release job (GitHub Actions).
+- **Hotfixes:** Use `hotfix/*` branch pattern (optional), merge back to `main`, create tag.
+
+### 7.8 PWA Installation & Version Pinning
+- **End-User Perspective:** Once installed (Add to Home Screen), the PWA caches the version at install time.
+- **Update Flow:** On next app boot, Service Worker checks version. If changed, it offers refresh.
+- **No Force Update:** Keeptrip respects user agency — updates are offered, not forced.
+- **Web vs. Native:** The web app version is authoritative. Native wrappers (TWA, Capacitor) will sync to web version once mobile distribution is implemented.
+
+### 7.9 Post-Release Verification
+**After deployment to staging/production:**
+1. Open DevTools → Application → Service Workers.
+2. Verify cache names include version string.
+3. Confirm Settings Page displays correct version badge.
+4. Test: Clear site cache, reload → should prompt for update.
+
+### 7.10 Cost-Aware Versioning (No Silent Leaks)
+- **Zero Firebase Reads:** Version is static; no real-time version checks from Firestore.
+- **Zero Analytics Bloat:** Version is NOT sent to analytics services unless explicitly configured.
+- **Local-Only:** Version comparison happens in Service Worker (client-side, zero-cost).
