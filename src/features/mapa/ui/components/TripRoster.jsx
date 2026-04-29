@@ -25,33 +25,10 @@ const GLASS_PANEL = {
 
 const CONTINENT_LOOKUP = new Map(COUNTRIES_DB.map((country) => [country.code, country.continente]));
 
-const countContinents = (trips = [], tripData = {}) => {
-  const continents = new Set();
-
-  trips.forEach((trip) => {
-    const details = tripData[trip.id] || trip;
-    const code = details?.code || details?.paisCodigo || trip.code || trip.paisCodigo;
-    const continent = CONTINENT_LOOKUP.get(code);
-    if (continent) continents.add(continent);
-  });
-
-  return continents.size;
-};
-
 /* ── Roster Header (Traveler Identity Badge — no gamification) ─────────── */
-const RosterHeader = ({ paises, trips, tripData, isMobile, onToggle, isExpanded }) => {
+const RosterHeader = ({ trips, tripData, isMobile, onToggle, isExpanded }) => {
   const { t } = useTranslation('dashboard');
   const { usuario } = useAuth();
-  const citiesCount = useMemo(() => {
-    let count = 0;
-    trips.forEach(trip => {
-      const details = tripData[trip.id] || trip;
-      const parsedCities = String(details.ciudades || '').split(',').filter(Boolean);
-      const paradas = Array.isArray(details.paradas) && details.paradas.length > 0 ? details.paradas : parsedCities;
-      count += paradas.length || 1;
-    });
-    return count;
-  }, [trips, tripData]);
   const uniqueCountriesCount = useMemo(() => {
     const codes = trips.map(trip => {
       const details = tripData[trip.id] || trip;

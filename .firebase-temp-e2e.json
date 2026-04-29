@@ -1,0 +1,16 @@
+{
+  "emulators": {
+    "auth": {
+      "host": "127.0.0.1",
+      "port": 9101
+    },
+    "firestore": {
+      "host": "127.0.0.1",
+      "port": 8082
+    },
+    "storage": {
+      "host": "127.0.0.1",
+      "port": 9201
+    }
+  }
+}

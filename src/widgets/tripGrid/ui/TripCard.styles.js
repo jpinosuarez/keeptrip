@@ -1,7 +1,7 @@
 import { COLORS, SHADOWS, RADIUS } from '@shared/config';
 
 export const tripStyles = {
-  cardBase: (variant) => {
+  cardBase: () => {
     return {
       position: 'relative',
       cursor: 'default',
