@@ -96,3 +96,293 @@ html, body, #root {
   font-size: 0.75rem !important;
   line-height: 1 !important;
 }
+
+/* ── Phase 3 Native Styles: Zero-JS Responsive Layouts ── */
+
+/* 1. Header UX Silencing */
+@media (min-width: 1024px) {
+  .header-logout-btn {
+    display: none !important;
+  }
+  .header-avatar-btn {
+    pointer-events: none !important;
+    cursor: default !important;
+  }
+}
+
+/* 2. TravelStats Compact Desktop Clustering */
+.travel-stats-container {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  width: 100%;
+}
+
+.travel-stats-container.compact {
+  grid-auto-rows: minmax(92px, auto);
+}
+
+@media (min-width: 1024px) {
+  .travel-stats-container.hero {
+    gap: 16px;
+    grid-template-columns: minmax(0, 1.15fr) repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, min-content);
+    height: 100%;
+  }
+
+  .travel-stats-container.compact {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+  }
+}
+
+/* 3. Dashboard Editorial Row Logic */
+/* 3. Dashboard Recent Adventures Grid & TripCard Layout */
+.recent-adventures-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 16px; /* Breathing room for hover scale */
+  margin: -24px -16px; 
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+
+.recent-adventures-item {
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  width: 100%;
+  overflow: visible;
+}
+
+/* --- The Persistent TripCard State --- */
+.trip-card {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 16px; /* RADIUS.xl */
+  overflow: hidden;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* SHADOWS.lg */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: #FFFFFF; /* COLORS.surface */
+  box-sizing: border-box;
+}
+
+.trip-card[data-variant="grid"] {
+  height: 280px;
+  min-height: 260px;
+}
+
+.trip-card[data-variant="home"] {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* SHADOWS.sm */
+}
+
+.trip-card .top-content {
+  padding: clamp(12px, 2vh, 16px);
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.trip-card[data-variant="home"] .top-content {
+  padding: clamp(12px, 2vh, 16px);
+}
+
+.trip-card .flags-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.trip-card .flag-img {
+  width: clamp(20px, 3vh, 24px);
+  height: clamp(20px, 3vh, 24px);
+  object-fit: cover;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+
+.trip-card .glass-pill {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border-radius: 9999px;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #fff;
+  font-size: clamp(0.65rem, 1.2vh, 0.75rem);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.trip-card .bottom-content {
+  padding: clamp(12px, 2vh, 16px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: clamp(4px, 1vh, 8px);
+  width: 100%;
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  flex-shrink: 0;
+}
+
+.trip-card[data-variant="home"] .bottom-content {
+  padding: clamp(12px, 2vh, 16px);
+}
+
+.trip-card .title {
+  margin: 0;
+  font-size: clamp(1.1rem, 2.5vh, 1.25rem);
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  min-width: 0;
+  min-height: 0;
+  flex-shrink: 1;
+}
+
+.trip-card .meta-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  width: 100%;
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  mask-image: linear-gradient(to right, black 85%, transparent 100%);
+}
+
+.trip-card .trip-card-menu-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  cursor: pointer;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: background-color 0.2s;
+}
+
+.trip-card .trip-card-menu-btn:hover,
+.trip-card .trip-card-menu-btn.active {
+  background-color: rgba(255,255,255,0.45);
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+@media (max-width: 767px) {
+  .trip-card {
+    border-radius: 12px; /* RADIUS.lg */
+    height: auto;
+    min-height: 220px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .recent-adventures-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    height: 100%;
+  }
+  
+  /* 1 Card (Top Half) */
+  .recent-adventures-grid[data-total="1"] .recent-adventures-item:nth-child(1) {
+    grid-column: 1 / -1;
+    grid-row: 1 / 2;
+  }
+
+  /* 2 Cards (Two Full Rows) */
+  .recent-adventures-grid[data-total="2"] .recent-adventures-item:nth-child(1) {
+    grid-column: 1 / -1;
+    grid-row: 1 / 2;
+  }
+  .recent-adventures-grid[data-total="2"] .recent-adventures-item:nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2 / 3;
+  }
+
+  /* 3 Cards (1 Top, 2 Bottom) */
+  .recent-adventures-grid[data-total="3"] .recent-adventures-item:nth-child(1) {
+    grid-column: 1 / -1;
+    grid-row: 1 / 2;
+  }
+  .recent-adventures-grid[data-total="3"] .recent-adventures-item:nth-child(2),
+  .recent-adventures-grid[data-total="3"] .recent-adventures-item:nth-child(3) {
+    grid-column: span 1;
+    grid-row: 2 / 3;
+  }
+
+  /* 4 Cards (Perfect 2x2) */
+  .recent-adventures-grid[data-total="4"] .recent-adventures-item {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+}
+
+/* 4. Portal Dropdown Menu Items */
+.portal-menu-item {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.portal-menu-item:hover {
+  background-color: #F1F5F9; /* slate-100 */
+}
+.portal-menu-item.danger:hover {
+  background-color: #FEE2E2; /* red-100 */
+}

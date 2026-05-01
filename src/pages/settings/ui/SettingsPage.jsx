@@ -640,6 +640,26 @@ const SettingsPage = () => {
         onClose={() => setShowDeleteConfirm(false)}
         isLoading={isDeletingAccount}
       />
+
+      {/* ── App Version Footer ── */}
+      <div style={{
+        paddingTop: '32px',
+        marginTop: '24px',
+        borderTop: `1px solid rgba(0, 0, 0, 0.08)`,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+        <span style={{
+          fontSize: '0.75rem',
+          color: '#6B7280',
+          fontWeight: 500,
+          letterSpacing: '0.5px',
+        }}>
+          {/* eslint-disable-next-line no-undef */}
+          {t('settings:footer.appVersion', 'App Version')} • v{__APP_VERSION__}
+        </span>
+      </div>
     </div>
   );
 };

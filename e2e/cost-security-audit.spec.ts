@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { openTripEditorById } from './utils/trip-interactions';
 
 const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
 
@@ -138,23 +139,7 @@ async function seedTripWithStops(page, ownerUid: string, tripId: string, title: 
   expect(stopsWriteOk.every(Boolean)).toBe(true);
 }
 
-async function openEditorByTripId(page, tripId: string) {
-  const titleInput = page.getByLabel(/Trip title|Título del viaje/i);
-  const editorUrlPattern = new RegExp(`\\/(dashboard|trips)\\?.*editing=${tripId}`);
-  const tripCard = page.getByTestId(`trip-card-${tripId}`);
 
-  if (!(await tripCard.first().isVisible().catch(() => false))) {
-    const viewAllButton = page.getByRole('button', { name: /View all|Ver todo/i });
-    if (await viewAllButton.isVisible().catch(() => false)) {
-      await viewAllButton.click();
-    }
-  }
-
-  await expect(tripCard).toBeVisible({ timeout: 20000 });
-  await tripCard.click();
-  await expect(titleInput).toBeVisible({ timeout: 10000 });
-  await expect(page).toHaveURL(editorUrlPattern);
-}
 
 test.describe('Cost-security architecture audit', () => {
   test('Mapbox geocoding cache keeps repeated Madrid re-types under threshold', async ({ page }) => {
@@ -210,7 +195,7 @@ test.describe('Cost-security architecture audit', () => {
     await page.goto('/');
     await signInInBrowser(page, email, password);
     await seedTripWithStops(page, ownerUid, tripId, 'Cost Audit Initial Title');
-    await openEditorByTripId(page, tripId);
+    await openTripEditorById(page, tripId);
 
     const firestoreWritePayloads: string[] = [];
 

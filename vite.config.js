@@ -4,8 +4,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 import process from 'node:process'
 import { fileURLToPath } from 'url'
+import fs from 'fs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+// Read package.json for version (Single Source of Truth)
+const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'))
 const baseAliases = {
   '@app': path.resolve(__dirname, 'src/app'),
   '@entities': path.resolve(__dirname, 'src/entities'),
@@ -17,14 +20,17 @@ const baseAliases = {
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   optimizeDeps: {
-    include: ['react-simple-maps', 'prop-types', 'topojson-client'],
+    include: ['prop-types', 'topojson-client'],
   },
   plugins: [
     react(),
     // Excluir VitePWA en tests para evitar errores de módulos virtuales
     !process.env.VITEST && VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['favicon.svg', 'icons/*.png'],
       cleanupOutdatedCaches: true,
       manifest: {
@@ -62,7 +68,6 @@ export default defineConfig({
         ],
       },
       workbox: {
-        skipWaiting: true,
         clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB — vendor-map (mapbox-gl ~2.5MB raw) necesita margen

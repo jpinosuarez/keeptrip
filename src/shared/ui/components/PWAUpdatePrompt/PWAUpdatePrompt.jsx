@@ -1,59 +1,82 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import React from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import styles from './PWAUpdatePrompt.styles';
+import { useTranslation } from 'react-i18next';
+// eslint-disable-next-line no-unused-vars
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, RefreshCw } from 'lucide-react';
+import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
+import { styles } from './PWAUpdatePrompt.styles';
 
-const PWAUpdatePromptCore = () => {
-  const { t } = useTranslation('common');
+/**
+ * PWAUpdatePrompt — Premium UI for notifying the user about new app versions.
+ * Uses vite-plugin-pwa's 'prompt' strategy to control SW lifecycle.
+ */
+const PWAUpdatePrompt = () => {
+  const { t } = useTranslation(['common']);
+  const { isMobile } = useWindowSize();
+  
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
-  } = useRegisterSW();
+  } = useRegisterSW({
+    onRegistered(r) {
+      console.log('SW Registered:', r);
+    },
+    onRegisterError(error) {
+      console.error('SW Registration error:', error);
+    },
+  });
 
-  if (!needRefresh) return null;
+  const close = () => {
+    setNeedRefresh(false);
+  };
 
   return (
-    <div style={styles.toast} role="status" aria-live="polite">
-      <span style={styles.text}>{t('pwaUpdate.updateAvailable')}</span>
-      <div style={styles.actions}>
-        <button
-          onClick={() => updateServiceWorker(true)}
-          style={styles.updateBtn}
-          tabIndex={0}
-          aria-label={t('pwaUpdate.update')}
+    <AnimatePresence>
+      {needRefresh && (
+        <motion.div
+          initial={{ opacity: 0, y: 50, x: '-50%', scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }}
+          exit={{ opacity: 0, y: 20, x: '-50%', scale: 0.95 }}
+          style={{
+            ...styles.container,
+            ...(isMobile ? styles.containerMobile : {})
+          }}
         >
-          {t('pwaUpdate.update')}
-        </button>
-        <button
-          onClick={() => setNeedRefresh(false)}
-          style={styles.dismissBtn}
-          tabIndex={0}
-          aria-label={t('pwaUpdate.later')}
-        >
-          {t('pwaUpdate.later')}
-        </button>
-      </div>
-    </div>
+          <div style={styles.content}>
+            <div style={styles.iconWrapper}>
+              <RefreshCw size={18} strokeWidth={2.5} />
+            </div>
+            <span style={styles.text}>
+              {t('common:pwa.updateAvailable')}
+            </span>
+          </div>
+
+          <div style={{
+            ...styles.actions,
+            ...(isMobile ? styles.actionsMobile : {})
+          }}>
+            <button 
+              type="button"
+              style={styles.laterBtn}
+              onClick={close}
+            >
+              {t('common:pwa.later')}
+            </button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              style={styles.updateBtn}
+              onClick={() => updateServiceWorker(true)}
+            >
+              <Sparkles size={14} fill="currentColor" />
+              {t('common:pwa.update')}
+            </motion.button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
-};
-
-/**
- * PWAUpdatePrompt (Orchestrator)
- * Shows a floating toast when a new PWA version is available.
- * Defers SW registration until window.onload to prevent TBT/CLS.
- */
-const PWAUpdatePrompt = () => {
-  const [canRegister, setCanRegister] = useState(() => document.readyState === 'complete');
-
-  useEffect(() => {
-    if (canRegister) return;
-    const handleLoad = () => setCanRegister(true);
-    window.addEventListener('load', handleLoad);
-    return () => window.removeEventListener('load', handleLoad);
-  }, [canRegister]);
-
-  if (!canRegister) return null;
-  return <PWAUpdatePromptCore />;
 };
 
 export default PWAUpdatePrompt;

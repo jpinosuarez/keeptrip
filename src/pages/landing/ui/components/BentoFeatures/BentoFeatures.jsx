@@ -50,10 +50,10 @@ const BentoFeatures = () => {
         transition={springTransition}
       >
         <div style={styles.featureCardHeader}>
-          <div style={styles.featureCardIconWrap(COLORS.atomicTangerine)}>
+          <div style={styles.featureCardIconWrap(COLORS.atomicTangerine)} aria-hidden="true">
             <Map size={24} color={COLORS.atomicTangerine} strokeWidth={2} />
           </div>
-          <span style={styles.featureCardNum(COLORS.atomicTangerine)}>01</span>
+          <span style={styles.featureCardNum(COLORS.atomicTangerine)} aria-hidden="true">01</span>
         </div>
 
         <div style={styles.worldMapContainer}>
@@ -74,10 +74,10 @@ const BentoFeatures = () => {
         transition={springTransition}
       >
         <div style={styles.featureCardHeader}>
-          <div style={styles.featureCardIconWrap(COLORS.mutedTeal)}>
+          <div style={styles.featureCardIconWrap(COLORS.mutedTeal)} aria-hidden="true">
             <BarChart2 size={24} color={COLORS.mutedTeal} strokeWidth={2} />
           </div>
-          <span style={styles.featureCardNum(COLORS.mutedTeal)}>02</span>
+          <span style={styles.featureCardNum(COLORS.mutedTeal)} aria-hidden="true">02</span>
         </div>
 
         {/* Premium Marketing Stats UI */}
@@ -137,10 +137,10 @@ const BentoFeatures = () => {
         transition={springTransition}
       >
         <div style={styles.featureCardHeader}>
-          <div style={styles.featureCardIconWrap(COLORS.charcoalBlue)}>
+          <div style={styles.featureCardIconWrap(COLORS.charcoalBlue)} aria-hidden="true">
             <Camera size={24} color={COLORS.charcoalBlue} strokeWidth={2} />
           </div>
-          <span style={styles.featureCardNum(COLORS.charcoalBlue)}>03</span>
+          <span style={styles.featureCardNum(COLORS.charcoalBlue)} aria-hidden="true">03</span>
         </div>
 
         <div style={styles.masonryVisualContainer}>

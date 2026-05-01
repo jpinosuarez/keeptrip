@@ -169,8 +169,26 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
 
   return (
     <AnimatePresence>
-      <Motion.div style={styles.overlay(isMobile)} onClick={isBusy ? undefined : onClose} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
-        <Motion.div style={styles.modal(isMobile)} onClick={e => e.stopPropagation()} initial={{y:40,opacity:0}} animate={{y:0,opacity:1}} exit={{y:30,opacity:0}} transition={{duration:0.3,ease:[0.25,1,0.5,1]}}>
+      <Motion.div 
+        style={styles.overlay(isMobile)} 
+        onClick={isBusy ? undefined : onClose} 
+        initial={{ opacity: 0, visibility: 'hidden' }} 
+        animate={{ opacity: 1, visibility: 'visible' }} 
+        exit={{ opacity: 0 }} 
+        transition={{ duration: 0.2 }}
+        tabIndex="-1"
+        className="outline-none items-stretch md:items-center"
+      >
+        <Motion.div 
+          style={styles.modal(isMobile)} 
+          onClick={e => e.stopPropagation()} 
+          initial={{ y: 10, opacity: 0, scale: 0.98, visibility: 'hidden' }} 
+          animate={{ y: 0, opacity: 1, scale: 1, visibility: 'visible' }} 
+          exit={{ y: 15, opacity: 0, scale: 0.98 }} 
+          transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
+          tabIndex="-1"
+          className="min-w-full md:min-w-[400px] outline-none"
+        >
           {/* Mobile drag-handle affordance */}
           {isMobile && (
             <div style={{
@@ -215,6 +233,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
               tripStartDate={formData?.fechaInicio}
               sinParadas={sinParadas}
               isReadOnlyMode={isReadOnlyMode}
+              tripStartDate={formData.fechaInicio}
             />
 
             {/* Photo gallery */}

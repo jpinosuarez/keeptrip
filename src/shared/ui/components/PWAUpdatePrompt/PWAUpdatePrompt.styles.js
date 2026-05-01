@@ -1,67 +1,88 @@
-// Styles for PWAUpdatePrompt (CSS-in-JS, polished & normalized)
-import { COLORS, RADIUS, SHADOWS, GLASS, FONTS } from '@shared/config';
+import { COLORS, SHADOWS, RADIUS, GLASS, Z_INDEX, SPACING, TRANSITIONS, FONTS } from '@shared/config';
 
-const styles = {
-  toast: {
+export const styles = {
+  container: {
     position: 'fixed',
-    bottom: 'max(16px, env(safe-area-inset-bottom, 0px))',
+    bottom: SPACING.xl,
     left: '50%',
     transform: 'translateX(-50%)',
+    zIndex: Z_INDEX.toast,
     display: 'flex',
     alignItems: 'center',
-    gap: 'clamp(12px, 3vw, 24px)',
-    padding: 'clamp(14px, 4vw, 24px)',
-    borderRadius: RADIUS.lg || '32px',
-    boxShadow: SHADOWS.float || '0 8px 32px rgba(44,62,80,0.12)',
-    zIndex: 600,
+    gap: SPACING.md,
+    padding: `${SPACING.sm} ${SPACING.md}`,
+    minWidth: 'min(90vw, 400px)',
     ...GLASS.medium,
-    border: `1px solid ${COLORS.border || '#E5E7EB'}`,
-    minHeight: '56px', // Touch target >=44px
-    animation: 'slideIn 0.4s cubic-bezier(.68,-0.55,.27,1.55)',
-    fontFamily: FONTS.sans || 'Inter, Plus Jakarta Sans, sans-serif',
+    borderRadius: RADIUS.full,
+    border: `1px solid ${COLORS.border}`,
+    boxShadow: SHADOWS.float,
+    overflow: 'hidden',
+  },
+  content: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    flex: 1,
+  },
+  iconWrapper: {
+    width: '32px',
+    height: '32px',
+    borderRadius: RADIUS.full,
+    background: `${COLORS.atomicTangerine}15`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: COLORS.atomicTangerine,
   },
   text: {
-    fontSize: 'clamp(15px, 2vw, 18px)',
-    fontWeight: 600,
-    color: COLORS.textPrimary || '#2C3E50',
-    flex: 1,
-    textAlign: 'center',
-    letterSpacing: '0.02em',
-    lineHeight: 1.4,
-    outline: 'none',
+    fontFamily: FONTS.body,
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    color: COLORS.textPrimary,
   },
   actions: {
     display: 'flex',
-    gap: 'clamp(16px, 3vw, 24px)',
+    alignItems: 'center',
+    gap: SPACING.xs,
   },
   updateBtn: {
-    padding: '14px 28px', // Touch target >=44px
-    borderRadius: RADIUS.full || '999px',
-    border: 'none',
-    background: COLORS.atomicTangerine || '#FF6B35',
+    background: COLORS.atomicTangerine,
     color: '#fff',
-    fontWeight: 600,
-    fontSize: 'clamp(15px, 2vw, 18px)',
+    border: 'none',
+    borderRadius: RADIUS.full,
+    padding: '8px 16px',
+    fontSize: '0.85rem',
+    fontWeight: '700',
     cursor: 'pointer',
-    minHeight: '44px',
-    outline: '2px solid #FF6B35', // Focus-visible
-    outlineOffset: '2px',
-    transition: 'background 0.2s',
+    boxShadow: `0 4px 12px ${COLORS.atomicTangerine}30`,
+    transition: TRANSITIONS.normal,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
   },
-  dismissBtn: {
-    padding: '14px 28px', // Touch target >=44px
-    borderRadius: RADIUS.full || '999px',
-    border: `2px solid ${COLORS.border || '#E5E7EB'}`,
+  laterBtn: {
     background: 'transparent',
-    color: COLORS.textSecondary || '#6B7280',
-    fontWeight: 600,
-    fontSize: 'clamp(15px, 2vw, 18px)',
+    color: COLORS.textSecondary,
+    border: 'none',
+    borderRadius: RADIUS.full,
+    padding: '8px 12px',
+    fontSize: '0.85rem',
+    fontWeight: '600',
     cursor: 'pointer',
-    minHeight: '44px',
-    outline: '2px solid #FF6B35', // Focus-visible
-    outlineOffset: '2px',
-    transition: 'background 0.2s',
+    transition: TRANSITIONS.normal,
   },
+  // Adaptaciones mobile
+  containerMobile: {
+    bottom: '80px', // Por encima de la bottom bar
+    width: 'calc(100% - 32px)',
+    borderRadius: RADIUS.lg,
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    padding: SPACING.md,
+    gap: SPACING.md,
+  },
+  actionsMobile: {
+    justifyContent: 'flex-end',
+    width: '100%',
+  }
 };
-
-export default styles;

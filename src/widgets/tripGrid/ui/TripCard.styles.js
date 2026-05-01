@@ -1,24 +1,12 @@
 import { COLORS, SHADOWS, RADIUS } from '@shared/config';
 
 export const tripStyles = {
-  cardBase: (isMobile, variant) => {
-    const isGrid = variant === 'grid';
-    const isHome = variant === 'home';
+  cardBase: (variant) => {
     return {
       position: 'relative',
-      minWidth: isGrid ? 'auto' : (isMobile ? undefined : '160px'),
-      width: isGrid || isHome ? '100%' : (isMobile ? '100%' : '160px'),
-      height: isGrid ? '280px' : isHome ? '100%' : '220px',
-      minHeight: isHome ? '120px' : undefined,
-      borderRadius: isMobile ? RADIUS.lg : RADIUS.xl,
-      overflow: 'hidden',
-      cursor: 'pointer',
-      flexShrink: isGrid || isHome || isMobile ? undefined : 0,
-      boxShadow: isHome ? SHADOWS.sm : SHADOWS.lg,
-      backgroundColor: COLORS.surface,
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
+      cursor: 'default',
+      aspectRatio: variant === 'list' ? undefined : '4/5',
+      minHeight: variant === 'list' ? '120px' : undefined,
     };
   },
 
@@ -51,9 +39,7 @@ export const tripStyles = {
   topContent: {
     position: 'relative',
     zIndex: 2,
-    display: 'flex',
-    justifyContent: 'flex-end',
-    padding: '12px',
+    boxSizing: 'border-box',
   },
 
   flagsRow: {
@@ -96,11 +82,6 @@ export const tripStyles = {
     backdropFilter: 'blur(16px)',
     border: '1px solid rgba(255,255,255,0.3)',
     borderRadius: '50%',
-    width: '36px',
-    height: '36px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
     cursor: 'pointer',
     color: '#fff',
     boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
@@ -110,10 +91,8 @@ export const tripStyles = {
   bottomContent: {
     position: 'relative',
     zIndex: 2,
-    padding: '16px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
+    boxSizing: 'border-box',
+    minWidth: 0,
   },
 
   title: {
@@ -122,11 +101,9 @@ export const tripStyles = {
     fontWeight: '800',
     color: 'white',
     textShadow: '0 2px 8px rgba(0,0,0,0.7)',
-    display: '-webkit-box',
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: 'vertical',
+    whiteSpace: 'nowrap',
     overflow: 'hidden',
-    whiteSpace: 'normal',
+    textOverflow: 'ellipsis',
     lineHeight: 1.1,
     letterSpacing: '-0.5px'
   },
@@ -166,5 +143,6 @@ export const tripStyles = {
     flexWrap: 'wrap',
     alignItems: 'center',
     gap: '6px',
+    minWidth: 0,
   },
 };

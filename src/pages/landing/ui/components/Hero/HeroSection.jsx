@@ -7,9 +7,10 @@ import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { Globe, ArrowRight } from 'lucide-react';
 import { motion as Motion } from 'framer-motion';
 import { COLORS } from '@shared/config';
-import AuthModal from '@features/auth/ui/AuthModal';
 import { styles } from './HeroSection.styles';
 import InteractiveCardStack from './InteractiveCardStack';
+
+const AuthModal = React.lazy(() => import('@features/auth/ui/AuthModal'));
 
 const springTransition = { type: 'spring', damping: 20, stiffness: 100 };
 
@@ -76,11 +77,13 @@ const HeroSection = () => {
         <InteractiveCardStack isMobile={isMobile} />
       </Motion.main>
 
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        onContinue={login}
-      />
+      <React.Suspense fallback={null}>
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onContinue={login}
+        />
+      </React.Suspense>
     </>
   );
 };

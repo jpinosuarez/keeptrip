@@ -23,6 +23,11 @@
   max-width: 100%;
 }
 
+/* Response Header Utility per Architect's constraint */
+.app-header {
+  padding: var(--safe-area-top-padding) 24px 8px 24px !important;
+}
+
 @media (max-width: 768px) {
   .scaffold-main {
     margin-left: 0;
@@ -38,5 +43,9 @@
     height: 100%;
     min-height: 0;
     flex: 1;
+  }
+
+  .app-header {
+    padding: var(--safe-area-top-padding) 16px 8px 16px !important;
   }
 }

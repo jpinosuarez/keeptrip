@@ -176,13 +176,11 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, isMobile = false, varia
     },
   ];
 
-  const gridStyle = isDesktopLayout
-    ? (isCompact ? styles.compactGridDesktop : styles.heroGridDesktop)
-    : (isCompact ? styles.compactGridMobile : styles.heroGridMobile);
+  const containerClass = `travel-stats-container ${isCompact ? 'compact' : 'hero'}`;
 
   return (
     <section role="region" aria-label={ariaLabel} style={styles.shell} data-density={isMobile ? 'mobile' : 'desktop'}>
-      <div style={gridStyle}>
+      <div className={containerClass}>
         {cards.map((card, index) => (
           <StatCard
             key={card.key}
@@ -190,9 +188,9 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, isMobile = false, varia
             hero={card.hero}
             compact={isCompact}
             style={
-              isDesktopLayout
-                ? (isCompact ? card.compactDesktopPosition : card.desktopPosition)
-                : (isCompact ? card.compactMobilePosition : card.mobilePosition)
+                isDesktopLayout
+                  ? (isCompact ? card.compactDesktopPosition : card.desktopPosition)
+                  : (isCompact ? card.compactMobilePosition : card.mobilePosition)
             }
             index={index}
           />

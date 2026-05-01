@@ -60,7 +60,7 @@ function RootRoute() {
 // componentes de página sin modificarlos.
 
 function DashboardRoute() {
-  const { data, view } = useOutletContext();
+  const { data, view, crud } = useOutletContext();
   return (
     <Suspense fallback={suspenseFallback}>
       <DashboardPage
@@ -71,6 +71,7 @@ function DashboardRoute() {
         loading={data.loadingViajes}
         isError={data.isError}
         fetchError={data.fetchError}
+        handleDelete={crud.solicitarEliminarViaje}
       />
     </Suspense>
   );

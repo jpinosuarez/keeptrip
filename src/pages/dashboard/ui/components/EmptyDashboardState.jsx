@@ -25,13 +25,13 @@ const EmptyDashboardState = () => {
         animate={{ y: [0, -6, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
       >
-        <Globe size={44} color={COLORS.atomicTangerine} strokeWidth={1.2} />
+        <Globe size={44} color={COLORS.atomicTangerine} strokeWidth={1.2} aria-hidden="true" />
         <Motion.div 
           style={styles.sparkleContainer}
           animate={{ rotate: [0, 12, -12, 0] }}
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
         >
-          <Sparkles size={16} color={COLORS.mutedTeal} strokeWidth={2} />
+          <Sparkles size={16} color={COLORS.mutedTeal} strokeWidth={2} aria-hidden="true" />
         </Motion.div>
       </Motion.div>
       
