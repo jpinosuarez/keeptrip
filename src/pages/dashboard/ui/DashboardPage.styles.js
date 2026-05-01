@@ -64,7 +64,7 @@ export const styles = {
           gridRow: '2',
           minHeight: 0,
           height: '100%',
-          overflow: 'visible',
+          overflow: 'hidden',
         }
       : {
           width: '100%',
@@ -247,27 +247,6 @@ export const styles = {
     whiteSpace: 'nowrap',
     flexShrink: 0,
     transition: 'all 0.2s ease',
-  },
-
-  cardsList: (isDesktop) => {
-    if (isDesktop) {
-      return {
-        flex: 1,
-        minWidth: 0,
-        minHeight: 0,
-        overflow: 'visible',
-      };
-    }
-    return {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))',
-      gridTemplateRows: 'auto',
-      alignItems: 'stretch',
-      gap: '12px',
-      minWidth: 0,
-      minHeight: 0,
-      overflow: 'visible',
-    };
   },
 
   dashboardErrorCard: {

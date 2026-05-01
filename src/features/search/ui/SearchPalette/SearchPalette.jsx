@@ -37,6 +37,18 @@ const SearchPalette = ({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [showHelp, setShowHelp] = useState(false);
   
+  // Lock body scroll on mobile when search overlay is open
+  useEffect(() => {
+    if (isOpen && isMobile) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, isMobile]);
+
   // Debounced query for Mapbox API calls
   const [debouncedQuery, setDebouncedQuery] = useState('');
   useDebounce(query, 300, (debouncedVal) => {
@@ -223,22 +235,22 @@ const SearchPalette = ({
       left: 0,
       right: 0,
       bottom: 0,
-      ...GLASS.overlay,
+      ...(isMobile ? { backgroundColor: '#F8FAFC' } : GLASS.overlay),
       zIndex: 10001,
       display: 'flex',
       alignItems: isMobile ? 'stretch' : 'flex-start',
       justifyContent: 'center',
       paddingTop: isMobile ? '0' : '80px',
-      backdropFilter: 'blur(8px)',
+      backdropFilter: isMobile ? 'none' : 'blur(8px)',
     },
     container: {
       width: isMobile ? '100%' : 'min(600px, 90vw)',
       maxHeight: isMobile ? '100%' : '70vh',
       height: isMobile ? '100%' : undefined,
-      backgroundColor: COLORS.surface,
+      backgroundColor: isMobile ? 'transparent' : COLORS.surface,
       borderRadius: isMobile ? 0 : RADIUS.xl,
-      boxShadow: SHADOWS.float,
-      border: `1px solid ${COLORS.border}`,
+      boxShadow: isMobile ? 'none' : SHADOWS.float,
+      border: isMobile ? 'none' : `1px solid ${COLORS.border}`,
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, ChevronUp, Globe2, MapPin, Compass } from 'lucide-react';
+import { ChevronDown, ChevronUp, Globe2, MapPin } from 'lucide-react';
 import { useAuth } from '@app/providers';
 import { COLORS, RADIUS, SHADOWS } from '@shared/config';
 import TripRosterItem from './TripRosterItem';
@@ -25,35 +25,72 @@ const GLASS_PANEL = {
 
 const CONTINENT_LOOKUP = new Map(COUNTRIES_DB.map((country) => [country.code, country.continente]));
 
+const countContinents = (trips = [], tripData = {}) => {
+  const continents = new Set();
+
+  trips.forEach((trip) => {
+    const details = tripData[trip.id] || trip;
+    const code = details?.code || details?.paisCodigo || trip.code || trip.paisCodigo;
+    const continent = CONTINENT_LOOKUP.get(code);
+    if (continent) continents.add(continent);
+  });
+
+  return continents.size;
+};
+
 /* ── Roster Header (Traveler Identity Badge — no gamification) ─────────── */
-const RosterHeader = ({ trips, tripData, isMobile, onToggle, isExpanded }) => {
+const RosterHeader = ({ paises, trips, tripData, isMobile, onToggle, isExpanded }) => {
   const { t } = useTranslation('dashboard');
   const { usuario } = useAuth();
-  const uniqueCountriesCount = useMemo(() => {
-    const codes = trips.map(trip => {
+  const continentsCount = useMemo(() => countContinents(trips, tripData), [trips, tripData]);
+
+  // Calculate unique countries and total stops securely
+  const { uniqueCountries, totalStops } = useMemo(() => {
+    const countries = new Set();
+    let stops = 0;
+
+    trips.forEach((trip) => {
       const details = tripData[trip.id] || trip;
-      return details?.code || details?.paisCodigo || trip.code || trip.paisCodigo || trip.pais;
-    }).filter(Boolean);
-    return new Set(codes).size;
-  }, [trips, tripData]);
+      // Extract stops
+      const paradas = details.paradas || details.ciudades || [];
+      stops += paradas.length;
+
+      // Extract unique countries
+      paradas.forEach((p) => {
+        const code = p.countryCode || p.paisCodigo;
+        if (code) countries.add(code.toUpperCase());
+      });
+
+      // Fallback if no stops but has a destination country
+      const fallbackCode = details.code || details.paisCodigo || details.countryCode;
+      if (fallbackCode) countries.add(fallbackCode.toUpperCase());
+    });
+
+    // Directly use Set size which accurately deduplicates countries across all trips
+    return {
+      uniqueCountries: countries.size,
+      totalStops: stops,
+    };
+  }, [trips, tripData, paises]);
+
   const name = usuario?.displayName?.split(' ')[0] || t('fallbackName', 'Explorer');
 
   return (
     <button
       type="button"
-      onClick={onToggle}
+      onClick={isMobile ? undefined : onToggle}
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
         width: '100%',
-        padding: isMobile ? '14px 16px' : '14px 18px',
+        padding: isMobile ? '0 16px' : '14px 18px', // Mobile spacing adjusted for touch target above
         background: 'transparent',
         borderLeft: 'none',
         borderRight: 'none',
         borderTop: 'none',
         borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-        cursor: 'pointer',
+        cursor: isMobile ? 'default' : 'pointer',
         textAlign: 'left',
       }}
     >
@@ -74,7 +111,7 @@ const RosterHeader = ({ trips, tripData, isMobile, onToggle, isExpanded }) => {
       </div>
 
       {/* Identity + stats */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 0, paddingBottom: isMobile ? '12px' : 0 }}>
         <p style={{
           margin: 0,
           fontSize: '0.95rem',
@@ -84,18 +121,25 @@ const RosterHeader = ({ trips, tripData, isMobile, onToggle, isExpanded }) => {
         }}>
           {name}
         </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '2px' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: COLORS.textSecondary, fontWeight: 600 }}>
-              <Globe2 size={12} /> {uniqueCountriesCount} {uniqueCountriesCount === 1 ? t('hud.countrySingular') : t('hud.countryPlural')}
-            </span>
-            <span style={{ opacity: 0.4, fontSize: '0.75rem' }}>·</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: COLORS.textSecondary, fontWeight: 600 }}>
-              <Compass size={12} /> {trips.length} {trips.length === 1 ? t('hud.documentedTripSingular') : t('hud.documentedTripPlural')}
-            </span>
-          </div>
+        <p style={{
+          margin: '2px 0 0',
+          fontSize: '0.72rem',
+          color: COLORS.textSecondary,
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+          flexWrap: 'wrap',
+        }}>
+          <span title={t('hud.uniqueCountries', 'Países únicos visitados')}>{uniqueCountries} {uniqueCountries === 1 ? t('hud.countrySingular', 'País') : t('hud.countryPlural', 'Países')}</span>
+          <span style={{ opacity: 0.4 }}>·</span>
+          <span title={t('hud.continents', 'Continentes')}>{continentsCount} <Globe2 size={10} style={{ display: 'inline' }} /></span>
+          <span style={{ opacity: 0.4 }}>·</span>
+          <span title={t('hud.tripsAndStops', 'Viajes / Paradas')}>{trips.length} Viajes ({totalStops} Paradas) <MapPin size={10} style={{ display: 'inline' }} /></span>
+        </p>
       </div>
 
-      {/* Collapse/Expand chevron — Hidden on mobile as we use gestures per Architect's request */}
+      {/* Collapse/Expand chevron (Hidden on Mobile) */}
       {!isMobile && (
         <div style={{
           width: '28px',
@@ -129,17 +173,6 @@ const TripRoster = ({
   const { t } = useTranslation('dashboard');
   const [isExpanded, setIsExpanded] = useState(!isMobile); // Mobile: collapsed by default, desktop: expanded
 
-  // Drag controls for mobile swipe
-  const handleDragEnd = (_, info) => {
-    if (!isMobile) return;
-    const dragThreshold = 50;
-    if (info.offset.y < -dragThreshold) {
-      setIsExpanded(true);
-    } else if (info.offset.y > dragThreshold) {
-      setIsExpanded(false);
-    }
-  };
-
   // Sort trips by date (newest first)
   const sortedTrips = useMemo(
     () => [...trips].sort((a, b) => {
@@ -156,17 +189,23 @@ const TripRoster = ({
   if (isMobile) {
     return (
       <Motion.div
-        initial={{ y: 100, opacity: 0 }}
+        initial={false}
         animate={{ 
           y: 0, 
-          opacity: 1,
-          maxHeight: isExpanded ? '55dvh' : '80px'
+          opacity: 1, 
+          height: isExpanded ? '55dvh' : '90px' 
         }}
-        drag={isMobile ? "y" : false}
+        transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+        drag="y"
         dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={0.1}
-        onDragEnd={handleDragEnd}
-        transition={{ type: 'spring', stiffness: 100, damping: 22, delay: 0.2 }}
+        dragElastic={0.2}
+        onDragEnd={(e, info) => {
+          if (info.offset.y > 50 || info.velocity.y > 500) {
+            setIsExpanded(false);
+          } else if (info.offset.y < -50 || info.velocity.y < -500) {
+            setIsExpanded(true);
+          }
+        }}
         style={{
           position: 'absolute',
           bottom: 0,
@@ -180,10 +219,10 @@ const TripRoster = ({
           borderLeft: '1px solid rgba(226, 232, 240, 0.5)',
           borderRight: '1px solid rgba(226, 232, 240, 0.5)',
           borderBottom: 'none',
-          transition: 'max-height 0.35s cubic-bezier(0.25, 0.8, 0.25, 1)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
+          touchAction: 'none'
         }}
       >
         {/* Drag handle */}
@@ -191,10 +230,12 @@ const TripRoster = ({
           onClick={toggleExpand}
           style={{
             width: '100%',
+            height: '44px',
             display: 'flex',
             justifyContent: 'center',
-            padding: '8px 0 2px',
-            cursor: 'pointer',
+            alignItems: 'center',
+            cursor: 'grab',
+            flexShrink: 0,
           }}
         >
           <div style={{
@@ -210,7 +251,7 @@ const TripRoster = ({
           trips={trips}
           tripData={tripData}
           isMobile={true}
-          onToggle={isMobile ? undefined : toggleExpand}
+          onToggle={toggleExpand}
           isExpanded={isExpanded}
         />
 

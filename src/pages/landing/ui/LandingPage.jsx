@@ -32,6 +32,7 @@ const LandingPage = () => {
 
   return (
     <Motion.div
+      className="pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]" // Safe area insets
       style={styles.container}
       variants={containerVariants}
       initial="hidden"

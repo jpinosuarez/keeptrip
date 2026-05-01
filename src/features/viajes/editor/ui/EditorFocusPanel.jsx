@@ -353,6 +353,7 @@ const EditorFocusPanel = ({
               paradas={effectiveParadas}
               setParadas={effectiveSetParadas}
               fechaRangoDisplay={`${effectiveFormData.fechaInicio} - ${effectiveFormData.fechaFin}`}
+              tripStartDate={effectiveFormData.fechaInicio}
               sinParadas={effectiveParadas.length === 0}
               isReadOnlyMode={isReadOnlyMode}
             />

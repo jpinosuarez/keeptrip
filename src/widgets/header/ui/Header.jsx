@@ -9,10 +9,9 @@
  */
 import React, { useState, lazy, Suspense, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Plus, LogOut, User, X, Bell, Disc } from 'lucide-react';
+import { Search, Plus, User, X, Bell, Disc } from 'lucide-react';
 import {
   motion as Motion,
-  AnimatePresence,
   useScroll,
   useTransform,
   useSpring,
@@ -39,7 +38,7 @@ const PAGE_TITLES = {
 const COMPACT_LOGO_ROUTES = ['/trips', '/map'];
 
 const Header = ({ isMobile = false, invitationsCount = 0 }) => {
-  const { usuario: user, login, logout } = useAuth();
+  const { usuario: user, login } = useAuth();
   const { openBuscador: openTripSearch, openUserMenu, isReadOnlyMode } = useUI();
   const { busqueda: query, setBusqueda: setQuery, limpiarBusqueda: clearQuery } = useSearch();
   const { t } = useTranslation(['nav', 'common']);
@@ -84,7 +83,7 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
   return (
     <Motion.header
       role="banner"
-      className="app-shell-focus app-header"
+      className="app-shell-focus"
       style={{
         position: 'sticky',
         top: 0,
@@ -93,6 +92,9 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        padding: isMobile
+          ? 'var(--safe-area-top-padding) 16px 8px 16px'
+          : 'var(--safe-area-top-padding) 24px 8px 24px',
         gap: isMobile ? '8px' : '16px',
         // Ambient Glass BG — Framer Motion MotionValues, animates outside React render cycle
         backgroundColor: animBgColor,
@@ -284,68 +286,46 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
               </button>
             )}
 
-            {/* Avatar */}
-            <button
-              type="button"
-              data-testid="header-avatar"
-              onClick={() => openUserMenu()}
-              title={t('nav:settings')}
-              aria-label={t('nav:settings')}
-              className="header-avatar-btn"
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: RADIUS.full,
-                backgroundColor: COLORS.mutedTeal,
-                border: '2px solid rgba(255,255,255,0.8)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontWeight: 'bold',
-                fontSize: '0.85rem',
-                flexShrink: 0,
-                cursor: 'pointer',
-                overflow: 'hidden',
-              }}
-            >
-              {canShowPhoto ? (
-                <img
-                  src={photoUrl}
-                  alt={t('nav:avatarAlt', { name: user.displayName || '' })}
-                  style={{ width: '100%', height: '100%', borderRadius: RADIUS.full, objectFit: 'cover' }}
-                  onError={() => setFailedPhoto(photoUrl)}
-                />
-              ) : initials ? (
-                <span style={{ fontWeight: '700', fontSize: '0.8rem' }}>{initials}</span>
-              ) : (
-                <User size={18} />
-              )}
-            </button>
-
-            {/* Desktop Logout (subtle) */}
-            <button
-              type="button"
-              data-testid="header-logout-button"
-              onClick={logout}
-              className="header-logout-btn"
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: COLORS.textSecondary,
-                minWidth: '44px',
-                minHeight: '44px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: 0.6,
-              }}
-              title={t('common:logout')}
-            >
-              <LogOut size={16} />
-            </button>
+            {/* Avatar (Mobile Only) */}
+            <div className="md:hidden">
+              <button
+                type="button"
+                data-testid="header-avatar"
+                onClick={() => openUserMenu()}
+                title={t('nav:settings')}
+                aria-label={t('nav:settings')}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: RADIUS.full,
+                  backgroundColor: COLORS.mutedTeal,
+                  border: '2px solid rgba(255,255,255,0.8)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontWeight: 'bold',
+                  fontSize: '0.85rem',
+                  flexShrink: 0,
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                }}
+              >
+                {canShowPhoto ? (
+                  <img
+                    src={photoUrl}
+                    alt={t('nav:avatarAlt', { name: user.displayName || '' })}
+                    style={{ width: '100%', height: '100%', borderRadius: RADIUS.full, objectFit: 'cover' }}
+                    onError={() => setFailedPhoto(photoUrl)}
+                  />
+                ) : initials ? (
+                  <span style={{ fontWeight: '700', fontSize: '0.8rem' }}>{initials}</span>
+                ) : (
+                  <User size={18} />
+                )}
+              </button>
+            </div>
           </div>
         ) : (
           <button
@@ -377,76 +357,54 @@ const Header = ({ isMobile = false, invitationsCount = 0 }) => {
         </Suspense>
       )}
 
-      {/* Mobile Search - Full-Screen Overlay (Architect Approved) */}
-      <AnimatePresence>
-        {isMobile && showSearch && isMobileSearchOpen && (
-          <Motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+      {/* Mobile Search Dropdown */}
+      {isMobile && showSearch && isMobileSearchOpen && (
+        <Motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ type: 'spring', damping: 20 }}
+          style={{
+            position: 'absolute',
+            top: 'calc(64px + var(--safe-area-inset-top, 0px))',
+            left: '16px',
+            right: '16px',
+            background: 'rgba(255,255,255,0.95)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: RADIUS.lg,
+            border: '1px solid rgba(0,0,0,0.08)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+            padding: '12px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            zIndex: 100,
+          }}
+        >
+          <Search size={16} color={COLORS.textSecondary} />
+          <input
+            type="text"
+            placeholder={searchPlaceholder}
+            aria-label={t('nav:searchJournal')}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            autoFocus
             style={{
-              position: 'fixed',
-              inset: 0,
-              background: COLORS.background, // Full solid background for focus
-              zIndex: Z_INDEX.modal + 10,
-              display: 'flex',
-              flexDirection: 'column',
-              padding: 'var(--safe-area-top-padding) 16px 16px 16px',
+              border: 'none',
+              background: 'none',
+              fontSize: '1rem',
+              color: COLORS.charcoalBlue,
+              width: '100%',
+              outline: 'none',
             }}
-          >
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '12px 0',
-              borderBottom: '1px solid rgba(0,0,0,0.06)'
-            }}>
-              <Search size={20} color={COLORS.atomicTangerine} />
-              <input
-                type="text"
-                placeholder={searchPlaceholder}
-                aria-label={t('nav:searchJournal')}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                autoFocus
-                style={{
-                  border: 'none',
-                  background: 'none',
-                  fontSize: '1.1rem',
-                  fontWeight: 500,
-                  color: COLORS.charcoalBlue,
-                  width: '100%',
-                  outline: 'none',
-                }}
-              />
-              <button 
-                type="button" 
-                onClick={() => setIsMobileSearchOpen(false)} 
-                style={{ 
-                  border: 'none', 
-                  background: 'rgba(0,0,0,0.05)', 
-                  borderRadius: RADIUS.full,
-                  width: '32px',
-                  height: '32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <X size={18} color={COLORS.textSecondary} />
-              </button>
-            </div>
-            
-            {/* Optional: Results area hint */}
-            <div style={{ flex: 1, paddingTop: '20px', color: COLORS.textSecondary, fontSize: '0.9rem', textAlign: 'center' }}>
-              {query 
-                ? t('common:searching', 'Escaneando tus aventuras...') 
-                : t('common:searchHint', 'Escribe para buscar por destino o título')}
-            </div>
-          </Motion.div>
-        )}
-      </AnimatePresence>
+          />
+          {query && (
+            <button type="button" onClick={clearQuery} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: COLORS.textSecondary, display: 'flex' }}>
+              <X size={14} />
+            </button>
+          )}
+        </Motion.div>
+      )}
     </Motion.header>
   );
 };

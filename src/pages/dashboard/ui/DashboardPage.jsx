@@ -20,7 +20,7 @@ import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
 
 const HomeMap = lazy(() => import('@features/mapa/ui/HomeMap'));
 
-const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading = false, isError = false, fetchError = null, handleDelete }) => {
+const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading = false, isError = false, fetchError = null }) => {
   const { usuario } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -42,7 +42,10 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
     });
   }, [log]);
 
-  const visibleRecentTrips = useMemo(() => recentTrips.slice(0, 4), [recentTrips]);
+  const visibleRecentTrips = useMemo(
+    () => recentTrips.slice(0, 4),
+    [recentTrips]
+  );
   const isNewTraveler = log.length === 0;
   const [mapRenderKey, setMapRenderKey] = useState(0);
 
@@ -223,11 +226,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
           )}
         </div>
 
-        <div 
-          className="recent-adventures-grid"
-          data-total={visibleRecentTrips.length}
-          style={styles.cardsList(isDesktop)}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 w-full custom-scroll" style={{ alignItems: 'start', minWidth: 0 }}>
           {loading ? (
             <SkeletonList count={2} Component={TripCardSkeleton} />
           ) : isError ? (
@@ -246,7 +245,11 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
               return (
                 <div 
                   key={trip.id} 
-                  className="recent-adventures-item"
+                  style={{ 
+                    minHeight: 0, 
+                    height: '100%', 
+                    overflow: 'hidden'
+                  }}
                 >
                   <TripCard 
                     trip={enrichedTrip} 
@@ -254,13 +257,12 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
                     variant="home" 
                     priorityImage={index === 0}
                     onClick={() => openTripEditor(trip.id)} 
-                    onDelete={handleDelete ? () => handleDelete(trip.id) : undefined}
                   />
                 </div>
               );
             })
           ) : (
-            <div className="col-span-full min-w-0 min-h-0 w-full">
+            <div style={{ gridColumn: '1 / -1', minWidth: 0, minHeight: 0, width: '100%' }}>
               <EmptyDashboardState />
             </div>
           )}

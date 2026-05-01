@@ -230,6 +230,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
               paradas={paradas}
               setParadas={setParadas}
               fechaRangoDisplay={fechaRangoDisplay}
+              tripStartDate={formData?.fechaInicio}
               sinParadas={sinParadas}
               isReadOnlyMode={isReadOnlyMode}
               tripStartDate={formData.fechaInicio}
