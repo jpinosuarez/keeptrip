@@ -25,6 +25,8 @@ function AppScaffold({ invitationsCount, content, overlays, isMobile }) {
       }}
     >
 
+      <Sidebar />
+
       <main className="scaffold-main">
         <Header
           isMobile={isMobile}

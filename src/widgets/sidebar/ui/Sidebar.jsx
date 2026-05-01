@@ -133,7 +133,7 @@ const Sidebar = () => {
   const FluidRail = (
     <aside 
       className={cn(
-        "fixed top-0 left-0 h-[100dvh] w-20 bg-transparent flex-col items-center",
+        "fixed top-0 left-0 h-[100dvh] w-20 bg-white/80 backdrop-blur-xl flex-col items-center",
         "py-[max(24px,env(safe-area-inset-top,0px))] border-r border-black/5 z-dropdown hidden md:flex"
       )}
       aria-label={t('navLabel')}
