@@ -200,22 +200,59 @@ workbox: {
 }
 ```
 
-### 7.6 CI/CD & Automated Versioning (GitHub Actions)
-**Responsibility:** GitHub Actions workflow (`/.github/workflows/`) should auto-bump version on merge to main.
+### 7.6 CI/CD & Automated Versioning (Release-Please Bot)
+**Authority:** Google's **`release-please`** bot manages all release automation.
 
-**Recommended Tool:** Use `semantic-release` or `standard-version` npm packages:
-- On every PR merge to `main`, parse commit messages (Conventional Commits).
-- Auto-increment MAJOR/MINOR/PATCH in `package.json`.
-- Create git tag (e.g., `v1.2.3`) on main branch.
-- Trigger deployment workflow.
+**The Living Release PR Pattern:**
+1. **AI Agent commits** code with Conventional Commits to `feature/*` or `fix/*` branches.
+2. **Release-Please watches** the git history in real-time.
+3. **On push to `main`:** Release-Please parses commit history and either:
+   - **Creates a new Release PR** with the proposed version bump and auto-generated changelog, OR
+   - **Updates the existing Release PR** with new commits.
+4. **Director merges the Release PR** (using **Squash-merge** to keep history linear).
+5. **Release-Please auto-triggers:**
+   - Version bump in `package.json`
+   - Git tag creation (e.g., `v1.2.3`)
+   - Deployment workflow launch
+   - GitHub release notes publication
 
-**Current State:** Manual versioning. Set up CI/CD workflow per team preference.
+**Setup (One-Time):**
+```yaml
+# .github/workflows/release-please.yml
+name: Release-Please
+on:
+  push:
+    branches: [main]
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          release-type: node
+          path: .
+          token: ${{ secrets.GITHUB_TOKEN }}
+```
 
-### 7.7 Release Tagging & Branches
-- **Git Tags:** Use SemVer tag format: `v{MAJOR}.{MINOR}.{PATCH}` (e.g., `v1.0.0`, `v2.1.3`).
-- **Tag Branch:** Tags should be on `main` branch only (releases are immutable).
-- **Release Workflow:** On tag creation, optionally trigger a dedicated release job (GitHub Actions).
-- **Hotfixes:** Use `hotfix/*` branch pattern (optional), merge back to `main`, create tag.
+**Key Rule:** AI agents MUST NOT manually edit `package.json` version. Release-Please is the SSOT for version management.
+
+### 7.7 Release Tagging & Branches (Automated by Release-Please)
+**Git Tags:** Release-Please automatically creates SemVer tags in format `v{MAJOR}.{MINOR}.{PATCH}` (e.g., `v1.0.0`, `v2.1.3`).
+
+**Branch Strategy:**
+- **Feature Branches:** `feature/*` for new features (results in MINOR bump via `feat:` commits).
+- **Fix Branches:** `fix/*` for bug fixes (results in PATCH bump via `fix:` commits).
+- **Breaking Change Branches:** `feature/*` or `fix/*` with `feat!:` or `fix!:` commits (results in MAJOR bump).
+- **Merge to `main`:** Always use **Squash-merge** to maintain linear history. Release-Please parses the PR's squashed commit message.
+- **No Manual Tags:** Developers MUST NOT create or push tags manually. Release-Please is the SSOT for tagging.
+- **Hotfixes:** Create a `fix/*` branch, commit with `fix:` prefix, merge to `main` via Squash-merge. Release-Please bumps PATCH and auto-tags.
+
+**Release PR Workflow:**
+1. Human/AI completes feature branch work.
+2. Push to `main` via Squash-merge (commits are automatically squashed).
+3. Release-Please detects the commit and updates the "Release PR".
+4. Director reviews the Release PR (changelog, version number).
+5. Director merges the Release PR (this triggers the tag + deployment).
 
 ### 7.8 PWA Installation & Version Pinning
 - **End-User Perspective:** Once installed (Add to Home Screen), the PWA caches the version at install time.
@@ -234,3 +271,130 @@ workbox: {
 - **Zero Firebase Reads:** Version is static; no real-time version checks from Firestore.
 - **Zero Analytics Bloat:** Version is NOT sent to analytics services unless explicitly configured.
 - **Local-Only:** Version comparison happens in Service Worker (client-side, zero-cost).
+
+---
+
+## 🤖 7.11 AI AGENT GIT WORKFLOW & RESPONSIBILITIES
+
+### The Three-Phase Workflow
+**Every AI agent task execution follows this mandatory sequence:**
+
+#### Phase 1: Branch Awareness & Creation
+**Mandate:** AI agents are **STRICTLY FORBIDDEN** from working directly on the `main` branch.
+
+**Action:**
+1. On task initiation, the agent MUST check the current branch.
+2. If on `main`, create a new feature branch immediately:
+   - `feature/{short-descriptive-name}` for new features or non-urgent changes.
+   - `fix/{short-descriptive-name}` for bug fixes and urgent corrections.
+3. Example: `feature/versioning-protocol` or `fix/pwa-cache-invalidation`.
+4. The agent works EXCLUSIVELY on this branch.
+
+#### Phase 2: Conventional Commits (The CI Engine)
+**Mandate:** Commit messages follow **Conventional Commits** specification to power Release-Please versioning.
+
+**Commit Format:**
+```
+<type>[optional scope]: <description>
+
+[optional body]
+[optional footer]
+```
+
+**Types & Version Impact:**
+| Type | Description | Version Bump | Example |
+|------|-------------|--------------|---------|
+| `feat:` | New feature | **MINOR** | `feat: add dark mode toggle` |
+| `fix:` | Bug fix | **PATCH** | `fix: resolve PWA cache race condition` |
+| `feat!:` or `fix!:` | **Breaking change** | **MAJOR** | `feat!: redesign auth flow` |
+| `chore:` | Maintenance (no release) | — | `chore: update dependencies` |
+| `refactor:` | Code refactoring (no release) | — | `refactor: extract utility function` |
+| `docs:` | Documentation only (no release) | — | `docs: update API guidelines` |
+| `style:` | Code style only (no release) | — | `style: fix indentation` |
+
+**Critical Rules:**
+- **Accuracy is paramount:** A mislabeled `chore:` instead of `feat:` prevents Release-Please from incrementing version. A mislabeled `feat:` instead of `fix:` causes incorrect version bumps.
+- **One logical change per commit:** Avoid mixing features and fixes in a single commit. Split into separate commits with appropriate prefixes.
+- **Scope is optional but recommended:** Use scope to clarify context (e.g., `feat(settings): add app version display`).
+- **No hardcoded version edits:** The agent MUST NEVER manually edit `version` in `package.json`. Release-Please handles this exclusively.
+
+#### Phase 3: Human-in-the-Loop Merge & Release
+**Mandate:** The Director (human) owns the final merge and release decision.
+
+**The Human's Workflow:**
+1. **PR Review:** Director reviews the feature branch on GitHub.
+2. **Squash-Merge to `main`:** Director performs **Squash-merge** (not regular merge) to keep history linear.
+   - GitHub squashes all commits into one:
+     - If the branch's commits are all `fix:` → squashed commit is `fix: [aggregated description]`.
+     - If mixed commits, the Director rewrites the squashed commit message to the dominant type.
+3. **Release-Please Reacts:** The bot detects the push to `main` and:
+   - Parses the squashed commit message.
+   - Updates or creates the Release PR with new version and changelog.
+4. **Director Reviews Release PR:** Confirms the version bump and changelog are correct.
+5. **Director Merges Release PR:** This single action triggers:
+   - `package.json` version update.
+   - Git tag creation (e.g., `v1.2.3`).
+   - GitHub release notes publication.
+   - Deployment workflow launch (via GitHub Actions).
+
+### AI Agent Responsibilities Summary
+- ✅ Create and work on feature/fix branches only.
+- ✅ Commit with accurate Conventional Commits.
+- ✅ Push the branch to GitHub.
+- ✅ Provide a clear PR description summarizing changes.
+- ❌ DO NOT merge to `main` (Director only).
+- ❌ DO NOT edit `package.json` version (Release-Please only).
+- ❌ DO NOT create or push Git tags (Release-Please only).
+
+### Common Scenarios
+
+**Scenario A: New Feature (MINOR bump)**
+```bash
+git checkout -b feature/dark-mode-toggle
+git add .
+git commit -m "feat(ui): add dark mode toggle with system preference detection"
+git push origin feature/dark-mode-toggle
+# → Create PR on GitHub
+# → Director reviews & squash-merges
+# → Release-Please bumps v1.2.3 → v1.3.0
+```
+
+**Scenario B: Bug Fix (PATCH bump)**
+```bash
+git checkout -b fix/pwa-cache-race
+git add .
+git commit -m "fix(pwa): resolve service worker cache invalidation race condition"
+git push origin fix/pwa-cache-race
+# → Create PR on GitHub
+# → Director reviews & squash-merges
+# → Release-Please bumps v1.3.0 → v1.3.1
+```
+
+**Scenario C: Multiple Commits (Gets Squashed)**
+```bash
+git checkout -b feature/invitations
+git commit -m "feat(invitations): add invite modal component"
+git commit -m "feat(invitations): implement share logic"
+git commit -m "fix(invitations): handle edge case for duplicate invites"
+git push origin feature/invitations
+# → Director squash-merges (all 3 commits become 1)
+# → Squashed commit message: "feat(invitations): add invite modal, share logic, and edge case fix"
+# → Release-Please bumps MINOR (because first type is feat:)
+```
+
+**Scenario D: Breaking Change (MAJOR bump)**
+```bash
+git checkout -b feature/auth-redesign
+git add .
+git commit -m "feat!: redesign auth flow with federated SSO support
+
+This is a breaking change: legacy token format is no longer supported."
+git push origin feature/auth-redesign
+# → Director reviews & squash-merges
+# → Release-Please bumps v1.3.1 → v2.0.0 (due to ! suffix)
+```
+
+### Release-Please Dashboard
+- **Location:** GitHub "Pull Requests" tab → look for PR titled "chore: release vX.X.X" or similar.
+- **Frequency:** Updated on every push to `main`.
+- **Director Action:** Merge when satisfied with the changelog and version bump.
