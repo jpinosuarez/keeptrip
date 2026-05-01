@@ -1,8 +1,11 @@
-import React, { useRef, useState, useEffect } from 'react';
+/**
+ * Cinematic TripCard (2026 Restyle)
+ * Features full-bleed images, floating glass pills, and 3D parallax on desktop hovering.
+ */
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { motion as Motion, useMotionValue, useTransform, useSpring, AnimatePresence } from 'framer-motion';
 import { Compass, Calendar, MapPin, Trash2, Clock, MoreVertical, Edit2, Share2, Copy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { tripStyles as styles } from './TripCard.styles';
 import {
   FOTO_DEFAULT_URL,
   formatStorytellingDate,
@@ -10,31 +13,8 @@ import {
   calculateTripDays,
 } from '@shared/lib/utils/viajeUtils';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
+import { cn } from '@shared/lib/utils/cn';
 
-const getAuraGridStyle = (count) => {
-  if (count <= 1) {
-    return { gridTemplateColumns: '1fr', gridTemplateRows: '1fr' };
-  }
-
-  if (count === 2) {
-    return { gridTemplateColumns: '1fr', gridTemplateRows: '1fr 1fr' };
-  }
-
-  return { gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr' };
-};
-
-const getAuraFlagStyle = (count, index) => {
-  if (count === 3 && index === 2) {
-    return { gridColumn: '1 / span 2' };
-  }
-
-  return null;
-};
-
-/**
- * Cinematic TripCard (2026 Restyle)
- * Features full-bleed images, floating glass pills, and 3D parallax on desktop hovering.
- */
 const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMobile = false, variant = 'list', priorityImage = false }) => {
   const { t, i18n } = useTranslation(['countries', 'dashboard', 'common']);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -52,22 +32,28 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMenuOpen]);
 
-  const flags =
+  const flags = useMemo(() => 
     (Array.isArray(trip.banderas) && trip.banderas.filter(Boolean).length > 0 && trip.banderas.filter(Boolean)) ||
     (Array.isArray(trip.flags) && trip.flags.filter(Boolean).length > 0 && trip.flags.filter(Boolean)) ||
-    (trip.flag ? [trip.flag] : []);
-  const auraFlags = (flags.length > 0 ? flags : [FOTO_DEFAULT_URL]).slice(0, 4);
-  const auraGridStyle = getAuraGridStyle(auraFlags.length);
+    (trip.flag ? [trip.flag] : []), 
+    [trip.banderas, trip.flags, trip.flag]
+  );
+  
+  const auraFlags = useMemo(() => (flags.length > 0 ? flags : [FOTO_DEFAULT_URL]).slice(0, 4), [flags]);
+  
   const coverUrl = trip.foto || '';
   const isDefaultPhoto = !coverUrl || coverUrl === FOTO_DEFAULT_URL;
 
   const startDate = trip.fechaInicio || trip.startDate || trip.date || null;
   const endDate = trip.fechaFin || trip.endDate || null;
-  const parsedCities = String(trip.ciudades || '')
-    .split(',')
-    .map((city) => city.trim())
-    .filter(Boolean)
-    .map((city) => ({ nombre: city }));
+  const parsedCities = useMemo(() => 
+    String(trip.ciudades || '')
+      .split(',')
+      .map((city) => city.trim())
+      .filter(Boolean)
+      .map((city) => ({ nombre: city })),
+    [trip.ciudades]
+  );
   const paradas = Array.isArray(trip.paradas) && trip.paradas.length > 0 ? trip.paradas : parsedCities;
 
   const datePillText = formatStorytellingDate(startDate, endDate, i18n.language) || '—';
@@ -119,6 +105,8 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
     y.set(0.5);
   };
 
+  const isList = variant === 'list';
+
   return (
     <Motion.div
       data-testid={`trip-card-${trip.id}`}
@@ -127,11 +115,9 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
       tabIndex={0}
       aria-label={cardAriaLabel}
       style={{
-        ...styles.cardBase(isMobile, variant),
-        perspective: 1000,
         rotateX: isMobile ? 0 : rotateX,
         rotateY: isMobile ? 0 : rotateY,
-        willChange: 'transform' // Performance constraint
+        transformStyle: 'preserve-3d',
       }}
       initial={priorityImage ? false : { opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
@@ -140,235 +126,168 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
       whileTap={{ scale: 0.96 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      onClick={onClick}
+      className={cn(
+        "relative cursor-pointer group overflow-hidden rounded-2xl shadow-md border border-black/5 bg-charcoalBlue transition-shadow duration-300",
+        isList ? "aspect-auto min-h-[120px]" : "aspect-[4/5]"
+      )}
     >
-      <div style={styles.bgWrapper}>
+      {/* Background Layer */}
+      <div className="absolute inset-0 z-0 overflow-hidden rounded-[inherit] pointer-events-none">
         <Motion.div 
           style={{
-            ...styles.bgImageHolder,
             x: isMobile ? 0 : bgX,
             y: isMobile ? 0 : bgY
           }} 
+          className="absolute -inset-[10%] w-[120%] h-[120%] bg-mutedTeal will-change-transform"
         >
           {!isDefaultPhoto ? (
             <img 
               src={coverUrl} 
               alt={title || t('tripCoverAlt', { ns: 'dashboard', defaultValue: 'Portada del viaje' })} 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              className="w-full h-full object-cover"
               loading={priorityImage ? "eager" : "lazy"}
-              fetchPriority={priorityImage ? "high" : undefined}
             />
           ) : (
-            <div style={styles.fallbackAuraContainer} aria-hidden="true">
-              <div style={{ ...styles.fallbackAuraTrack, ...auraGridStyle }}>
+            <div className="relative w-full h-full overflow-hidden" aria-hidden="true">
+              <div className={cn(
+                "grid w-full h-full blur-[2px] scale-105 opacity-60",
+                auraFlags.length <= 1 ? "grid-cols-1 grid-rows-1" : 
+                auraFlags.length === 2 ? "grid-cols-1 grid-rows-2" : "grid-cols-2 grid-rows-2"
+              )}>
                 {auraFlags.map((flag, idx) => (
                   <img
                     key={`${flag}-${idx}`}
                     src={flag}
                     alt=""
-                    style={{ ...styles.fallbackAuraFlag, ...getAuraFlagStyle(auraFlags.length, idx) }}
+                    className={cn(
+                      "w-full h-full object-cover",
+                      auraFlags.length === 3 && idx === 2 ? "col-span-2" : ""
+                    )}
                     loading={priorityImage ? "eager" : "lazy"}
                   />
                 ))}
               </div>
-              <div style={styles.fallbackAuraOverlay} />
+              <div className="absolute inset-0 bg-slate-900/50" />
             </div>
           )}
         </Motion.div>
-        <div style={styles.overlay} />
+        <div className="absolute inset-0 z-[1] bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
       </div>
       
-      <div style={styles.topContent}>
-        <div style={styles.flagsRow}>
+      {/* Top Content */}
+      <div className="relative z-[2] p-4 flex justify-between items-start w-full">
+        <div className="flex flex-wrap items-center gap-1.5 row-gap-1.5">
           {flags.length > 0 ? (
             flags.map((flag, idx) => (
-              <img key={idx} src={flag} alt="Bandera" style={styles.flagImg} loading={priorityImage ? "eager" : "lazy"} />
+              <img 
+                key={idx} 
+                src={flag} 
+                alt="Bandera" 
+                className="w-6 h-6 object-cover rounded-full shadow-sm border border-white/20" 
+                loading={priorityImage ? "eager" : "lazy"} 
+              />
             ))
           ) : (
-             <div style={styles.glassPill}>
-                 <Compass size={14} color="white" />
+             <div className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center justify-center text-white">
+                 <Compass size={14} />
              </div>
           )}
+        </div>
           
-          <div ref={menuRef} style={{ position: 'relative' }}>
-            <button
-              className="tap-icon"
-              style={{
-                ...styles.actionBtn,
-                minWidth: '44px',
-                minHeight: '44px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.4)')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.25)')}
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                setIsMenuOpen((prev) => !prev);
-              }}
-              aria-label="Abrir opciones de viaje"
-            >
-              <MoreVertical size={20} color="white" />
-            </button>
+        <div ref={menuRef} className="relative">
+          <button
+            className="pointer-events-auto bg-white/25 backdrop-blur-lg border border-white/30 rounded-full w-11 h-11 flex items-center justify-center text-white shadow-md hover:bg-white/40 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setIsMenuOpen((prev) => !prev);
+            }}
+            aria-label="Abrir opciones de viaje"
+          >
+            <MoreVertical size={20} />
+          </button>
 
-            <AnimatePresence>
-              {isMenuOpen && (
-                <Motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                  transition={{ duration: 0.15 }}
-                  style={{
-                    position: 'absolute',
-                    top: '52px',
-                    right: 0,
-                    width: '180px',
-                    background: 'rgba(255, 255, 255, 0.85)',
-                    backdropFilter: 'blur(12px)',
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.07)',
-                    padding: '8px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                    zIndex: 50,
+          <AnimatePresence>
+            {isMenuOpen && (
+              <Motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                transition={{ duration: 0.15 }}
+                className="absolute top-[52px] right-0 w-[180px] bg-white/85 backdrop-blur-xl rounded-xl shadow-lg p-2 flex flex-col gap-1 z-50"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setIsMenuOpen(false);
+                    if (onEdit) onEdit(trip.id);
                   }}
-                  onClick={(e) => e.stopPropagation()} // Prevent bubble up to Immersive Viewer
+                  className="flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
                 >
+                  <Edit2 size={16} /> <span>{t('card.edit', { ns: 'dashboard', defaultValue: 'Editar viaje' })}</span>
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setIsMenuOpen(false);
+                    if (onShare) onShare(trip.id);
+                  }}
+                  className="flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
+                >
+                  <Share2 size={16} /> <span>{t('card.share', { ns: 'dashboard', defaultValue: 'Compartir ruta' })}</span>
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setIsMenuOpen(false);
+                    if (onDuplicate) onDuplicate(trip);
+                  }}
+                  className="flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
+                >
+                  <Copy size={16} /> <span>{t('card.duplicate', { ns: 'dashboard', defaultValue: 'Duplicar' })}</span>
+                </button>
+
+                <div className="h-px bg-black/10 my-1" />
+
+                {onDelete && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
                       setIsMenuOpen(false);
-                      if (onEdit) onEdit(trip.id);
-                      if (onClick) onClick(); // Fallback temporal si no se provee onEdit
+                      onDelete(trip.id);
                     }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      width: '100%',
-                      padding: '12px',
-                      border: 'none',
-                      background: 'transparent',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                      color: '#1E293B',
-                      textAlign: 'left',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    className="flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-danger text-left hover:bg-danger/10 transition-colors font-heading"
                   >
-                    <Edit2 size={16} /> <span>✏️ Editar viaje</span>
+                    <Trash2 size={16} /> <span>{t('card.delete', { ns: 'dashboard', defaultValue: 'Eliminar' })}</span>
                   </button>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      setIsMenuOpen(false);
-                      if (onShare) onShare(trip.id);
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      width: '100%',
-                      padding: '12px',
-                      border: 'none',
-                      background: 'transparent',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                      color: '#1E293B',
-                      textAlign: 'left',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  >
-                    <Share2 size={16} /> <span>🔗 Compartir ruta</span>
-                  </button>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      setIsMenuOpen(false);
-                      if (onDuplicate) onDuplicate(trip);
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      width: '100%',
-                      padding: '12px',
-                      border: 'none',
-                      background: 'transparent',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                      color: '#1E293B',
-                      textAlign: 'left',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  >
-                    <Copy size={16} /> <span>📋 Duplicar</span>
-                  </button>
-
-                  <div style={{ height: '1px', background: 'rgba(0,0,0,0.1)', margin: '4px 0' }} />
-
-                  {onDelete && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        setIsMenuOpen(false);
-                        onDelete(trip.id);
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        width: '100%',
-                        padding: '12px',
-                        border: 'none',
-                        background: 'transparent',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        color: '#EF4444',
-                        textAlign: 'left',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.1)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    >
-                      <Trash2 size={16} /> <span>🗑️ Eliminar</span>
-                    </button>
-                  )}
-                </Motion.div>
-              )}
-            </AnimatePresence>
+                )}
+              </Motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
-    </div>
 
-      <div style={styles.bottomContent}>
-        <h4 style={styles.title}>{title}</h4>
-        <div style={styles.metaRow}>
-          <span style={styles.glassPill}>
+      {/* Bottom Content */}
+      <div className="relative z-[2] p-4 pt-0 w-full flex flex-col gap-2 mt-auto pointer-events-none">
+        <h4 className="m-0 text-xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] truncate leading-[1.1] tracking-tighter font-heading">
+          {title}
+        </h4>
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
+          <span className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading">
             <Calendar size={14} /> {datePillText}
           </span>
-          <span style={styles.glassPill}>
+          <span className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading">
             <MapPin size={14} /> {citiesPillText}
           </span>
-          <span style={styles.glassPill}>
+          <span className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading">
             <Clock size={14} /> {durationPillText}
           </span>
         </div>

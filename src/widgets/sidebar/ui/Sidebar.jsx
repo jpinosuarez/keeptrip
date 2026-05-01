@@ -22,9 +22,9 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUI } from '@app/providers/UIContext';
-import { COLORS, SHADOWS, RADIUS, ENABLE_GAMIFICATION } from '@shared/config';
+import { ENABLE_GAMIFICATION } from '@shared/config';
 import { useTranslation } from 'react-i18next';
-import './Sidebar.css';
+import { cn } from '@shared/lib/utils/cn';
 
 const URL_MAP = {
   home:     '/dashboard',
@@ -42,8 +42,6 @@ const MENU_ITEMS = (t) => [
   { id: 'config',   icon: Settings,   label: t('adjust') },
 ];
 
-// Removed useInjectNavStyles to prevent layout shift. CSS is loaded natively.
-
 // ─────────────────────────────────────────────
 // Glassmorphic Tooltip (Refinement #1)
 // ─────────────────────────────────────────────
@@ -55,40 +53,16 @@ const GlassTooltip = ({ label, visible }) => (
         animate={{ opacity: 1, scale: 1, x: 0 }}
         exit={{ opacity: 0, scale: 0.88, x: -6 }}
         transition={{ type: 'spring', damping: 22, stiffness: 280 }}
-        style={{
-          position: 'absolute',
-          left: 'calc(100% + 14px)',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          background: 'rgba(22, 28, 36, 0.88)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          boxShadow: SHADOWS.float || '0 8px 32px rgba(0,0,0,0.25)',
-          borderRadius: RADIUS.md,
-          padding: '6px 12px',
-          color: '#fff',
-          fontSize: '0.82rem',
-          fontWeight: '700',
-          whiteSpace: 'nowrap',
-          pointerEvents: 'none',
-          zIndex: 200,
-          letterSpacing: '0.2px',
-        }}
+        className={cn(
+          "absolute left-[calc(100%+14px)] top-1/2 -translate-y-1/2",
+          "bg-slate-900/90 backdrop-blur-lg border border-white/10",
+          "shadow-float rounded-md px-3 py-1.5 text-white text-[0.82rem]",
+          "font-bold font-heading whitespace-nowrap pointer-events-none z-modal tracking-wider"
+        )}
       >
         {label}
         {/* Arrow pointing left */}
-        <span style={{
-          position: 'absolute',
-          left: '-5px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          width: 0,
-          height: 0,
-          borderTop: '5px solid transparent',
-          borderBottom: '5px solid transparent',
-          borderRight: '5px solid rgba(22, 28, 36, 0.88)',
-        }} />
+        <span className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-0 h-0 border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent border-r-[5px] border-r-slate-900/90" />
       </Motion.div>
     )}
   </AnimatePresence>
@@ -111,35 +85,21 @@ const RailButton = ({ item, active, onClick }) => {
       whileTap={{ scale: 0.88 }}
       aria-current={active ? 'page' : undefined}
       title={item.label}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '48px',
-        height: '48px',
-        borderRadius: RADIUS.xl,
-        border: 'none',
-        background: active
-          ? 'rgba(255, 107, 53, 0.08)'
-          : hovered
-          ? 'rgba(0, 0, 0, 0.04)'
-          : 'transparent',
-        color: active ? COLORS.atomicTangerine : COLORS.textSecondary,
-        cursor: 'pointer',
-        position: 'relative',
-        transition: 'background 0.2s, color 0.2s, box-shadow 0.2s',
-        boxShadow: active ? `inset 3px 0 0 ${COLORS.atomicTangerine}` : 'none',
-      }}
+      className={cn(
+        "flex items-center justify-center w-12 h-12 rounded-xl border-none relative transition-all duration-200",
+        active ? "bg-atomicTangerine/10 text-atomicTangerine shadow-[inset_3px_0_0_theme(colors.atomicTangerine)]" : "text-text-secondary cursor-pointer",
+        !active && hovered ? "bg-black/5" : "bg-transparent"
+      )}
     >
       <Icon
         size={22}
         strokeWidth={active ? 2.5 : 1.8}
         stroke="currentColor"
         fill="none"
-        style={{
-          filter: active ? `drop-shadow(0 0 6px ${COLORS.atomicTangerine}30)` : 'none',
-          transition: 'filter 0.2s',
-        }}
+        className={cn(
+          "transition-all duration-200",
+          active ? "drop-shadow-[0_0_6px_rgba(255,107,53,0.3)]" : ""
+        )}
       />
 
       {/* Glassmorphic tooltip */}
@@ -171,34 +131,27 @@ const Sidebar = () => {
   // DESKTOP: Fluid Rail
   // ─────────────────────────────────────────────
   const FluidRail = (
-    <aside className="desktop-fluid-rail" aria-label={t('navLabel')}>
+    <aside 
+      className={cn(
+        "fixed top-0 left-0 h-[100dvh] w-20 bg-transparent flex-col items-center",
+        "py-[max(24px,env(safe-area-inset-top,0px))] border-r border-black/5 z-dropdown hidden md:flex"
+      )}
+      aria-label={t('navLabel')}
+    >
       {/* Disc Logomark (Refinement #3) — acts as Home shortcut */}
       <Motion.button
         type="button"
         onClick={() => navigate('/dashboard')}
-        className="rail-logo"
+        className="bg-none border-none cursor-pointer p-0 flex items-center justify-center w-12 h-12 rounded-xl mb-8"
         whileHover={{ rotate: [0, -12, 12, 0], transition: { duration: 0.45 } }}
         whileTap={{ scale: 0.90 }}
         aria-label="Keeptrip Home"
         title="Keeptrip"
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          padding: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '48px',
-          height: '48px',
-          borderRadius: RADIUS.xl,
-          marginBottom: '8px',
-        }}
       >
-        <Disc size={32} color={COLORS.atomicTangerine} />
+        <Disc size={32} className="text-atomicTangerine" />
       </Motion.button>
 
-      <nav className="rail-nav" role="navigation">
+      <nav className="flex flex-col gap-4 flex-1 w-full items-center" role="navigation">
         {menuItems.map((item) => (
           <RailButton
             key={item.id}
@@ -209,18 +162,14 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      <div className="rail-footer">
+      <div className="flex flex-col items-center pb-6 w-full">
         <Motion.button
           type="button"
           onClick={logout}
-          className="rail-btn"
+          className="flex items-center justify-center w-12 h-12 rounded-xl border-none bg-transparent text-text-secondary opacity-65 cursor-pointer hover:bg-black/5 hover:text-charcoalBlue transition-all duration-200"
           whileTap={{ scale: 0.88 }}
           title={t('exit')}
           aria-label={t('exit')}
-          style={{
-            color: COLORS.textSecondary,
-            opacity: 0.65,
-          }}
         >
           <LogOut size={18} strokeWidth={1.8} />
         </Motion.button>
@@ -236,7 +185,11 @@ const Sidebar = () => {
 
   const TabBar = (
     <nav
-      className="mobile-tab-bar"
+      className={cn(
+        "fixed bottom-[max(8px,env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2",
+        "w-[min(92vw,400px)] h-16 bg-white/92 backdrop-blur-xl border border-white/55",
+        "rounded-full shadow-lg z-dropdown px-3 flex md:hidden items-center justify-evenly"
+      )}
       role="navigation"
       aria-label={t('navLabel')}
     >
@@ -249,10 +202,12 @@ const Sidebar = () => {
             key={item.id}
             type="button"
             onClick={() => handleSelect(item.id)}
-            className={`mobile-tab-btn${active ? ' active' : ''}`}
+            className={cn(
+              "flex flex-col items-center justify-center bg-transparent border-none w-[52px] h-[52px] flex-none cursor-pointer transition-colors duration-200 gap-px p-0",
+              active ? "text-atomicTangerine" : "text-slate-700"
+            )}
             whileTap={{ scale: 0.85 }}
             aria-current={active ? 'page' : undefined}
-            style={{ position: 'relative' }}
           >
             <Motion.div
               animate={{ y: active ? -1 : 0 }}
@@ -264,10 +219,10 @@ const Sidebar = () => {
                 fill="none"
               />
             </Motion.div>
-            <span className="mobile-tab-label" style={{
-              color: active ? COLORS.charcoalBlue : COLORS.textSecondary,
-              fontWeight: active ? 700 : 500,
-            }}>
+            <span className={cn(
+              "text-[10px] leading-none mt-0.5 tracking-[0.1px] whitespace-nowrap transition-all duration-200 font-heading",
+              active ? "text-charcoalBlue font-bold" : "text-text-secondary font-medium"
+            )}>
               {item.label}
             </span>
           </Motion.button>
@@ -281,21 +236,12 @@ const Sidebar = () => {
         disabled={isReadOnlyMode}
         whileHover={{ scale: 1.06 }}
         whileTap={{ scale: 0.88 }}
-        style={{
-          background: `linear-gradient(135deg, ${COLORS.atomicTangerine}, #ff9a4d)`,
-          border: 'none',
-          borderRadius: '50%',
-          width: '44px',
-          height: '44px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#fff',
-          boxShadow: `0 4px 20px ${COLORS.atomicTangerine}70`,
-          flexShrink: 0,
-          opacity: isReadOnlyMode ? 0.55 : 1,
-          cursor: isReadOnlyMode ? 'not-allowed' : 'pointer',
-        }}
+        className={cn(
+          "bg-gradient-to-br from-atomicTangerine to-orange-400 border-none rounded-full",
+          "w-11 h-11 flex items-center justify-center text-white shrink-0",
+          "shadow-[0_4px_20px_rgba(255,107,53,0.7)]",
+          isReadOnlyMode ? "opacity-55 cursor-not-allowed" : "cursor-pointer"
+        )}
         aria-label={t('addTrip')}
       >
         <Plus size={20} strokeWidth={2.5} />
