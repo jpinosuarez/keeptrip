@@ -15,6 +15,7 @@ import {
   useScroll,
   useTransform,
   useSpring,
+  AnimatePresence,
 } from 'framer-motion';
 import { useAuth } from '@app/providers/AuthContext';
 import { useSearch, useUI } from '@app/providers/UIContext';
