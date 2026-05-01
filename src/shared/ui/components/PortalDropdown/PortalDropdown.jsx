@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
-import { styles } from './PortalDropdown.styles';
+import { cn } from '@shared/lib/utils/cn';
 
 const PortalDropdown = ({ isOpen, onClose, triggerRef, children, minWidth = 160 }) => {
   const [coords, setCoords] = useState({ top: -9999, left: -9999 });
@@ -96,8 +96,11 @@ const PortalDropdown = ({ isOpen, onClose, triggerRef, children, minWidth = 160 
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: origin.includes('top') ? -10 : 10 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          className={cn(
+            "absolute bg-white/95 backdrop-blur-2xl rounded-xl shadow-2xl p-2",
+            "z-dropdown flex flex-col gap-1 border border-black/5"
+          )}
           style={{
-            ...styles.menuContainer,
             top: `${coords.top}px`,
             left: `${coords.left}px`,
             transformOrigin: origin,
