@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { WifiOff, Wifi } from 'lucide-react';
-import { COLORS, RADIUS, SHADOWS, GLASS } from '@shared/config';
+import { cn } from '@shared/lib/utils/cn';
 
 /**
  * Global banner that appears when the browser loses connectivity.
@@ -63,10 +63,15 @@ export default function OfflineBanner() {
     <div
       role="status"
       aria-live="polite"
-      style={{
-        ...styles.banner,
-        ...(offline ? styles.offlineColors : styles.onlineColors),
-      }}
+      className={cn(
+        "fixed top-3 left-1/2 -translate-x-1/2",
+        "flex items-center gap-2 p-2 px-4 rounded-full",
+        "text-[0.82rem] font-semibold z-toast shadow-float",
+        "backdrop-blur-md transition-all duration-300 pointer-events-none border",
+        offline 
+          ? "bg-danger/10 text-danger border-danger/25" 
+          : "bg-success/10 text-success border-success/25"
+      )}
     >
       {offline ? (
         <>
@@ -82,38 +87,3 @@ export default function OfflineBanner() {
     </div>
   );
 }
-
-const styles = {
-  banner: {
-    position: 'fixed',
-    top: 12,
-    left: '50%',
-    transform: 'translateX(-50%)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '8px 16px',
-    borderRadius: RADIUS.full,
-    fontSize: '0.82rem',
-    fontWeight: 600,
-    zIndex: 700,
-    boxShadow: SHADOWS.float,
-    ...GLASS.medium,
-    transition: 'all 0.3s ease',
-    pointerEvents: 'none',
-  },
-  offlineColors: {
-    background: 'rgba(239, 68, 68, 0.12)',
-    color: COLORS.danger,
-    border: `1px solid rgba(239, 68, 68, 0.25)`,
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-  },
-  onlineColors: {
-    background: 'rgba(16, 185, 129, 0.12)',
-    color: COLORS.success,
-    border: `1px solid rgba(16, 185, 129, 0.25)`,
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-  },
-};
