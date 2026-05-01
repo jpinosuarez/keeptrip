@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
-import { COLORS, SHADOWS, RADIUS, GLASS } from '@shared/config';
+import { cn } from '@shared/lib/utils/cn';
 import BottomSheetHeader from './BottomSheetHeader.jsx';
 import BottomSheetContent from './BottomSheetContent.jsx';
 import useBottomSheetGestures from './useBottomSheetGestures.js';
@@ -8,13 +8,6 @@ import useBottomSheetGestures from './useBottomSheetGestures.js';
 /**
  * BottomSheet
  * Slide-up modal panel with swipe-to-dismiss and haptic feedback.
- *
- * Props:
- *   isOpen       {boolean}   - Controls visibility.
- *   onClose      {() => void} - Called when the sheet is dismissed.
- *   children     {ReactNode} - Content rendered inside the sheet.
- *   zIndex       {number}    - Base z-index (default 12000).
- *   disableClose {boolean}   - Prevents dismissal (e.g. during loading).
  */
 const OVERLAY_VARIANTS = {
   hidden: { opacity: 0 },
@@ -39,7 +32,6 @@ const BottomSheet = ({
   isOpen,
   onClose,
   children,
-  zIndex = 12000,
   disableClose = false,
   ariaLabel = 'Bottom sheet',
 }) => {
@@ -89,13 +81,10 @@ const BottomSheet = ({
             exit="hidden"
             transition={{ duration: 0.2, ease: SHELL_EASE_OUT }}
             onClick={handleClose}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex,
-              ...GLASS.overlay,
-              cursor: disableClose ? 'default' : 'pointer',
-            }}
+            className={cn(
+              "fixed inset-0 z-modal bg-overlay backdrop-blur-sm",
+              disableClose ? "cursor-default" : "cursor-pointer"
+            )}
           />
 
           {/* Sheet panel */}
@@ -105,7 +94,11 @@ const BottomSheet = ({
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="app-shell-focus"
+            className={cn(
+              "app-shell-focus fixed bottom-0 left-0 right-0 z-modal",
+              "bg-surface rounded-t-xl flex flex-col will-change-transform max-h-[92dvh]",
+              isDragging ? "shadow-2xl" : "shadow-float"
+            )}
             ref={sheetRef}
             role="dialog"
             aria-modal="true"
@@ -116,22 +109,6 @@ const BottomSheet = ({
             onDragEnd={(e, info) => {
               setIsDragging(false);
               dragProps.onDragEnd(e, info);
-            }}
-            style={{
-              position: 'fixed',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              zIndex: zIndex + 1,
-              backgroundColor: COLORS.surface,
-              borderRadius: `${RADIUS.xl} ${RADIUS.xl} 0 0`,
-              boxShadow: isDragging
-                ? SHADOWS.float.replace('0.1', '0.18')
-                : SHADOWS.float,
-              maxHeight: '92dvh',
-              display: 'flex',
-              flexDirection: 'column',
-              willChange: 'transform',
             }}
           >
             <BottomSheetHeader isDragging={isDragging} />

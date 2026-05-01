@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import * as d3geo from 'd3-geo';
 import * as topojson from 'topojson-client';
+import { cn } from '@shared/lib/utils/cn';
 
 // Real-world TopoJSON from jsDelivr CDN (Natural Earth 110m — CC0 public domain)
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
@@ -26,6 +28,7 @@ const ROUTES = [
 ];
 
 export const WorldMapSVG = ({ color = '#FF6B35' }) => {
+  const { t } = useTranslation();
   const svgRef = useRef(null);
   const containerRef = useRef(null);
   const [dims, setDims] = useState({ w: 600, h: 280 });
@@ -87,17 +90,17 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
   }, [geoData]);
 
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+    <div ref={containerRef} className="w-full h-full relative overflow-hidden">
       <svg
         ref={svgRef}
         width={w}
         height={h}
         viewBox={`0 0 ${w} ${h}`}
-        style={{ display: 'block' }}
+        className="block"
         aria-label="Interactive world map with visited destinations"
       >
         {/* Ocean background */}
-        <rect width={w} height={h} fill="#EFF6FF" rx="12" />
+        <rect width={w} height={h} fill="#EFF6FF" className="rounded-xl" rx="12" />
 
         {geoData && (() => {
           const countries = topojson.feature(geoData, geoData.objects.countries);
@@ -116,9 +119,11 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
                     fillOpacity={isVisited ? (isHovered ? 0.8 : 0.5) : 0.75}
                     stroke="#fff"
                     strokeWidth={0.4}
+                    className={cn(
+                      "transition-all duration-300",
+                      isVisited ? "cursor-pointer" : "cursor-default"
+                    )}
                     style={{
-                      cursor: isVisited ? 'pointer' : 'default',
-                      transition: 'fill-opacity 0.3s ease',
                       filter: isVisited && isHovered ? `drop-shadow(0 0 4px ${color}40)` : 'none'
                     }}
                     onMouseEnter={() => isVisited && setHoveredCountry(id)}
@@ -158,7 +163,7 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
                       key={pin.name}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.98 }}
-                      style={{ cursor: 'pointer', pointerEvents: 'auto' }}
+                      className="cursor-pointer pointer-events-auto"
                     >
                       {/* Invisible touch target (44x44) */}
                       <circle cx={px} cy={py} r={22} fill="transparent" />
@@ -177,7 +182,7 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
                       />
 
                       {/* Lens Base (Shadow) */}
-                      <circle cx={px} cy={py} r={6} fill="white" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }} />
+                      <circle cx={px} cy={py} r={6} fill="white" className="drop-shadow-sm" />
 
                       {/* Pin dot */}
                       <Motion.circle
@@ -194,31 +199,17 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
                       />
 
                       {/* Glassmorphic Label Pill */}
-                      <foreignObject x={px - 35} y={py - 32} width={70} height={20} style={{ pointerEvents: 'none' }}>
+                      <foreignObject x={px - 35} y={py - 32} width={70} height={20} className="pointer-events-none">
                         <Motion.div
                           initial={{ opacity: 0, y: 5 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.8 + index * 0.18 }}
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            background: 'rgba(255, 255, 255, 0.7)',
-                            backdropFilter: 'blur(8px)',
-                            border: '1px solid rgba(255, 255, 255, 0.4)',
-                            borderRadius: '9999px',
-                            height: '18px',
-                            boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
-                          }}
+                          className={cn(
+                            "flex justify-center items-center bg-white/70 backdrop-blur-md",
+                            "border border-white/40 rounded-full h-[18px] shadow-sm"
+                          )}
                         >
-                          <span
-                            style={{
-                              fontSize: '8px',
-                              fontWeight: '800',
-                              color: '#1E2D3D',
-                              fontFamily: "'Plus Jakarta Sans', sans-serif"
-                            }}
-                          >
+                          <span className="text-[8px] font-extrabold text-slate-800 font-jakarta">
                             {pin.name.toUpperCase()}
                           </span>
                         </Motion.div>
@@ -253,32 +244,16 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              style={{
-                position: 'absolute',
-                bottom: '16px',
-                left: '16px',
-                background: 'rgba(255,255,255,0.85)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255,255,255,0.5)',
-                borderRadius: '16px',
-                padding: '12px 20px',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
-                zIndex: 10,
-                pointerEvents: 'none',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '2px'
-              }}
+              className={cn(
+                "absolute bottom-4 left-4 bg-white/85 backdrop-blur-xl",
+                "border border-white/50 rounded-2xl p-3 px-5 shadow-lg z-10",
+                "pointer-events-none flex flex-col gap-0.5"
+              )}
             >
-              <span style={{ fontSize: '10px', fontWeight: '600', color, letterSpacing: '1px' }}>VISITED DESTINATION</span>
-              <span
-                style={{
-                  fontSize: '18px',
-                  fontWeight: '800',
-                  color: '#1E2D3D',
-                  fontFamily: "'Plus Jakarta Sans', sans-serif"
-                }}
-              >
+              <span className="text-[10px] font-semibold tracking-widest uppercase" style={{ color }}>
+                {t('common.visitedDestination', 'Visited Destination')}
+              </span>
+              <span className="text-[18px] font-extrabold text-slate-800 font-jakarta">
                 {countryName}
               </span>
             </Motion.div>
@@ -289,4 +264,4 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
   );
 };
 
-export default WorldMapSVG;
+export default WorldMapSVG;

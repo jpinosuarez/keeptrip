@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Upload, X, Star, LoaderCircle } from 'lucide-react';
-import { COLORS, RADIUS, SHADOWS, TRANSITIONS } from '@shared/config';
+import { cn } from '@shared/lib/utils/cn';
 import { useToast } from '@app/providers/ToastContext';
 import { MAX_FILE_SIZE } from '@shared/lib/utils/imageUtils';
 
@@ -12,7 +12,6 @@ export function GalleryUploader({
   portadaIndex = 0,
   onPortadaChange,
   disabled = false,
-  isMobile = false,
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const [previews, setPreviews] = useState([]);
@@ -140,10 +139,14 @@ export function GalleryUploader({
   };
 
   return (
-    <div style={styles.container}>
+    <div className="w-full">
       {files.length < maxFiles && (
         <div
-          style={styles.dropZone(isDragging, disabled)}
+          className={cn(
+            "border-2 border-dashed rounded-md p-10 px-5 text-center transition-all duration-200",
+            isDragging ? "border-atomicTangerine bg-atomicTangerine/10" : "border-border bg-background",
+            disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+          )}
           onDrop={handleDrop}
           onDragOver={(e) => {
             e.preventDefault();
@@ -152,9 +155,11 @@ export function GalleryUploader({
           onDragLeave={() => setIsDragging(false)}
           onClick={() => !disabled && fileInputRef.current?.click()}
         >
-          <Upload size={32} color={COLORS.textSecondary} />
-          <p style={styles.dropText}>{isDragging ? t('gallery.dropHere') : t('gallery.dragOrClick')}</p>
-          <p style={styles.dropSubtext}>
+          <Upload size={32} className="text-text-secondary mx-auto" />
+          <p className="text-base font-semibold text-text-primary mt-3 mb-1">
+            {isDragging ? t('gallery.dropHere') : t('gallery.dragOrClick')}
+          </p>
+          <p className="text-[13px] text-text-secondary m-0">
             {t('gallery.specs', { max: maxFiles, sizeMB: Math.round(MAX_FILE_SIZE / 1024 / 1024) })}
           </p>
           <input
@@ -162,7 +167,7 @@ export function GalleryUploader({
             type="file"
             accept="image/jpeg,image/jpg,image/png"
             multiple={maxFiles > 1}
-            style={{ display: 'none' }}
+            className="hidden"
             onChange={(e) => {
               applyFiles(e.target.files);
               e.target.value = '';
@@ -173,34 +178,42 @@ export function GalleryUploader({
       )}
 
       {files.length > 0 && (
-        <div style={styles.previewGrid}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3 mt-4">
           {files.map((file, index) => {
             const previewUrl = getPreviewUrl(file);
             const isPortada = index === portadaIndex;
 
             return (
-              <div key={`${file.name}-${index}`} style={styles.previewCard(isPortada)}>
-                <div style={styles.previewImage}>
+              <div
+                key={`${file.name}-${index}`}
+                className={cn(
+                  "relative border-2 rounded-sm overflow-hidden bg-surface transition-all duration-150",
+                  isPortada ? "border-atomicTangerine shadow-md" : "border-border shadow-sm"
+                )}
+              >
+                <div className="relative w-full h-[140px] overflow-hidden bg-background">
                   {previewUrl ? (
-                    <img src={previewUrl} alt={file.name} style={styles.img} />
+                    <img src={previewUrl} alt={file.name} className="w-full h-full object-cover" />
                   ) : (
-                    <div style={styles.loadingPlaceholder}>
-                      <LoaderCircle size={22} color={COLORS.atomicTangerine} className="spin" />
-                      <span style={styles.optimizingLabel}>{t('gallery.optimizing')}</span>
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 bg-background">
+                      <LoaderCircle size={22} className="text-atomicTangerine animate-spin" />
+                      <span className="text-[10px] font-semibold text-text-secondary tracking-wider">
+                        {t('gallery.optimizing')}
+                      </span>
                     </div>
                   )}
 
                   {isPortada && (
-                    <div style={styles.portadaBadge}>
+                    <div className="absolute top-2 left-2 bg-atomicTangerine text-white px-2 py-1 rounded-full flex items-center gap-1 text-[11px] font-bold shadow-sm">
                       <Star size={14} fill="white" color="white" />
-                      <span style={styles.portadaText}>{t('labels.portada')}</span>
+                      <span className="uppercase tracking-wider">{t('labels.portada')}</span>
                     </div>
                   )}
 
-                  <div style={styles.overlay(isMobile)}>
+                  <div className="absolute top-0 right-0 p-2 flex gap-1 opacity-100 transition-all duration-150">
                     {!isPortada && (
                       <button
-                        style={styles.actionBtn}
+                        className="w-[30px] h-[30px] border-none rounded-full bg-black/70 text-surface flex items-center justify-center cursor-pointer backdrop-blur-sm"
                         onClick={() => onPortadaChange?.(index)}
                         title={t('gallery.setCover')}
                         aria-label={t('gallery.setCover')}
@@ -211,7 +224,7 @@ export function GalleryUploader({
                       </button>
                     )}
                     <button
-                      style={styles.actionBtn}
+                      className="w-[30px] h-[30px] border-none rounded-full bg-black/70 text-surface flex items-center justify-center cursor-pointer backdrop-blur-sm"
                       onClick={() => handleRemoveFile(index)}
                       title={t('gallery.deletePhoto')}
                       aria-label={t('gallery.deletePhoto')}
@@ -223,9 +236,9 @@ export function GalleryUploader({
                   </div>
                 </div>
 
-                <div style={styles.fileInfo}>
-                  <p style={styles.fileName}>{file.name}</p>
-                  <p style={styles.fileSize}>{formatFileSize(file.size)}</p>
+                <div className="p-2">
+                  <p className="text-[12px] font-medium text-text-primary m-0 truncate">{file.name}</p>
+                  <p className="text-[11px] text-text-secondary mt-0.5 m-0">{formatFileSize(file.size)}</p>
                 </div>
               </div>
             );
@@ -234,14 +247,14 @@ export function GalleryUploader({
       )}
 
       {files.length > 0 && (
-        <div style={styles.footer}>
+        <div className="mt-3 text-center">
           {optimizing > 0 && (
-            <p style={styles.optimizingBanner}>
-              <LoaderCircle size={14} color={COLORS.atomicTangerine} className="spin" />
+            <p className="flex items-center justify-center gap-1.5 text-[12px] text-text-secondary mb-2 m-0">
+              <LoaderCircle size={14} className="text-atomicTangerine animate-spin" />
               {t('gallery.optimizingCount', { count: optimizing })}
             </p>
           )}
-          <p style={styles.counter}>
+          <p className="text-[13px] font-semibold text-text-secondary m-0">
             {files.length} / {maxFiles} {t('gallery.photosSelected')}
           </p>
         </div>
@@ -249,151 +262,3 @@ export function GalleryUploader({
     </div>
   );
 }
-
-const styles = {
-  container: {
-    width: '100%',
-  },
-  dropZone: (isDragging, disabled) => ({
-    border: `2px dashed ${isDragging ? COLORS.atomicTangerine : COLORS.border}`,
-    borderRadius: RADIUS.md,
-    padding: '40px 20px',
-    textAlign: 'center',
-    backgroundColor: isDragging ? `${COLORS.atomicTangerine}10` : COLORS.background,
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    transition: TRANSITIONS.normal,
-    opacity: disabled ? 0.5 : 1,
-  }),
-  dropText: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    margin: '12px 0 4px',
-  },
-  dropSubtext: {
-    fontSize: '13px',
-    color: COLORS.textSecondary,
-    margin: 0,
-  },
-  previewGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-    gap: '12px',
-    marginTop: '16px',
-  },
-  previewCard: (isPortada) => ({
-    position: 'relative',
-    border: `2px solid ${isPortada ? COLORS.atomicTangerine : COLORS.border}`,
-    borderRadius: RADIUS.sm,
-    overflow: 'hidden',
-    backgroundColor: COLORS.surface,
-    boxShadow: isPortada ? SHADOWS.md : SHADOWS.sm,
-    transition: TRANSITIONS.fast,
-  }),
-  previewImage: {
-    position: 'relative',
-    width: '100%',
-    height: '140px',
-    overflow: 'hidden',
-    backgroundColor: COLORS.background,
-  },
-  img: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-  },
-  loadingPlaceholder: {
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: COLORS.background,
-  },
-  optimizingLabel: {
-    fontSize: '10px',
-    fontWeight: 600,
-    color: COLORS.textSecondary,
-    letterSpacing: '0.3px',
-  },
-  overlay: () => ({
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    padding: '8px',
-    display: 'flex',
-    gap: '4px',
-    opacity: 1,
-    transition: TRANSITIONS.fast,
-  }),
-  actionBtn: {
-    width: '30px',
-    height: '30px',
-    border: 'none',
-    borderRadius: RADIUS.full,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    color: COLORS.surface,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    backdropFilter: 'blur(4px)',
-  },
-  portadaBadge: {
-    position: 'absolute',
-    top: '8px',
-    left: '8px',
-    backgroundColor: COLORS.atomicTangerine,
-    color: 'white',
-    padding: '4px 8px',
-    borderRadius: RADIUS.full,
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
-    fontSize: '11px',
-    fontWeight: '700',
-    boxShadow: SHADOWS.sm,
-  },
-  portadaText: {
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  },
-  fileInfo: {
-    padding: '8px',
-  },
-  fileName: {
-    fontSize: '12px',
-    fontWeight: '500',
-    color: COLORS.textPrimary,
-    margin: 0,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  fileSize: {
-    fontSize: '11px',
-    color: COLORS.textSecondary,
-    margin: '2px 0 0',
-  },
-  footer: {
-    marginTop: '12px',
-    textAlign: 'center',
-  },
-  counter: {
-    fontSize: '13px',
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-    margin: 0,
-  },
-  optimizingBanner: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '6px',
-    fontSize: '12px',
-    color: COLORS.textSecondary,
-    margin: '0 0 8px',
-  },
-};

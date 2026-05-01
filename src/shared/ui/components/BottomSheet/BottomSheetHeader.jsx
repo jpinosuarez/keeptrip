@@ -1,5 +1,5 @@
 import React from 'react';
-import { COLORS } from '@shared/config';
+import { cn } from '@shared/lib/utils/cn';
 
 /**
  * BottomSheetHeader
@@ -9,25 +9,16 @@ import { COLORS } from '@shared/config';
 const BottomSheetHeader = ({ isDragging = false }) => (
   <div
     aria-hidden="true"
-    style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '44px', // Touch target
-      padding: '16px 0 8px',
-      cursor: isDragging ? 'grabbing' : 'grab',
-      userSelect: 'none',
-      touchAction: 'none',
-    }}
+    className={cn(
+      "flex justify-center items-center min-h-[44px] pt-4 pb-2 select-none touch-none",
+      isDragging ? "cursor-grabbing" : "cursor-grab"
+    )}
   >
     <div
-      style={{
-        width: '40px',
-        height: '5px',
-        borderRadius: '3px',
-        background: isDragging ? COLORS.atomicTangerine : COLORS.border,
-        transition: 'background 0.2s ease',
-      }}
+      className={cn(
+        "w-10 h-1.25 rounded-full transition-colors duration-200",
+        isDragging ? "bg-atomicTangerine" : "bg-border"
+      )}
     />
   </div>
 );
