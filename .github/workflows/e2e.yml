@@ -36,4 +36,4 @@ jobs:
           VITE_E2E_ENABLE_GAMIFICATION: 'false'
         run: |
           firebase emulators:exec --only auth,firestore,storage --project keeptrip-app-b06b3 -- \
-            bash -c "npm run test:rules && npx playwright test --reporter=list"
+            bash -c "npx vitest run src/__tests__/firestore.rules.test.js && npx playwright test --reporter=list"
