@@ -1,8 +1,12 @@
+@import "tailwindcss";
+@config "../../../../tailwind.config.js";
+
 :root {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
+  /* iOS Safe Area Variables */
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
   --safe-area-inset-right: env(safe-area-inset-right, 0px);
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
@@ -15,9 +19,9 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* RESET CRÍTICO PARA EVITAR SCROLLS */
+/* CRITICAL RESET TO PREVENT SCROLLS */
 * {
-  box-sizing: border-box; /* Fundamental: Padding no suma al ancho */
+  box-sizing: border-box; /* Fundamental: Padding does not add to width */
 }
 
 html, body, #root {
@@ -25,7 +29,7 @@ html, body, #root {
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Bloqueamos scroll en la raíz */
+  overflow: hidden; /* Block scroll at the root level */
   background-color: #F8FAFC;
 }
 
@@ -34,7 +38,7 @@ html, body, #root {
   color: #1E293B;
 }
 
-/* Scrollbars personalizadas y bonitas */
+/* Custom and sleek scrollbars */
 .custom-scroll {
   overflow-y: auto;
   overflow-x: hidden;
@@ -57,7 +61,7 @@ html, body, #root {
   background-color: #94A3B8;
 }
 
-/* Carrusel horizontal sin scrollbar visible */
+/* Horizontal carousel without visible scrollbar */
 .hide-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
