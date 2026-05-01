@@ -1,16 +1,18 @@
+/**
+ * TripGrid — 2026 Spatial Experience
+ * 
+ * Features:
+ *  - Responsive Masonry-like grid using CSS Grid
+ *  - Spring-animated stagger transitions
+ *  - GhostEmptyState for first-run experience
+ */
 import React from 'react';
-import { motion as Motion } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-// DEPRECATED: TravelStatsWidget widget moved to TripCommandBar (TravelStatsWidget now uses logStats API, not stats)
-// import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
-import { COLORS } from '@shared/config';
-import { styles } from './TripGrid.styles';
 import TripCard from './ui/TripCard';
 import GhostEmptyState from '@pages/trips/ui/components/GhostEmptyState';
-import { TripCardSkeleton } from '@shared/ui/components/Skeletons';
-import { AnimatePresence } from 'framer-motion';
-import './TripGrid.css';
+import { cn } from '@shared/lib/utils/cn';
 
 const TripGrid = ({
   trips = [],
@@ -22,21 +24,13 @@ const TripGrid = ({
   const navigate = useNavigate();
   const location = useLocation();
 
-  // DEPRECATED: statItems - stats are now displayed in TripCommandBar
-  // const statItems = useMemo(() => { ... });
-
   const hasNoTrips = totalLogCount === 0;
   const hasNoSearchResults = !hasNoTrips && trips.length === 0;
 
   const openTrip = (tripId) => {
-    // Determine if the trip is shared (read-only for this user)
     const trip = trips.find(t => t.id === tripId) || tripData[tripId];
     if (trip && trip.isShared) {
-      if (location.pathname.startsWith('/trips')) {
-        navigate(`/trips/${tripId}`);
-      } else {
-        navigate(`/trips/${tripId}`);
-      }
+      navigate(`/trips/${tripId}`);
       return;
     }
     const params = new URLSearchParams(location.search);
@@ -45,18 +39,20 @@ const TripGrid = ({
   };
 
   return (
-    <div style={styles.gridWrapper}>
-      {/* DEPRECATED: TravelStatsWidget moved to TripCommandBar for centralized stats display */}
-      {/* Stats are now displayed in TripCommandBar with TravelStatsWidget (home & trips variants) */}
-
+    <div className="w-full pb-14">
       <Motion.div 
-        className="trip-masonry"
+        className={cn(
+          "grid gap-4 md:gap-6 w-full",
+          "grid-cols-[repeat(auto-fill,minmax(min(288px,100%),1fr))]"
+        )}
         initial="hidden"
         animate="visible"
         variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
       >
         {hasNoTrips ? (
-          <GhostEmptyState />
+          <div className="col-span-full">
+            <GhostEmptyState />
+          </div>
         ) : (
           <AnimatePresence mode="popLayout">
             {trips.map((trip) => {
@@ -98,9 +94,13 @@ const TripGrid = ({
       </Motion.div>
 
       {hasNoSearchResults && (
-        <div style={{ textAlign: 'center', padding: '64px 24px', gridColumn: '1 / -1' }}>
-          <h3 style={{ fontSize: '1.2rem', color: COLORS.charcoalBlue }}>{tDashboard('noResults')}</h3>
-          <p style={{ color: COLORS.textSecondary }}>{tDashboard('noResultsMessage')}</p>
+        <div className="text-center py-16 px-6 col-span-full flex flex-col items-center gap-2">
+          <h3 className="text-xl font-bold text-charcoalBlue font-heading">
+            {tDashboard('noResults')}
+          </h3>
+          <p className="text-text-secondary">
+            {tDashboard('noResultsMessage')}
+          </p>
         </div>
       )}
 
