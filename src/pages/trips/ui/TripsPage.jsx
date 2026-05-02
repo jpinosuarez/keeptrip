@@ -5,7 +5,6 @@ import { useSearch } from '@app/providers/UIContext';
 import TripGrid from '@widgets/tripGrid/TripGrid';
 import TripCommandBar from './components/TripCommandBar';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
-import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { useLogStats } from '@features/gamification/model';
 import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
@@ -14,9 +13,6 @@ import { cn } from '@shared/lib/utils/cn';
 const TripsPage = () => {
   const { t, i18n } = useTranslation(['dashboard', 'countries']);
   useDocumentTitle(t('pageTitle.journal', 'Mis Viajes'));
-  
-  const { width } = useWindowSize();
-  const isMobile = width < 768;
   
   const { data, crud } = useOutletContext();
   const { busqueda } = useSearch();
@@ -76,7 +72,6 @@ const TripsPage = () => {
           logStats={tripsLogStats}
           ariaLabel={t('stats.tripSummary')}
           variant="compact"
-          isMobile={isMobile}
         />
       </div>
 
@@ -85,12 +80,11 @@ const TripsPage = () => {
         <TripCommandBar 
           activeFilter={activeFilter} 
           onFilterChange={setActiveFilter}
-          isMobile={isMobile}
         />
       </div>
       
       {/* 3. Trips Grid */}
-      <div className={cn("flex-1 flex flex-col", isMobile ? "pb-[max(env(safe-area-inset-bottom),20px)]" : "pb-0")}>
+      <div className="flex-1 flex flex-col pb-0 md:pb-0 max-md:pb-[max(env(safe-area-inset-bottom),20px)]">
         <TripGrid 
           trips={filteredTrips} 
           tripData={tripData}
@@ -108,3 +102,4 @@ const TripsPage = () => {
 };
 
 export default TripsPage;
+

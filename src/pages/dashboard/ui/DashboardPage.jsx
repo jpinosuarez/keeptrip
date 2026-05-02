@@ -25,7 +25,6 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
   const { openBuscador } = useUI();
   const { t } = useTranslation('dashboard');
   const { t: tNav } = useTranslation('nav');
-  const isMobileLayout = false; // Prop used for some subcomponents, but layout is CSS-driven
   useDocumentTitle(tNav('home'));
 
   const name = usuario?.displayName ? usuario.displayName.split(' ')[0] : t('fallbackName');
@@ -48,8 +47,6 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
   const [isMapRequested, setIsMapRequested] = useState(false);
 
   // Performance architecture: Interaction-based deferred map loading.
-  // We wait for the first genuine user interaction (scroll, touch, or mousemove) 
-  // before triggering the 1.6MB Mapbox payload. This keeps Lighthouse TBT perfect.
   React.useEffect(() => {
     let interactionFired = false;
     let fallbackTimer;
@@ -58,7 +55,6 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
       if (interactionFired) return;
       interactionFired = true;
       
-      // Use requestIdleCallback to ensure the map doesn't freeze the exact moment of interaction
       if ('requestIdleCallback' in window) {
         window.requestIdleCallback(() => setIsMapRequested(true), { timeout: 2000 });
       } else {
@@ -75,13 +71,11 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
       window.removeEventListener('keydown', onUserInteraction, { capture: true });
     };
 
-    // Attach passive listeners listening unconditionally to early interactions.
     window.addEventListener('scroll', onUserInteraction, { capture: true, once: true, passive: true });
     window.addEventListener('mousemove', onUserInteraction, { capture: true, once: true, passive: true });
     window.addEventListener('touchstart', onUserInteraction, { capture: true, once: true, passive: true });
     window.addEventListener('keydown', onUserInteraction, { capture: true, once: true, passive: true });
 
-    // Maximum wait fallback stringency: If idle for 10s, auto-load assuming they might be reading.
     fallbackTimer = setTimeout(() => {
       onUserInteraction();
     }, 10000);
@@ -92,7 +86,6 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
     };
   }, []);
 
-  // dashboard stats
   const tripDataMap = useMemo(() => {
     if (logData && typeof logData === 'object' && !Array.isArray(logData)) {
       return logData;
@@ -106,8 +99,6 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
   }, [log, logData]);
 
   const logStatsDashboard = useLogStats(log, tripDataMap);
-
-
 
   const mapFallback = (
     <div className="relative w-full h-full min-h-[200px] md:min-h-[220px] flex justify-center items-center p-4 overflow-hidden bg-[#e0e6ed] rounded-2xl" role="status" aria-live="polite">
@@ -154,7 +145,6 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
       <div className="min-w-0 w-full lg:col-start-1 lg:row-start-1 lg:self-stretch">
         <WelcomeBento 
           name={name}
-          isMobile={isMobileLayout}
           isNewTraveler={isNewTraveler}
           onNewTrip={openBuscador}
         />
@@ -165,7 +155,6 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
           logStats={logStatsDashboard}
           ariaLabel={t('stats.tripSummary')}
           variant="hero"
-          isMobile={isMobileLayout}
         />
       </div>
 
@@ -187,7 +176,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
             <ErrorBoundary fallback={mapFallback}>
               {isMapRequested ? (
                 <Suspense fallback={mapLoadingFallback}>
-                  <HomeMap key={mapRenderKey} paisesVisitados={countriesVisited} isMobile={isMobileLayout} />
+                  <HomeMap key={mapRenderKey} paisesVisitados={countriesVisited} />
                 </Suspense>
               ) : (
                 <div 
@@ -222,7 +211,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 w-full custom-scroll" style={{ alignItems: 'start', minWidth: 0 }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 w-full custom-scroll items-start min-w-0">
           {loading ? (
             <SkeletonList count={2} Component={TripCardSkeleton} />
           ) : isError ? (
@@ -245,7 +234,6 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
                 >
                   <TripCard 
                     trip={enrichedTrip} 
-                    isMobile={isMobileLayout} 
                     variant="home" 
                     priorityImage={index === 0}
                     onClick={() => openTripEditor(trip.id)} 
@@ -254,7 +242,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
               );
             })
           ) : (
-            <div style={{ gridColumn: '1 / -1', minWidth: 0, minHeight: 0, width: '100%' }}>
+            <div className="col-span-full min-w-0 min-h-0 w-full">
               <EmptyDashboardState />
             </div>
           )}
@@ -265,3 +253,4 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
 };
 
 export default DashboardPage;
+

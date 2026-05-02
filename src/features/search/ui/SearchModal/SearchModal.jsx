@@ -4,7 +4,6 @@ import { motion as Motion, AnimatePresence } from "framer-motion";
 import { Search, X, MapPin, Plus, TrendingUp, Globe } from "lucide-react";
 import { cn } from '@shared/lib/utils/cn';
 import { getFlagUrl } from '@shared/lib/utils/countryUtils';
-import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { useDebounce } from '../../model/useDebounce';
 import { fetchGeocoding } from '@shared/api/services/mapboxGeocoding';
@@ -32,7 +31,6 @@ const SearchModal = ({
   onNoResults
 }) => {
   const { t, i18n } = useTranslation(['search', 'common']);
-  const { isMobile } = useWindowSize(768);
   const {
     flags: { level: operationalLevel },
   } = useOperationalFlags();
@@ -175,20 +173,14 @@ const SearchModal = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className={cn(
-          "fixed inset-0 z-[12000] bg-black/40 backdrop-blur-sm flex justify-center",
-          isMobile ? "items-stretch" : "items-start pt-[100px] p-4"
-        )}
+        className="fixed inset-0 z-[12000] bg-black/40 backdrop-blur-sm flex justify-center items-stretch md:items-start md:pt-[100px] md:p-4"
         onClick={onClose}
       >
         <Motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 20, opacity: 0 }}
-          className={cn(
-            "bg-white w-full max-w-full overflow-hidden shadow-2xl flex flex-col",
-            isMobile ? "h-screen" : "md:w-[min(500px,100%)] md:h-auto md:max-h-[80vh] rounded-3xl"
-          )}
+          className="bg-white w-full max-w-full overflow-hidden shadow-2xl flex flex-col h-screen md:h-auto md:max-h-[80vh] md:w-[min(500px,100%)] md:rounded-3xl"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-5 flex justify-between items-center">
@@ -217,7 +209,7 @@ const SearchModal = ({
             )}
           </div>
 
-          <div className={cn("custom-scroll", isMobile ? "max-h-none" : "max-h-[300px] md:max-h-[400px]", "overflow-y-auto flex-1")}>
+          <div className="custom-scroll max-h-none md:max-h-[400px] overflow-y-auto flex-1">
             {isSearchPaused && (
               <div className="mx-5 my-4 p-3.5 rounded-xl border border-slate-200 bg-atomicTangerine/10 text-charcoalBlue text-[0.9rem] font-semibold text-center">
                 {t(
@@ -327,3 +319,4 @@ const SearchModal = ({
 };
 
 export default SearchModal;
+
