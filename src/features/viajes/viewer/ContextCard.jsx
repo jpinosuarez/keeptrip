@@ -1,5 +1,5 @@
+import { cn } from '@shared/lib/utils/cn';
 import React from 'react';
-import { contextCardStyles as s } from './ContextCard.styles';
 
 const areOnlyImageChildren = (children) => {
   const childList = React.Children.toArray(children).filter(Boolean);
@@ -9,21 +9,27 @@ const areOnlyImageChildren = (children) => {
 
 /**
  * Tarjeta tipo Bento local para el Modo Destino del VisorViaje.
- * Puro presentacional — usa tokens del theme via ContextCard.styles.js.
+ * Puro presentacional — usa Tailwind classes.
  * NO importa ni extiende BentoCard.
  *
- * @param {{ icon?: string, label: string, value?: string, children?: React.ReactNode, style?: object }} props
+ * @param {{ icon?: string, label: string, value?: string, children?: React.ReactNode, className?: string }} props
  */
-const ContextCard = ({ icon, label, value, children, style }) => (
-  <div style={{ ...s.card, ...style }}>
-    <div style={s.header}>
-      {icon && <span style={s.icon}>{icon}</span>}
-      <span style={s.label}>{label}</span>
+const ContextCard = ({ icon, label, value, children, className }) => (
+  <div className={cn(
+    "backdrop-blur-md bg-white/70 border border-border rounded-lg p-4 shadow-sm flex flex-col gap-2 transition-all overflow-hidden",
+    className
+  )}>
+    <div className="flex items-center gap-2">
+      {icon && <span className="text-[1.2rem] leading-none">{icon}</span>}
+      <span className="text-[0.75rem] font-bold uppercase tracking-wider text-mutedTeal">{label}</span>
     </div>
     {children ? (
-      <div style={{ ...s.childrenWrapper, ...(areOnlyImageChildren(children) ? s.flagsWrap : null) }}>{children}</div>
+      <div className={cn(
+        "mt-1 rounded-md overflow-hidden",
+        areOnlyImageChildren(children) && "flex flex-wrap items-center gap-1.5"
+      )}>{children}</div>
     ) : (
-      value && <span style={s.value}>{value}</span>
+      value && <span className="text-[0.95rem] font-semibold text-textPrimary leading-[1.4]">{value}</span>
     )}
   </div>
 );

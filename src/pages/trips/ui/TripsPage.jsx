@@ -9,6 +9,7 @@ import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { useLogStats } from '@features/gamification/model';
 import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
+import { cn } from '@shared/lib/utils/cn';
 
 const TripsPage = () => {
   const { t, i18n } = useTranslation(['dashboard', 'countries']);
@@ -68,9 +69,9 @@ const TripsPage = () => {
   const tripsLogStats = useLogStats(trips, tripData);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', overflowY: 'auto', overflowX: 'hidden' }}>
+    <div className="flex flex-col h-full relative overflow-y-auto overflow-x-hidden">
       {/* 1. Stats Bar at the top. Increased bottom margin to let it breathe. */}
-      <div style={{ marginBottom: isMobile ? '16px' : '16px', marginTop: '4px' }}>
+      <div className="mb-4 mt-1">
         <TravelStatsWidget
           logStats={tripsLogStats}
           ariaLabel={t('stats.tripSummary')}
@@ -80,7 +81,7 @@ const TripsPage = () => {
       </div>
 
       {/* 2. Filters Bar below the Stats Bar. Added bottom margin. */}
-      <div style={{ marginBottom: isMobile ? '16px' : '16px' }}>
+      <div className="mb-4">
         <TripCommandBar 
           activeFilter={activeFilter} 
           onFilterChange={setActiveFilter}
@@ -89,7 +90,7 @@ const TripsPage = () => {
       </div>
       
       {/* 3. Trips Grid */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingBottom: isMobile ? 'max(env(safe-area-inset-bottom), 20px)' : '0px' }}>
+      <div className={cn("flex-1 flex flex-col", isMobile ? "pb-[max(env(safe-area-inset-bottom),20px)]" : "pb-0")}>
         <TripGrid 
           trips={filteredTrips} 
           tripData={tripData}

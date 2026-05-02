@@ -1,9 +1,8 @@
+import { cn } from '@shared/lib/utils/cn';
 import React from 'react';
 import { LoaderCircle, CalendarDays, MapPinned, Sparkles } from 'lucide-react';
 import { getCountryFlagEmoji, getFlagUrl, normalizeCountryCode } from '@shared/lib/utils/countryUtils';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
-import { styles } from './EdicionHeaderSection.styles';
-import './EdicionHeaderSection.css';
 
 const EdicionHeaderSection = ({
   t,
@@ -112,19 +111,22 @@ const EdicionHeaderSection = ({
     .slice(0, 4);
 
   return (
-    <section style={styles.section}>
-      <div style={styles.card(isMobile)}>
-        <div style={styles.brandAccent} aria-hidden="true" />
+    <section className="bg-background p-0 flex flex-col shrink-0">
+      <div className={cn(
+        "bg-surface border border-border shadow-sm rounded-[20px] flex flex-col gap-4 relative overflow-hidden",
+        isMobile ? "px-3.5 py-4" : "px-4.5 py-5"
+      )}>
+        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-atomicTangerine to-mutedTeal opacity-75 pointer-events-none" aria-hidden="true" />
 
-        <div style={styles.topRow}>
-          <span style={styles.draftStatus}>
+        <div className="flex justify-between items-start gap-2.5 flex-wrap">
+          <span className="min-h-[44px] inline-flex items-center rounded-full px-3.5 bg-background border border-border text-textTertiary text-[0.72rem] font-extrabold uppercase tracking-wider">
             {esBorrador ? t('labels.draft', 'Borrador') : t('labels.editing', 'Editando')}
           </span>
 
-          <div style={styles.actionsRow}>
+          <div className="flex gap-2 items-center flex-wrap">
             {isProcessingImage && (
-              <div style={styles.processingBadge}>
-                <LoaderCircle size={14} className="spin" />
+              <div className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full px-3.5 bg-warning/10 border border-warning/25 text-[#B45309] text-[0.72rem] font-bold">
+                <LoaderCircle size={14} className="animate-spin" />
                 <span>{t('optimizing', 'Optimizando...')}</span>
               </div>
             )}
@@ -134,7 +136,11 @@ const EdicionHeaderSection = ({
                 type="button"
                 onClick={onToggleTituloAuto}
                 disabled={isBusy}
-                style={styles.autoModeBtn(isTituloAuto, isBusy)}
+                className={cn(
+                  "min-h-[44px] inline-flex items-center rounded-full px-3.5 text-[0.68rem] font-extrabold uppercase tracking-widest transition-all",
+                  isTituloAuto ? "bg-danger/10 border border-danger/25 text-danger" : "bg-background border border-border text-textSecondary",
+                  isBusy && "opacity-70 cursor-not-allowed"
+                )}
                 title={isTituloAuto ? t('tooltip.autoUpdate', 'Modo automático') : t('tooltip.manualMode', 'Modo manual')}
               >
                 {isTituloAuto ? t('labels.autoTitle', 'AUTO') : t('labels.manualTitle', 'MANUAL')}
@@ -143,13 +149,16 @@ const EdicionHeaderSection = ({
           </div>
         </div>
 
-        <div style={styles.content}>
+        <div className="flex flex-col gap-3.5">
           {!esBorrador && !isTituloAuto && (
             <button
               type="button"
               onClick={onRegenerateTitle}
               disabled={isBusy}
-              style={styles.regenerateBtn(isBusy)}
+              className={cn(
+                "min-h-[40px] self-start inline-flex items-center gap-1.5 rounded-full px-3.5 bg-atomicTangerine/10 border border-atomicTangerine/25 text-atomicTangerine text-[0.74rem] font-bold transition-all",
+                isBusy && "opacity-70 cursor-not-allowed"
+              )}
               aria-label={t('editor.header.regenerateTitleBtn', { defaultValue: 'Generar título automático' })}
             >
               <Sparkles size={14} />
@@ -170,8 +179,13 @@ const EdicionHeaderSection = ({
             placeholder={t('tripTitlePlaceholder', 'Título del viaje')}
             maxLength={80}
             disabled={isBusy}
-            style={{ ...styles.titleInput(isMobile), fontSize: `${titleFontSize}px` }}
-            className="edicion-header-title-input"
+            style={{ fontSize: `${titleFontSize}px` }}
+            className={cn(
+              "w-full bg-transparent outline-none text-textPrimary font-heading font-extrabold leading-[1.2] tracking-[-0.02em] min-h-[52px] max-h-[52px] p-0 m-0 caret-atomicTangerine overflow-hidden line-clamp-2",
+              "border-b border-dashed border-slate-300 transition-all",
+              "focus:border-solid focus:border-atomicTangerine focus:bg-atomicTangerine/10 focus:text-slate-800",
+              "placeholder:text-slate-400 placeholder:font-bold"
+            )}
             rows={2}
             ref={titleTextareaRef}
             onInput={() => {
@@ -179,19 +193,26 @@ const EdicionHeaderSection = ({
               adjustTitleHeight();
             }}
           />
-          <small style={styles.titleHint}>{t('labels.titleEditableHint', 'Toca para editar el título')}</small>
+          <small className="text-[0.75rem] text-textTertiary mt-[-4px] mb-2 block">{t('labels.titleEditableHint', 'Toca para editar el título')}</small>
 
-          <div style={styles.flagsAndLocationRow}>
-            <div style={styles.flagsStack}>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="flex items-center">
               {dedupedFlagVisuals.length > 0 ? (
                 dedupedFlagVisuals.map((flagVisual, idx) => {
+                  const commonClasses = cn(
+                    "w-[30px] h-[30px] rounded-full border-2 border-surface shadow-sm bg-surface shrink-0 relative",
+                    idx > 0 && "-ml-2.5"
+                  );
+                  const commonStyles = { zIndex: 10 - idx };
+
                   if (flagVisual.type === 'emoji') {
                     return (
                       <span
                         key={`${flagVisual.type}-${flagVisual.value}-${idx}`}
                         role="img"
                         aria-label={t('labels.flagAlt', 'Country flag')}
-                        style={styles.flagEmoji(idx)}
+                        className={cn(commonClasses, "inline-flex items-center justify-center text-[1rem] leading-none")}
+                        style={commonStyles}
                       >
                         {flagVisual.value}
                       </span>
@@ -205,14 +226,16 @@ const EdicionHeaderSection = ({
                       alt={t('labels.flagAlt', 'Country flag')}
                       width="24"
                       height="24"
-                      style={styles.flagImage(idx)}
+                      className={cn(commonClasses, "object-cover inline-block")}
+                      style={commonStyles}
                       loading="lazy"
                       onError={(e) => {
                         const fallbackEmoji = flagVisual.fallbackEmoji || '🌍';
                         const replacement = document.createElement('span');
                         replacement.setAttribute('aria-label', t('labels.flagAlt', 'Country flag'));
                         replacement.textContent = fallbackEmoji;
-                        Object.assign(replacement.style, styles.flagEmoji(idx));
+                        replacement.className = cn(commonClasses, "inline-flex items-center justify-center text-[1rem] leading-none");
+                        Object.assign(replacement.style, commonStyles);
                         e.currentTarget.replaceWith(replacement);
                       }}
                     />
@@ -222,25 +245,25 @@ const EdicionHeaderSection = ({
                 <span
                   role="img"
                   aria-label={t('labels.flagAlt', 'Country flag')}
-                  style={styles.flagEmoji(0)}
+                  className="w-[30px] h-[30px] rounded-full border-2 border-surface shadow-sm bg-surface inline-flex items-center justify-center text-[1rem] leading-none shrink-0 relative z-10"
                 >
                   🌍
                 </span>
               )}
             </div>
-            <span style={styles.locationText}>
+            <span className="text-[0.85rem] text-textSecondary font-bold">
               {locationText}
             </span>
           </div>
 
-          <div style={styles.tagsRow}>
-            <span style={styles.infoTag}>
-              <MapPinned size={14} style={styles.infoTagIcon} />
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="min-h-[44px] inline-flex items-center gap-1.5 rounded-md px-3 bg-background border border-border text-textTertiary text-[0.78rem] font-bold">
+              <MapPinned size={14} className="text-textSecondary shrink-0" />
               {countrySummary}
             </span>
 
-            <span style={styles.infoTag}>
-              <CalendarDays size={14} style={styles.infoTagIcon} />
+            <span className="min-h-[44px] inline-flex items-center gap-1.5 rounded-md px-3 bg-background border border-border text-textTertiary text-[0.78rem] font-bold">
+              <CalendarDays size={14} className="text-textSecondary shrink-0" />
               {dateRangeText}
             </span>
           </div>

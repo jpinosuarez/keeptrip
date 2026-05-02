@@ -1,7 +1,7 @@
+import { cn } from '@shared/lib/utils/cn';
 import React, { useState, useEffect } from 'react';
 import { MapPin, ArrowUp, ArrowDown, Plus, Search, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { COLORS, RADIUS, SHADOWS, TRANSITIONS } from '@shared/config';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { getFlagUrl } from '@shared/lib/utils/countryUtils';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
@@ -16,8 +16,6 @@ const createStopInstanceId = (feature) => {
 
   return `temp-${baseId}-${uuid}`;
 };
-
-
 
 const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = false }) => {
   const { i18n, t: searchT } = useTranslation(['search', 'common']);
@@ -121,10 +119,10 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.searchRow}>
-        <div style={styles.inputWrapper}>
-          <Search size={16} color={COLORS.textSecondary} />
+    <div className="flex flex-col gap-3.5">
+      <div className="flex gap-2.5">
+        <div className="flex-1 flex items-center gap-2 min-h-[44px] bg-background border border-border rounded-md px-3">
+          <Search size={16} className="text-textSecondary" />
           <input
             value={searchQuery}
             onChange={(e) => {
@@ -133,14 +131,14 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
               if (value.length < 3) setSearchResults([]);
             }}
             placeholder={t('citymanager.searchPlaceholder', '🔍 Añadir nueva parada a tu ruta')}
-            style={styles.searchInput}
+            className="border-none bg-transparent py-3 w-full outline-none text-base"
             disabled={isSearchPaused || isReadOnlyActive}
           />
         </div>
       </div>
 
       {isSearchPaused && (
-        <div style={styles.pausedState}>
+        <div className="border border-border rounded-md px-3.5 py-3 bg-atomicTangerine/10 text-charcoalBlue font-semibold text-[0.88rem] text-center">
           {searchT(
             'search:pausedMessage',
             'Search temporarily paused while we stabilize map services. Your saved trips remain available.'
@@ -149,7 +147,7 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
       )}
 
       {isReadOnlyActive && (
-        <div style={styles.readOnlyState}>
+        <div className="border border-border rounded-md px-3.5 py-3 bg-[#2C3E50]/10 text-charcoalBlue font-semibold text-[0.88rem] text-center">
           {searchT(
             'common:operational.readOnlyBanner',
             'Keeptrip is in Read-Only mode. Your data is safe, but edits are paused.'
@@ -158,7 +156,7 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
       )}
 
       {visibleSearchResults.length > 0 && (
-        <div style={styles.resultsList}>
+        <div className="bg-surface border border-border rounded-md overflow-hidden max-h-[180px] overflow-y-auto shadow-md">
           {visibleSearchResults.map((res, resIdx) => {
             // Extraer país para el icono en resultados
             const contextCountry = res.context?.find(c => c.id.startsWith('country'));
@@ -167,26 +165,20 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
             const countryLabel = getLocalizedCountryName(code, i18n.language, t) || contextCountry?.text || '';
 
             return (
-                <div key={res.id || `result-${resIdx}`} style={styles.resultItem}>
-                <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                <div key={res.id || `result-${resIdx}`} className="p-3.5 border-b border-background cursor-pointer text-[0.9rem] flex justify-between items-center hover:bg-background">
+                <div className="flex items-center gap-2.5">
                     {flag ? (
                       <img
                         src={flag}
                         alt="flag"
-                        style={{
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: RADIUS.full,
-                          objectFit: 'cover',
-                          boxShadow: SHADOWS.sm,
-                        }}
+                        className="w-7 h-7 rounded-full object-cover shadow-sm"
                       />
                     ) : (
-                      <MapPin size={16} color={COLORS.textSecondary} />
+                      <MapPin size={16} className="text-textSecondary" />
                     )}
-                    <span style={{ flex: 1, minWidth: 0 }}>
+                    <span className="flex-1 min-w-0">
                       {res.text},{' '}
-                      <span style={{ color: COLORS.textSecondary, fontSize: '0.8rem' }}>
+                      <span className="text-textSecondary text-[0.8rem]">
                         {countryLabel}
                       </span>
                     </span>
@@ -194,11 +186,10 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
                 <button
                   type="button"
                   onClick={() => agregarCiudad(res)}
-                  style={{
-                    ...styles.addButton,
-                    opacity: isReadOnlyActive ? 0.55 : 1,
-                    cursor: isReadOnlyActive ? 'not-allowed' : 'pointer',
-                  }}
+                  className={cn(
+                    "bg-transparent border-[1.5px] border-atomicTangerine rounded-full min-h-[44px] min-w-[44px] px-3.5 py-2.5 text-atomicTangerine text-[0.75rem] font-bold cursor-pointer transition-all outline-none flex items-center gap-1.5 hover:bg-atomicTangerine/5 active:translate-y-[1px]",
+                    isReadOnlyActive && "opacity-55 cursor-not-allowed"
+                  )}
                   aria-label={t('button.add') || '+ Agregar destino'}
                   disabled={isReadOnlyActive}
                 >
@@ -210,22 +201,22 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
         </div>
       )}
 
-      <div style={styles.list}>
+      <div className="flex flex-col gap-2.5">
         {paradas.map((p, index) => (
-          <div key={p.id ?? `parada-${index}-${p.nombre}`} style={styles.item} data-testid="editor-stop-item">
-            <div style={styles.itemHeader}>
-               <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
-                   {p.flag && <img src={p.flag} alt="flag" style={{width:'24px', borderRadius:RADIUS.xs, border:'1px solid #eee'}} />}
-                   <span style={styles.cityName}>{p.nombre}</span>
+          <div key={p.id ?? `parada-${index}-${p.nombre}`} className="bg-surface border border-border p-3.5 rounded-md shadow-sm" data-testid="editor-stop-item">
+            <div className="flex justify-between items-center mb-3">
+               <div className="flex items-center gap-2">
+                   {p.flag && <img src={p.flag} alt="flag" className="w-6 rounded-sm border border-slate-100" />}
+                   <span className="font-bold text-[0.95rem] text-charcoalBlue">{p.nombre}</span>
                </div>
-               <div style={styles.actions}>
+               <div className="flex gap-1.5">
                   <button
                     type="button"
                     data-testid="editor-stop-move-up"
                     aria-label={t('citymanager.moveStopUp', 'Move stop up')}
                     disabled={index === 0 || isReadOnlyActive}
                     onClick={() => moverParada(index, -1)}
-                    style={styles.actionBtn}
+                    className="bg-background border-none min-h-[44px] min-w-[44px] p-3 rounded-sm cursor-pointer text-textSecondary flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <ArrowUp size={14} />
                   </button>
@@ -235,7 +226,7 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
                     aria-label={t('citymanager.moveStopDown', 'Move stop down')}
                     disabled={index === paradas.length - 1 || isReadOnlyActive}
                     onClick={() => moverParada(index, 1)}
-                    style={styles.actionBtn}
+                    className="bg-background border-none min-h-[44px] min-w-[44px] p-3 rounded-sm cursor-pointer text-textSecondary flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <ArrowDown size={14} />
                   </button>
@@ -244,7 +235,7 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
                     data-testid="editor-stop-delete"
                     aria-label={t('citymanager.deleteStop', 'Delete stop')}
                     onClick={() => eliminarParada(index)}
-                    style={{...styles.actionBtn, color:COLORS.danger, background:'#FEF2F2'}}
+                    className="bg-danger/10 border-none min-h-[44px] min-w-[44px] p-3 rounded-sm cursor-pointer text-danger flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
                     disabled={isReadOnlyActive}
                   >
                     <Trash2 size={14} />
@@ -252,9 +243,9 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
                </div>
             </div>
             
-            <div style={styles.datesRow}>
-                <div style={styles.dateGroup}>
-                    <label style={styles.label}>{t('citymanager.arrival') || 'Arrival'}</label>
+            <div className="flex gap-3.5 flex-wrap">
+                <div className="flex-[1_1_120px] min-w-0 flex flex-col gap-1">
+                    <label className="text-[0.7rem] uppercase text-textSecondary font-bold">{t('citymanager.arrival') || 'Arrival'}</label>
                     <input
                       type="date"
                       value={p.fechaLlegada ? p.fechaLlegada.split('/').reverse().join('-') : ''}
@@ -269,12 +260,12 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
                           actualizarDato(index, 'fechaLlegada', formatted);
                         }
                       }}
-                      style={styles.nativeDateInput}
+                      className="w-full box-sizing-border-box min-h-[48px] border border-border rounded-md px-3.5 py-3 text-base font-inherit text-charcoalBlue bg-background outline-none cursor-pointer transition-all shadow-sm"
                       disabled={isReadOnlyActive}
                     />
                 </div>
-                <div style={styles.dateGroup}>
-                    <label style={styles.label}>{t('citymanager.departure') || 'Departure'}</label>
+                <div className="flex-[1_1_120px] min-w-0 flex flex-col gap-1">
+                    <label className="text-[0.7rem] uppercase text-textSecondary font-bold">{t('citymanager.departure') || 'Departure'}</label>
                     <input
                       type="date"
                       value={p.fechaSalida ? p.fechaSalida.split('/').reverse().join('-') : ''}
@@ -289,7 +280,7 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
                           actualizarDato(index, 'fechaSalida', formatted);
                         }
                       }}
-                      style={styles.nativeDateInput}
+                      className="w-full box-sizing-border-box min-h-[48px] border border-border rounded-md px-3.5 py-3 text-base font-inherit text-charcoalBlue bg-background outline-none cursor-pointer transition-all shadow-sm"
                       disabled={isReadOnlyActive}
                     />
                 </div>
@@ -300,69 +291,6 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
       </div>
     </div>
   );
-};
-
-const styles = {
-  container: { display: 'flex', flexDirection: 'column', gap: '15px' },
-  searchRow: { display: 'flex', gap: '10px' },
-  inputWrapper: { flex: 1, display: 'flex', alignItems: 'center', gap: '8px', minHeight: '44px', background: COLORS.background, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '0 12px' },
-  searchInput: { border: 'none', background: 'transparent', padding: '12px 0', width: '100%', outline: 'none', fontSize: '1rem' },
-  resultsList: { background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, overflow: 'hidden', maxHeight: '180px', overflowY: 'auto', boxShadow: SHADOWS.md },
-  pausedState: {
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: RADIUS.md,
-    padding: '12px 14px',
-    background: 'rgba(255, 107, 53, 0.08)',
-    color: COLORS.charcoalBlue,
-    fontWeight: 600,
-    fontSize: '0.88rem',
-    textAlign: 'center',
-  },
-  readOnlyState: {
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: RADIUS.md,
-    padding: '12px 14px',
-    background: 'rgba(44, 62, 80, 0.08)',
-    color: COLORS.charcoalBlue,
-    fontWeight: 600,
-    fontSize: '0.88rem',
-    textAlign: 'center',
-  },
-  resultItem: { padding: '12px 15px', borderBottom: `1px solid ${COLORS.background}`, cursor: 'pointer', fontSize: '0.9rem', display:'flex', justifyContent:'space-between', alignItems:'center', ':hover': { background: COLORS.background } },
-  addButton: { background: 'transparent', border: `1.5px solid ${COLORS.atomicTangerine}`, borderRadius: RADIUS.full, minHeight: '44px', minWidth: '44px', padding: '10px 14px', color: COLORS.atomicTangerine, fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer', transition: TRANSITIONS.fast, outline: 'none', display: 'flex', alignItems: 'center', gap: '6px', '&:hover': { background: 'rgba(255, 107, 53, 0.05)', }, '&:active': { transform: 'translateY(1px)' } },
-  
-  list: { display: 'flex', flexDirection: 'column', gap: '10px' },
-  item: { background: COLORS.surface, border: `1px solid ${COLORS.border}`, padding: '15px', borderRadius: RADIUS.md, boxShadow: SHADOWS.sm },
-  itemHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' },
-  cityName: { fontWeight: '700', fontSize: '0.95rem', color: COLORS.charcoalBlue },
-  actions: { display: 'flex', gap: '6px' },
-  actionBtn: { background: COLORS.background, border: 'none', minHeight: '44px', minWidth: '44px', padding: '12px', borderRadius: RADIUS.xs, cursor: 'pointer', color: COLORS.textSecondary, display:'flex', alignItems:'center', justifyContent:'center' },
-  datesRow: { display: 'flex', gap: '15px', flexWrap: 'wrap' },
-  dateGroup: { flex: '1 1 120px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' },
-  transportRow: { display: 'flex', gap: '12px', alignItems: 'center', marginTop: 10 },
-  transportBtn: (active) => ({ padding: '10px 14px', borderRadius: RADIUS.sm, border: active ? '1px solid #3b82f6' : `1px solid ${COLORS.border}`, background: active ? '#eff6ff' : COLORS.surface, cursor: 'pointer' }),
-  label: { fontSize: '0.7rem', textTransform:'uppercase', color:COLORS.textSecondary, fontWeight:'700' },
-  dateInput: { width: '100%', boxSizing: 'border-box', border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.sm, padding: '10px', fontSize: '1rem', color: COLORS.charcoalBlue, outline: 'none', background: COLORS.background },
-  nativeDateInput: {
-    width: '100%',
-    boxSizing: 'border-box',
-    minHeight: '48px',
-    appearance: 'none',
-    WebkitAppearance: 'none',
-    MozAppearance: 'none',
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: RADIUS.md,
-    padding: '12px 14px',
-    fontSize: '1rem',
-    fontFamily: 'inherit',
-    color: COLORS.charcoalBlue,
-    backgroundColor: COLORS.background,
-    outline: 'none',
-    cursor: 'pointer',
-    transition: TRANSITIONS.fast,
-    boxShadow: SHADOWS.sm,
-  },
-  relatoTextarea: { width: '100%', minHeight: '60px', padding: '10px', border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.sm, resize: 'vertical', fontFamily: 'inherit', fontSize: '1rem', color: COLORS.charcoalBlue, outline: 'none', background: COLORS.background, boxShadow: SHADOWS.inner }
 };
 
 export default CityManager;

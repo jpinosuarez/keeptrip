@@ -1,12 +1,10 @@
+import { cn } from '@shared/lib/utils/cn';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { Save, LoaderCircle } from 'lucide-react';
-import { styles } from './EdicionModal.styles';
-import { COLORS } from '@shared/config';
-import { useAuth } from '@app/providers/AuthContext';
-import { useToast } from '@app/providers/ToastContext';
-import { useUpload } from '@app/providers/UploadContext';
-import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
+import { useAuth } from '@features/auth';
+import { useToast } from '@shared/lib/hooks/useToast';
+import { useUpload } from '@features/viajes/upload';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { useTranslation } from 'react-i18next';
 import { formatDateRange } from '@shared/lib/utils/viajeUtils';
@@ -17,6 +15,7 @@ import { useEdicionModalLifecycle } from '../model/hooks/useEdicionModalLifecycl
 import EdicionGallerySection from './components/EdicionGallerySection';
 import EdicionParadasSection from './components/EdicionParadasSection';
 import EdicionHeaderSection from './components/EdicionHeaderSection';
+import { createPortal } from 'react-dom';
 
 const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSaving = false, onAfterSave }) => {
   const { usuario } = useAuth();
@@ -40,7 +39,10 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     iniciarSubida = () => {};
     hasUploadContext = false;
   }
-  const { isMobile } = useWindowSize(768);
+
+  // structural toggle check for components that still depend on it
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+
   const usuarioUid = usuario?.uid || null;
   const [formData, setFormData] = useState({
     vibe: [],
@@ -167,48 +169,33 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
   const hasValidStartDate = Boolean((formData?.fechaInicio || viaje?.fechaInicio || '').toString().trim());
   const canSave = hasValidStops && hasValidTitle && hasValidStartDate && !isBusy && !isReadOnlyMode;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <Motion.div 
-        style={styles.overlay(isMobile)} 
+        className="fixed inset-0 z-[20000] flex justify-center backdrop-blur-md bg-black/50 transition-opacity outline-none items-stretch md:items-center p-0 md:p-5"
         onClick={isBusy ? undefined : onClose} 
         initial={{ opacity: 0, visibility: 'hidden' }} 
         animate={{ opacity: 1, visibility: 'visible' }} 
         exit={{ opacity: 0 }} 
         transition={{ duration: 0.2 }}
         tabIndex="-1"
-        className="outline-none items-stretch md:items-center"
       >
         <Motion.div 
-          style={styles.modal(isMobile)} 
+          className="bg-slate-50 flex flex-col overflow-hidden shadow-2xl relative w-full h-[94vh] rounded-t-3xl md:w-[640px] md:max-w-full md:h-[92vh] md:rounded-xl md:border md:border-white/20 outline-none"
           onClick={e => e.stopPropagation()} 
           initial={{ y: 10, opacity: 0, scale: 0.98, visibility: 'hidden' }} 
           animate={{ y: 0, opacity: 1, scale: 1, visibility: 'visible' }} 
           exit={{ y: 15, opacity: 0, scale: 0.98 }} 
           transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
           tabIndex="-1"
-          className="min-w-full md:min-w-[400px] outline-none"
         >
           {/* Mobile drag-handle affordance */}
-          {isMobile && (
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              padding: '10px 0 2px',
-              flexShrink: 0,
-              background: '#F8FAFC',
-            }}>
-              <div style={{
-                width: '36px',
-                height: '4px',
-                borderRadius: '2px',
-                background: '#CBD5E1',
-              }} />
-            </div>
-          )}
+          <div className="flex md:hidden justify-center pt-[10px] pb-0.5 shrink-0 bg-[#F8FAFC]">
+            <div className="w-9 h-1 rounded-[2px] bg-[#CBD5E1]" />
+          </div>
+
           {/* Sección esencial: imágenes y fechas */}
           <EdicionHeaderSection
-            styles={styles}
             t={t}
             formData={headerFormData}
             isMobile={isMobile}
@@ -222,10 +209,10 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
             onToggleTituloAuto={() => setIsTituloAuto((prev) => !prev)}
             onRegenerateTitle={() => setIsTituloAuto(true)}
           />
-          <div style={{ ...styles.body, paddingBottom: 'calc(16px + 64px)' }} className="custom-scroll">
+
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 flex flex-col gap-6 scrollbar-hide pb-[calc(24px+80px)]">
             {/* Itinerary / Stops */}
             <EdicionParadasSection
-              styles={styles}
               t={t}
               paradas={paradas}
               setParadas={setParadas}
@@ -233,12 +220,10 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
               tripStartDate={formData?.fechaInicio}
               sinParadas={sinParadas}
               isReadOnlyMode={isReadOnlyMode}
-              tripStartDate={formData.fechaInicio}
             />
 
             {/* Photo gallery */}
             <EdicionGallerySection
-              styles={styles}
               t={t}
               files={galleryFiles}
               onFilesChange={setGalleryFiles}
@@ -256,15 +241,21 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
               isReadOnlyMode={isReadOnlyMode}
             />
           </div>
-          <div style={styles.stickyFooter}>
+
+          <div className="absolute bottom-0 left-0 right-0 p-4 backdrop-blur-md bg-white/90 border-t border-slate-200/80 flex items-center justify-between z-10 gap-3 min-h-[64px] pb-[max(16px,env(safe-area-inset-bottom,0px))]">
               <Motion.button
                 onClick={onClose}
-                style={styles.cancelBtn(isBusy, isMobile)}
+                className={cn(
+                  "flex-1 h-11 rounded-xl bg-slate-100 text-slate-600 font-bold text-[0.9rem] border border-slate-200 cursor-pointer flex items-center justify-center transition-all",
+                  isBusy && "opacity-60 cursor-not-allowed"
+                )}
                 disabled={isBusy}
-                whileHover={!isBusy ? { backgroundColor: COLORS.background } : {}}
+                whileHover={!isBusy ? { backgroundColor: '#f1f5f9' } : {}}
                 whileTap={!isBusy ? { scale: 0.97 } : {}}
                 transition={{ duration: 0.15 }}
-              >{t('button.cancel')}</Motion.button>
+              >
+                {t('button.cancel')}
+              </Motion.button>
               <Motion.button
                 onClick={handleSave}
                 disabled={!canSave}
@@ -300,19 +291,19 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                           ? t('error.tripNeedsStartDate', 'El viaje debe tener fecha de inicio')
                           : ''
                 }
-                style={{
-                  ...styles.saveBtn(isBusy, isMobile),
-                  opacity: canSave ? 1 : 0.5,
-                  cursor: canSave ? 'pointer' : 'not-allowed',
-                }}
+                className={cn(
+                  "flex-[1.5] md:flex-none md:min-w-[200px] h-11 rounded-xl bg-atomicTangerine text-white font-bold text-[0.9rem] border-none cursor-pointer flex items-center justify-center gap-2 shadow-lg transition-all",
+                  !canSave ? "opacity-50 cursor-not-allowed shadow-none" : "opacity-100"
+                )}
               >
-                {isBusy ? <LoaderCircle size={18} className="spin" /> : <Save size={18} />}
+                {isBusy ? <LoaderCircle size={18} className="animate-spin" /> : <Save size={18} />}
                 {isProcessingImage ? t('button.processing') : (isSaving ? t('button.saving') : (esBorrador ? t('button.createTrip') : t('button.save')))}
               </Motion.button>
           </div>
         </Motion.div>
       </Motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

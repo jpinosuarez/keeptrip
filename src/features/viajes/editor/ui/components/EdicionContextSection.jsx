@@ -1,7 +1,7 @@
 import React from 'react';
 import InfoTooltip from '@shared/ui/components/InfoTooltip';
-import { COLORS, RADIUS, TRANSITIONS, FONTS } from '@shared/config';
 import { X } from 'lucide-react';
+import { cn } from '@shared/lib/utils/cn';
 
 const VIBES = ['Gastronómico', 'Aventura', 'Relax', 'Roadtrip', 'Cultural'];
 const VIBE_KEY_MAP = {
@@ -13,7 +13,6 @@ const VIBE_KEY_MAP = {
 };
 
 const EdicionContextSection = ({
-  styles,
   t,
   formData,
   setFormData,
@@ -25,18 +24,20 @@ const EdicionContextSection = ({
   onAddCompanionFromResult,
 }) => {
   return (
-    <div style={styles.section}>
-      <label style={styles.label}>{t('labels.contexto')}</label>
+    <div className="flex flex-col gap-2 bg-background p-4 rounded-lg border border-border">
+      <label className="text-[0.78rem] font-extrabold text-textSecondary uppercase tracking-[0.5px] flex items-center gap-1.5">
+        {t('labels.contexto')}
+      </label>
 
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', flexWrap: 'wrap', marginBottom: 16 }}>
-        <div style={{ minWidth: 160 }}>
-          <label style={{ fontSize: '0.75rem', color: COLORS.textSecondary }}>
+      <div className="flex gap-4 items-end flex-wrap mb-4">
+        <div className="min-w-[160px]">
+          <label className="text-xs text-textSecondary mb-1.5 block">
             {t('labels.presupuesto')} <InfoTooltip textKey="editor:tooltip.presupuesto" size={13} />
           </label>
           <select
             value={formData.presupuesto || ''}
             onChange={(e) => setFormData({ ...formData, presupuesto: e.target.value || null })}
-            style={styles.dateInput}
+            className="w-full border border-border rounded-sm px-3.5 py-2.5 text-base text-charcoalBlue outline-none bg-background transition-all focus:border-atomicTangerine"
           >
             <option value="">-- {t('labels.selectDefault')} --</option>
             <option value="Mochilero">{t('budget.mochilero')}</option>
@@ -47,11 +48,11 @@ const EdicionContextSection = ({
         </div>
       </div>
 
-      <div style={{ marginBottom: 12 }}>
-        <label style={{ fontSize: '0.75rem', color: COLORS.textSecondary }}>
+      <div className="mb-3">
+        <label className="text-xs text-textSecondary block">
           {t('labels.vibe')} <InfoTooltip textKey="editor:tooltip.vibe" size={13} />
         </label>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
+        <div className="flex gap-2 flex-wrap mt-1.5">
           {VIBES.map((v) => {
             const selected = (formData.vibe || []).includes(v);
             return (
@@ -64,17 +65,12 @@ const EdicionContextSection = ({
                     vibe: (prev.vibe || []).includes(v) ? (prev.vibe || []).filter((x) => x !== v) : [...(prev.vibe || []), v],
                   }))
                 }
-                style={{
-                  padding: '6px 10px',
-                  borderRadius: RADIUS.md,
-                  border: selected ? `1px solid ${COLORS.atomicTangerine}` : `1px solid ${COLORS.border}`,
-                  background: selected ? `${COLORS.atomicTangerine}12` : COLORS.surface,
-                  cursor: 'pointer',
-                  color: selected ? COLORS.atomicTangerine : COLORS.textPrimary,
-                  fontWeight: selected ? '700' : '400',
-                  fontSize: '0.875rem',
-                  transition: TRANSITIONS.fast,
-                }}
+                className={cn(
+                  "px-2.5 py-1.5 rounded-md border text-[0.875rem] transition-all duration-200 cursor-pointer",
+                  selected 
+                    ? "border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine font-bold" 
+                    : "border-border bg-surface text-textPrimary font-normal"
+                )}
               >
                 {t(`vibes.${VIBE_KEY_MAP[v]}`)}
               </button>
@@ -84,105 +80,88 @@ const EdicionContextSection = ({
       </div>
 
       {showCompanions && (
-      <div style={{ marginTop: 12 }}>
-        <label style={{ fontSize: '0.75rem', color: COLORS.textSecondary }}>{t('labels.companions')}</label>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
-          <input
-            placeholder={t('labels.nameOrEmail')}
-            value={companionDraft || ''}
-            onChange={(e) => onCompanionSearch(e.target.value)}
-            maxLength={100}
-            style={{ flex: 1, minWidth: 0, padding: '8px 10px', borderRadius: RADIUS.sm, border: `1px solid ${COLORS.border}`, fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }}
-          />
-          <button
-            type="button"
-            onClick={() => companionDraft && companionDraft.trim() && onAddCompanionFreeform(companionDraft)}
-            style={styles.secondaryBtn(!companionDraft?.trim())}
-          >
-            {t('labels.addCompanion')}
-          </button>
-        </div>
+        <div className="mt-3">
+          <label className="text-xs text-textSecondary">{t('labels.companions')}</label>
+          <div className="flex gap-2 items-center mt-2">
+            <input
+              placeholder={t('labels.nameOrEmail')}
+              value={companionDraft || ''}
+              onChange={(e) => onCompanionSearch(e.target.value)}
+              maxLength={100}
+              className="flex-1 min-w-0 px-2.5 py-2 rounded-sm border border-border text-[0.875rem] outline-none box-border bg-background"
+            />
+            <button
+              type="button"
+              onClick={() => companionDraft && companionDraft.trim() && onAddCompanionFreeform(companionDraft)}
+              disabled={!companionDraft?.trim()}
+              className="bg-surface border border-border rounded-sm px-3.5 py-2 text-[0.875rem] font-bold text-textPrimary cursor-pointer transition-all hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {t('labels.addCompanion')}
+            </button>
+          </div>
 
-        {companionResults.length > 0 && (
-          <div
-            style={{
-              border: `1px solid ${COLORS.border}`,
-              borderRadius: RADIUS.sm,
-              marginTop: 8,
-              maxHeight: 160,
-              overflowY: 'auto',
-              background: COLORS.surface,
-            }}
-          >
-            {companionResults.map((u) => (
-              <div
-                key={u.uid}
-                style={{ padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', gap: 8 }}
-                onClick={() => onAddCompanionFromResult(u)}
-              >
-                <div style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
-                  <strong style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.875rem' }}>{u.displayName || u.email}</strong>
-                  <div style={{ fontSize: '0.75rem', color: COLORS.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.email}</div>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAddCompanionFromResult(u);
-                  }}
-                  style={styles.secondaryBtnSm}
+          {companionResults.length > 0 && (
+            <div className="border border-border rounded-sm mt-2 max-h-[160px] overflow-y-auto bg-surface">
+              {companionResults.map((u) => (
+                <div
+                  key={u.uid}
+                  className="p-2 px-3 flex justify-between items-center cursor-pointer gap-2 hover:bg-background transition-colors"
+                  onClick={() => onAddCompanionFromResult(u)}
                 >
-                  {t('labels.addCompanion')}
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    <strong className="block overflow-hidden text-ellipsis whitespace-nowrap text-[0.875rem]">{u.displayName || u.email}</strong>
+                    <div className="text-xs text-textSecondary overflow-hidden text-ellipsis whitespace-nowrap">{u.email}</div>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAddCompanionFromResult(u);
+                    }}
+                    className="bg-surface border border-border rounded-sm px-2.5 py-1.5 text-[0.75rem] font-bold text-textPrimary cursor-pointer transition-all hover:bg-background"
+                  >
+                    {t('labels.addCompanion')}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {companionResults.length === 0 && companionDraft && companionDraft.includes('@') && (
+            <div className="mt-2">
+              <button
+                type="button"
+                className="bg-surface border border-border rounded-sm px-2.5 py-1.5 text-[0.75rem] font-bold text-textPrimary cursor-pointer transition-all hover:bg-background"
+                onClick={() => onAddCompanionFreeform(companionDraft)}
+              >
+                {t('labels.inviteByEmail', { email: companionDraft })}
+              </button>
+            </div>
+          )}
+
+          <div className="flex gap-2 mt-2 flex-wrap">
+            {(formData.companions || []).map((c, idx) => (
+              <div
+                key={idx}
+                className="px-2.5 py-1.5 rounded-md bg-background border border-border flex gap-1.5 items-center max-w-[200px]"
+              >
+                <span className="text-[0.875rem] overflow-hidden text-ellipsis whitespace-nowrap min-w-0">{c.name}</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      companions: prev.companions.filter((_, i) => i !== idx),
+                    }))
+                  }
+                  aria-label={t('labels.removeCompanion', { name: c.name })}
+                  className="bg-transparent border-none text-textSecondary cursor-pointer flex items-center p-0.5 shrink-0 hover:text-danger transition-colors"
+                >
+                  <X size={13} />
                 </button>
               </div>
             ))}
           </div>
-        )}
-
-        {companionResults.length === 0 && companionDraft && companionDraft.includes('@') && (
-          <div style={{ marginTop: 8 }}>
-            <button
-              type="button"
-              style={styles.secondaryBtnSm}
-              onClick={() => onAddCompanionFreeform(companionDraft)}
-            >
-              {t('labels.inviteByEmail', { email: companionDraft })}
-            </button>
-          </div>
-        )}
-
-        <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-          {(formData.companions || []).map((c, idx) => (
-              <div
-              key={idx}
-              style={{
-                padding: '5px 10px',
-                borderRadius: RADIUS.md,
-                background: COLORS.background,
-                border: `1px solid ${COLORS.border}`,
-                display: 'flex',
-                gap: 6,
-                alignItems: 'center',
-                maxWidth: '200px',
-              }}
-            >
-              <span style={{ fontSize: '0.875rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{c.name}</span>
-              <button
-                type="button"
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    companions: prev.companions.filter((_, i) => i !== idx),
-                  }))
-                }
-                aria-label={t('labels.removeCompanion', { name: c.name })}
-                style={{ background: 'transparent', border: 'none', color: COLORS.textSecondary, cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px', flexShrink: 0 }}
-              >
-                <X size={13} />
-              </button>
-            </div>
-          ))}
         </div>
-      </div>
       )}
     </div>
   );

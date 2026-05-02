@@ -1,25 +1,26 @@
+import { cn } from '@shared/lib/utils/cn';
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { motion as Motion } from 'framer-motion';
-import { useAuth } from '@app/providers/AuthContext';
-import { useToast } from '@app/providers/ToastContext';
-import { useUpload } from '@app/providers/UploadContext';
-import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
+import { useAuth } from '@features/auth';
+import { useToast } from '@shared/lib/hooks/useToast';
+import { useUpload } from '@features/viajes/upload';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
-import { styles } from './VisorViaje.styles';
-import EdicionModal from '@features/viajes/editor/ui/EdicionModal';
+import EdicionModal from '@features/viajes/editor/ui/EdicionModal/EdicionModal';
+
 import { useVisorViajeData } from './hooks/useVisorViajeData';
-import { useVisorViajeGallery } from './hooks/useVisorViajeGallery';
 import { useVisorViajeUI } from './hooks/useVisorViajeUI';
+import { useVisorViajeGallery } from './hooks/useVisorViajeGallery';
 import { useVisorViajeStory } from './hooks/useVisorViajeStory';
 import { useDocumentaryState } from './hooks/useDocumentaryState';
-import DocumentaryHero from './components/DocumentaryHero';
+
+import VisorContextSection from './components/VisorContextSection';
 import VisorStorySection from './components/VisorStorySection';
 import VisorGallerySection from './components/VisorGallerySection';
 import VisorTimelineSection from './components/VisorTimelineSection';
-import VisorContextSection from './components/VisorContextSection';
 import VisorRouteLayout from './components/VisorRouteLayout';
 import VisorDestinoLayout from './components/VisorDestinoLayout';
+import DocumentaryHero from './components/DocumentaryHero';
 
 const VisorViaje = ({
   viajeId,
@@ -35,7 +36,9 @@ const VisorViaje = ({
   const { usuario } = useAuth();
   const { pushToast } = useToast();
   const { getEstadoViaje, reintentarFoto } = useUpload();
-  const { isMobile } = useWindowSize(900);
+  // We keep isMobile here for structural component toggling (BottomSheet vs Modal in EdicionModal)
+  // but internal layout is handled by Tailwind responsive prefixes.
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 900 : false;
 
   const dataVM = useVisorViajeData({
     viajeId,
@@ -91,7 +94,6 @@ const VisorViaje = ({
       <VisorContextSection
         data={data}
         isMobile={isMobile}
-        styles={styles}
         carouselRef={uiVM.carouselRef}
         activeCarouselDot={uiVM.activeCarouselDot}
         onCarouselScroll={uiVM.handleCarouselScroll}
@@ -100,7 +102,6 @@ const VisorViaje = ({
     timeline: (
       <VisorTimelineSection
         paradas={paradas}
-        styles={styles}
         isMobile={isMobile}
         activeParadaIndex={docVM.activeIndex}
         hoveredIndex={uiVM.hoveredIndex}
@@ -110,10 +111,9 @@ const VisorViaje = ({
         galeria={galleryVM.galeria}
       />
     ),
-    story: <VisorStorySection stops={paradas} text={data.texto} styles={styles} />,
+    story: <VisorStorySection stops={paradas} text={data.texto} />,
     gallery: (
       <VisorGallerySection
-        styles={styles}
         isSharedTrip={isSharedTrip}
         showGalleryTools={galleryVM.showGalleryTools}
         onToggleGalleryTools={galleryVM.toggleGalleryTools}
@@ -138,10 +138,9 @@ const VisorViaje = ({
       animate={{ y: 0 }}
       exit={{ y: '100%' }}
       transition={{ type: 'spring', damping: 25 }}
-      style={styles.expandedOverlay}
+      className="fixed inset-0 bg-background z-[10000] overflow-y-auto"
     >
         <DocumentaryHero
-          styles={styles}
           isMobile={isMobile}
           fotoMostrada={storyVM.fotoMostrada}
           isBusy={isBusy}
@@ -160,7 +159,6 @@ const VisorViaje = ({
         {isRouteMode ? (
           <VisorRouteLayout
             isMobile={isMobile}
-            styles={styles}
             paradas={paradas}
             activeParadaIndex={docVM.activeIndex}
             mapSyncIndex={docVM.mapSyncIndex}
@@ -179,7 +177,6 @@ const VisorViaje = ({
         ) : (
           <VisorDestinoLayout
             isMobile={isMobile}
-            styles={styles}
             paradas={paradas}
             sections={sectionsVM}
             MapRoutePreview={MapRoutePreview}

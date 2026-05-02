@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { styles } from './EditorFocusPanel.styles';
-import { styles as edicionModalStyles } from './EdicionModal.styles';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { useEdicionModalLifecycle } from '../model/hooks/useEdicionModalLifecycle';
@@ -11,6 +9,7 @@ import { useEdicionModalSave } from '../model/hooks/useEdicionModalSave';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUpload } from '@app/providers/UploadContext';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
+import { cn } from '@shared/lib/utils/cn';
 
 // Import editor sections
 import EditableTripHeader from './components/EditableTripHeader';
@@ -294,7 +293,6 @@ const EditorFocusPanel = ({
     exit: { opacity: 0 },
   };
 
-  const panelStyle = isMobile ? styles.mobileSheet : styles.desktopPanel;
   const panelVariant = isMobile ? mobileVariants : desktopVariants;
 
   return (
@@ -302,120 +300,124 @@ const EditorFocusPanel = ({
       <AnimatePresence>
         {/* Scrim */}
         <Motion.div
-        key="scrim"
-        style={{
-          ...(isMobile ? styles.mobileScrim : styles.desktopScrim),
-          pointerEvents: isClosingAfterSave ? 'none' : 'auto',
-        }}
-        variants={scrimVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        transition={{ duration: 0.2 }}
-        onClick={handleClose}
-      />
-
-      {/* Panel */}
-      <Motion.div
-        key="panel"
-        style={{
-          ...panelStyle,
-          pointerEvents: isClosingAfterSave ? 'none' : 'auto',
-        }}
-        variants={panelVariant}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Scrollable Body */}
-        <div style={styles.scrollableBody} className="custom-scroll">
-          {/* Header Section (WYSIWYG) */}
-          <EditableTripHeader
-            formData={formDataWithFallback}
-            setFormData={effectiveSetFormData}
-            paradas={effectiveParadas}
-            galleryFiles={effectiveGalleryFiles}
-            setGalleryFiles={effectiveSetGalleryFiles}
-            isMobile={isMobile}
-            isProcessingImage={isProcessingImage}
-            onTituloChange={handleTituloChange}
-            isTituloAuto={autoTitleMode}
-            onRegenerateTitle={() => setAutoTitleMode(true)}
-          />
-
-          {/* Itinerary / Stops */}
-          {effectiveParadas !== undefined && (
-            <EdicionParadasSection
-              styles={edicionModalStyles}
-              t={t}
-              paradas={effectiveParadas}
-              setParadas={effectiveSetParadas}
-              fechaRangoDisplay={`${effectiveFormData.fechaInicio} - ${effectiveFormData.fechaFin}`}
-              tripStartDate={effectiveFormData.fechaInicio}
-              sinParadas={effectiveParadas.length === 0}
-              isReadOnlyMode={isReadOnlyMode}
-            />
+          key="scrim"
+          className={cn(
+            "fixed inset-0 z-[90] bg-black/20",
+            isMobile ? "bg-black/40" : "bg-black/20"
           )}
+          style={{
+            pointerEvents: isClosingAfterSave ? 'none' : 'auto',
+          }}
+          variants={scrimVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          transition={{ duration: 0.2 }}
+          onClick={handleClose}
+        />
 
-        </div>
+        {/* Panel */}
+        <Motion.div
+          key="panel"
+          className={cn(
+            "fixed bg-background z-[100] flex flex-col",
+            isMobile 
+              ? "inset-0" 
+              : "top-0 right-0 h-full w-[420px] shadow-2xl border-l border-border"
+          )}
+          style={{
+            pointerEvents: isClosingAfterSave ? 'none' : 'auto',
+          }}
+          variants={panelVariant}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Scrollable Body */}
+          <div className="flex-1 overflow-y-auto custom-scroll">
+            {/* Header Section (WYSIWYG) */}
+            <EditableTripHeader
+              formData={formDataWithFallback}
+              setFormData={effectiveSetFormData}
+              paradas={effectiveParadas}
+              galleryFiles={effectiveGalleryFiles}
+              setGalleryFiles={effectiveSetGalleryFiles}
+              isMobile={isMobile}
+              isProcessingImage={isProcessingImage}
+              onTituloChange={handleTituloChange}
+              isTituloAuto={autoTitleMode}
+              onRegenerateTitle={() => setAutoTitleMode(true)}
+            />
 
-        <div style={styles.stickyBottomActionBar}>
-          <button
-            onClick={handleClose}
-            style={styles.topBarSecondaryBtn}
-            disabled={isSavingManual}
-          >
-            {t('button.cancel') || 'Cancelar'}
-          </button>
-          <button
-            onClick={handleSaveWithLoading}
-            disabled={!canSave}
-            style={{
-              ...styles.topBarPrimaryBtn,
-              cursor: canSave ? 'pointer' : 'not-allowed',
-              opacity: canSave ? 1 : 0.5,
-            }}
-            aria-disabled={!canSave}
-            aria-label={
-              isReadOnlyMode
-                ? t(
-                    'common:operational.readOnlyBlockedAction',
-                    'Keeptrip is in Read-Only mode. Your data is safe, but edits are paused.'
-                  )
-                : !hasValidStops
-                  ? t('error.tripNeedsStop', 'El viaje debe tener al menos un destino')
-                  : !hasValidTitle
-                    ? t('error.tripNeedsTitle', 'El viaje debe tener un titulo')
-                    : !hasValidStartDate
-                      ? t('error.tripNeedsStartDate', 'El viaje debe tener fecha de inicio')
-                      : undefined
-            }
-            title={
-              isReadOnlyMode
-                ? t(
-                    'common:operational.readOnlyBlockedAction',
-                    'Keeptrip is in Read-Only mode. Your data is safe, but edits are paused.'
-                  )
-                : !hasValidStops
-                  ? t('error.tripNeedsStop', 'El viaje debe tener al menos un destino')
-                  : !hasValidTitle
-                    ? t('error.tripNeedsTitle', 'El viaje debe tener un titulo')
-                    : !hasValidStartDate
-                      ? t('error.tripNeedsStartDate', 'El viaje debe tener fecha de inicio')
-                      : ''
-            }
-          >
-            {isSavingManual && <LoaderCircle size={16} className="spin" />}
-            {t('button.save') || 'Guardar'}
-          </button>
-        </div>
+            {/* Itinerary / Stops */}
+            {effectiveParadas !== undefined && (
+              <EdicionParadasSection
+                t={t}
+                paradas={effectiveParadas}
+                setParadas={effectiveSetParadas}
+                fechaRangoDisplay={`${effectiveFormData.fechaInicio} - ${effectiveFormData.fechaFin}`}
+                tripStartDate={effectiveFormData.fechaInicio}
+                sinParadas={effectiveParadas.length === 0}
+                isReadOnlyMode={isReadOnlyMode}
+              />
+            )}
+          </div>
 
-      </Motion.div>
-    </AnimatePresence>
+          <div className="p-4 border-t border-border flex justify-end gap-3 bg-background sticky bottom-0 z-10">
+            <button
+              onClick={handleClose}
+              disabled={isSavingManual}
+              className="px-4 py-2 text-[0.875rem] font-bold text-textSecondary rounded-lg hover:bg-surface transition-colors disabled:opacity-50"
+            >
+              {t('button.cancel') || 'Cancelar'}
+            </button>
+            <button
+              onClick={handleSaveWithLoading}
+              disabled={!canSave}
+              className={cn(
+                "px-6 py-2 bg-atomicTangerine text-white rounded-full font-bold text-[0.875rem] shadow-sm transition-all flex items-center gap-2",
+                canSave ? "hover:shadow-md hover:bg-atomicTangerine/90 cursor-pointer" : "opacity-50 cursor-not-allowed"
+              )}
+              aria-disabled={!canSave}
+              aria-label={
+                isReadOnlyMode
+                  ? t(
+                      'common:operational.readOnlyBlockedAction',
+                      'Keeptrip is in Read-Only mode. Your data is safe, but edits are paused.'
+                    )
+                  : !hasValidStops
+                    ? t('error.tripNeedsStop', 'El viaje debe tener al menos un destino')
+                    : !hasValidTitle
+                      ? t('error.tripNeedsTitle', 'El viaje debe tener un titulo')
+                      : !hasValidStartDate
+                        ? t('error.tripNeedsStartDate', 'El viaje debe tener fecha de inicio')
+                        : undefined
+              }
+              title={
+                isReadOnlyMode
+                  ? t(
+                      'common:operational.readOnlyBlockedAction',
+                      'Keeptrip is in Read-Only mode. Your data is safe, but edits are paused.'
+                    )
+                  : !hasValidStops
+                    ? t('error.tripNeedsStop', 'El viaje debe tener al menos un destino')
+                    : !hasValidTitle
+                      ? t('error.tripNeedsTitle', 'El viaje debe tener un titulo')
+                      : !hasValidStartDate
+                        ? t('error.tripNeedsStartDate', 'El viaje debe tener fecha de inicio')
+                        : ''
+              }
+            >
+              {isSavingManual && <LoaderCircle size={16} className="animate-spin" />}
+              {t('button.save') || 'Guardar'}
+            </button>
+          </div>
+        </Motion.div>
+      </AnimatePresence>
 
-    {/* Unsaved Changes Confirmation Modal */}
+      {/* Unsaved Changes Confirmation Modal */}
     <ConfirmModal
       isOpen={showConfirmModal}
       title={t('unsavedChanges.title') || 'Discard changes?'}

@@ -5,13 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUI } from '@app/providers/UIContext';
-import { COLORS } from '@shared/config';
-import { styles } from './DashboardPage.styles';
-import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
-import { useLogStats } from '@features/gamification/model';
-import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { SkeletonList, TripCardSkeleton } from '@shared/ui/components/Skeletons';
+import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
+import { cn } from '@shared/lib/utils/cn';
+import { useLogStats } from '@features/gamification/model';
 
 import WelcomeBento from './components/WelcomeBento';
 import EmptyDashboardState from './components/EmptyDashboardState';
@@ -27,9 +25,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
   const { openBuscador } = useUI();
   const { t } = useTranslation('dashboard');
   const { t: tNav } = useTranslation('nav');
-  const { width } = useWindowSize();
-  const isDesktop = width >= 1024;
-  const isMobileLayout = !isDesktop;
+  const isMobileLayout = false; // Prop used for some subcomponents, but layout is CSS-driven
   useDocumentTitle(tNav('home'));
 
   const name = usuario?.displayName ? usuario.displayName.split(' ')[0] : t('fallbackName');
@@ -114,18 +110,18 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
 
 
   const mapFallback = (
-    <div style={styles.mapErrorFallback(isMobileLayout)} role="status" aria-live="polite">
-      <div style={styles.mapErrorBackdrop} aria-hidden="true">
-        <div style={styles.mapErrorGlowA} />
-        <div style={styles.mapErrorGlowB} />
-        <div style={styles.mapErrorGrid} />
+    <div className="relative w-full h-full min-h-[200px] md:min-h-[220px] flex justify-center items-center p-4 overflow-hidden bg-[#e0e6ed] rounded-2xl" role="status" aria-live="polite">
+      <div className="absolute inset-0 blur-[0.2px]" aria-hidden="true">
+        <div className="absolute w-[40%] aspect-square top-[10%] right-[25%] rounded-full bg-white blur-[30px] opacity-50" />
+        <div className="absolute w-[50%] aspect-square left-[10%] bottom-[10%] rounded-full bg-white blur-[40px] opacity-40" />
+        <div className="absolute inset-0 opacity-15 [background-image:linear-gradient(rgba(0,0,0,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.2)_1px,transparent_1px)] bg-[length:24px_24px] [mask-image:radial-gradient(circle_at_50%_50%,black_20%,transparent_80%)]" />
       </div>
-      <div style={styles.mapErrorPanel}>
-        <AlertTriangle size={20} color={COLORS.warning} />
-        <p style={styles.mapErrorText}>{t('mapUnavailable')}</p>
+      <div className="relative z-[1] flex flex-col items-center gap-3 p-4 text-center">
+        <AlertTriangle size={20} className="text-warning" />
+        <p className="m-0 text-[0.9rem] font-semibold text-text-secondary max-w-[34ch]">{t('mapUnavailable')}</p>
         <button
           type="button"
-          style={styles.mapRetryBtn}
+          className="border border-atomicTangerine/30 rounded-full bg-atomicTangerine text-white min-h-[44px] px-[18px] py-[10px] text-[0.86rem] font-bold cursor-pointer tracking-wide shadow-[0_10px_20px_theme(colors.atomicTangerine/0.4)]"
           onClick={() => setMapRenderKey((prev) => prev + 1)}
         >
           {t('retryMap')}
@@ -135,14 +131,14 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
   );
 
   const mapLoadingFallback = (
-    <div style={styles.mapErrorFallback(isMobileLayout)} role="status" aria-live="polite">
-      <div style={styles.mapErrorBackdrop} aria-hidden="true">
-        <div style={styles.mapErrorGlowA} />
-        <div style={styles.mapErrorGlowB} />
-        <div style={styles.mapErrorGrid} />
+    <div className="relative w-full h-full min-h-[200px] md:min-h-[220px] flex justify-center items-center p-4 overflow-hidden bg-[#e0e6ed] rounded-2xl" role="status" aria-live="polite">
+      <div className="absolute inset-0 blur-[0.2px]" aria-hidden="true">
+        <div className="absolute w-[40%] aspect-square top-[10%] right-[25%] rounded-full bg-white blur-[30px] opacity-50" />
+        <div className="absolute w-[50%] aspect-square left-[10%] bottom-[10%] rounded-full bg-white blur-[40px] opacity-40" />
+        <div className="absolute inset-0 opacity-15 [background-image:linear-gradient(rgba(0,0,0,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.2)_1px,transparent_1px)] bg-[length:24px_24px] [mask-image:radial-gradient(circle_at_50%_50%,black_20%,transparent_80%)]" />
       </div>
-      <div style={styles.mapErrorPanel}>
-        <p style={styles.mapErrorText}>{t('mapLoading')}</p>
+      <div className="relative z-[1] flex flex-col items-center gap-3 p-4 text-center">
+        <p className="m-0 text-[0.9rem] font-semibold text-text-secondary max-w-[34ch]">{t('mapLoading')}</p>
       </div>
     </div>
   );
@@ -154,8 +150,8 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
   };
 
   return (
-    <div style={styles.dashboardContainer(isDesktop)}>
-      <div style={styles.welcomeContainer(isDesktop)}>
+    <div className="w-full box-border min-w-0 flex flex-col gap-4 p-4 h-auto overflow-y-auto overflow-x-hidden lg:h-[100dvh] lg:overflow-hidden lg:grid lg:grid-cols-[minmax(350px,5fr)_minmax(400px,7fr)] lg:grid-rows-[min-content_1fr] lg:gap-6 lg:p-6">
+      <div className="min-w-0 w-full lg:col-start-1 lg:row-start-1 lg:self-stretch">
         <WelcomeBento 
           name={name}
           isMobile={isMobileLayout}
@@ -164,7 +160,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
         />
       </div>
 
-      <div style={styles.statsContainer(isDesktop)}>
+      <div className="min-w-0 w-full lg:col-start-2 lg:row-start-1 lg:self-stretch">
         <TravelStatsWidget
           logStats={logStatsDashboard}
           ariaLabel={t('stats.tripSummary')}
@@ -173,13 +169,13 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
         />
       </div>
 
-      <div style={styles.mapContainer(isDesktop)}>
-        <div style={styles.mapSection}>
-          <div style={styles.sectionHeader}>
-            <h2 style={styles.sectionTitle}>{t('explorationMap')}</h2>
+      <div className="min-w-0 w-full lg:col-start-2 lg:row-start-2 lg:min-h-0 lg:h-full">
+        <div className="flex flex-col gap-2 w-full h-full min-w-0 min-h-0">
+          <div className="flex items-center justify-between flex-shrink-0 gap-2 min-h-[44px]">
+            <h2 className="m-0 text-[0.8rem] font-extrabold text-charcoalBlue uppercase tracking-widest leading-none min-w-0 flex-1 font-heading">{t('explorationMap')}</h2>
             <Motion.button
               onClick={() => navigate('/map')}
-              style={styles.viewAllBtn}
+              className="flex items-center gap-1.5 bg-atomicTangerine/5 border border-atomicTangerine/15 cursor-pointer text-[0.82rem] font-extrabold text-atomicTangerine px-[18px] py-2 min-h-[40px] rounded-full whitespace-nowrap flex-shrink-0 transition-all duration-200 font-heading"
               aria-label={t('viewFullMap')}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -187,7 +183,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
               {t('viewFullMap')} <Map size={14} />
             </Motion.button>
           </div>
-          <div style={styles.mapCard(isDesktop)}>
+          <div className="flex items-center justify-center rounded-2xl overflow-hidden w-full min-w-0 min-h-0 shadow-md bg-background relative h-[240px] flex-shrink-0 lg:flex-1 lg:h-full">
             <ErrorBoundary fallback={mapFallback}>
               {isMapRequested ? (
                 <Suspense fallback={mapLoadingFallback}>
@@ -195,13 +191,13 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
                 </Suspense>
               ) : (
                 <div 
-                  style={{ ...styles.mapErrorFallback(isMobileLayout), width: '100%', height: '100%' }}
+                  className="relative w-full h-full min-h-[200px] md:min-h-[220px] flex justify-center items-center p-4 overflow-hidden bg-[#e0e6ed] rounded-2xl"
                   aria-label={t('map.tapToExploreMap')}
                 >
-                  <div style={styles.mapErrorBackdrop} aria-hidden="true">
-                    <div style={styles.mapErrorGlowA} />
-                    <div style={styles.mapErrorGlowB} />
-                    <div style={styles.mapErrorGrid} />
+                  <div className="absolute inset-0 blur-[0.2px]" aria-hidden="true">
+                    <div className="absolute w-[40%] aspect-square top-[10%] right-[25%] rounded-full bg-white blur-[30px] opacity-50" />
+                    <div className="absolute w-[50%] aspect-square left-[10%] bottom-[10%] rounded-full bg-white blur-[40px] opacity-40" />
+                    <div className="absolute inset-0 opacity-15 [background-image:linear-gradient(rgba(0,0,0,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.2)_1px,transparent_1px)] bg-[length:24px_24px] [mask-image:radial-gradient(circle_at_50%_50%,black_20%,transparent_80%)]" />
                   </div>
                 </div>
               )}
@@ -210,13 +206,13 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
         </div>
       </div>
 
-      <div style={styles.recentsContainer(isDesktop)}>
-        <div style={styles.sectionHeader}>
-          <h2 style={styles.sectionTitle}>{t('recentAdventures')}</h2>
+      <div className="flex flex-col gap-2 min-w-0 w-full lg:col-start-1 lg:row-start-2 lg:min-h-0 lg:h-full lg:overflow-hidden">
+        <div className="flex items-center justify-between flex-shrink-0 gap-2 min-h-[44px]">
+          <h2 className="m-0 text-[0.8rem] font-extrabold text-charcoalBlue uppercase tracking-widest leading-none min-w-0 flex-1 font-heading">{t('recentAdventures')}</h2>
           {log.length > 0 && (
             <Motion.button
               onClick={() => navigate('/trips')}
-              style={styles.viewAllBtn}
+              className="flex items-center gap-1.5 bg-atomicTangerine/5 border border-atomicTangerine/15 cursor-pointer text-[0.82rem] font-extrabold text-atomicTangerine px-[18px] py-2 min-h-[40px] rounded-full whitespace-nowrap flex-shrink-0 transition-all duration-200 font-heading"
               aria-label={t('viewAllTripSummary')}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -230,13 +226,13 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
           {loading ? (
             <SkeletonList count={2} Component={TripCardSkeleton} />
           ) : isError ? (
-            <div style={styles.dashboardErrorCard} role="status" aria-live="polite">
-              <WifiOff size={18} color={COLORS.warning} />
-              <p style={styles.dashboardErrorText}>
+            <div className="col-span-full flex flex-col items-start gap-2 p-3.5 rounded-lg border border-border bg-gradient-to-b from-white to-background shadow-sm min-w-0" role="status" aria-live="polite">
+              <WifiOff size={18} className="text-warning" />
+              <p className="m-0 text-[0.9rem] leading-tight font-bold text-text-primary">
                 {t('loadTripsError')}
               </p>
               {fetchError?.message && (
-                <p style={styles.dashboardErrorHint}>{fetchError.message}</p>
+                <p className="m-0 text-[0.8rem] leading-tight text-text-secondary break-all">{fetchError.message}</p>
               )}
             </div>
           ) : !isNewTraveler ? (
@@ -245,11 +241,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
               return (
                 <div 
                   key={trip.id} 
-                  style={{ 
-                    minHeight: 0, 
-                    height: '100%', 
-                    overflow: 'hidden'
-                  }}
+                  className="min-h-0 h-full overflow-hidden"
                 >
                   <TripCard 
                     trip={enrichedTrip} 

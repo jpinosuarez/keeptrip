@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import { Search, X, MapPin, Plus, TrendingUp, Globe } from "lucide-react";
-import { COLORS, RADIUS } from '@shared/config';
-import { styles } from "./SearchModal.styles";
+import { cn } from '@shared/lib/utils/cn';
 import { getFlagUrl } from '@shared/lib/utils/countryUtils';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
@@ -176,55 +175,51 @@ const SearchModal = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        style={styles.modalOverlay(isMobile)}
+        className={cn(
+          "fixed inset-0 z-[12000] bg-black/40 backdrop-blur-sm flex justify-center",
+          isMobile ? "items-stretch" : "items-start pt-[100px] p-4"
+        )}
         onClick={onClose}
       >
         <Motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 20, opacity: 0 }}
-          style={styles.modalContent(isMobile)}
+          className={cn(
+            "bg-white w-full max-w-full overflow-hidden shadow-2xl flex flex-col",
+            isMobile ? "h-screen" : "md:w-[min(500px,100%)] md:h-auto md:max-h-[80vh] rounded-3xl"
+          )}
           onClick={(e) => e.stopPropagation()}
         >
-          <div style={styles.header}>
-            <h3 style={styles.title}>{t('search:title')}</h3>
-            <button type="button" onClick={onClose} style={{ ...styles.clearButton, background: 'none' }} aria-label={t('search:close')}>
-              <X size={20} color={COLORS.charcoalBlue} />
+          <div className="p-5 flex justify-between items-center">
+            <h3 className="m-0 text-[1.1rem] text-charcoalBlue font-black font-heading">{t('search:title')}</h3>
+            <button type="button" onClick={onClose} className="w-11 h-11 p-0 flex items-center justify-center border-none bg-none cursor-pointer text-charcoalBlue" aria-label={t('search:close')}>
+              <X size={20} />
             </button>
           </div>
 
-          <div style={styles.searchBox}>
-            <Search size={18} color={COLORS.atomicTangerine} />
+          <div className="mx-5 mb-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-2.5 focus-within:border-atomicTangerine focus-within:ring-1 focus-within:ring-atomicTangerine transition-all">
+            <Search size={18} className="text-atomicTangerine shrink-0" />
             <input
               ref={inputRef}
               autoFocus
               placeholder={t('search:inputPlaceholder')}
-              style={styles.inputStyle}
+              className="w-full min-h-[44px] bg-transparent border-none outline-none text-base font-medium text-charcoalBlue placeholder:text-text-secondary/50"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               aria-label={t('search:inputAria')}
               disabled={isSearchPaused}
             />
             {query && (
-              <button type="button" onClick={() => setQuery("")} style={styles.clearButton} aria-label={t('search:clear')}>
+              <button type="button" onClick={() => setQuery("")} className="w-11 h-11 p-0 flex items-center justify-center border-none bg-none cursor-pointer text-text-secondary" aria-label={t('search:clear')}>
                 <X size={18} />
               </button>
             )}
           </div>
 
-          <div style={styles.listaContainer(isMobile)} className="custom-scroll">
+          <div className={cn("custom-scroll", isMobile ? "max-h-none" : "max-h-[300px] md:max-h-[400px]", "overflow-y-auto flex-1")}>
             {isSearchPaused && (
-              <div style={{
-                margin: '16px 20px',
-                padding: '14px 16px',
-                borderRadius: RADIUS.md,
-                border: `1px solid ${COLORS.border}`,
-                background: 'rgba(255, 107, 53, 0.08)',
-                color: COLORS.charcoalBlue,
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                textAlign: 'center',
-              }}>
+              <div className="mx-5 my-4 p-3.5 rounded-xl border border-slate-200 bg-atomicTangerine/10 text-charcoalBlue text-[0.9rem] font-semibold text-center">
                 {t(
                   'search:pausedMessage',
                   'Search temporarily paused while we stabilize map services. Your saved trips remain available.'
@@ -234,17 +229,17 @@ const SearchModal = ({
 
             {/* Popular destinations — no query */}
             {!query && (
-              <div style={{ padding: "20px" }}>
-                <p style={{ fontSize: "0.75rem", fontWeight: "700", color: COLORS.mutedTeal, marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px", letterSpacing: "0.5px" }}>
+              <div className="p-5">
+                <p className="text-[0.75rem] font-bold text-mutedTeal mb-3 flex items-center gap-1.5 tracking-wider uppercase">
                   <TrendingUp size={14} /> {t('search:popularTitle')}
                 </p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                <div className="flex flex-wrap gap-2.5">
                   {POPULAR_DESTINATIONS.map((dest) => (
-                    <button key={dest.key} onClick={() => handleSelectPopular(dest)} style={styles.tagBtn}>
+                    <button key={dest.key} onClick={() => handleSelectPopular(dest)} className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-full text-[0.9rem] font-bold text-charcoalBlue hover:bg-slate-50 transition-all">
                       <img
                         src={`https://flagcdn.com/w32/${dest.code.toLowerCase()}.png`}
                         alt=""
-                        style={{ width: '24px', height: '24px', objectFit: 'cover', borderRadius: RADIUS.full, verticalAlign: 'middle', flexShrink: 0 }}
+                        className="w-6 h-6 object-cover rounded-full shrink-0"
                         onError={(e) => { e.target.style.display = 'none'; }}
                       />
                       {t(`search:popular.${dest.key}`)}
@@ -256,42 +251,29 @@ const SearchModal = ({
 
             {/* Minimum characters hint */}
             {query && query.length < 3 && !loading && !isSearchPaused && (
-              <div style={{
-                textAlign: 'center',
-                padding: '24px 20px',
-                color: COLORS.textSecondary,
-                fontSize: '0.88rem',
-                fontWeight: 500,
-              }}>
+              <div className="text-center p-6 text-text-secondary text-[0.88rem] font-medium">
                 {t('search:minChars')}
               </div>
             )}
 
             {/* Skeleton loading state */}
             {loading && !isSearchPaused && (
-              <div style={{ padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className="p-5 flex flex-col gap-2">
                 {[0, 1, 2].map(i => (
                   <div
                     key={i}
-                    style={{
-                      height: '52px',
-                      borderRadius: RADIUS.md,
-                      background: `linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.07) 50%, rgba(0,0,0,0.04) 75%)`,
-                      backgroundSize: '200% 100%',
-                      animation: `shimmer 1.5s ease infinite`,
-                    }}
+                    className="h-[52px] rounded-xl bg-slate-100 animate-pulse"
                   />
                 ))}
-                <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
               </div>
             )}
 
             {/* Empty state */}
             {results.length === 0 && query && query.length >= 3 && !loading && !isSearchPaused && (
-              <div style={styles.emptyState}>
-                <Search size={44} style={styles.emptyIcon} />
-                <div style={styles.emptyText}>{t('search:noResults', { term: query })}</div>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textSecondary }}>{t('search:emptyHelp')}</div>
+              <div className="flex flex-col items-center justify-center gap-3 py-10 text-text-secondary">
+                <Search size={44} className="text-mutedTeal" />
+                <div className="text-base font-semibold text-center text-mutedTeal">{t('search:noResults', { term: query })}</div>
+                <div className="text-[0.9rem] text-text-secondary">{t('search:emptyHelp')}</div>
               </div>
             )}
 
@@ -303,22 +285,19 @@ const SearchModal = ({
                   key={item.id || `search-result-${itemIdx}`}
                   role="button"
                   tabIndex={0}
-                  style={styles.resultItem}
+                  className="relative flex items-center gap-3.5 px-5 py-3 cursor-pointer hover:bg-slate-50 transition-colors group"
                   onClick={() => handleSelect(item)}
                   onKeyDown={(e) => handleResultKeyDown(e, item)}
-                  className="result-item-hover"
                 >
-                  <div style={styles.iconBox(item.type === "country")}> 
+                  <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                    item.type === "country" ? "bg-atomicTangerine/15 text-atomicTangerine" : "bg-mutedTeal/15 text-mutedTeal"
+                  )}> 
                     {flagUrl ? (
                       <img
                         src={flagUrl}
                         alt=""
-                        style={{
-                          width: '28px',
-                          height: '28px',
-                          objectFit: 'cover',
-                          borderRadius: '50%',
-                        }}
+                        className="w-[28px] h-[28px] object-cover rounded-full"
                       />
                     ) : item.type === "country" ? (
                       <Globe size={18} />
@@ -326,13 +305,12 @@ const SearchModal = ({
                       <MapPin size={18} />
                     )}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <span style={styles.countryName}>{item.name}</span>
-                    <span style={styles.subtext}>{item.type === "country" ? t('search:country') : item.countryName}</span>
+                  <div className="flex-1">
+                    <span className="block font-bold text-charcoalBlue">{item.name}</span>
+                    <span className="block text-[0.8rem] text-text-secondary">{item.type === "country" ? t('search:country') : item.countryName}</span>
                   </div>
                   <div
-                    className="add-label"
-                    style={styles.addLabel}
+                    className="absolute right-4 opacity-0 group-hover:opacity-100 flex items-center gap-1.5 px-3 py-1.5 rounded-full border-[1.5px] border-atomicTangerine text-atomicTangerine text-[0.75rem] font-bold transition-all"
                     role="button"
                     aria-label={t('common:add')}
                   >
