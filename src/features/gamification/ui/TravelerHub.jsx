@@ -1,12 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion as Motion } from 'framer-motion';
 import { getTravelerLevel, getNextLevel, TRAVELER_LEVELS } from '../model/travelerLevel';
-import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
+import { cn } from '@shared/lib/utils/cn';
 import AchievementsGrid from './AchievementsGrid';
-// DEPRECATED: TravelStatsWidget - now uses new API with logStats hook and variant prop
-// import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
-import { styles } from './TravelerHub.styles';
-import { COLORS, RADIUS } from '@shared/config';
 import { useTranslation } from 'react-i18next';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
 import { Share } from 'lucide-react';
@@ -36,7 +32,6 @@ const injectShimmerCSS = () => {
  * - AchievementsGrid with 3D Prestige Tokens
  */
 const TravelerHub = ({ paisesVisitados, achievementsWithProgress }) => {
-  const { isMobile } = useWindowSize(768);
   const { t } = useTranslation('hub');
   const { t: tNav } = useTranslation('nav');
   useDocumentTitle(tNav('hub'));
@@ -49,10 +44,6 @@ const TravelerHub = ({ paisesVisitados, achievementsWithProgress }) => {
   const next  = getNextLevel(countryCount);
   const { pushToast } = useToast();
   
-  // DEPRECATED: statsArray - used for old TravelStatsWidget integration
-  // Stats are now properly integrated in DashboardPage and TripsPage
-
-  // ── Confetti on first unlock detection (Guardrail #3) ──
   const prevUnlockedCount = useRef(null);
 
   useEffect(() => {
@@ -60,11 +51,10 @@ const TravelerHub = ({ paisesVisitados, achievementsWithProgress }) => {
     const currentUnlocked = achievementsWithProgress.filter((a) => a.unlocked).length;
 
     if (prevUnlockedCount.current !== null && currentUnlocked > prevUnlockedCount.current) {
-      // New achievement unlocked — fire confetti in tier color
       const lastUnlocked = achievementsWithProgress.filter((a) => a.unlocked).at(-1);
       const tierColor = lastUnlocked
         ? { bronze: '#CD7F32', silver: '#94A3B8', gold: '#FBBF24', platinum: '#8B5CF6', diamond: '#22D3EE' }[lastUnlocked.tier]
-        : COLORS.atomicTangerine;
+        : '#ff7e42';
 
       import('canvas-confetti').then(({ default: confetti }) => {
         confetti({
@@ -89,7 +79,7 @@ const TravelerHub = ({ paisesVisitados, achievementsWithProgress }) => {
     const url = window.location.href;
     if (navigator.share) {
       try { await navigator.share({ title: tNav('hub'), url }); } catch {
-        // Shareexnıot available
+        // Share not available
       }
     } else if (navigator.clipboard) {
       try {
@@ -104,17 +94,16 @@ const TravelerHub = ({ paisesVisitados, achievementsWithProgress }) => {
   const progressPercent = Math.round((next.progress || 0) * 100);
 
   return (
-    <div style={styles.container(isMobile)}>
-      <div style={styles.scrollArea} className="custom-scroll">
+    <div className="w-full h-full flex flex-col md:pr-5 md:pb-5 overflow-hidden box-border">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1.5 pb-10 custom-scroll">
 
         {/* ── Glassmorphic Hero Card ── */}
         <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+          className="relative px-6 py-[22px] md:px-8 md:py-6 rounded-3xl mb-5 flex flex-wrap items-center justify-between gap-[18px] overflow-hidden"
           style={{
-            ...styles.heroCard(level.color),
-            // Glassmorphic overlay
             background: `linear-gradient(135deg, ${level.color}22, ${level.color}08)`,
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
@@ -123,92 +112,81 @@ const TravelerHub = ({ paisesVisitados, achievementsWithProgress }) => {
           }}
         >
           {/* Ambient glow blob */}
-          <div style={{
-            position: 'absolute',
-            width: '220px',
-            height: '220px',
-            borderRadius: '50%',
-            background: `radial-gradient(circle, ${level.color}40, transparent 70%)`,
-            top: '-60px',
-            right: '-60px',
-            pointerEvents: 'none',
-          }} />
+          <div 
+            className="absolute w-[220px] h-[220px] rounded-full top-[-60px] right-[-60px] pointer-events-none"
+            style={{
+              background: `radial-gradient(circle, ${level.color}40, transparent 70%)`,
+            }} 
+          />
 
-          <div style={styles.heroLeft}>
-            {/* Level Icon — floating on a glowing ring */}
-            <div style={{
-              position: 'relative',
-              width: '72px',
-              height: '72px',
-              flexShrink: 0,
-            }}>
-              {/* Ring glow */}
-              <div style={{
-                position: 'absolute',
-                inset: 0,
-                borderRadius: '50%',
-                border: `3px solid ${level.color}60`,
-                boxShadow: `0 0 16px ${level.color}60, inset 0 0 8px ${level.color}30`,
-              }} />
-              <div style={{
-                position: 'absolute',
-                inset: '8px',
-                borderRadius: '50%',
-                background: `radial-gradient(circle, ${level.color}30, transparent)`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '2.2rem',
-                lineHeight: 1,
-              }}>
-                {level.icon}
+          <div className="flex flex-col gap-2 z-[1]">
+            <div className="flex items-center gap-4">
+              {/* Level Icon — floating on a glowing ring */}
+              <div className="relative w-[72px] h-[72px] shrink-0">
+                {/* Ring glow */}
+                <div 
+                  className="absolute inset-0 rounded-full border-[3px]"
+                  style={{
+                    borderColor: `${level.color}60`,
+                    boxShadow: `0 0 16px ${level.color}60, inset 0 0 8px ${level.color}30`,
+                  }} 
+                />
+                <div 
+                  className="absolute inset-2 rounded-full flex items-center justify-center text-[2.2rem] leading-none"
+                  style={{
+                    background: `radial-gradient(circle, ${level.color}30, transparent)`,
+                  }}
+                >
+                  {level.icon}
+                </div>
+              </div>
+
+              <div>
+                <h2 className="m-0 text-2xl font-black text-charcoalBlue leading-tight font-heading">{level.label}</h2>
+                <p className="m-0 text-[0.85rem] font-bold text-text-primary font-body">
+                  {next.level
+                    ? `${next.remaining} ${next.remaining !== 1 ? t('goals.units.countries_other') : t('goals.units.countries_one')} para ${next.level.label}`
+                    : t('progress.maxLevel')}
+                </p>
               </div>
             </div>
 
-            <div>
-              <h2 style={styles.heroLabel}>{level.label}</h2>
-              <p style={styles.heroSublabel}>
-                {next.level
-                  ? `${next.remaining} ${next.remaining !== 1 ? t('goals.units.countries_other') : t('goals.units.countries_one')} para ${next.level.label}`
-                  : t('progress.maxLevel')}
-              </p>
-
-              {/* Progress bar */}
-              {next.level && (
-                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={styles.heroProgressOuter}>
-                    <Motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${progressPercent}%` }}
-                      transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
-                      style={styles.heroProgressInner(level.color)}
-                    />
-                  </div>
-                  <span style={{ fontSize: '0.72rem', fontWeight: '800', color: level.color }}>
-                    {progressPercent}%
-                  </span>
+            {/* Progress bar */}
+            {next.level && (
+              <div className="mt-2.5 flex items-center gap-2">
+                <div className="w-[200px] max-w-full h-2 rounded-full bg-black/10 overflow-hidden">
+                  <Motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progressPercent}%` }}
+                    transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
+                    className="h-full rounded-full transition-all duration-1000 ease-out"
+                    style={{ background: level.color }}
+                  />
                 </div>
-              )}
-            </div>
+                <span className="text-[0.72rem] font-black" style={{ color: level.color }}>
+                  {progressPercent}%
+                </span>
+              </div>
+            )}
           </div>
 
-          <div style={styles.heroRight}>
+          <div className="flex items-center gap-3 z-[1] flex-wrap">
             <Motion.button
               type="button"
               onClick={handleShare}
-              style={styles.shareBtn}
+              className="w-11 h-11 p-0 border-none bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white cursor-pointer shadow-lg transition-all"
               aria-label={t('share')}
               title={t('share')}
               whileHover={{ scale: 1.12 }}
               whileTap={{ scale: 0.9 }}
             >
-              <Share size={18} />
+              <Share size={18} className="text-charcoalBlue" />
             </Motion.button>
 
             <Motion.button
               type="button"
               onClick={() => setShowLevels(true)}
-              style={styles.levelsBtn}
+              className="px-6 py-2.5 rounded-full bg-white text-charcoalBlue font-black text-[0.7rem] uppercase tracking-widest shadow-lg border-none cursor-pointer"
               aria-label={t('levels.viewAll')}
               title={t('levels.viewAll')}
               whileHover={{ scale: 1.05 }}
@@ -219,55 +197,42 @@ const TravelerHub = ({ paisesVisitados, achievementsWithProgress }) => {
           </div>
         </Motion.div>
 
-        {/* ── Global Stats ── */}
-        {/* DEPRECATED: TravelStatsWidget integration removed - use DashboardPage or TripsPage for updated stats display */}
-        {/* Stats are now properly displayed in:
-            - Home: DashboardPage (via WelcomeBento with variant="home")
-            - Trips: TripsPage (via TripCommandBar with variant="trips")
-        */}
-
         {/* ── Achievement Grid ── */}
-        <AchievementsGrid achievementsWithProgress={achievementsWithProgress} isMobile={isMobile} />
+        <AchievementsGrid achievementsWithProgress={achievementsWithProgress} />
 
         <BottomSheet isOpen={showLevels} onClose={() => setShowLevels(false)} ariaLabel={t('levels.title')}>
           <BottomSheetHeader />
           <BottomSheetContent>
-            <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: COLORS.charcoalBlue }}>
+            <div className="p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="m-0 text-[1.1rem] font-black text-charcoalBlue font-heading">
                   {t('levels.title')}
                 </h3>
                 <button
                   type="button"
                   onClick={() => setShowLevels(false)}
-                  style={{
-                    border: 'none',
-                    background: 'none',
-                    color: COLORS.textSecondary,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    padding: 0,
-                  }}
+                  className="border-none bg-none text-text-secondary font-bold cursor-pointer p-0"
                 >
                   {t('common.close')}
                 </button>
               </div>
               {TRAVELER_LEVELS.map((lvl) => (
-                <div key={lvl.id} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '12px',
-                  borderRadius: RADIUS.lg,
-                  background: lvl.id === level.id ? `${lvl.color}20` : 'rgba(255,255,255,0.6)',
-                  border: lvl.id === level.id ? `1px solid ${lvl.color}` : '1px solid rgba(0,0,0,0.08)',
-                }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: lvl.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
+                <div key={lvl.id} 
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-2xl border transition-all",
+                    lvl.id === level.id ? "border-solid" : "border-black/5 bg-white/60"
+                  )}
+                  style={{
+                    backgroundColor: lvl.id === level.id ? `${lvl.color}20` : undefined,
+                    borderColor: lvl.id === level.id ? lvl.color : undefined,
+                  }}
+                >
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-[1.2rem] shrink-0 shadow-sm" style={{ backgroundColor: lvl.color }}>
                     {lvl.icon}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 800, color: COLORS.charcoalBlue }}>{lvl.label}</div>
-                    <div style={{ fontSize: '0.8rem', color: COLORS.textSecondary }}>
+                  <div className="flex-1">
+                    <div className="font-black text-charcoalBlue leading-tight">{lvl.label}</div>
+                    <div className="text-[0.8rem] text-text-secondary">
                       {t('levels.requirement', { count: lvl.min })}
                     </div>
                   </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
-import { COLORS, RADIUS, FONTS, SHADOWS } from '@shared/config';
+import { cn } from '@shared/lib/utils/cn';
 import { TIER_COLORS, TIER_GLOW } from '../model/achievementDefinitions';
 import { useTranslation } from 'react-i18next';
 
@@ -56,7 +56,7 @@ const ProgressRing = ({ progress, color, size = 72, stroke = 5 }) => {
 
 const AchievementCard = ({ achievement, isMobile = false }) => {
   const { icon, tier, progress, current, unlocked, criteria } = achievement;
-  const tierColor  = TIER_COLORS[tier] || COLORS.textSecondary;
+  const tierColor  = TIER_COLORS[tier] || '#64748b';
   const tierGlow   = TIER_GLOW[tier]   || 'rgba(0,0,0,0.1)';
   const { t } = useTranslation('hub');
 
@@ -74,10 +74,17 @@ const AchievementCard = ({ achievement, isMobile = false }) => {
       transition={{ type: 'spring', stiffness: 200, damping: 18 }}
       whileHover={unlocked ? { scale: 1.06, y: -3 } : { scale: 1.02 }}
       whileTap={{ scale: 0.96 }}
-      style={styles.card(unlocked, tierColor)}
+      className={cn(
+        "flex flex-col items-center text-center gap-3 rounded-3xl p-3.5 md:p-4 min-w-0 overflow-hidden relative transition-all duration-200 border",
+        unlocked ? "shadow-sm" : "shadow-none"
+      )}
+      style={{
+        background: unlocked ? `linear-gradient(145deg, #fff 0%, ${tierColor}08 100%)` : '#fafafa',
+        borderColor: unlocked ? `${tierColor}40` : 'rgba(0,0,0,0.06)'
+      }}
     >
       {/* ── Prestige Token ── */}
-      <div style={{ position: 'relative', width: tokenSize, height: tokenSize, flexShrink: 0 }}>
+      <div className={cn("relative shrink-0", isMobile ? "w-[60px] h-[60px]" : "w-[72px] h-[72px]")}>
         {/* SVG Ring (locked only) */}
         {!unlocked && (
           <ProgressRing
@@ -90,35 +97,27 @@ const AchievementCard = ({ achievement, isMobile = false }) => {
 
         {/* Hexagonal token shell */}
         <div
+          className="absolute inset-2 rounded-[20px] flex items-center justify-center overflow-hidden"
           style={{
-            position: 'absolute',
-            inset: '8px',
-            borderRadius: RADIUS.xl,
             background: unlocked
               ? `radial-gradient(circle at 35% 35%, ${tierColor}CC, ${tierColor}88)`
               : `rgba(0, 0, 0, 0.05)`,
             boxShadow: unlocked
               ? `0 4px 20px ${tierGlow}, inset 0 1px 0 rgba(255,255,255,0.4)`
               : 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
           }}
         >
           {/* Shimmer sweep (unlocked only) */}
           {unlocked && (
-            <div style={styles.shimmer} aria-hidden="true" />
+            <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.55)_50%,transparent_60%)] animate-[shimmerSweep_2.4s_ease-in-out_infinite] z-0" aria-hidden="true" />
           )}
 
           <span
-            style={{
-              fontSize: isMobile ? '1.6rem' : '2rem',
-              filter: unlocked ? 'none' : 'grayscale(1) opacity(0.25)',
-              position: 'relative',
-              zIndex: 1,
-              lineHeight: 1,
-            }}
+            className={cn(
+              "leading-none z-[1] relative",
+              isMobile ? "text-[1.6rem]" : "text-[2rem]",
+              !unlocked && "grayscale opacity-25"
+            )}
           >
             {icon}
           </span>
@@ -126,17 +125,23 @@ const AchievementCard = ({ achievement, isMobile = false }) => {
       </div>
 
       {/* ── Text content ── */}
-      <div style={styles.textBlock}>
-        <h4 style={{ ...styles.name, color: unlocked ? COLORS.charcoalBlue : COLORS.textSecondary }}>
+      <div className="flex flex-col items-center gap-1.5 w-full min-w-0 flex-1">
+        <h4 className={cn(
+          "m-0 text-[0.82rem] font-black font-heading leading-[1.3] line-clamp-2 w-full",
+          unlocked ? "text-charcoalBlue" : "text-text-secondary"
+        )}>
           {name}
         </h4>
 
         {unlocked ? (
           <>
-            <span style={{ ...styles.tierTag, background: `${tierColor}20`, color: tierColor, border: `1px solid ${tierColor}40` }}>
+            <span 
+              className="inline-flex px-3 py-1 rounded-full text-[0.65rem] font-black font-heading uppercase border items-center w-fit min-h-[32px]"
+              style={{ background: `${tierColor}20`, color: tierColor, borderColor: `${tierColor}40` }}
+            >
               {tierLabel}
             </span>
-            <span style={styles.criteriaLabel}>
+            <span className="text-[0.65rem] text-text-secondary font-medium mt-0.5">
               {t('achievements.criteriaMet', {
                 count: criteria.threshold,
                 unit:
@@ -155,23 +160,24 @@ const AchievementCard = ({ achievement, isMobile = false }) => {
         ) : (
           <>
             {description ? (
-              <p style={styles.description}>{description}</p>
+              <p className="m-0 text-[0.7rem] text-charcoalBlue/70 leading-[1.3] font-body line-clamp-2">{description}</p>
             ) : null}
-            <div style={styles.progressRow}>
-              <div style={styles.progressTrack}>
+            <div className="flex items-center gap-1.5 w-full mt-1">
+              <div className="flex-1 h-1 rounded-full bg-black/10 overflow-hidden">
                 <Motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPct}%` }}
                   transition={{ duration: 0.8, ease: 'easeOut' }}
-                  style={{ ...styles.progressFill, background: tierColor }}
+                  className="h-full rounded-full"
+                  style={{ background: tierColor }}
                 />
               </div>
-              <span style={{ ...styles.progressLabel, color: tierColor }}>
+              <span className="text-[0.68rem] font-black font-mono whitespace-nowrap" style={{ color: tierColor }}>
                 {progressPct}%
               </span>
             </div>
             {criteria.threshold > 1 && (
-              <span style={styles.countLabel}>{current} / {criteria.threshold}</span>
+              <span className="text-[0.65rem] text-text-secondary font-mono mt-0.5">{current} / {criteria.threshold}</span>
             )}
           </>
         )}

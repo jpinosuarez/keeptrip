@@ -3,8 +3,7 @@ import { motion as Motion } from 'framer-motion';
 
 import { useAuth } from '@app/providers/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
-import { styles } from './NavBar.styles';
+
 
 const AuthModal = React.lazy(() => import('@features/auth/ui/AuthModal'));
 
@@ -23,17 +22,18 @@ const hoverScaleVariants = {
 const NavBar = () => {
   const { login } = useAuth();
   const { t } = useTranslation(['common']);
-  const { isMobile } = useWindowSize();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   return (
     <>
-      <Motion.nav style={styles.nav(isMobile)} variants={itemVariants}>
-        <div style={styles.logo}>Keeptrip</div>
+      <Motion.nav 
+        className="sticky top-0 z-[100] w-full flex items-center justify-between px-6 md:px-12 py-5 bg-white/80 backdrop-blur-xl"
+        variants={itemVariants}
+      >
+        <div className="text-[1.6rem] font-black text-charcoalBlue tracking-[-1.2px] font-heading">Keeptrip</div>
         <Motion.button
           onClick={() => setIsAuthModalOpen(true)}
-          className="tap-btn"
-          style={styles.loginBtn}
+          className="tap-btn px-7 py-3 border-2 border-atomicTangerine bg-transparent text-atomicTangerine rounded-full font-extrabold cursor-pointer min-h-[48px] text-[0.95rem] font-heading"
           variants={hoverScaleVariants}
           whileHover="hover"
           whileTap="tap"

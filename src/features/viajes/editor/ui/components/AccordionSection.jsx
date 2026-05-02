@@ -1,18 +1,12 @@
 import React, { useState } from 'react';
 import { motion as Motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import { COLORS, RADIUS, FONTS } from '@shared/config';
+import { cn } from '@shared/lib/utils/cn';
 
 /**
- * AccordionSection — reemplaza <details>/<summary> nativos.
- * Usa AnimatePresence + height:'auto' para una apertura suave.
- * Respeta prefers-reduced-motion.
- *
- * Props:
- *   title     — string mostrado en el header
- *   badge     — string corto (ej: "3") que indica datos rellenos; null = sin badge
- *   defaultOpen — boolean, false por defecto
- *   children  — contenido del acordeón
+ * AccordionSection — replaces native <details>/<summary>.
+ * Uses AnimatePresence + height:'auto' for smooth opening.
+ * Respects prefers-reduced-motion.
  */
 const EASE_OUT_QUART = [0.25, 1, 0.5, 1];
 
@@ -33,39 +27,23 @@ const AccordionSection = ({ title, badge, defaultOpen = false, children }) => {
     : { duration: 0.22, ease: EASE_OUT_QUART };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div className="flex flex-col gap-2">
       {/* Header toggle */}
       <Motion.button
         type="button"
         onClick={() => setIsOpen((o) => !o)}
         aria-expanded={isOpen}
         aria-controls={panelId}
-        whileHover={{ backgroundColor: COLORS.borderLight + '60' }}
+        whileHover={{ backgroundColor: 'rgba(238, 242, 246, 0.4)' }}
         whileTap={{ scale: 0.985 }}
         transition={{ duration: 0.15 }}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '10px 14px',
-          background: COLORS.background,
-          border: `1px solid ${COLORS.border}`,
-          borderRadius: RADIUS.md,
-          cursor: 'pointer',
-          gap: '8px',
-          fontFamily: FONTS.heading,
-          fontWeight: '700',
-          fontSize: '0.9rem',
-          color: COLORS.textPrimary,
-          textAlign: 'left',
-          boxSizing: 'border-box',
-          borderBottomColor: isOpen ? COLORS.borderLight : COLORS.border,
-          transition: 'border-color 200ms ease',
-        }}
+        className={cn(
+          "w-full flex items-center justify-between p-3.5 bg-background border border-border rounded-md cursor-pointer gap-2 font-bold text-[0.9rem] text-textPrimary text-left box-border transition-colors duration-200",
+          isOpen ? "border-b-borderLight" : "border-border"
+        )}
       >
         {/* Título + badge de datos */}
-        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span className="flex items-center gap-2">
           {title}
           <AnimatePresence>
             {badge && (
@@ -75,17 +53,7 @@ const AccordionSection = ({ title, badge, defaultOpen = false, children }) => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.7 }}
                 transition={{ duration: 0.15 }}
-                style={{
-                  fontSize: '0.68rem',
-                  fontWeight: '800',
-                  letterSpacing: '0.3px',
-                  background: `${COLORS.atomicTangerine}1A`,
-                  color: COLORS.atomicTangerine,
-                  borderRadius: RADIUS.full,
-                  padding: '2px 8px',
-                  lineHeight: 1.6,
-                  border: `1px solid ${COLORS.atomicTangerine}30`,
-                }}
+                className="text-[0.68rem] font-extrabold tracking-wide bg-atomicTangerine/10 text-atomicTangerine rounded-full px-2 py-0.5 border border-atomicTangerine/20 leading-[1.6]"
               >
                 {badge}
               </Motion.span>
@@ -97,7 +65,7 @@ const AccordionSection = ({ title, badge, defaultOpen = false, children }) => {
         <Motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={chevronTransition}
-          style={{ display: 'flex', flexShrink: 0, color: COLORS.textSecondary }}
+          className="flex shrink-0 text-textSecondary"
         >
           <ChevronDown size={16} />
         </Motion.span>
@@ -114,9 +82,9 @@ const AccordionSection = ({ title, badge, defaultOpen = false, children }) => {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={contentTransition}
-            style={{ overflow: 'hidden' }}
+            className="overflow-hidden"
           >
-            <div style={{ paddingBottom: '8px' }}>{children}</div>
+            <div className="pb-2">{children}</div>
           </Motion.div>
         )}
       </AnimatePresence>

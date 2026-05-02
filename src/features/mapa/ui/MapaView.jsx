@@ -2,12 +2,12 @@ import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next';
 import Map, { Source, Layer, NavigationControl, FullscreenControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { COLORS, RADIUS } from '@shared/config';
+import { COLORS } from '@shared/config';
 import { isMapStyleLoaded, setMapLanguage } from '@shared/lib/geo';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
-import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { OperationalMapFallback } from '@shared/ui/components';
+import { cn } from '@shared/lib/utils/cn';
 
 import TripRoster from './components/TripRoster';
 import MapEmptyState from './components/MapEmptyState';
@@ -35,7 +35,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   useDocumentTitle(t('map', 'Mapa 3D'));
   const mapRef = useRef(null);
   const spinGlobeRef = useRef(null);
-  const { isMobile } = useWindowSize(768);
+  
   const {
     flags: { level: operationalLevel },
   } = useOperationalFlags();
@@ -48,7 +48,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   const [viewState, setViewState] = useState(() => ({
     longitude: 0,
     latitude: 20,
-    zoom: isMobile ? 0 : 1.5,
+    zoom: 1.5,
   }));
 
   const [selectedTrip, setSelectedTrip] = useState(null);
@@ -89,7 +89,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   // ── SpinGlobe lifecycle ──────────────────────────────────────────────
   const initSpinGlobe = useCallback((map) => {
     // Only spin on empty state with globe projection (desktop)
-    if (!isEmptyMap || isMobile) return;
+    if (!isEmptyMap || (typeof window !== 'undefined' && window.innerWidth < 768)) return;
     if (spinGlobeRef.current) spinGlobeRef.current.destroy();
 
     spinGlobeRef.current = createSpinGlobe(map, {
@@ -97,7 +97,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
       maxSpinZoom: 5,
     });
     spinGlobeRef.current.start();
-  }, [isEmptyMap, isMobile]);
+  }, [isEmptyMap]);
 
   // Cleanup SpinGlobe when trips arrive or on unmount
   useEffect(() => {
@@ -191,16 +191,9 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
 
   // ── Render ───────────────────────────────────────────────────────────
   return (
-    <div style={{
-      width: '100%',
-      height: isMobile ? '100dvh' : '100%',
-      borderRadius: RADIUS.xl,
-      overflow: 'hidden',
-      background: '#e0f2fe',
-      position: 'relative',
-    }}>
+    <div className="w-full h-[100dvh] md:h-full rounded-3xl overflow-hidden bg-[#e0f2fe] relative">
       {isWebGLDisabled ? (
-        <OperationalMapFallback message={mapShieldMessage} borderRadius={RADIUS.xl} />
+        <OperationalMapFallback message={mapShieldMessage} borderRadius="var(--radius-xl)" />
       ) : (
         /* Full-bleed Mapbox */
         <Map
@@ -211,7 +204,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
           interactiveLayerIds={['unclustered-point']}
           mapStyle="mapbox://styles/mapbox/light-v11"
           mapboxAccessToken={MAPBOX_TOKEN}
-          projection={isMobile ? 'mercator' : 'globe'}
+          projection={(typeof window !== 'undefined' && window.innerWidth < 768) ? 'mercator' : 'globe'}
           minZoom={1}
           maxZoom={20}
           doubleClickZoom={true}
@@ -295,12 +288,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
       )}
 
       {/* ── OVERLAY LAYER ─────────────────────────────────────────────── */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        pointerEvents: 'none',
-        zIndex: 5,
-      }}>
+      <div className="absolute inset-0 pointer-events-none z-10">
         {isEmptyMap ? (
           /* STATE: Empty — spinning globe + editorial CTA */
           <MapEmptyState />
@@ -311,7 +299,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
               trips={trips}
               paises={paises}
               tripData={tripData}
-              isMobile={isMobile}
+              isMobile={typeof window !== 'undefined' && window.innerWidth < 768}
               activeTrip={selectedTrip}
               onTripSelect={handleTripSelect}
             />
@@ -323,3 +311,4 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
 }
 
 export default MapaView;
+

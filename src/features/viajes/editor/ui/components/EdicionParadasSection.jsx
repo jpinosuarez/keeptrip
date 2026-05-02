@@ -1,10 +1,9 @@
+import { cn } from '@shared/lib/utils/cn';
 import React from 'react';
 import { Calendar, MapPin } from 'lucide-react';
-import { COLORS } from '@shared/config';
 import CityManager from './CityManager';
 
 const EdicionParadasSection = ({
-  styles,
   t,
   paradas,
   setParadas,
@@ -14,73 +13,34 @@ const EdicionParadasSection = ({
   isReadOnlyMode = false,
 }) => {
   return (
-    <div style={styles.section}>
-      <label style={styles.label}>
+    <div className="flex flex-col gap-2 bg-background p-4 rounded-lg border border-border">
+      <label className="text-[0.78rem] font-extrabold text-textSecondary uppercase tracking-[0.5px] flex items-center gap-1.5">
         <Calendar size={14} /> {t('labels.paradas')}
       </label>
       {fechaRangoDisplay && (
-        <span style={{ fontSize: '0.82rem', color: COLORS.textSecondary, marginBottom: 6, display: 'block' }}>
+        <span className="text-[0.82rem] text-textSecondary mb-1.5 block">
           {`📅 ${fechaRangoDisplay}`}
         </span>
       )}
       <CityManager t={t} paradas={paradas} setParadas={setParadas} tripStartDate={tripStartDate} isReadOnlyMode={isReadOnlyMode} />
       {sinParadas && (
         <div
-          style={{
-            marginTop: 16,
-            padding: '32px 24px',
-            borderRadius: 16,
-            border: `2px dashed ${COLORS.border}`,
-            background: COLORS.background,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            gap: 12,
-          }}
+          className="mt-4 p-8 md:p-6 rounded-2xl border-2 border-dashed border-border bg-background flex flex-col items-center justify-center text-center gap-3"
           role="status"
           aria-live="polite"
         >
-          <div style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: 12,
-            background: 'rgba(255, 107, 53, 0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <MapPin size={32} color={COLORS.atomicTangerine} strokeWidth={1.5} />
+          <div className="w-16 h-16 rounded-xl bg-atomicTangerine/10 flex items-center justify-center">
+            <MapPin size={32} className="text-atomicTangerine stroke-[1.5]" />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <h3 style={{
-              fontSize: '1rem',
-              fontWeight: 700,
-              color: COLORS.charcoalBlue,
-              margin: 0,
-              letterSpacing: '-0.01em',
-            }}>
+          <div className="flex flex-col gap-1.5">
+            <h3 className="text-base font-bold text-charcoalBlue m-0 tracking-[-0.01em]">
               {t('labels.emptyStopsTitle', 'Tu ruta está vacía')}
             </h3>
-            <p style={{
-              fontSize: '0.9rem',
-              color: COLORS.textSecondary,
-              lineHeight: 1.5,
-              margin: 0,
-              maxWidth: '280px',
-            }}>
+            <p className="text-[0.9rem] text-textSecondary leading-[1.5] m-0 max-w-[280px]">
               {t('labels.emptyStopsDescription', 'Agrega tu primer destino usando la barra de búsqueda arriba para comenzar.')}
             </p>
           </div>
-          <div style={{
-            marginTop: 8,
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            color: COLORS.atomicTangerine,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}>
+          <div className="mt-2 text-[0.75rem] font-semibold text-atomicTangerine uppercase tracking-[0.5px]">
             {t('labels.emptyStopsHint', 'Necesitas al menos 1 parada para guardar')}
           </div>
         </div>
