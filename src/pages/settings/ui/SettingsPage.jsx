@@ -238,7 +238,7 @@ const SettingsPage = () => {
   const initials = user?.displayName?.trim()?.[0]?.toUpperCase() || '';
 
   return (
-    <div className="w-full h-full overflow-y-auto box-border custom-scrollbar">
+    <div className="w-full h-full box-border custom-scroll">
       <div className="w-full max-w-[640px] mx-auto flex flex-col gap-6 p-4 md:p-6 pb-[100px] md:pb-20">
 
         {/* ── Identity Card ── */}
@@ -353,9 +353,26 @@ const SettingsPage = () => {
           </GroupCard>
         </Motion.div>
 
+        {/* ── Language Section ── */}
+        <SectionHeader>{t('settings:language', 'Idioma')}</SectionHeader>
+        <GroupCard>
+          <SettingsRow
+            icon={Globe}
+            label={t('settings:language')}
+            trailing={<LanguageToggle currentLang={i18n.language} onToggle={(lang) => i18n.changeLanguage(lang)} />}
+            isLast={true}
+          />
+        </GroupCard>
+
         {/* ── Account Section ── */}
         <SectionHeader>{t('settings:account', 'Cuenta')}</SectionHeader>
         <GroupCard>
+          <SettingsRow
+            icon={LogOut}
+            label={t('settings:logout')}
+            onClick={logout}
+            isLast={false}
+          />
           <SettingsRow
             icon={Trash2}
             label={t('settings:deleteAccount')}
@@ -365,6 +382,13 @@ const SettingsPage = () => {
             isLast={true}
           />
         </GroupCard>
+
+        {canManageOperationalFlags && (
+          <>
+            <SectionHeader>{t('settings:operational', 'Operacional')}</SectionHeader>
+            <OperationalControlsSection />
+          </>
+        )}
 
       <ConfirmModal
         isOpen={showDeleteConfirm}
@@ -380,12 +404,12 @@ const SettingsPage = () => {
       {/* ── App Version Footer ── */}
       <div className="pt-8 mt-6 border-t border-black/5 flex justify-center items-center">
         <span className="text-[0.75rem] text-slate-500 font-medium tracking-wider">
-          {/* eslint-disable-next-line no-undef */}
-          {t('settings:footer.appVersion', 'App Version')} • {`v${__APP_VERSION__}`}
+          {t('settings:footer.appVersion', 'App Version')} • {"v" + __APP_VERSION__}
         </span>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default SettingsPage;
