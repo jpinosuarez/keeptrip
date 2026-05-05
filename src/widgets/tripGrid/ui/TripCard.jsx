@@ -124,8 +124,8 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className={cn(
-        "relative cursor-default group rounded-2xl shadow-md bg-charcoalBlue transition-shadow duration-300 border-0 overflow-visible",
-        isList ? "aspect-auto min-h-[120px]" : "aspect-[4/5]",
+        "relative cursor-default group rounded-2xl shadow-md bg-charcoalBlue transition-shadow duration-300 border-0 overflow-hidden",
+        isList ? "aspect-auto min-h-[120px]" : "h-full min-h-[250px]",
         isMenuOpen ? "z-[60]" : "z-[1]"
       )}
     >
@@ -198,10 +198,10 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
         <div className="relative">
           <button
             ref={buttonRef}
+            type="button"
             className="pointer-events-auto bg-white/25 backdrop-blur-lg border border-white/30 rounded-full w-11 h-11 flex items-center justify-center text-white shadow-md hover:bg-white/40 transition-colors cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
-              e.preventDefault();
               setIsMenuOpen((prev) => !prev);
             }}
             aria-label={t('card.menu', { ns: 'dashboard', defaultValue: 'Abrir opciones de viaje' })}
