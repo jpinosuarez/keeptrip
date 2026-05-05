@@ -111,9 +111,6 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
     <Motion.div
       data-testid={`trip-card-${trip.id}`}
       ref={cardRef}
-      role="button"
-      tabIndex={0}
-      aria-label={cardAriaLabel}
       style={{
         rotateX: isMobile ? 0 : rotateX,
         rotateY: isMobile ? 0 : rotateY,
@@ -123,15 +120,15 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 100, damping: 20 }}
       whileHover={!isMobile && !isMenuOpen ? { scale: 1.02, zIndex: 10 } : {}}
-      whileTap={{ scale: 0.96 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onClick={onClick}
       className={cn(
-        "relative cursor-pointer group rounded-2xl shadow-md bg-charcoalBlue transition-shadow duration-300",
-        isList ? "aspect-auto min-h-[120px]" : "aspect-[4/5]"
+        "relative cursor-default group rounded-2xl shadow-md bg-charcoalBlue transition-shadow duration-300 border-0 overflow-visible",
+        isList ? "aspect-auto min-h-[120px]" : "aspect-[4/5]",
+        isMenuOpen ? "z-[60]" : "z-[1]"
       )}
     >
+
       {/* Background Layer */}
       <div className="absolute inset-0 z-0 overflow-hidden rounded-[inherit] pointer-events-none">
         <Motion.div 
@@ -139,7 +136,7 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
             x: isMobile ? 0 : bgX,
             y: isMobile ? 0 : bgY
           }} 
-          className="absolute -inset-[10%] w-[120%] h-[120%] bg-mutedTeal will-change-transform"
+          className="absolute -inset-[10%] w-[120%] h-[120%] bg-mutedTeal will-change-transform overflow-hidden rounded-[inherit]"
         >
           {!isDefaultPhoto ? (
             <img 
@@ -151,7 +148,7 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
           ) : (
             <div className="relative w-full h-full overflow-hidden" aria-hidden="true">
               <div className={cn(
-                "grid w-full h-full blur-[2px] scale-105 opacity-60",
+                "grid w-full h-full blur-md scale-105 opacity-50",
                 auraFlags.length <= 1 ? "grid-cols-1 grid-rows-1" : 
                 auraFlags.length === 2 ? "grid-cols-1 grid-rows-2" : "grid-cols-2 grid-rows-2"
               )}>
