@@ -286,7 +286,7 @@ const EditableTripHeader = ({
             />
           ) : (
             <div className="w-full h-full relative overflow-hidden bg-slate-800" aria-hidden="true">
-              <div className={cn("grid w-[120%] h-[120%] -translate-x-[10%] -translate-y-[10%] blur-[40px] opacity-40", getAuraGridStyle(auraFlags.length))}>
+              <div className={cn("grid w-[120%] h-[120%] -translate-x-[10%] -translate-y-[10%] blur-md opacity-40", getAuraGridStyle(auraFlags.length))}>
                 {auraFlags.map((flag, idx) => (
                   <img
                     key={`header-flag-${idx}`}

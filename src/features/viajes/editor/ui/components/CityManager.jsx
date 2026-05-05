@@ -27,6 +27,9 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
   const shouldBlockSearchResults = isSearchPaused || isReadOnlyActive;
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  
+  // Local state for dates to prevent focus loss/cursor jumping during manual entry
+  const [tempDates, setTempDates] = useState({});
   const visibleSearchResults = shouldBlockSearchResults ? [] : searchResults;
   
   // Búsqueda reactiva (3 chars)
@@ -91,14 +94,31 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
   const actualizarDato = (index, campo, valor) => {
     if (isReadOnlyActive) return;
 
-    const nuevas = [...paradas];
-    nuevas[index][campo] = valor;
-    // Sincronizar fecha canónica: parsear texto flexible → ISO, actualizar .fecha
-    if (campo === 'fechaLlegada') {
-      const iso = parseFlexibleDate(valor);
-      if (iso) nuevas[index].fecha = iso;
-    }
-    setParadas(nuevas);
+    setParadas((prevParadas) => {
+      const nuevas = [...prevParadas];
+      const target = { ...nuevas[index] };
+
+      // Si es una fecha de input type="date", el valor viene como YYYY-MM-DD
+      if ((campo === 'fechaLlegada' || campo === 'fechaSalida') && valor && valor.includes('-')) {
+        const parts = valor.split('-');
+        if (parts.length === 3) {
+          const [y, m, d] = parts;
+          target[campo] = `${d}/${m}/${y}`;
+        } else {
+          target[campo] = valor;
+        }
+        
+        if (campo === 'fechaLlegada') {
+          const iso = parseFlexibleDate(target[campo]);
+          if (iso) target.fecha = iso;
+        }
+      } else {
+        target[campo] = valor;
+      }
+
+      nuevas[index] = target;
+      return nuevas;
+    });
   };
 
   const eliminarParada = (index) => {
@@ -248,17 +268,18 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
                     <label className="text-[0.7rem] uppercase text-textSecondary font-bold">{t('citymanager.arrival') || 'Arrival'}</label>
                     <input
                       type="date"
-                      value={p.fechaLlegada ? p.fechaLlegada.split('/').reverse().join('-') : ''}
+                      value={tempDates[`${index}-arrival`] ?? (p.fechaLlegada?.split('/').length === 3 
+                        ? p.fechaLlegada.split('/').reverse().map((part, i) => i === 0 ? part.padStart(4, '0') : part.padStart(2, '0')).join('-')
+                        : '')}
                       min={getMinArrivalDate(index)}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (!val) {
-                          actualizarDato(index, 'fechaLlegada', '');
-                        } else {
-                          const [year, month, day] = val.split('-');
-                          const formatted = `${day}/${month}/${year}`;
-                          actualizarDato(index, 'fechaLlegada', formatted);
-                        }
+                      onChange={(e) => setTempDates(prev => ({ ...prev, [`${index}-arrival`]: e.target.value }))}
+                      onBlur={(e) => {
+                        actualizarDato(index, 'fechaLlegada', e.target.value);
+                        setTempDates(prev => {
+                          const next = { ...prev };
+                          delete next[`${index}-arrival`];
+                          return next;
+                        });
                       }}
                       className="w-full box-sizing-border-box min-h-[48px] border border-border rounded-md px-3.5 py-3 text-base font-inherit text-charcoalBlue bg-background outline-none cursor-pointer transition-all shadow-sm"
                       disabled={isReadOnlyActive}
@@ -268,17 +289,18 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
                     <label className="text-[0.7rem] uppercase text-textSecondary font-bold">{t('citymanager.departure') || 'Departure'}</label>
                     <input
                       type="date"
-                      value={p.fechaSalida ? p.fechaSalida.split('/').reverse().join('-') : ''}
+                      value={tempDates[`${index}-departure`] ?? (p.fechaSalida?.split('/').length === 3 
+                        ? p.fechaSalida.split('/').reverse().map((part, i) => i === 0 ? part.padStart(4, '0') : part.padStart(2, '0')).join('-')
+                        : '')}
                       min={p.fechaLlegada ? p.fechaLlegada.split('/').reverse().join('-') : getMinArrivalDate(index)}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (!val) {
-                          actualizarDato(index, 'fechaSalida', '');
-                        } else {
-                          const [year, month, day] = val.split('-');
-                          const formatted = `${day}/${month}/${year}`;
-                          actualizarDato(index, 'fechaSalida', formatted);
-                        }
+                      onChange={(e) => setTempDates(prev => ({ ...prev, [`${index}-departure`]: e.target.value }))}
+                      onBlur={(e) => {
+                        actualizarDato(index, 'fechaSalida', e.target.value);
+                        setTempDates(prev => {
+                          const next = { ...prev };
+                          delete next[`${index}-departure`];
+                          return next;
+                        });
                       }}
                       className="w-full box-sizing-border-box min-h-[48px] border border-border rounded-md px-3.5 py-3 text-base font-inherit text-charcoalBlue bg-background outline-none cursor-pointer transition-all shadow-sm"
                       disabled={isReadOnlyActive}
