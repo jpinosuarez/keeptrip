@@ -10,6 +10,7 @@ import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
 import { cn } from '@shared/lib/utils/cn';
 import { useLogStats } from '@features/gamification/model';
+import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 
 import WelcomeBento from './components/WelcomeBento';
 import EmptyDashboardState from './components/EmptyDashboardState';
@@ -25,6 +26,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
   const { openBuscador } = useUI();
   const { t } = useTranslation('dashboard');
   const { t: tNav } = useTranslation('nav');
+  const { isMobile } = useWindowSize();
   useDocumentTitle(tNav('home'));
 
   const name = usuario?.displayName ? usuario.displayName.split(' ')[0] : t('fallbackName');
@@ -176,7 +178,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
             <ErrorBoundary fallback={mapFallback}>
               {isMapRequested ? (
                 <Suspense fallback={mapLoadingFallback}>
-                  <HomeMap key={mapRenderKey} paisesVisitados={countriesVisited} />
+                  <HomeMap key={mapRenderKey} paisesVisitados={countriesVisited} isMobile={isMobile} />
                 </Suspense>
               ) : (
                 <div 
@@ -248,7 +250,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
                     trip={enrichedTrip} 
                     variant="home" 
                     priorityImage={index === 0}
-                    onClick={() => openTripEditor(trip.id)} 
+                    onEdit={() => openTripEditor(trip.id)} 
                   />
                 </div>
               );

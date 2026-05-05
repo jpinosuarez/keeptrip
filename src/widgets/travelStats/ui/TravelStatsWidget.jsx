@@ -150,27 +150,27 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'hero' }) => 
     {
       key: 'worldExploredPercentage',
       hero: true,
-      className: isCompact ? "col-span-2 md:flex-auto" : "col-span-2 md:flex-[1_1_240px]",
+      className: isCompact ? "flex-[1_1_200px]" : "flex-[1_1_240px]",
       stat: stats.worldExploredPercentage,
     },
     {
       key: 'uniqueCountries',
-      className: isCompact ? "col-span-1 md:flex-auto" : "col-span-1 md:flex-[1_1_180px]",
+      className: "flex-[1_1_140px]",
       stat: stats.uniqueCountries,
     },
     {
       key: 'completedTrips',
-      className: isCompact ? "col-span-1 md:flex-auto" : "col-span-1 md:flex-[1_1_180px]",
+      className: "flex-[1_1_140px]",
       stat: stats.completedTrips,
     },
     {
       key: 'totalDays',
-      className: isCompact ? "col-span-1 md:flex-auto" : "col-span-1 md:flex-[1_1_180px]",
+      className: "flex-[1_1_140px]",
       stat: stats.totalDays,
     },
     {
       key: 'totalStops',
-      className: isCompact ? "col-span-1 md:flex-auto" : "col-span-1 md:flex-[1_1_180px]",
+      className: "flex-[1_1_140px]",
       stat: stats.totalStops,
     },
   ];
@@ -178,7 +178,7 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'hero' }) => 
   return (
     <section role="region" aria-label={ariaLabel} className="w-full h-full">
       <div className={cn(
-        "grid grid-cols-2 md:flex md:flex-wrap justify-center gap-3 md:gap-6 w-full mx-auto max-w-[900px]",
+        "flex flex-wrap gap-3 md:gap-4 w-full mx-auto justify-center",
         isCompact ? "items-center" : "items-stretch"
       )}>
         {cards.map((card, index) => (
