@@ -164,7 +164,7 @@ const Header = ({ invitationsCount = 0 }) => {
         <div className="hidden md:block">
           <Motion.button
             type="button"
-            onClick={openTripSearch}
+            onClick={(e) => { e.stopPropagation(); openTripSearch(); }}
             disabled={isReadOnlyMode}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}

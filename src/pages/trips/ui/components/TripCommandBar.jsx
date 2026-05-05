@@ -1,13 +1,19 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { LayoutGrid, List } from 'lucide-react';
-import { useToast } from '@app/providers';
+import { useToast, useUI } from '@app/providers';
 import { cn } from '@shared/lib/utils/cn';
 
 const TripCommandBar = ({ activeFilter, onFilterChange }) => {
   const { t } = useTranslation('dashboard');
   const { pushToast } = useToast();
-  const handleListToggle = () => { pushToast(t('toast.comingSoon'), 'info'); };
+  const { searchPaletteOpen } = useUI();
+  
+  const handleListToggle = (e) => { 
+    e?.stopPropagation();
+    if (searchPaletteOpen) return;
+    pushToast(t('toast.comingSoon'), 'info'); 
+  };
 
   return (
     <div className="flex flex-col gap-2 pb-2">
