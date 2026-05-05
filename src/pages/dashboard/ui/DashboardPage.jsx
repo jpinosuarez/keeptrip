@@ -244,7 +244,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
               return (
                 <div 
                   key={trip.id} 
-                  className={cn("min-h-0 h-full overflow-hidden", colSpan)}
+                  className={cn("min-h-0 h-full", colSpan)}
                 >
                   <TripCard 
                     trip={enrichedTrip} 

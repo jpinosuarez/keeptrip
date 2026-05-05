@@ -174,7 +174,7 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
       </div>
       
       {/* Content Wrapper */}
-      <div className="relative z-[2] flex flex-col h-full pb-5">
+      <div className="relative z-[2] flex flex-col h-full pb-6">
         {/* Top Content */}
         <div className="p-4 flex justify-between items-start w-full">
         <div className="flex flex-wrap items-center gap-1.5 row-gap-1.5">
@@ -198,13 +198,13 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
         <div className="relative">
           <button
             ref={buttonRef}
-            className="pointer-events-auto bg-white/25 backdrop-blur-lg border border-white/30 rounded-full w-11 h-11 flex items-center justify-center text-white shadow-md hover:bg-white/40 transition-colors"
+            className="pointer-events-auto bg-white/25 backdrop-blur-lg border border-white/30 rounded-full w-11 h-11 flex items-center justify-center text-white shadow-md hover:bg-white/40 transition-colors cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
               setIsMenuOpen((prev) => !prev);
             }}
-            aria-label="Abrir opciones de viaje"
+            aria-label={t('card.menu', { ns: 'dashboard', defaultValue: 'Abrir opciones de viaje' })}
           >
             <MoreVertical size={20} />
           </button>
@@ -222,6 +222,7 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
                   left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left - 180 + buttonRef.current.getBoundingClientRect().width : 0,
                 }}
                 onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
               >
                 <button
                   onClick={(e) => {
