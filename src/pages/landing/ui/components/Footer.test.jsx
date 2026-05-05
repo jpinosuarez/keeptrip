@@ -1,22 +1,9 @@
 /** @vitest-environment jsdom */
 import React from 'react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Footer from './Footer';
-
-// Mock useWindowSize hook following FSD pattern
-const { mockUseWindowSize } = vi.hoisted(() => ({
-  mockUseWindowSize: vi.fn(() => ({
-    isMobile: false,
-    isTablet: false,
-    isDesktop: true,
-  })),
-}));
-
-vi.mock('@shared/lib/hooks/useWindowSize', () => ({
-  useWindowSize: mockUseWindowSize,
-}));
 
 afterEach(() => cleanup());
 
@@ -29,8 +16,6 @@ describe('Footer Component', () => {
 
   it('renders footer with navigation links', () => {
     render(<MemoryRouter><Footer /></MemoryRouter>);
-    // Links use i18n keys which are returned as-is by the mock
-    // Use getAllByRole since we have 3 links 
     const links = screen.getAllByRole('link');
     expect(links).toHaveLength(3);
     
@@ -57,7 +42,6 @@ describe('Footer Component', () => {
 
   it('renders copyright text using i18n', () => {
     render(<MemoryRouter><Footer /></MemoryRouter>);
-    // i18n mock returns keys as-is
     const paragraphs = screen.getAllByText(/© \d{4}/);
     const copyrightPara = paragraphs[0];
     expect(copyrightPara).toBeInTheDocument();
@@ -80,10 +64,5 @@ describe('Footer Component', () => {
     render(<MemoryRouter><Footer /></MemoryRouter>);
     const links = screen.getAllByRole('link');
     expect(links).toHaveLength(3);
-  });
-
-  it('responds to mobile/desktop breakpoint using useWindowSize hook', () => {
-    render(<MemoryRouter><Footer /></MemoryRouter>);
-    expect(mockUseWindowSize).toHaveBeenCalled();
   });
 });

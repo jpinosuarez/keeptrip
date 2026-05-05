@@ -128,7 +128,7 @@ const Header = ({ invitationsCount = 0 }) => {
         {/* Desktop Search (only on /trips) */}
         <div className={cn(
           "hidden md:flex items-center gap-2 bg-black/5 px-3.5 py-2 rounded-md",
-          "border border-black/5 min-w-[240px]",
+          "border border-border min-w-[240px]",
           showSearch ? "flex" : "hidden"
         )}>
           <Search size={15} className="text-text-secondary" />
@@ -154,7 +154,7 @@ const Header = ({ invitationsCount = 0 }) => {
             onClick={() => setIsMobileSearchOpen(o => !o)}
             aria-label={isMobileSearchOpen ? t('nav:closeSearch') : t('nav:openSearch')}
             aria-expanded={isMobileSearchOpen}
-            className="flex md:hidden bg-transparent border border-black/10 text-text-secondary w-11 h-11 rounded-md items-center justify-center cursor-pointer"
+            className="flex md:hidden bg-transparent border border-border text-text-secondary w-11 h-11 rounded-md items-center justify-center cursor-pointer"
           >
             {isMobileSearchOpen ? <X size={18} /> : <Search size={18} />}
           </button>
@@ -263,7 +263,7 @@ const Header = ({ invitationsCount = 0 }) => {
             transition={{ type: 'spring', damping: 20 }}
             className={cn(
               "absolute top-[calc(64px+var(--safe-area-inset-top,0px))] left-4 right-4",
-              "bg-white/95 backdrop-blur-xl rounded-lg border border-black/10 shadow-lg",
+              "bg-white/95 backdrop-blur-xl rounded-lg border border-border shadow-lg",
               "px-4 py-3 flex items-center gap-2 z-modal"
             )}
           >

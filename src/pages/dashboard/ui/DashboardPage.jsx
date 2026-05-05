@@ -211,7 +211,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 w-full custom-scroll items-start min-w-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full custom-scroll items-start min-w-0">
           {loading ? (
             <SkeletonList count={2} Component={TripCardSkeleton} />
           ) : isError ? (
@@ -227,10 +227,22 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
           ) : !isNewTraveler ? (
             visibleRecentTrips.map((trip, index) => {
               const enrichedTrip = tripDataMap[trip.id] || trip;
+              const total = visibleRecentTrips.length;
+              
+              // Edge case col-span logic
+              let colSpan = "col-span-1";
+              if (total === 1) colSpan = "col-span-full";
+              else if (total === 2) colSpan = "col-span-full";
+              else if (total === 3) {
+                if (index === 0) colSpan = "col-span-full";
+                else colSpan = "col-span-1";
+              }
+              // total === 4 -> each is col-span-1 (2x2)
+
               return (
                 <div 
                   key={trip.id} 
-                  className="min-h-0 h-full overflow-hidden"
+                  className={cn("min-h-0 h-full overflow-hidden", colSpan)}
                 >
                   <TripCard 
                     trip={enrichedTrip} 
@@ -247,6 +259,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
             </div>
           )}
         </div>
+
       </div>
     </div>
   );

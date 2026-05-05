@@ -31,7 +31,7 @@ const StatCard = ({ stat, hero = false, compact = false, index, className }) => 
         compact ? "px-4 py-2 gap-0 rounded-full" : "rounded-xl p-3 gap-2",
         hero 
           ? "bg-gradient-to-br from-atomicTangerine/15 to-mutedTeal/10 shadow-md border border-atomicTangerine/15" 
-          : "bg-white/78 border border-black/5 shadow-sm hover:shadow-md",
+          : "bg-white/78 border border-border shadow-sm hover:shadow-md",
         isSecondary ? "justify-center" : "",
         className
       )}
@@ -138,7 +138,7 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'hero' }) => 
   if (!stats || safeValue(logStats?.completedTrips) === 0) {
     return (
       <section role="region" aria-label={ariaLabel} className="w-full h-full">
-        <div className="flex flex-col gap-2 p-6 rounded-xl bg-white/60 border border-dashed border-black/10 text-center items-center">
+        <div className="flex flex-col gap-2 p-6 rounded-xl bg-white/60 border border-dashed border-border text-center items-center">
           <span className="text-sm font-bold text-charcoalBlue font-heading">{t('stats.emptyStateHint')}</span>
           <span className="text-xs text-text-secondary leading-relaxed max-w-[200px]">{t('stats.emptyStateMessage')}</span>
         </div>

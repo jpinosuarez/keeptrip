@@ -1,12 +1,9 @@
 import { cn } from '@shared/lib/utils/cn';
 import React from 'react';
-import { createPortal } from 'react-dom';
-import { motion as Motion } from 'framer-motion';
-import { useAuth } from '@features/auth';
-import { useToast } from '@shared/lib/hooks/useToast';
-import { useUpload } from '@features/viajes/upload';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
+import { useAuth, useUpload, useToast } from '@app/providers';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
-import EdicionModal from '@features/viajes/editor/ui/EdicionModal/EdicionModal';
+import EdicionModal from '@features/viajes/editor/ui/EdicionModal';
 
 import { useVisorViajeData } from './hooks/useVisorViajeData';
 import { useVisorViajeUI } from './hooks/useVisorViajeUI';
@@ -14,186 +11,183 @@ import { useVisorViajeGallery } from './hooks/useVisorViajeGallery';
 import { useVisorViajeStory } from './hooks/useVisorViajeStory';
 import { useDocumentaryState } from './hooks/useDocumentaryState';
 
+import DocumentaryHero from './components/DocumentaryHero';
+import VisorRouteLayout from './components/VisorRouteLayout';
+import VisorDestinoLayout from './components/VisorDestinoLayout';
 import VisorContextSection from './components/VisorContextSection';
 import VisorStorySection from './components/VisorStorySection';
 import VisorGallerySection from './components/VisorGallerySection';
 import VisorTimelineSection from './components/VisorTimelineSection';
-import VisorRouteLayout from './components/VisorRouteLayout';
-import VisorDestinoLayout from './components/VisorDestinoLayout';
-import DocumentaryHero from './components/DocumentaryHero';
 
 const VisorViaje = ({
   viajeId,
   tripData,
   tripList,
-  MapRoutePreview,
   onClose,
   onSave,
   onDelete,
-  isSaving = false,
-  isDeleting = false,
 }) => {
   const { usuario } = useAuth();
   const { pushToast } = useToast();
   const { getEstadoViaje, reintentarFoto } = useUpload();
-  // We keep isMobile here for structural component toggling (BottomSheet vs Modal in EdicionModal)
-  // but internal layout is handled by Tailwind responsive prefixes.
-  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 900 : false;
+  
+  const { 
+    viajeBase, 
+    hasViajeData, 
+    data, 
+    ownerUid, 
+    paradas, 
+    isSharedTrip,
+    ownerDisplayName,
+    reloadParadas 
+  } = useVisorViajeData({ viajeId, bitacoraData: tripData, bitacoraLista: tripList, usuario });
 
-  const dataVM = useVisorViajeData({
-    viajeId,
-    bitacoraData: tripData,
-    bitacoraLista: tripList,
-    usuario,
+  const {
+    showEditModal,
+    setShowEditModal,
+    hoveredIndex,
+    setHoveredIndex,
+    activeParadaIndex,
+    setParadaRef,
+    showMapModal,
+    setShowMapModal,
+    handleMarkerHover,
+    handleMarkerHoverEnd,
+    handleMarkerClick,
+  } = useVisorViajeUI({ isRouteMode: paradas.length > 1, isMobile: false });
+
+  const {
+    galeria,
+    fotosSubiendo,
+    captionDrafts,
+    showGalleryTools,
+    toggleGalleryTools,
+    onReintentarFoto,
+    handleCaptionChange,
+    handleCaptionSave,
+    handleSetPortadaExistente,
+    handleEliminarFoto,
+  } = useVisorViajeGallery({ 
+    viajeId, 
+    ownerUid, 
+    pushToast, 
+    getEstadoViaje, 
+    reintentarFoto 
   });
 
-  const { viajeBase, hasViajeData, data, ownerUid, paradas, isSharedTrip, ownerDisplayName, reloadParadas } = dataVM;
-  const isRouteMode = paradas.length > 1;
-  const isBusy = isSaving || isDeleting;
+  const {
+    fotoMostrada,
+    storyData,
+  } = useVisorViajeStory({ data, viajeBase, paradas });
 
-  // Título dinámico: se actualiza cuando carga el nombre del viaje
-  useDocumentTitle(viajeBase?.titulo);
+  const {
+    mapSyncIndex
+  } = useDocumentaryState({ isMobile: false, enabled: true });
 
-  const galleryVM = useVisorViajeGallery({
-    viajeId,
-    ownerUid,
-    pushToast,
-    getEstadoViaje,
-    reintentarFoto,
-  });
-
-  const uiVM = useVisorViajeUI({ isRouteMode, isMobile });
-
-  const docVM = useDocumentaryState({
-    paradas,
-    isMobile,
-    enabled: isRouteMode && !uiVM.showEditModal
-  });
-
-  const storyVM = useVisorViajeStory({
-    data,
-    viajeBase,
-    paradas,
-  });
-
-  const handleDeleteViaje = () => onDelete(viajeId);
-
-  const handleEditSave = async (id, payload) => {
-    const result = await onSave(id, payload);
-    if (result) {
-      await reloadParadas();
-      galleryVM.galeria.recargar?.();
-    }
-    return result;
-  };
+  useDocumentTitle(storyData?.titulo || 'Keeptrip');
 
   if (!hasViajeData) return null;
 
-  const sectionsVM = {
+  const isOwner = !isSharedTrip;
+  const isRouteMode = paradas.length > 1;
+  const Layout = isRouteMode ? VisorRouteLayout : VisorDestinoLayout;
+
+  const sections = {
     context: (
       <VisorContextSection
         data={data}
-        isMobile={isMobile}
-        carouselRef={uiVM.carouselRef}
-        activeCarouselDot={uiVM.activeCarouselDot}
-        onCarouselScroll={uiVM.handleCarouselScroll}
+        isMobile={false}
       />
     ),
     timeline: (
       <VisorTimelineSection
         paradas={paradas}
-        isMobile={isMobile}
-        activeParadaIndex={docVM.activeIndex}
-        hoveredIndex={uiVM.hoveredIndex}
-        setParadaRef={docVM.setParadaRef}
-        onHover={uiVM.setHoveredIndex}
-        onHoverEnd={() => uiVM.setHoveredIndex(null)}
-        galeria={galleryVM.galeria}
+        activeParadaIndex={activeParadaIndex}
+        setParadaRef={setParadaRef}
+        hoveredIndex={hoveredIndex}
+        onMarkerHover={handleMarkerHover}
+        onMarkerHoverEnd={handleMarkerHoverEnd}
+        onMarkerClick={handleMarkerClick}
       />
     ),
-    story: <VisorStorySection stops={paradas} text={data.texto} />,
+    bitacora: (
+      <VisorStorySection 
+        storyData={storyData} 
+        fotoMostrada={fotoMostrada}
+      />
+    ),
     gallery: (
       <VisorGallerySection
-        isSharedTrip={isSharedTrip}
-        showGalleryTools={galleryVM.showGalleryTools}
-        onToggleGalleryTools={galleryVM.toggleGalleryTools}
-        galeria={galleryVM.galeria}
-        fotosSubiendo={galleryVM.fotosSubiendo}
-        onReintentarFoto={galleryVM.onReintentarFoto}
-        isMobile={isMobile}
-        captionDrafts={galleryVM.captionDrafts}
-        onCaptionChange={galleryVM.handleCaptionChange}
-        onCaptionSave={galleryVM.handleCaptionSave}
-        onSetPortada={galleryVM.handleSetPortadaExistente}
-        onEliminarFoto={galleryVM.handleEliminarFoto}
-        isBusy={isBusy}
-        storyData={storyVM.storyData}
+        galeria={galeria}
+        fotosSubiendo={fotosSubiendo}
+        captionDrafts={captionDrafts}
+        showGalleryTools={showGalleryTools}
+        toggleGalleryTools={toggleGalleryTools}
+        onReintentarFoto={onReintentarFoto}
+        onCaptionChange={handleCaptionChange}
+        onCaptionSave={handleCaptionSave}
+        onSetPortadaExistente={handleSetPortadaExistente}
+        onEliminarFoto={handleEliminarFoto}
+        isOwner={isOwner}
       />
     ),
   };
 
-  return createPortal(
-    <Motion.div
-      initial={{ y: '100%' }}
-      animate={{ y: 0 }}
-      exit={{ y: '100%' }}
-      transition={{ type: 'spring', damping: 25 }}
-      className="fixed inset-0 bg-background z-[10000] overflow-y-auto"
-    >
-        <DocumentaryHero
-          isMobile={isMobile}
-          fotoMostrada={storyVM.fotoMostrada}
-          isBusy={isBusy}
-          onClose={onClose}
-          storyData={storyVM.storyData}
-          isSharedTrip={isSharedTrip}
-          onDelete={handleDeleteViaje}
-          isDeleting={isDeleting}
-          onOpenEdit={() => uiVM.setShowEditModal(true)}
-          data={data}
-          viajeBase={viajeBase}
-          ownerDisplayName={ownerDisplayName}
-          isRouteMode={isRouteMode}
-        />
-
-        {isRouteMode ? (
-          <VisorRouteLayout
-            isMobile={isMobile}
-            paradas={paradas}
-            activeParadaIndex={docVM.activeIndex}
-            mapSyncIndex={docVM.mapSyncIndex}
-            hoveredIndex={uiVM.hoveredIndex}
-            onMarkerHover={uiVM.handleMarkerHover}
-            onMarkerHoverEnd={uiVM.handleMarkerHoverEnd}
-            onMarkerClick={(i) => {
-              const node = docVM.getParadaNode(i);
-              if (node) node.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }}
-            showMapModal={uiVM.showMapModal}
-            onOpenMap={() => uiVM.setShowMapModal(true)}
-            onCloseMap={() => uiVM.setShowMapModal(false)}
-            sections={sectionsVM}
+  return (
+    <AnimatePresence>
+      <Motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-modal bg-background flex flex-col overflow-hidden"
+      >
+        <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth">
+          <DocumentaryHero 
+            data={data}
+            viajeBase={viajeBase}
+            storyData={storyData}
+            fotoMostrada={fotoMostrada}
+            onClose={onClose}
+            onDelete={() => onDelete(viajeId)}
+            onOpenEdit={() => setShowEditModal(true)}
+            isSharedTrip={isSharedTrip}
+            ownerDisplayName={ownerDisplayName}
+            isRouteMode={isRouteMode}
+            isMobile={false}
           />
-        ) : (
-          <VisorDestinoLayout
-            isMobile={isMobile}
-            paradas={paradas}
-            sections={sectionsVM}
-            MapRoutePreview={MapRoutePreview}
-          />
-        )}
 
-        {uiVM.showEditModal && (
+          <Layout 
+            isMobile={false}
+            paradas={paradas}
+            sections={sections}
+            activeParadaIndex={activeParadaIndex}
+            mapSyncIndex={mapSyncIndex}
+            hoveredIndex={hoveredIndex}
+            onMarkerHover={handleMarkerHover}
+            onMarkerHoverEnd={handleMarkerHoverEnd}
+            onMarkerClick={handleMarkerClick}
+            showMapModal={showMapModal}
+            onOpenMap={() => setShowMapModal(true)}
+            onCloseMap={() => setShowMapModal(false)}
+          />
+        </div>
+
+        {showEditModal && (
           <EdicionModal
-            viaje={{ ...data, id: viajeId }}
-            onClose={() => uiVM.setShowEditModal(false)}
-            onSave={handleEditSave}
-            esBorrador={false}
-            isSaving={isSaving}
+            viaje={data}
+            onClose={() => setShowEditModal(false)}
+            onSave={async (id, newData) => {
+              const success = await onSave(id, newData);
+              if (success) {
+                reloadParadas();
+                if (galeria.recargar) galeria.recargar();
+                setShowEditModal(false);
+              }
+            }}
           />
         )}
-      </Motion.div>,
-    document.body
+      </Motion.div>
+    </AnimatePresence>
   );
 };
 

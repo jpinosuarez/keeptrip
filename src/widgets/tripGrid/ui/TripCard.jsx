@@ -4,7 +4,7 @@
  */
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { motion as Motion, useMotionValue, useTransform, useSpring, AnimatePresence } from 'framer-motion';
-import { Compass, Calendar, MapPin, Trash2, Clock, MoreVertical, Edit2, Share2, Copy } from 'lucide-react';
+import { Compass, Calendar, MapPin, Trash2, Clock, MoreVertical, Edit2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   FOTO_DEFAULT_URL,
@@ -15,7 +15,7 @@ import {
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { cn } from '@shared/lib/utils/cn';
 
-const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMobile = false, variant = 'list', priorityImage = false }) => {
+const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant = 'list', priorityImage = false }) => {
   const { t, i18n } = useTranslation(['countries', 'dashboard', 'common']);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -128,7 +128,7 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
       className={cn(
-        "relative cursor-pointer group overflow-hidden rounded-2xl shadow-md border border-black/5 bg-charcoalBlue transition-shadow duration-300",
+        "relative cursor-pointer group rounded-2xl shadow-md bg-charcoalBlue transition-shadow duration-300",
         isList ? "aspect-auto min-h-[120px]" : "aspect-[4/5]"
       )}
     >
@@ -189,9 +189,9 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
               />
             ))
           ) : (
-             <div className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center justify-center text-white">
-                 <Compass size={14} />
-             </div>
+            <div className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center justify-center text-white">
+                <Compass size={14} />
+            </div>
           )}
         </div>
           
@@ -207,7 +207,7 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
           >
             <MoreVertical size={20} />
           </button>
-
+ 
           <AnimatePresence>
             {isMenuOpen && (
               <Motion.div
@@ -229,33 +229,9 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
                 >
                   <Edit2 size={16} /> <span>{t('card.edit', { ns: 'dashboard', defaultValue: 'Editar viaje' })}</span>
                 </button>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    setIsMenuOpen(false);
-                    if (onShare) onShare(trip.id);
-                  }}
-                  className="flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
-                >
-                  <Share2 size={16} /> <span>{t('card.share', { ns: 'dashboard', defaultValue: 'Compartir ruta' })}</span>
-                </button>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    setIsMenuOpen(false);
-                    if (onDuplicate) onDuplicate(trip);
-                  }}
-                  className="flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
-                >
-                  <Copy size={16} /> <span>{t('card.duplicate', { ns: 'dashboard', defaultValue: 'Duplicar' })}</span>
-                </button>
-
+ 
                 <div className="h-px bg-black/10 my-1" />
-
+ 
                 {onDelete && (
                   <button
                     onClick={(e) => {

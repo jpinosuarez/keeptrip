@@ -61,7 +61,7 @@ const DocumentaryHero = ({
         )}
         
         {/* Film Grain & Noise Overlay */}
-        <div className='absolute inset-0 opacity-15 pointer-events-none z-[4] bg-[url("data:image/svg+xml,%3Csvg viewBox=\'0 0 400 400\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")]' />
+        <div className="absolute inset-0 opacity-15 pointer-events-none z-[4] bg-[url('data:image/svg+xml,%3Csvg_viewBox=%220_0_400_400%22_xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter_id=%22noiseFilter%22%3E%3CfeTurbulence_type=%22fractalNoise%22_baseFrequency=%220.65%22_numOctaves=%223%22_stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect_width=%22100%25%22_height=%22100%25%22_filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')]" />
         <div className="absolute inset-0 z-[3] bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)] pointer-events-none" />
       </div>
 
@@ -83,6 +83,7 @@ const DocumentaryHero = ({
           {!isSharedTrip && (
             <button 
               onClick={onDelete} 
+              data-testid="documentary-hero-delete"
               className={cn(
                 "backdrop-blur-md bg-black/40 border border-white/20 rounded-full w-11 h-11 flex items-center justify-center text-white shadow-md transition-all cursor-pointer",
                 isBusy && "opacity-50 cursor-not-allowed"
@@ -96,6 +97,7 @@ const DocumentaryHero = ({
           {!isSharedTrip && (
             <button 
               onClick={onOpenEdit} 
+              data-testid="documentary-hero-open-edit"
               className={cn(
                 "backdrop-blur-md bg-black/40 text-white border border-white/20 rounded-full px-[22px] py-[10px] font-bold text-[0.85rem] flex gap-2 items-center shadow-md transition-all cursor-pointer",
                 isBusy && "opacity-50 cursor-not-allowed"
