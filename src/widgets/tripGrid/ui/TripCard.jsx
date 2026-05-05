@@ -3,6 +3,7 @@
  * Features full-bleed images, floating glass pills, and 3D parallax on desktop hovering.
  */
 import React, { useRef, useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion as Motion, useMotionValue, useTransform, useSpring, AnimatePresence } from 'framer-motion';
 import { Compass, Calendar, MapPin, Trash2, Clock, MoreVertical, Edit2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -18,13 +19,13 @@ import { cn } from '@shared/lib/utils/cn';
 const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant = 'list', priorityImage = false }) => {
   const { t, i18n } = useTranslation(['countries', 'dashboard', 'common']);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef(null);
+  const buttonRef = useRef(null);
 
   // Close menu when clicking outside
   useEffect(() => {
     if (!isMenuOpen) return;
     const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
+      if (buttonRef.current && !buttonRef.current.contains(e.target)) {
         setIsMenuOpen(false);
       }
     };
@@ -172,8 +173,10 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
         <div className="absolute inset-0 z-[1] bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
       </div>
       
-      {/* Top Content */}
-      <div className="relative z-[2] p-4 flex justify-between items-start w-full">
+      {/* Content Wrapper */}
+      <div className="relative z-[2] flex flex-col h-full pb-5">
+        {/* Top Content */}
+        <div className="p-4 flex justify-between items-start w-full">
         <div className="flex flex-wrap items-center gap-1.5 row-gap-1.5">
           {flags.length > 0 ? (
             flags.map((flag, idx) => (
@@ -192,8 +195,9 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
           )}
         </div>
           
-        <div ref={menuRef} className="relative">
+        <div className="relative">
           <button
+            ref={buttonRef}
             className="pointer-events-auto bg-white/25 backdrop-blur-lg border border-white/30 rounded-full w-11 h-11 flex items-center justify-center text-white shadow-md hover:bg-white/40 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
@@ -206,13 +210,17 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
           </button>
  
           <AnimatePresence>
-            {isMenuOpen && (
+            {isMenuOpen && createPortal(
               <Motion.div
                 initial={{ opacity: 0, scale: 0.95, y: -10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: -10 }}
                 transition={{ duration: 0.15 }}
-                className="absolute top-[52px] right-0 w-[180px] bg-white/85 backdrop-blur-xl rounded-xl shadow-lg p-2 flex flex-col gap-1 z-50"
+                className="fixed w-[180px] bg-white/85 backdrop-blur-xl rounded-xl shadow-lg p-2 flex flex-col gap-1 z-[100]"
+                style={{
+                  top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
+                  left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left - 180 + buttonRef.current.getBoundingClientRect().width : 0,
+                }}
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
@@ -242,14 +250,15 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
                     <Trash2 size={16} /> <span>{t('card.delete', { ns: 'dashboard', defaultValue: 'Eliminar' })}</span>
                   </button>
                 )}
-              </Motion.div>
+              </Motion.div>,
+              document.body
             )}
           </AnimatePresence>
         </div>
-      </div>
-
-      {/* Bottom Content */}
-      <div className="relative z-[2] p-4 pt-0 w-full flex flex-col gap-2 mt-auto pointer-events-none">
+        </div>
+        
+        {/* Bottom Content */}
+        <div className="p-4 pt-0 w-full flex flex-col gap-2 mt-auto pointer-events-none">
         <h4 className="m-0 text-xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] truncate leading-[1.1] tracking-tighter font-heading">
           {title}
         </h4>
@@ -263,6 +272,7 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
           <span className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading">
             <Clock size={14} /> {durationPillText}
           </span>
+        </div>
         </div>
       </div>
     </Motion.div>
