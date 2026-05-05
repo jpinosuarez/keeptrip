@@ -174,7 +174,7 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
       </div>
       
       {/* Content Wrapper */}
-      <div className="relative z-[2] flex flex-col h-full pb-6">
+      <div className="relative z-[2] flex flex-col h-full pb-2">
         {/* Top Content */}
         <div className="p-4 flex justify-between items-start w-full">
         <div className="flex flex-wrap items-center gap-1.5 row-gap-1.5">
@@ -204,6 +204,10 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
               e.stopPropagation();
               setIsMenuOpen((prev) => !prev);
             }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              setIsMenuOpen((prev) => !prev);
+            }}
             aria-label={t('card.menu', { ns: 'dashboard', defaultValue: 'Abrir opciones de viaje' })}
           >
             <MoreVertical size={20} />
@@ -216,7 +220,7 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: -10 }}
                 transition={{ duration: 0.15 }}
-                className="fixed w-[180px] bg-white/85 backdrop-blur-xl rounded-xl shadow-lg p-2 flex flex-col gap-1 z-[100]"
+                className="fixed w-[180px] bg-white/85 backdrop-blur-xl rounded-xl shadow-lg p-2 flex flex-col gap-1 z-[9999]"
                 style={{
                   top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
                   left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left - 180 + buttonRef.current.getBoundingClientRect().width : 0,
@@ -263,7 +267,7 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
         <h4 className="m-0 text-xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] truncate leading-[1.1] tracking-tighter font-heading">
           {title}
         </h4>
-        <div className="flex flex-wrap items-center gap-2 min-w-0">
+        <div className="flex flex-wrap items-center gap-1 min-w-0">
           <span className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading">
             <Calendar size={14} /> {datePillText}
           </span>

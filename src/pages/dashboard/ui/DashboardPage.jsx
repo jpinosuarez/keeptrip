@@ -213,7 +213,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full custom-scroll items-start min-w-0">
+        <div className="grid grid-cols-2 grid-rows-2 gap-4 w-full custom-scroll items-start min-w-0">
           {loading ? (
             <SkeletonList count={2} Component={TripCardSkeleton} />
           ) : isError ? (
