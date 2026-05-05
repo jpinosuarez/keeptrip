@@ -238,201 +238,124 @@ const SettingsPage = () => {
   const initials = user?.displayName?.trim()?.[0]?.toUpperCase() || '';
 
   return (
-    <div className="w-full h-full max-w-[640px] mx-auto flex flex-col gap-6 p-4 md:p-6 pb-[100px] md:pb-20 overflow-y-auto box-border">
+    <div className="w-full h-full overflow-y-auto box-border custom-scrollbar">
+      <div className="w-full max-w-[640px] mx-auto flex flex-col gap-6 p-4 md:p-6 pb-[100px] md:pb-20">
 
-      {/* ── Identity Card ── */}
-      <Motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', damping: 20, stiffness: 120 }}
-      >
-        <GroupCard>
-          <div className="flex gap-[18px] items-center p-6">
-            {/* Avatar */}
-            <div className="w-[68px] h-[68px] rounded-full overflow-hidden border-[3px] border-black/5 flex-shrink-0 bg-mutedTeal flex items-center justify-center">
-              {photoUrl && !photoError ? (
-                <img
-                  src={photoUrl}
-                  alt="Avatar"
-                  className="w-full h-full object-cover"
-                  onError={() => setPhotoError(true)}
-                />
-              ) : (
-                <div className="text-white font-black text-2xl flex items-center justify-center w-full h-full">
-                  {initials || <User size={28} />}
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1.5">
-                <h1 className="m-0 text-xl font-black text-charcoalBlue tracking-tight truncate">
-                  {user?.displayName || '—'}
-                </h1>
-                <Motion.button
-                  type="button"
-                  onClick={() => setEditingProfile(v => !v)}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-black/5 border-none rounded-lg w-8 h-8 flex items-center justify-center cursor-pointer text-text-secondary"
-                  aria-label="Edit profile"
-                >
-                  <Pencil size={13} />
-                </Motion.button>
-              </div>
-              <div className="flex gap-1.5 flex-wrap">
-                {user?.email && (
-                  <span className="px-2.5 py-0.5 rounded-full text-[0.73rem] font-bold border border-black/5 bg-black/5 text-text-secondary truncate max-w-[180px]">
-                    {user.email}
-                  </span>
-                )}
-                <span className={cn(
-                  "px-2.5 py-0.5 rounded-full text-[0.73rem] font-extrabold border",
-                  isAdmin ? "border-amber-200 bg-amber-50 text-orange-700" : "border-black/5 bg-black/5 text-text-secondary"
-                )}>
-                  {isAdmin ? t('settings:admin') : t('settings:user')}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Expandable Edit Form */}
-          <AnimatePresence>
-            {editingProfile && (
-              <Motion.div
-                key="edit-profile"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ type: 'spring', damping: 22, stiffness: 200 }}
-                className="overflow-hidden"
-              >
-                <div className="px-6 pb-6 border-t border-black/5">
-                  {/* Avatar upload */}
-                  <div className="mt-4 flex gap-2.5 items-center">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleAvatarFileChange}
-                    />
-                    <Motion.button
-                      type="button"
-                      onClick={handleAvatarUploadClick}
-                      whileTap={{ scale: 0.98 }}
-                      disabled={uploadingAvatar}
-                      className="min-h-[40px] px-3.5 rounded-lg border border-black/10 bg-slate-50 text-charcoalBlue font-semibold text-[0.85rem] cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-                    >
-                      <Camera size={14} />
-                      {uploadingAvatar ? `${Math.round(uploadProgress)}%` : t('settings:avatarUpload')}
-                    </Motion.button>
-                    <span className="text-[0.78rem] text-text-secondary">
-                      {t('settings:avatarHint')}
-                    </span>
-                  </div>
-
-                  {/* Name + Photo URL fields */}
-                  <div className="mt-4 flex flex-col gap-3.5">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[0.8rem] font-bold text-text-secondary">
-                        {t('settings:travelerName')}
-                      </label>
-                      <input
-                        className="px-3.5 py-2.5 rounded-lg border border-black/10 text-[0.92rem] outline-none font-body text-charcoalBlue bg-slate-50 w-full box-border focus:border-atomicTangerine transition-colors"
-                        value={displayName}
-                        onChange={e => setDisplayName(e.target.value)}
-                        onBlur={handleSaveOnBlur}
-                        placeholder={t('settings:travelerName')}
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[0.8rem] font-bold text-text-secondary">
-                        {t('settings:photoUrl')}
-                      </label>
-                      <div className="flex gap-2 items-center">
-                        <input
-                          className="px-3.5 py-2.5 rounded-lg border border-black/10 text-[0.92rem] outline-none font-body text-charcoalBlue bg-slate-50 w-full box-border flex-1 focus:border-atomicTangerine transition-colors"
-                          value={photoUrl}
-                          onChange={e => { setPhotoUrl(e.target.value); setPhotoError(false); }}
-                          onBlur={handleSaveOnBlur}
-                          placeholder="https://..."
-                        />
-                        <Camera size={16} className="text-text-secondary" />
-                      </div>
-                    </div>
-
-                    {savedMsg && (
-                      <Motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex items-center gap-1.5 text-mutedTeal font-bold text-[0.83rem]"
-                      >
-                        <CheckCircle size={14} /> {savedMsg}
-                      </Motion.div>
-                    )}
-                  </div>
-                </div>
-              </Motion.div>
-            )}
-          </AnimatePresence>
-        </GroupCard>
-      </Motion.div>
-
-      {/* ── Preferences Group ── */}
-      <Motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', damping: 20, stiffness: 120, delay: 0.05 }}
-      >
-        <SectionHeader>{t('settings:language.title', 'Preferences')}</SectionHeader>
-        <GroupCard>
-          <SettingsRow
-            icon={Globe}
-            label={t('settings:language.title')}
-            description={t('settings:language.description')}
-            onClick={() => {}}
-            trailing={
-              <LanguageToggle
-                currentLang={i18n.language}
-                onToggle={(code) => i18n.changeLanguage(code)}
-              />
-            }
-            isLast={true}
-          />
-        </GroupCard>
-      </Motion.div>
-
-      {/* ── Operational Controls (Admin Only) ── */}
-      {canManageOperationalFlags && (
+        {/* ── Identity Card ── */}
         <Motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', damping: 20, stiffness: 120, delay: 0.08 }}
+          transition={{ type: 'spring', damping: 20, stiffness: 120 }}
         >
-          <OperationalControlsSection
-            canManageOperationalFlags={canManageOperationalFlags}
-            currentUser={user}
-            onNotify={pushToast}
-          />
-        </Motion.div>
-      )}
+          <GroupCard>
+            <div className="flex gap-[18px] items-center p-6">
+              {/* Avatar */}
+              <div className="w-[68px] h-[68px] rounded-full overflow-hidden border-[3px] border-black/5 flex-shrink-0 bg-mutedTeal flex items-center justify-center">
+                {photoUrl && !photoError ? (
+                  <img
+                    src={photoUrl}
+                    alt="Avatar"
+                    className="w-full h-full object-cover"
+                    onError={() => setPhotoError(true)}
+                  />
+                ) : (
+                  <div className="text-white font-black text-2xl flex items-center justify-center w-full h-full">
+                    {initials || <User size={28} />}
+                  </div>
+                )}
+              </div>
 
-      {/* ── Account Group ── */}
-      <Motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', damping: 20, stiffness: 120, delay: 0.1 }}
-      >
-        <SectionHeader>{t('settings:accountTitle', 'Account')}</SectionHeader>
-        <GroupCard className="border-red-500/10">
-          <SettingsRow
-            icon={LogOut}
-            label={t('common:logout')}
-            description={t('settings:logoutDescription')}
-            onClick={logout}
-            danger
-          />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <h1 className="m-0 text-xl font-black text-charcoalBlue tracking-tight truncate">
+                    {user?.displayName || '—'}
+                  </h1>
+                  <Motion.button
+                    type="button"
+                    onClick={() => setEditingProfile(v => !v)}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-black/5 border-none rounded-lg w-8 h-8 flex items-center justify-center cursor-pointer text-text-secondary"
+                    aria-label="Edit profile"
+                  >
+                    <Pencil size={13} />
+                  </Motion.button>
+                </div>
+                <div className="flex gap-1.5 flex-wrap">
+                  {user?.email && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[0.73rem] font-bold border border-black/5 bg-black/5 text-text-secondary truncate max-w-[180px]">
+                      {user.email}
+                    </span>
+                  )}
+                  {isAdmin && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[0.73rem] font-extrabold border border-amber-200 bg-amber-50 text-orange-700">
+                      {t('settings:admin')}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Expandable Edit Form */}
+            <AnimatePresence>
+              {editingProfile && (
+                <Motion.div
+                  key="edit-profile"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ type: 'spring', damping: 22, stiffness: 200 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-6 pb-6 border-t border-black/5">
+                    {/* Avatar upload */}
+                    <div className="mt-4 flex gap-2.5 items-center">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarFileChange}
+                      />
+                      <Motion.button
+                        type="button"
+                        onClick={handleAvatarUploadClick}
+                        whileTap={{ scale: 0.98 }}
+                        disabled={uploadingAvatar}
+                        className="min-h-[40px] px-3.5 rounded-lg border border-black/10 bg-slate-50 text-charcoalBlue font-semibold text-[0.85rem] cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                      >
+                        <Camera size={14} />
+                        {uploadingAvatar ? `${Math.round(uploadProgress)}%` : t('settings:avatarUpload')}
+                      </Motion.button>
+                      <span className="text-[0.78rem] text-text-secondary">
+                        {t('settings:avatarHint')}
+                      </span>
+                    </div>
+
+                    {/* Name + Photo URL fields */}
+                    <div className="mt-4 flex flex-col gap-3.5">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[0.8rem] font-bold text-text-secondary">
+                          {t('settings:travelerName')}
+                        </label>
+                        <input
+                          className="px-3.5 py-2.5 rounded-lg border border-black/10 text-[0.92rem] outline-none font-body text-charcoalBlue bg-slate-50 w-full box-border focus:border-atomicTangerine transition-colors"
+                          value={displayName}
+                          onChange={e => setDisplayName(e.target.value)}
+                          onBlur={handleSaveOnBlur}
+                          placeholder={t('settings:travelerName')}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </Motion.div>
+              )}
+            </AnimatePresence>
+          </GroupCard>
+        </Motion.div>
+
+        {/* ── Account Section ── */}
+        <SectionHeader>{t('settings:account', 'Cuenta')}</SectionHeader>
+        <GroupCard>
           <SettingsRow
             icon={Trash2}
             label={t('settings:deleteAccount')}
@@ -442,7 +365,6 @@ const SettingsPage = () => {
             isLast={true}
           />
         </GroupCard>
-      </Motion.div>
 
       <ConfirmModal
         isOpen={showDeleteConfirm}
@@ -459,7 +381,7 @@ const SettingsPage = () => {
       <div className="pt-8 mt-6 border-t border-black/5 flex justify-center items-center">
         <span className="text-[0.75rem] text-slate-500 font-medium tracking-wider">
           {/* eslint-disable-next-line no-undef */}
-          {t('settings:footer.appVersion', 'App Version')} • v{__APP_VERSION__}
+          {t('settings:footer.appVersion', 'App Version')} • {`v${__APP_VERSION__}`}
         </span>
       </div>
     </div>
