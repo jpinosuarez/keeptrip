@@ -80,15 +80,15 @@ const EdicionHeaderSection = ({
     .filter(Boolean);
 
   const countrySummary = normalizedCountries.length === 0
-    ? t('labels.noStopsSummary', 'Sin paradas')
+    ? t('labels.noStopsSummary', 'No stops')
     : normalizedCountries.length === 1
-      ? (countryNames[0] || legacyCountryName || t('labels.countryFallback', 'Destino por confirmar'))
-      : t('labels.multiCountriesSummary', '{{count}} países', { count: normalizedCountries.length });
+      ? (countryNames[0] || legacyCountryName || t('labels.countryFallback', 'Destination pending'))
+      : t('labels.multiCountriesSummary', '{{count}} countries', { count: normalizedCountries.length });
 
   const locationText = !hasStops
-    ? t('labels.noStopsRoute', 'Agrega una parada para empezar')
+    ? t('labels.noStopsRoute', 'Add a stop to begin')
     : isMultiCountry
-    ? t('labels.multiCountryRoute', 'Ruta por {{count}} países', { count: normalizedCountries.length })
+    ? t('labels.multiCountryRoute', 'Route through {{count}} countries', { count: normalizedCountries.length })
     : countrySummary;
 
   const dateRangeText = `${formData?.fechaInicio || '--'} - ${formData?.fechaFin || '--'}`;
@@ -120,14 +120,14 @@ const EdicionHeaderSection = ({
 
         <div className="flex justify-between items-start gap-2.5 flex-wrap">
           <span className="min-h-[44px] inline-flex items-center rounded-full px-3.5 bg-background border border-border text-textTertiary text-[0.72rem] font-extrabold uppercase tracking-wider">
-            {esBorrador ? t('labels.draft', 'Borrador') : t('labels.editing', 'Editando')}
+            {esBorrador ? t('labels.draft', 'Draft') : t('labels.editing', 'Editing')}
           </span>
 
           <div className="flex gap-2 items-center flex-wrap">
             {isProcessingImage && (
               <div className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full px-3.5 bg-warning/10 border border-warning/25 text-[#B45309] text-[0.72rem] font-bold">
                 <LoaderCircle size={14} className="animate-spin" />
-                <span>{t('optimizing', 'Optimizando...')}</span>
+                <span>{t('optimizing', 'Optimizing...')}</span>
               </div>
             )}
 
@@ -193,7 +193,7 @@ const EdicionHeaderSection = ({
               adjustTitleHeight();
             }}
           />
-          <small className="text-[0.75rem] text-textTertiary mt-[-4px] mb-2 block">{t('labels.titleEditableHint', 'Toca para editar el título')}</small>
+          <small className="text-[0.75rem] text-textTertiary mt-[-4px] mb-2 block">{t('labels.titleEditableHint', 'Tap to edit title')}</small>
 
           <div className="flex items-center gap-2.5 flex-wrap">
             <div className="flex items-center">

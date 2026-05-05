@@ -308,7 +308,7 @@ const EditableTripHeader = ({
       <div className="absolute top-4 left-4 right-4 flex justify-end items-center z-[10] pointer-events-none">
         {isProcessingImage && (
           <div className="mr-auto flex items-center gap-1.5 text-white text-[0.8rem] font-bold">
-            <LoaderCircle size={16} className="animate-spin" /> Optimizando
+            <LoaderCircle size={16} className="animate-spin" /> Optimizing
           </div>
         )}
         
@@ -380,14 +380,14 @@ const EditableTripHeader = ({
           {/* Hint text shown when title is manually modified or affordance to edit */}
           {!isTituloAuto ? (
             <small className="text-white/50 text-[0.7rem] font-bold uppercase tracking-wider mt-0.5">
-              {t('editor.header.manualTitleHint', { defaultValue: 'Estás usando un título manual' })}
+              {t('editor.header.manualTitleHint', { defaultValue: 'Using manual title' })}
             </small>
           ) : (
             <small className={cn(
               "text-white/40 text-[0.7rem] font-bold uppercase tracking-wider mt-0.5 transition-opacity duration-300 pointer-events-none",
               isTitleFocused ? "opacity-0" : "opacity-100"
             )}>
-              {t('editor.header.editTitleHint', { defaultValue: 'Toca para editar el título' })}
+              {t('editor.header.editTitleHint', { defaultValue: 'Tap to edit title' })}
             </small>
           )}
         </div>

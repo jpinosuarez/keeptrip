@@ -150,7 +150,7 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
               setSearchQuery(value);
               if (value.length < 3) setSearchResults([]);
             }}
-            placeholder={t('citymanager.searchPlaceholder', '🔍 Añadir nueva parada a tu ruta')}
+            placeholder={t('citymanager.searchPlaceholder', '🔍 Add new stop to your route')}
             className="border-none bg-transparent py-3 w-full outline-none text-base"
             disabled={isSearchPaused || isReadOnlyActive}
           />
@@ -210,10 +210,10 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
                     "bg-transparent border-[1.5px] border-atomicTangerine rounded-full min-h-[44px] min-w-[44px] px-3.5 py-2.5 text-atomicTangerine text-[0.75rem] font-bold cursor-pointer transition-all outline-none flex items-center gap-1.5 hover:bg-atomicTangerine/5 active:translate-y-[1px]",
                     isReadOnlyActive && "opacity-55 cursor-not-allowed"
                   )}
-                  aria-label={t('button.add') || '+ Agregar destino'}
+                  aria-label={t('button.add') || '+ Add destination'}
                   disabled={isReadOnlyActive}
                 >
-                  <Plus size={14} /> {t('button.add', '+ Agregar destino')}
+                  <Plus size={14} /> {t('button.add', '+ Add destination')}
                 </button>
               </div>
             );
