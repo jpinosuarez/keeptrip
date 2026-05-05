@@ -10,6 +10,7 @@ import { useAuth } from '@app/providers/AuthContext';
 import { useUpload } from '@app/providers/UploadContext';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import { cn } from '@shared/lib/utils/cn';
+import { Z_INDEX } from '@shared/config/theme';
 
 // Import editor sections
 import EditableTripHeader from './components/EditableTripHeader';
@@ -99,7 +100,7 @@ const EditorFocusPanel = ({
     setIsClosingAfterSave(false);
     initialFormDataRef.current = structuredClone(effectiveFormData || {});
     initialParadasRef.current = structuredClone(effectiveParadas || []);
-  }, [viaje?.id, effectiveFormData, effectiveParadas]);
+  }, [viaje?.id]); // Only snap initial state on mount or when trip ID changes
 
   // Check for unsaved changes
   const hasUnsavedChanges = useCallback(() => {
@@ -320,7 +321,7 @@ const EditorFocusPanel = ({
         <Motion.div
           key="panel"
           className={cn(
-            "fixed bg-background z-[100] flex flex-col",
+            "fixed bg-background z-modal flex flex-col",
             isMobile 
               ? "inset-0" 
               : "top-0 right-0 h-full w-[420px] shadow-2xl border-l border-border"

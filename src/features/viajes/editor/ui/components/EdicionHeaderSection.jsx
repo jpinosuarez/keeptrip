@@ -211,7 +211,7 @@ const EdicionHeaderSection = ({
                         key={`${flagVisual.type}-${flagVisual.value}-${idx}`}
                         role="img"
                         aria-label={t('labels.flagAlt', 'Country flag')}
-                        className={cn(commonClasses, "inline-flex items-center justify-center text-[1rem] leading-none drop-shadow-sm border-slate-100")}
+                        className={cn(commonClasses, "inline-flex items-center justify-center text-[1rem] leading-none drop-shadow-md border-slate-100")}
                         style={commonStyles}
                       >
                         {flagVisual.value}
@@ -226,7 +226,7 @@ const EdicionHeaderSection = ({
                       alt={t('labels.flagAlt', 'Country flag')}
                       width="24"
                       height="24"
-                      className={cn(commonClasses, "object-cover inline-block border border-slate-100")}
+                      className={cn(commonClasses, "object-cover inline-block border border-slate-100 drop-shadow-md")}
                       style={commonStyles}
                       loading="lazy"
                       onError={(e) => {

@@ -123,7 +123,7 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-background/50 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-background/50 custom-scroll">
           <AnimatePresence mode="wait">
             {activeTab === 'info' && (
               <Motion.div

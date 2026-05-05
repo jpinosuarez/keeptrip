@@ -57,7 +57,6 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
   const [hoverInfo, setHoverInfo] = useState(null);
   const mapRef = useRef(null);
   const isMobileRef = useRef(isMobile);
-  useEffect(() => { isMobileRef.current = isMobile; }, [isMobile]);
   const mapContainerRef = useRef(null);
 
   const onHover = useCallback(event => {
@@ -71,15 +70,29 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
   }, []);
 
   const fitWorld = useCallback(map => {
+    if (!map) return;
     const mobile = isMobileRef.current;
+    
+    // Stabilize map dimensions before fitting bounds
+    map.resize();
+    
     map.fitBounds(
       mobile ? WORLD_BOUNDS_MOBILE : WORLD_BOUNDS_DESKTOP,
       {
         padding: mobile ? WORLD_PADDING_MOBILE : WORLD_PADDING_DESKTOP,
         duration: 0,
+        animate: false,
       }
     );
   }, []);
+
+  useEffect(() => { 
+    isMobileRef.current = isMobile; 
+    // Re-fit world framing when switching between mobile/desktop layouts
+    if (mapRef.current) {
+      fitWorld(mapRef.current);
+    }
+  }, [isMobile, fitWorld]);
 
   const handleMapLoad = useCallback(e => {
     const map = e.target;

@@ -149,7 +149,7 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
           ) : (
             <div className="relative w-full h-full overflow-hidden" aria-hidden="true">
               <div className={cn(
-                "grid w-full h-full blur-md scale-105 opacity-50",
+                "grid w-full h-full blur-sm scale-105 opacity-30",
                 auraFlags.length <= 1 ? "grid-cols-1 grid-rows-1" : 
                 auraFlags.length === 2 ? "grid-cols-1 grid-rows-2" : "grid-cols-2 grid-rows-2"
               )}>
@@ -166,7 +166,7 @@ const TripCard = ({ trip, onClick, onEdit, onDelete, isMobile = false, variant =
                   />
                 ))}
               </div>
-              <div className="absolute inset-0 bg-slate-900/50" />
+              <div className="absolute inset-0 bg-black/30" />
             </div>
           )}
         </Motion.div>

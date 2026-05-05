@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Search, X, HelpCircle } from 'lucide-react';
-import { COLORS, RADIUS, SHADOWS, GLASS, FONTS, TRANSITIONS } from '@shared/config';
+import { COLORS, RADIUS, SHADOWS, GLASS, FONTS, TRANSITIONS, Z_INDEX } from '@shared/config';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { useToast } from '@app/providers/ToastContext';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
@@ -30,6 +30,14 @@ const SearchPalette = ({
   const inputRef = useRef(null);
   const abortControllerRef = useRef(null);
   const lastMapboxErrorRef = useRef(0);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
   
   const [query, setQuery] = useState('');
   const [mapboxResults, setMapboxResults] = useState([]);
@@ -116,7 +124,7 @@ const SearchPalette = ({
         if (error.name === 'AbortError') return;
         console.error('Mapbox search error:', error);
         const now = Date.now();
-        if (now - lastMapboxErrorRef.current > 6000) {
+        if (now - lastMapboxErrorRef.current > 6000 && isMountedRef.current) {
           pushToast({
             type: 'warning',
             message: t('searchUnavailable', {
@@ -128,7 +136,9 @@ const SearchPalette = ({
         }
         setMapboxResults([]);
       } finally {
-        setLoading(false);
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
       }
     })();
 
@@ -236,7 +246,7 @@ const SearchPalette = ({
       right: 0,
       bottom: 0,
       ...(isMobile ? { backgroundColor: '#F8FAFC' } : GLASS.overlay),
-      zIndex: 10001,
+      zIndex: Z_INDEX.searchPalette,
       display: 'flex',
       alignItems: isMobile ? 'stretch' : 'flex-start',
       justifyContent: 'center',

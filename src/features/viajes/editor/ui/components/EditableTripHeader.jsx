@@ -301,7 +301,8 @@ const EditableTripHeader = ({
             </div>
           )}
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent z-[1] pointer-events-none" />
+        <div className="absolute inset-0 bg-black/40 z-[1] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent z-[2] pointer-events-none" />
       </div>
 
       {/* Top Floating Actions */}
