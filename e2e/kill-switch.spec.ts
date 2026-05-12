@@ -85,6 +85,8 @@ async function openSearchPalette(page: Page) {
   return searchInput;
 }
 
+test.describe.configure({ mode: 'serial' });
+
 test.describe('Unified kill-switch operational audit', () => {
   test.afterEach(async ({ page }) => {
     await setOperationalLevel(page, 0);

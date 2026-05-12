@@ -224,6 +224,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
               setIsMenuOpen((prev) => !prev);
             }}
             aria-label={t('card.menu', { ns: 'dashboard', defaultValue: 'Abrir opciones de viaje' })}
+            data-testid="trip-card-menu-btn"
           >
             <MoreVertical size={20} />
           </button>
@@ -242,6 +243,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
                 }}
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
+                data-testid="trip-card-menu-portal"
               >
                 <button
                   onClick={(e) => {
@@ -251,6 +253,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
                     if (onEdit) onEdit(trip.id);
                   }}
                   className="portal-menu-item flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
+                  data-testid="trip-card-menu-edit"
                 >
                   <Edit2 size={16} /> <span>{t('card.edit', { ns: 'dashboard', defaultValue: 'Editar viaje' })}</span>
                 </button>
@@ -266,6 +269,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
                       onDelete(trip.id);
                     }}
                     className="portal-menu-item danger flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-danger text-left hover:bg-danger/10 transition-colors font-heading"
+                    data-testid="trip-card-menu-delete"
                   >
                     <Trash2 size={16} /> <span>{t('card.delete', { ns: 'dashboard', defaultValue: 'Eliminar' })}</span>
                   </button>

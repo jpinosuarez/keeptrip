@@ -63,12 +63,16 @@ test.describe('Editor flow (E2E)', () => {
     const cancelButton = page.getByRole('button', { name: /Cancel|Cancelar/i }).first();
     await cancelButton.click();
 
-    await expect(page.getByText(/Discard changes\?|¿Descartar cambios\?/i)).toBeVisible({ timeout: 15000 });
+    // ConfirmModal renders both mobile (BottomSheet) and desktop (dialog) variants.
+    // Scope to the dialog role to avoid the hidden mobile duplicate.
+    const confirmDialog = page.getByRole('dialog');
+    const discardHeading = confirmDialog.getByRole('heading', { name: /Discard changes\?|¿Descartar cambios\?/i });
+    await expect(discardHeading).toBeVisible({ timeout: 15000 });
 
     const keepEditingButton = page.getByRole('button', { name: /Keep editing|Seguir editando/i });
     await keepEditingButton.click();
 
-    await expect(page.getByText(/Discard changes\?|¿Descartar cambios\?/i)).toHaveCount(0);
+    await expect(confirmDialog).toBeHidden();
     await expect(titleInput).toHaveValue('Editor Trip With Unsaved Changes');
 
     await cancelButton.click();

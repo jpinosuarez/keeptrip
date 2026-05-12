@@ -320,6 +320,7 @@ const EditorFocusPanel = ({
         {/* Panel */}
         <Motion.div
           key="panel"
+          data-testid="editor-focus-panel"
           className={cn(
             "fixed bg-background z-modal flex flex-col",
             isMobile 

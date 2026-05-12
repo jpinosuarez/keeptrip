@@ -1,6 +1,37 @@
 import { expect, type Page } from '@playwright/test';
 
 const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
+const FIRESTORE_PROJECT_ID = 'keeptrip-app-b06b3';
+const FIRESTORE_EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8081';
+
+/**
+ * Resets or sets the global operational level in the Firestore emulator.
+ * Uses the REST API with 'Bearer owner' to bypass security rules as an admin.
+ */
+export async function setOperationalLevel(page: Page, level: number) {
+  const url = `http://${FIRESTORE_EMULATOR_HOST}/v1/projects/${FIRESTORE_PROJECT_ID}/databases/(default)/documents/system/operational_flags`;
+  
+  const doc = {
+    fields: {
+      level: { integerValue: String(level) },
+      app_readonly_mode: { booleanValue: level >= 3 },
+      app_maintenance_mode: { booleanValue: level >= 4 },
+      reason: { stringValue: `E2E reset to level ${level}` },
+    },
+  };
+
+  await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer owner'
+    },
+    body: JSON.stringify(doc),
+  });
+
+  // Give the app a moment to receive the update via its Firestore listener if we are on a page
+  // But don't use waitForTimeout, just continue; tests should wait for UI indicators anyway.
+}
 
 export async function createAuthUser(email: string, password = 'testpass', localId?: string) {
   console.log(`[E2E] Creating auth user ${email} (UID: ${localId || 'auto'})...`);
@@ -47,19 +78,28 @@ export async function e2eInitStorage(page: Page) {
 
 export async function mockAuthFlow(page: Page) {
   await page.route('https://api.mapbox.com/geocoding/**', async (route) => {
+    const url = new URL(route.request().url());
+    const query = decodeURIComponent(url.pathname.split('/').pop()?.replace('.json', '') || 'location');
+    
     const fakeGeoJson = {
       type: 'FeatureCollection',
-      query: ['madrid'],
+      query: [query],
       features: [
         {
-          id: 'place.madrid',
+          id: `place.${query}`,
           type: 'Feature',
           place_type: ['place'],
-          text: 'Madrid',
-          place_name: 'Madrid, Comunidad de Madrid, España',
+          text: query.charAt(0).toUpperCase() + query.slice(1),
+          place_name: query.toLowerCase() === 'madrid' 
+            ? 'Madrid, Comunidad de Madrid, España' 
+            : `${query.charAt(0).toUpperCase() + query.slice(1)}, Earth`,
           center: [-3.7038, 40.4168],
           properties: {},
-          context: [{ id: 'country.esp', text: 'España', short_code: 'es' }],
+          context: [{ 
+            id: query.toLowerCase() === 'madrid' ? 'country.esp' : 'country.usa', 
+            text: query.toLowerCase() === 'madrid' ? 'España' : 'United States', 
+            short_code: query.toLowerCase() === 'madrid' ? 'es' : 'us' 
+          }],
         },
       ],
     };
