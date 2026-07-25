@@ -135,7 +135,8 @@ const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = f
       if (prev.fechaSalida) return prev.fechaSalida.split('/').reverse().join('-');
       if (prev.fechaLlegada) return prev.fechaLlegada.split('/').reverse().join('-');
     }
-    return tripStartDate ? tripStartDate.split('/').reverse().join('-') : '';
+    // No min restriction on first stop — users must be able to log past trips
+    return '';
   };
 
   return (
