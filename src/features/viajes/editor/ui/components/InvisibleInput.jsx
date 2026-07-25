@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { COLORS, FONTS, TRANSITIONS } from '@shared/config';
+import { cn } from '@shared/lib/utils/cn';
 
 /**
  * InvisibleInput: Click-to-edit typography.
@@ -41,55 +41,26 @@ const InvisibleInput = ({
 
   const displayValue = value || placeholder;
 
-  const containerStyle = {
-    display: 'block',
-    position: 'relative',
-    cursor: isEditing ? 'text' : 'pointer',
-    userSelect: isEditing ? 'text' : 'none',
-    minHeight: multiline ? '60px' : 'auto',
-    transition: TRANSITIONS.fast,
-  };
-
-  const baseInputStyle = {
-    width: '100%',
-    border: 'none',
-    outline: 'none',
-    padding: 0,
-    margin: 0,
-    fontFamily: FONTS.text,
-    backgroundColor: 'transparent',
-    color: COLORS.charcoalBlue,
-    transition: TRANSITIONS.fast,
-    resize: multiline ? 'vertical' : 'none',
-  };
-
-  const displayStyle = {
-    ...baseInputStyle,
-    display: isEditing ? 'none' : 'block',
-    whiteSpace: multiline ? 'pre-wrap' : 'nowrap',
-    wordBreak: multiline ? 'break-word' : 'normal',
-    opacity: value ? 1 : 0.5,
-    ...textStyle,
-  };
-
-  const inputStyle = {
-    ...baseInputStyle,
-    display: isEditing ? 'block' : 'none',
-    padding: '2px 4px',
-    borderRadius: '4px',
-    backgroundColor: 'rgba(255, 107, 53, 0.08)',
-    border: `1px solid ${COLORS.atomicTangerine}`,
-    boxShadow: `0 0 0 2px rgba(255, 107, 53, 0.15)`,
-    ...textStyle,
-  };
-
   return (
-    <div style={containerStyle} className={className}>
+    <div 
+      className={cn(
+        "block relative transition-all",
+        isEditing ? "cursor-text select-text" : "cursor-pointer select-none",
+        multiline ? "min-h-[60px]" : "h-auto",
+        className
+      )}
+    >
       {/* Display text */}
       <span
-        style={displayStyle}
         onClick={handleClick}
         title={isEditing ? '' : 'Click to edit'}
+        className={cn(
+          "w-full border-none outline-none p-0 m-0 bg-transparent text-charcoalBlue transition-all",
+          isEditing ? "hidden" : "block",
+          multiline ? "whitespace-pre-wrap break-words" : "whitespace-nowrap",
+          !value && "opacity-50"
+        )}
+        style={textStyle}
       >
         {displayValue}
       </span>
@@ -98,23 +69,31 @@ const InvisibleInput = ({
       {multiline ? (
         <textarea
           ref={inputRef}
-          style={inputStyle}
           value={value}
           onChange={handleChange}
           onBlur={handleBlur}
           placeholder={placeholder}
           maxLength={maxLength}
+          className={cn(
+            "w-full border-none outline-none m-0 text-charcoalBlue transition-all resize-y p-1 rounded bg-atomicTangerine/10 border border-atomicTangerine ring-2 ring-atomicTangerine/15",
+            isEditing ? "block" : "hidden"
+          )}
+          style={textStyle}
         />
       ) : (
         <input
           ref={inputRef}
           type="text"
-          style={inputStyle}
           value={value}
           onChange={handleChange}
           onBlur={handleBlur}
           placeholder={placeholder}
           maxLength={maxLength}
+          className={cn(
+            "w-full border-none outline-none m-0 text-charcoalBlue transition-all resize-none p-1 rounded bg-atomicTangerine/10 border border-atomicTangerine ring-2 ring-atomicTangerine/15",
+            isEditing ? "block" : "hidden"
+          )}
+          style={textStyle}
         />
       )}
     </div>

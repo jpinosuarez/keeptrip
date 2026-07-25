@@ -42,7 +42,7 @@ describeIfEmulator('Firestore Rules', () => {
       const adminDb = admin.firestore();
       const viajeRef = adminDb.doc('usuarios/ownerUid/viajes/viaje1');
       await viajeRef.set({ titulo: 'Original', sharedWith: [] });
-      const invRef = adminDb.doc('usuarios/ownerUid/viajes/viaje1/invitations/inviteeUid');
+      const invRef = adminDb.doc('invitations/viaje1_inviteeUid');
       await invRef.set({ inviterId: 'ownerUid', inviteeUid: 'inviteeUid', viajeId: 'viaje1', status: 'accepted' });
     });
 
@@ -76,7 +76,7 @@ describeIfEmulator('Firestore Rules', () => {
       const adminDb = admin.firestore();
       const viajeRef = adminDb.doc('usuarios/ownerUid/viajes/viaje2');
       await viajeRef.set({ titulo: 'Original', sharedWith: [] });
-      const invRef = adminDb.doc('usuarios/ownerUid/viajes/viaje2/invitations/inviteeUid');
+      const invRef = adminDb.doc('invitations/viaje2_inviteeUid');
       await invRef.set({ inviterId: 'ownerUid', inviteeUid: 'inviteeUid', viajeId: 'viaje2', status: 'pending' });
     });
 
@@ -92,7 +92,7 @@ describeIfEmulator('Firestore Rules', () => {
       const adminDb = admin.firestore();
       await adminDb.doc('usuarios/ownerUid/viajes/viaje3').set({ titulo: 'Trip', sharedWith: [] });
       // Invitación existe pero inviterId ≠ ownerUid → regla debe rechazar
-      await adminDb.doc('usuarios/ownerUid/viajes/viaje3/invitations/evilUid').set({
+      await adminDb.doc('invitations/viaje3_evilUid').set({
         inviterId: 'someoneElse', inviteeUid: 'evilUid', viajeId: 'viaje3', status: 'pending'
       });
     });
@@ -148,7 +148,7 @@ describeIfEmulator('Firestore Rules', () => {
     await testEnv.withSecurityRulesDisabled(async (admin) => {
       const adminDb = admin.firestore();
       await adminDb.doc('usuarios/ownerUid/viajes/viaje4').set({ titulo: 'Trip', sharedWith: ['inviteeUid'] });
-      await adminDb.doc('usuarios/ownerUid/viajes/viaje4/invitations/inviteeUid').set({ inviterId: 'ownerUid', inviteeUid: 'inviteeUid', viajeId: 'viaje4', status: 'accepted' });
+      await adminDb.doc('invitations/viaje4_inviteeUid').set({ inviterId: 'ownerUid', inviteeUid: 'inviteeUid', viajeId: 'viaje4', status: 'accepted' });
       await adminDb.doc('usuarios/ownerUid/viajes/viaje4/paradas/p1').set({ nombre: 'Parada1' });
     });
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { styles } from './InteractiveCardStack.styles';
+import { cn } from '@shared/lib/utils/cn';
 
 // Ensure we import TripCard
 import TripCard from '../../../../../widgets/tripGrid/ui/TripCard';
@@ -15,28 +15,27 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: springTransition },
 };
 
-const InteractiveCardStack = ({ isMobile = false }) => {
+const InteractiveCardStack = () => {
   const { t } = useTranslation(['landing']);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
 
   // Fetch localized data with extreme safety
   let heroData = t('landing:mockTrips.hero', { returnObjects: true });
   
-  // High-fidelity fallback in case i18n is not ready or key is missing
+  // High-fidelity fallback
   const quality = 80;
-  const width = isMobile ? 600 : 1200;
+  const width = 800;
   const fallbackHero = [
     { id: '1', titulo: 'Misterios de Kioto', paisCodigo: 'JP', fechaInicio: '2024-10-02', fechaFin: '2024-10-16', ciudades: 'Kioto, Nara, Osaka', coverUrl: `https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=${width}&q=${quality}` },
     { id: '2', titulo: 'Expedición Patagonia', paisCodigo: 'AR', fechaInicio: '2025-01-11', fechaFin: '2025-01-21', ciudades: 'El Calafate, El Chalten, Ushuaia', coverUrl: `https://images.unsplash.com/photo-1526761122248-c31c93f8b2b9?auto=format&fit=crop&w=${width}&q=${quality}` },
     { id: '3', titulo: 'Fin de semana en Paris', paisCodigo: 'FR', fechaInicio: '2025-03-08', fechaFin: '2025-03-12', ciudades: 'Paris, Versalles', coverUrl: `https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=${width}&q=${quality}` }
   ];
 
-  // Robust array validation, enforcing mobile-friendly image widths
   const HERO_CARDS = (Array.isArray(heroData) && heroData.length > 0 ? heroData : fallbackHero).map(card => {
     if (card.coverUrl && card.coverUrl.includes('unsplash.com')) {
       const fixedUrl = new URL(card.coverUrl);
-      fixedUrl.searchParams.set('w', width);
-      fixedUrl.searchParams.set('q', quality);
+      fixedUrl.searchParams.set('w', String(width));
+      fixedUrl.searchParams.set('q', String(quality));
       return { ...card, coverUrl: fixedUrl.toString() };
     }
     return card;
@@ -51,10 +50,10 @@ const InteractiveCardStack = ({ isMobile = false }) => {
   };
 
   return (
-    <Motion.div style={styles.heroVisual} variants={itemVariants} aria-hidden="true">
-      <div style={styles.heroBackground} />
+    <Motion.div className="relative w-full h-[420px] flex justify-center items-center" variants={itemVariants} aria-hidden="true">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-[radial-gradient(circle,theme(colors.atomicTangerine/0.3)_0%,transparent_65%)] pointer-events-none z-[1]" />
       
-      <div style={styles.tripCardsStack} role="region" aria-label="Tarjetas de muestra">
+      <div className="relative w-[280px] h-[360px] z-[2] [perspective:1000px]" role="region" aria-label="Tarjetas de muestra">
         <AnimatePresence>
           {HERO_CARDS.map((card, idx) => {
               const rawOffset = idx - activeCardIndex;
@@ -65,15 +64,12 @@ const InteractiveCardStack = ({ isMobile = false }) => {
                 <Motion.div
                   key={card.id || idx}
                   layout
+                  className={cn(
+                    "absolute top-0 left-0 w-full h-full",
+                    isFront ? "cursor-grab pointer-events-auto" : "cursor-auto pointer-events-none"
+                  )}
                   style={{ 
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
                     zIndex: HERO_CARDS.length - offset,
-                    cursor: isFront ? 'grab' : 'auto',
-                    pointerEvents: isFront ? 'auto' : 'none',
                     transformOrigin: 'bottom center',
                   }}
                   initial={{ opacity: 0, scale: 0.9, y: 30 }}
@@ -95,10 +91,10 @@ const InteractiveCardStack = ({ isMobile = false }) => {
                   whileHover={isFront ? { scale: 1.05, y: -8, rotate: 1 } : {}}
                   transition={springTransition}
                 >
-                  <div style={{ pointerEvents: 'none', width: '100%', height: '100%' }}>
+                  <div className="pointer-events-none w-full h-full">
                     <TripCard 
                       trip={mapLandingMockTripToCard(card)}
-                      isMobile={isMobile} 
+                      isMobile={false} 
                       variant="home" priorityImage={isFront} 
                     />
                   </div>
@@ -108,10 +104,10 @@ const InteractiveCardStack = ({ isMobile = false }) => {
         </AnimatePresence>
 
         {/* Glassmorphic Nav Buttons */}
-        <div style={styles.heroNavControls}>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%+72px)] flex justify-between items-center z-10 pointer-events-none">
           <Motion.button 
               type="button"
-              style={{ ...styles.heroNavBtn, border: 'none', background: 'transparent' }} 
+              className="w-12 h-12 rounded-full border border-white/60 bg-white/85 backdrop-blur-xl flex justify-center items-center cursor-pointer text-charcoalBlue shadow-md pointer-events-auto shrink-0 transition-all" 
               whileHover={{ scale: 1.05 }} 
               whileTap={{ scale: 0.95 }}
               onClick={handlePrevCard}
@@ -121,7 +117,7 @@ const InteractiveCardStack = ({ isMobile = false }) => {
           </Motion.button>
           <Motion.button 
               type="button"
-              style={{ ...styles.heroNavBtn, border: 'none', background: 'transparent' }} 
+              className="w-12 h-12 rounded-full border border-white/60 bg-white/85 backdrop-blur-xl flex justify-center items-center cursor-pointer text-charcoalBlue shadow-md pointer-events-auto shrink-0 transition-all" 
               whileHover={{ scale: 1.05 }} 
               whileTap={{ scale: 0.95 }}
               onClick={handleNextCard}

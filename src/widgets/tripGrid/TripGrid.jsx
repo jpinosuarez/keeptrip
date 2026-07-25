@@ -42,9 +42,11 @@ const TripGrid = ({
     <div className="w-full pb-14">
       <Motion.div 
         className={cn(
-          "grid gap-4 md:gap-6 w-full",
-          "grid-cols-[repeat(auto-fill,minmax(min(288px,100%),1fr))]"
+          "grid w-full",
+          "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+          "gap-4 lg:gap-5 xl:gap-6"
         )}
+        data-testid="trips-grid"
         initial="hidden"
         animate="visible"
         variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
@@ -83,7 +85,7 @@ const TripGrid = ({
                   <TripCard
                     trip={{ ...data, id: trip.id, paradaCount }}
                     variant="grid"
-                    onClick={() => openTrip(trip.id)}
+                    onEdit={() => openTrip(trip.id)}
                     onDelete={handleDelete}
                   />
                 </Motion.div>

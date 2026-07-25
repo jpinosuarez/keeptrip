@@ -21,6 +21,7 @@ const OperationalMapFallback = ({
         backgroundColor: '#EFF6FF',
         ...containerStyle,
       }}
+      data-testid="operational-map-fallback"
     >
       <WorldMapSVG color={COLORS.atomicTangerine} />
 

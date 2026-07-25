@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
 
-import { styles } from './LandingPage.styles';
 import NavBar from './components/NavBar/NavBar';
 import HeroSection from './components/Hero/HeroSection';
 
@@ -32,18 +31,17 @@ const LandingPage = () => {
 
   return (
     <Motion.div
-      className="pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]" // Safe area insets
-      style={styles.container}
+      className="pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] min-h-[100dvh] h-[100dvh] overflow-y-auto overflow-x-hidden bg-background relative font-heading"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       {/* Visual, deliberate Background Map */}
-      <div style={styles.backgroundMap} />
+      <div className="absolute inset-0 bg-[url('/world-map-blank.opt.svg')] bg-cover bg-[center_15%] opacity-15 z-[1] pointer-events-none [mask-image:linear-gradient(to_bottom,rgba(0,0,0,1)_40%,rgba(0,0,0,0)_95%)]" />
 
       <NavBar />
       <HeroSection />
-      <React.Suspense fallback={<div style={{ minHeight: '800px' }} />}>
+      <React.Suspense fallback={<div className="min-h-[800px]" />}>
         <BentoFeatures />
         <Footer />
       </React.Suspense>

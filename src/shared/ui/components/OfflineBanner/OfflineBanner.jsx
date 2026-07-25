@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import styles from './OfflineBanner.styles';
+import { cn } from '@shared/lib/utils/cn';
+import { Wifi, WifiOff } from 'lucide-react';
 
 /**
  * OfflineBanner (Dumb Component)
@@ -24,7 +25,7 @@ const OfflineBanner = () => {
       setShowBanner(true);
       reconnectTimer = window.setTimeout(() => {
         setShowBanner(false);
-      }, 2000);
+      }, 3000);
     };
 
     window.addEventListener('offline', handleOffline);
@@ -41,21 +42,30 @@ const OfflineBanner = () => {
 
   return (
     <div
-      style={{
-        ...styles.banner,
-        ...(isOffline ? styles.bannerOffline : styles.bannerOnline),
-        ...styles.slideIn,
-      }}
+      className={cn(
+        "fixed bottom-0 left-0 right-0 z-[9999] flex items-center justify-center py-3 px-4 transition-all duration-500 ease-in-out transform shadow-[0_-4px_20px_rgba(0,0,0,0.1)]",
+        isOffline 
+          ? "bg-slate-900 text-white translate-y-0" 
+          : "bg-emerald-500 text-white translate-y-0"
+      )}
       role="status"
       aria-live="polite"
     >
-      <span style={styles.text}>
-        {isOffline
-          ? t('offline.message')
-          : t('offline.reconnected')}
-      </span>
+      <div className="flex items-center gap-2.5">
+        {isOffline ? (
+          <WifiOff size={18} className="text-white/80 animate-pulse" />
+        ) : (
+          <Wifi size={18} className="text-white/80" />
+        )}
+        <span className="text-[0.9rem] font-bold tracking-tight font-heading">
+          {isOffline
+            ? t('offline.message')
+            : t('offline.reconnected')}
+        </span>
+      </div>
     </div>
   );
 };
 
 export default OfflineBanner;
+

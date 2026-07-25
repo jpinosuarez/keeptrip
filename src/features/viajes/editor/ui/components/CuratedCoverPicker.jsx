@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Image, LoaderCircle } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@shared/firebase';
-import { COLORS, RADIUS } from '@shared/config';
+import { cn } from '@shared/lib/utils/cn';
 
 const normalizeKey = (value) => {
   if (!value || typeof value !== 'string') return '';
@@ -89,78 +89,49 @@ const CuratedCoverPicker = ({ paisCode, ciudades = [], onSelect, disabled = fals
 
   if (isLoading) {
     return (
-      <div style={styles.loadingRow}>
-        <LoaderCircle size={16} className="spin" />
+      <div className="flex items-center gap-2 text-[0.85rem] text-textSecondary">
+        <LoaderCircle size={16} className="animate-spin" />
         <span>Cargando curado...</span>
       </div>
     );
   }
 
   if (error) {
-    return <div style={styles.helperText}>{error}</div>;
+    return <div className="text-[0.85rem] text-textSecondary">{error}</div>;
   }
 
   if (!options.length) {
-    return <div style={styles.helperText}>Sin fotos curadas para este destino.</div>;
+    return <div className="text-[0.85rem] text-textSecondary">Sin fotos curadas para este destino.</div>;
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.row}>
+    <div className="flex flex-col gap-2.5">
+      <div className="flex gap-3 overflow-x-auto pb-1.5 scrollbar-hide">
         {options.map((item, index) => (
           <button
             key={`${item.url}-${index}`}
             type="button"
-            style={styles.card(disabled)}
             onClick={() => onSelect?.(item)}
             disabled={disabled}
             title={item.credito?.nombre ? `Credito: ${item.credito.nombre}` : 'Foto curada'}
+            className={cn(
+              "min-w-[140px] min-h-[44px] rounded-[14px] border border-border bg-surface p-2 flex flex-col gap-2 cursor-pointer transition-all hover:border-atomicTangerine",
+              disabled && "opacity-60 cursor-not-allowed hover:border-border"
+            )}
           >
             <div
-              style={{
-                ...styles.thumb,
-                backgroundImage: `url(${item.url})`
-              }}
+              className="w-full h-[84px] rounded-sm bg-cover bg-center bg-background"
+              style={{ backgroundImage: `url(${item.url})` }}
             />
-            <div style={styles.labelRow}>
+            <div className="flex items-center gap-1.5 text-charcoalBlue">
               <Image size={12} />
-              <span style={styles.labelText}>{item.label || (item.scope === 'city' ? 'Ciudad' : 'Pais')}</span>
+              <span className="text-[0.78rem] font-bold">{item.label || (item.scope === 'city' ? 'Ciudad' : 'Pais')}</span>
             </div>
           </button>
         ))}
       </div>
     </div>
   );
-};
-
-const styles = {
-  container: { display: 'flex', flexDirection: 'column', gap: '10px' },
-  row: { display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '6px' },
-  card: (disabled) => ({
-    minWidth: '140px',
-    minHeight: '44px',
-    borderRadius: '14px',
-    border: `1px solid ${COLORS.border}`,
-    background: COLORS.surface,
-    padding: '8px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    opacity: disabled ? 0.6 : 1
-  }),
-  thumb: {
-    width: '100%',
-    height: '84px',
-    borderRadius: RADIUS.sm,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundColor: COLORS.background
-  },
-  labelRow: { display: 'flex', alignItems: 'center', gap: '6px', color: COLORS.charcoalBlue },
-  labelText: { fontSize: '0.78rem', fontWeight: 700 },
-  helperText: { fontSize: '0.85rem', color: COLORS.textSecondary },
-  loadingRow: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: COLORS.textSecondary }
 };
 
 export default CuratedCoverPicker;

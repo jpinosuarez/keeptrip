@@ -2,10 +2,7 @@ import React from 'react';
 import { motion as Motion } from 'framer-motion';
 import { Map, BarChart2, Camera, MapPin, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
-import { COLORS, SHADOWS } from '@shared/config';
 import { WorldMapSVG } from '@shared/ui/components/WorldMapSVG';
-import { styles } from './BentoFeatures.styles';
 import TripCard from '../../../../../widgets/tripGrid/ui/TripCard';
 import { mapLandingMockTripToCard } from '../../lib/mapLandingMockTripToCard';
 
@@ -23,7 +20,6 @@ const itemVariants = {
 
 const BentoFeatures = () => {
   const { t } = useTranslation(['landing']);
-  const { isMobile } = useWindowSize();
 
   const rawGridCards = t('landing:mockTrips.grid', { returnObjects: true });
   const fallbackGrid = [
@@ -36,125 +32,121 @@ const BentoFeatures = () => {
 
   return (
     <Motion.section 
-      style={styles.featuresSection(isMobile)} 
+      className="relative z-10 w-full max-w-[1200px] mx-auto px-6 md:px-12 py-8 md:py-10 mb-24 grid grid-cols-1 md:grid-cols-12 md:grid-rows-[minmax(220px,auto)] gap-8 md:gap-6"
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-50px" }}
       variants={containerVariants}
     >
-      {/* Card 1: Rutas Vivas (Index 0) */}
+      {/* Card 1: Rutas Vivas */}
       <Motion.div
-        style={styles.featureCard(isMobile, 0)}
+        className="md:col-span-7 relative flex flex-col justify-between gap-4 p-8 md:p-10 rounded-3xl bg-white/70 backdrop-blur-md border border-white shadow-[0_4px_12px_rgba(0,0,0,0.03)] min-h-[260px] overflow-hidden"
         variants={itemVariants}
-        whileHover={{ scale: 1.005, y: -4, boxShadow: SHADOWS?.float || '0 12px 32px rgba(0,0,0,0.08)' }}
+        whileHover={{ scale: 1.005, y: -4, boxShadow: '0 12px 32px rgba(0,0,0,0.08)' }}
         transition={springTransition}
       >
-        <div style={styles.featureCardHeader}>
-          <div style={styles.featureCardIconWrap(COLORS.atomicTangerine)} aria-hidden="true">
-            <Map size={24} color={COLORS.atomicTangerine} strokeWidth={2} />
+        <div className="flex justify-between items-start w-full">
+          <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-atomicTangerine/15 shrink-0" aria-hidden="true">
+            <Map size={24} className="text-atomicTangerine" strokeWidth={2} />
           </div>
-          <span style={styles.featureCardNum(COLORS.atomicTangerine)} aria-hidden="true">01</span>
+          <span className="text-[0.8rem] font-black text-atomicTangerine opacity-50 tracking-[1.5px] uppercase" aria-hidden="true">01</span>
         </div>
 
-        <div style={styles.worldMapContainer}>
-          <WorldMapSVG color={COLORS.atomicTangerine} />
+        <div className="relative w-full flex-1 min-h-[240px] rounded-2xl overflow-hidden bg-gradient-to-br from-[#F8FAFC] to-[#EFF6FF] border border-[#E2E8F0] flex items-stretch justify-center">
+          <WorldMapSVG color="#ff7e42" />
         </div>
 
         <div>
-           <div style={styles.featureCardTitle(isMobile, 0)}>{typeof t('landing:features.liveRoutes.title') === 'string' ? t('landing:features.liveRoutes.title') : 'Living Routes'}</div>
-           <p style={styles.featureDesc(isMobile, 0)}>{typeof t('landing:features.liveRoutes.description') === 'string' ? t('landing:features.liveRoutes.description') : 'Document each stop...'}</p>
+           <div className="text-[1.3rem] md:text-[1.8rem] font-black text-charcoalBlue tracking-tight leading-tight mt-auto">{t('landing:features.liveRoutes.title', 'Living Routes')}</div>
+           <p className="m-0 text-[0.95rem] md:text-[1.05rem] text-text-secondary leading-relaxed font-body md:max-w-[80%]">{t('landing:features.liveRoutes.description', 'Document each stop...')}</p>
         </div>
       </Motion.div>
 
-      {/* Card 2: Travel Stats (Index 1) */}
+      {/* Card 2: Travel Stats */}
       <Motion.div
-        style={styles.featureCard(isMobile, 1)}
+        className="md:col-span-5 relative flex flex-col justify-between gap-4 p-8 md:p-10 rounded-3xl bg-white/70 backdrop-blur-md border border-white shadow-[0_4px_12px_rgba(0,0,0,0.03)] min-h-[260px] overflow-hidden"
         variants={itemVariants}
-        whileHover={{ scale: 1.01, y: -4, boxShadow: SHADOWS?.float || '0 12px 32px rgba(0,0,0,0.08)' }}
+        whileHover={{ scale: 1.01, y: -4, boxShadow: '0 12px 32px rgba(0,0,0,0.08)' }}
         transition={springTransition}
       >
-        <div style={styles.featureCardHeader}>
-          <div style={styles.featureCardIconWrap(COLORS.mutedTeal)} aria-hidden="true">
-            <BarChart2 size={24} color={COLORS.mutedTeal} strokeWidth={2} />
+        <div className="flex justify-between items-start w-full">
+          <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-mutedTeal/15 shrink-0" aria-hidden="true">
+            <BarChart2 size={24} className="text-mutedTeal" strokeWidth={2} />
           </div>
-          <span style={styles.featureCardNum(COLORS.mutedTeal)} aria-hidden="true">02</span>
+          <span className="text-[0.8rem] font-black text-mutedTeal opacity-50 tracking-[1.5px] uppercase" aria-hidden="true">02</span>
         </div>
 
         {/* Premium Marketing Stats UI */}
-        <div style={styles.statsGrid}>
-          <div style={styles.statsRow}>
-            <div style={styles.statSubCard}>
-              <div style={styles.statIconWrap}>
-                 <Globe size={20} color={COLORS.atomicTangerine} />
+        <div className="flex flex-col gap-5 py-6 flex-1">
+          <div className="flex gap-4 w-full">
+            <div className="flex-1 flex flex-col gap-2 p-6 md:px-5 md:py-6 rounded-2xl bg-slate-50/80 border border-slate-200/80 shadow-[0_4px_12px_rgba(0,0,0,0.02)] transition-all">
+              <div className="mb-1 flex items-center justify-start">
+                 <Globe size={20} className="text-atomicTangerine" />
               </div>
-              <div style={styles.statNumber}>
+              <div className="text-[3.2rem] font-black text-charcoalBlue leading-none tracking-[-2px] flex items-baseline gap-0.5">
                 {t('landing:features.stats.países.value')}
               </div>
-              <div style={styles.statLabel}>
+              <div className="text-[0.85rem] font-extrabold text-text-secondary uppercase tracking-widest">
                 {t('landing:features.stats.países.label')}
               </div>
             </div>
             
-            <div style={styles.statSubCard}>
-              <div style={styles.statIconWrap}>
-                 <MapPin size={20} color={COLORS.atomicTangerine} />
+            <div className="flex-1 flex flex-col gap-2 p-6 md:px-5 md:py-6 rounded-2xl bg-slate-50/80 border border-slate-200/80 shadow-[0_4px_12px_rgba(0,0,0,0.02)] transition-all">
+              <div className="mb-1 flex items-center justify-start">
+                 <MapPin size={20} className="text-atomicTangerine" />
               </div>
-              <div style={styles.statNumber}>
-                {t('landing:features.stats.mundo.value')}<span style={{fontSize: '1.5rem', color: COLORS.atomicTangerine, marginLeft: '2px'}}>%</span>
+              <div className="text-[3.2rem] font-black text-charcoalBlue leading-none tracking-[-2px] flex items-baseline gap-0.5">
+                {t('landing:features.stats.mundo.value')}<span className="text-[1.5rem] text-atomicTangerine ml-0.5">%</span>
               </div>
-              <div style={styles.statLabel}>
+              <div className="text-[0.85rem] font-extrabold text-text-secondary uppercase tracking-widest">
                 {t('landing:features.stats.mundo.label')}
               </div>
             </div>
           </div>
 
-          <div style={{...styles.statSubCard, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px'}}>
-            <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
-              <div style={{...styles.statNumber, fontSize: '2.5rem'}}>
+          <div className="flex flex-row items-center justify-between gap-2 p-6 md:px-6 md:py-5 rounded-2xl bg-slate-50/80 border border-slate-200/80 shadow-[0_4px_12px_rgba(0,0,0,0.02)] transition-all">
+            <div className="flex flex-col gap-1">
+              <div className="text-[2.5rem] font-black text-charcoalBlue leading-none tracking-[-2px] flex items-baseline gap-0.5">
                 {t('landing:features.stats.destinos.value')}
               </div>
-              <div style={styles.statLabel}>
+              <div className="text-[0.85rem] font-extrabold text-text-secondary uppercase tracking-widest">
                 {t('landing:features.stats.destinos.label')}
               </div>
             </div>
-            <div style={{width: '56px', height: '56px', borderRadius: '50%', background: `${COLORS.atomicTangerine}15`, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-               <Map size={28} color={COLORS.atomicTangerine} />
+            <div className="w-14 h-14 rounded-full bg-atomicTangerine/15 flex items-center justify-center">
+               <Map size={28} className="text-atomicTangerine" />
             </div>
           </div>
         </div>
 
-        <div style={{ marginTop: 'auto', paddingTop: '16px' }}>
-          <div style={styles.featureCardTitle(isMobile, 1)}>{t('landing:features.stats.title')}</div>
-          <p style={styles.featureDesc(isMobile, 1)}>{t('landing:features.stats.description')}</p>
+        <div className="mt-auto pt-4">
+          <div className="text-[1.3rem] font-black text-charcoalBlue tracking-tight leading-tight mt-auto">{t('landing:features.stats.title')}</div>
+          <p className="m-0 text-[0.95rem] text-text-secondary leading-relaxed font-body">{t('landing:features.stats.description')}</p>
         </div>
       </Motion.div>
 
-      {/* Card 3: Your Digital Archive (Index 2) */}
+      {/* Card 3: Your Digital Archive */}
       <Motion.div
-        style={styles.featureCard(isMobile, 2)}
+        className="md:col-span-12 relative flex flex-col justify-between gap-4 p-8 md:p-10 rounded-3xl bg-white/70 backdrop-blur-md border border-white shadow-[0_4px_12px_rgba(0,0,0,0.03)] min-h-[260px] overflow-hidden"
         variants={itemVariants}
-        whileHover={{ scale: 1.01, y: -4, boxShadow: SHADOWS?.float || '0 12px 32px rgba(0,0,0,0.08)' }}
+        whileHover={{ scale: 1.01, y: -4, boxShadow: '0 12px 32px rgba(0,0,0,0.08)' }}
         transition={springTransition}
       >
-        <div style={styles.featureCardHeader}>
-          <div style={styles.featureCardIconWrap(COLORS.charcoalBlue)} aria-hidden="true">
-            <Camera size={24} color={COLORS.charcoalBlue} strokeWidth={2} />
+        <div className="flex justify-between items-start w-full">
+          <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-charcoalBlue/15 shrink-0" aria-hidden="true">
+            <Camera size={24} className="text-charcoalBlue" strokeWidth={2} />
           </div>
-          <span style={styles.featureCardNum(COLORS.charcoalBlue)} aria-hidden="true">03</span>
+          <span className="text-[0.8rem] font-black text-charcoalBlue opacity-50 tracking-[1.5px] uppercase" aria-hidden="true">03</span>
         </div>
 
-        <div style={styles.masonryVisualContainer}>
+        <div className="flex flex-col gap-4 flex-1 mt-4 overflow-hidden relative">
           {mockGrid.map((card, idx) => (
             <Motion.div 
               key={card.id || idx} 
               variants={itemVariants}
-              style={{ 
-                marginBottom: '16px', // Clean separation instead of overlapping
-                zIndex: 1,
-                opacity: 1
-              }}
+              className="mb-4 z-[1]"
             >
-              <div style={{ height: '220px', pointerEvents: 'none' }}>
+              <div className="h-[220px] pointer-events-none">
                 <TripCard 
                   trip={mapLandingMockTripToCard(card)}
                   isMobile={true}
@@ -165,9 +157,9 @@ const BentoFeatures = () => {
           ))}
         </div>
 
-        <div style={{ paddingTop: '12px', zIndex: 10, position: 'relative', background: 'white' }}>
-          <div style={styles.featureCardTitle(isMobile, 2)}>{t('landing:features.gallery.title')}</div>
-          <p style={styles.featureDesc(isMobile, 2)}>{t('landing:features.gallery.description')}</p>
+        <div className="pt-3 z-10 relative bg-white/95 -mx-8 -mb-8 px-8 pb-8 rounded-b-3xl">
+          <div className="text-[1.3rem] font-black text-charcoalBlue tracking-tight leading-tight mt-auto">{t('landing:features.gallery.title')}</div>
+          <p className="m-0 text-[0.95rem] text-text-secondary leading-relaxed font-body">{t('landing:features.gallery.description')}</p>
         </div>
       </Motion.div>
     </Motion.section>

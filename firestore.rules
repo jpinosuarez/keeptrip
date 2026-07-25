@@ -13,13 +13,9 @@ service cloud.firestore {
     function isFounder() {
       return isAuthenticated()
         && request.auth.uid in [
-          // Local/dev founder UID (.env.local)
           'f8a2ANPUI4VW8SOzUmcJtFumOFSm',
-          // Local/dev founder UID (current)
           'jXpeKNBz9YjRyHm5LFWIANCIpGv3',
-          // Staging founder UID
           '8qWhUsYQBXO3bCiMXen8qiIYAUA2',
-          // Production founder UID
           '9dyI5iXXJRSTwO350Vnv3utZff52'
         ];
     }
@@ -33,58 +29,54 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
 
       match /viajes/{viajeId} {
-
-        function isSharedWithMe() {
-          return isAuthenticated()
-            && exists(/databases/$(database)/documents/usuarios/$(userId)/viajes/$(viajeId))
-            && get(/databases/$(database)/documents/usuarios/$(userId)/viajes/$(viajeId)).data.sharedWith is list
-            && request.auth.uid in get(/databases/$(database)/documents/usuarios/$(userId)/viajes/$(viajeId)).data.sharedWith;
+        
+        function hasAccess() {
+          let invId = viajeId + "_" + request.auth.uid;
+          return isOwner(userId)
+            || (isAuthenticated() && resource != null && 'sharedWith' in resource.data && resource.data.sharedWith != null && request.auth.uid in resource.data.sharedWith)
+            || (
+              isAuthenticated() &&
+              exists(/databases/$(database)/documents/invitations/$(invId)) &&
+              get(/databases/$(database)/documents/invitations/$(invId)).data.status == 'accepted'
+            );
         }
 
-        function isInvitationAccepted() {
-          return isAuthenticated()
-            && existsAfter(/databases/$(database)/documents/usuarios/$(userId)/viajes/$(viajeId)/invitations/$(request.auth.uid))
-            && getAfter(/databases/$(database)/documents/usuarios/$(userId)/viajes/$(viajeId)/invitations/$(request.auth.uid)).data.status == 'accepted';
-        }
-
-        allow read: if isOwner(userId) || isSharedWithMe() || isInvitationAccepted();
+        allow read: if hasAccess();
         allow create: if isOwner(userId) && request.resource.data.ownerId == request.auth.uid;
         allow delete: if isOwner(userId);
-
         allow update: if isOwner(userId)
           || (
-            (isSharedWithMe() || isInvitationAccepted())
-            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['titulo', 'ownerId'])
+            hasAccess() 
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sharedWith'])
           );
 
         match /{coleccion}/{docId=**} {
-          function isParentSharedWithMe() {
-            let parentData = get(/databases/$(database)/documents/usuarios/$(userId)/viajes/$(viajeId)).data;
+          function hasParentAccess() {
+            let parentPath = /databases/$(database)/documents/usuarios/$(userId)/viajes/$(viajeId);
+            let parentData = getAfter(parentPath).data;
+            let invId = viajeId + "_" + request.auth.uid;
             return isOwner(userId)
-              || (parentData.sharedWith is list && request.auth.uid in parentData.sharedWith)
+              || (parentData != null && 'sharedWith' in parentData && parentData.sharedWith != null && request.auth.uid in parentData.sharedWith)
               || (
-                existsAfter(/databases/$(database)/documents/usuarios/$(userId)/viajes/$(viajeId)/invitations/$(request.auth.uid))
-                && getAfter(/databases/$(database)/documents/usuarios/$(userId)/viajes/$(viajeId)/invitations/$(request.auth.uid)).data.status == 'accepted'
+                isAuthenticated() && 
+                existsAfter(/databases/$(database)/documents/invitations/$(invId)) &&
+                getAfter(/databases/$(database)/documents/invitations/$(invId)).data.status == 'accepted'
               );
           }
 
-          allow read: if isParentSharedWithMe();
-          allow write: if isParentSharedWithMe();
+          allow read: if hasParentAccess();
+          allow write: if hasParentAccess();
         }
       }
     }
 
     match /invitations/{invId} {
       allow create: if isAuthenticated();
-      allow read: if isAuthenticated() && (
-        ('inviterId' in resource.data && request.auth.uid == resource.data.inviterId)
-        || ('inviteeUid' in resource.data && request.auth.uid == resource.data.inviteeUid)
+      allow read, update, delete: if isAuthenticated() && (
+        invId.matches('.*_' + request.auth.uid)
+        || (resource != null && 'inviterId' in resource.data && request.auth.uid == resource.data.inviterId)
+        || (resource != null && 'inviteeUid' in resource.data && request.auth.uid == resource.data.inviteeUid)
       );
-      allow update: if isAuthenticated() && (
-        ('inviterId' in resource.data && request.auth.uid == resource.data.inviterId)
-        || ('inviteeUid' in resource.data && request.auth.uid == resource.data.inviteeUid)
-      );
-      allow delete: if isAuthenticated() && ('inviterId' in resource.data && request.auth.uid == resource.data.inviterId);
     }
 
     match /paises_info/{paisCode} {

@@ -66,5 +66,17 @@
     "maintenanceMessage": "Explorer's Rest: Estamos actualizando los motores. Tus viajes están seguros en la bóveda. Volvemos enseguida.",
     "maintenanceHint": "No necesitas hacer nada. Restableceremos las rutas cuando completemos las verificaciones del sistema.",
     "dataSafe": "El escudo de integridad de datos está activo."
+  },
+  "modals": {
+    "deleteTrip": {
+      "title": "Eliminar {{tripName}}?",
+      "message": "Esta acción eliminará el viaje y sus recuerdos asociados de forma permanente. No se puede deshacer.",
+      "confirm": "Eliminar",
+      "cancel": "Cancelar"
+    },
+    "searchPalette": {
+      "fallbackMessage": "El buscador tuvo un tropiezo. Puedes cerrarlo y abrirlo de nuevo.",
+      "closeButton": "Cerrar buscador"
+    }
   }
 }

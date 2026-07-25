@@ -16,6 +16,7 @@ export default function PageLoader() {
       className={cn(
         "absolute inset-0 flex items-center justify-center bg-transparent z-dropdown"
       )}
+      data-testid="page-loader"
     >
       <div className={cn(
         "w-9 h-9 rounded-full border-2 border-border border-t-atomicTangerine animate-spin shrink-0"

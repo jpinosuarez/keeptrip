@@ -87,7 +87,8 @@ export const Z_INDEX = {
   sticky: 200,
   modal: 300,
   overlay: 400,
-  toast: 5000,
+  searchPalette: 15000,
+  toast: 30000,
   // Notificaciones de logro/nivel: deben aparecer sobre TODO, incluido el visor inmersivo (z:10000)
   celebration: 20000
 };

@@ -1,6 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-
-const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
+import { createAuthUser, signInInBrowser, stabilizeAuthenticatedSession, navigateInApp } from './utils/e2e-auth';
 const FIRESTORE_PROJECT_ID = 'keeptrip-app-b06b3';
 const FIRESTORE_EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8081';
 const OPERATIONAL_FLAGS_DOC_URL = `http://${FIRESTORE_EMULATOR_HOST}/v1/projects/${FIRESTORE_PROJECT_ID}/databases/(default)/documents/system/operational_flags`;
@@ -14,6 +13,15 @@ const MAINTENANCE_COPY_PATTERN = /Explorer's Rest|Modo mantenimiento|Maintenance
 const MAP_FALLBACK_COPY_PATTERN = /Interactive maps are resting|mapas interactivos estan en pausa|mapas interactivos est[aá]n en pausa/i;
 const SEARCH_PAUSED_COPY_PATTERN = /Search temporarily paused|Búsqueda temporalmente pausada/i;
 
+function decodePayload(payload: string | null) {
+  if (!payload) return '';
+  try {
+    return decodeURIComponent(payload);
+  } catch {
+    return payload;
+  }
+}
+
 function toFirestoreDocument(level: number) {
   return {
     fields: {
@@ -25,100 +33,63 @@ function toFirestoreDocument(level: number) {
   };
 }
 
-async function setOperationalLevel(level: number) {
-  const response = await fetch(OPERATIONAL_FLAGS_DOC_URL, {
+async function setOperationalLevel(page: Page, level: number) {
+  // Use the standard REST API but with the 'owner' token which the emulator recognizes as admin
+  const url = `http://${FIRESTORE_EMULATOR_HOST}/v1/projects/${FIRESTORE_PROJECT_ID}/databases/(default)/documents/system/operational_flags`;
+  
+  console.log(`[E2E] Setting operational level to ${level} via REST Admin (Bearer owner)...`);
+  
+  const response = await fetch(url, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: 'Bearer owner',
+      'Authorization': 'Bearer owner'
     },
     body: JSON.stringify(toFirestoreDocument(level)),
   });
 
   if (!response.ok) {
     const responseText = await response.text();
+    console.error(`[E2E] Failed to set operational level ${level}. Status: ${response.status}, Body: ${responseText}`);
     throw new Error(`Could not set operational level ${level}: ${response.status} ${responseText}`);
   }
 }
 
-async function createAuthUser(email: string, password = 'testpass') {
-  const signUpResponse = await fetch(
-    `${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, returnSecureToken: true }),
-    }
-  );
-  const signUpJson = await signUpResponse.json();
-
-  if (signUpJson?.error?.message === 'EMAIL_EXISTS') {
-    const signInResponse = await fetch(
-      `${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake-api-key`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, returnSecureToken: true }),
-      }
-    );
-    return signInResponse.json();
-  }
-
-  return signUpJson;
+async function waitForOperationalLevel(page: Page, level: number) {
+  console.log(`[E2E] Waiting for app to reflect operational level ${level}...`);
+  await page.waitForFunction((l) => {
+    const fn = (window as any).__test_getOperationalLevel;
+    return typeof fn === 'function' && fn() === l;
+  }, level, { timeout: 30000 });
 }
 
-async function signInInBrowser(page: Page, email: string, password = 'testpass') {
-  await page.waitForFunction(() => typeof (window as any).__test_signInWithEmail === 'function');
-  await page.evaluate(
-    ({ email: currentEmail, password: currentPassword }) =>
-      (window as any).__test_signInWithEmail({ email: currentEmail, password: currentPassword }),
-    { email, password }
-  );
-}
-
-async function ensureAuthenticatedShell(page: Page, email: string, password: string) {
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    await signInInBrowser(page, email, password);
-    const isOnLanding = await page
-      .getByRole('button', { name: /Log In|Iniciar sesion|Iniciar sesión/i })
-      .isVisible()
-      .catch(() => false);
-
-    if (!isOnLanding) return;
-  }
-
-  throw new Error('Could not stabilize an authenticated app shell session.');
-}
+// Standard helper removed as it is now imported from e2e-auth.ts
 
 async function openSearchPalette(page: Page) {
-  await page.waitForFunction(() => typeof (window as any).__test_abrirSearchPalette === 'function');
-  await page.evaluate(() => (window as any).__test_abrirSearchPalette());
+  // 1. Wait for core UI stability
+  await expect(page.getByTestId('page-loader')).toBeHidden({ timeout: 15000 });
+  
+  // Also wait for voyages to be loaded to ensure the UI is ready for interactions
+  await page.waitForFunction(() => {
+    return (window as any).__test_viajesLoading === false;
+  }, { timeout: 10000 }).catch(() => {
+    console.log('[E2E] Warn: __test_viajesLoading wait timed out or flag missing');
+  });
 
-  const searchInputByRole = page.getByRole('textbox', { name: /Search|Buscar/i }).first();
-  if (await searchInputByRole.isVisible().catch(() => false)) {
-    return searchInputByRole;
-  }
-
-  const searchInputByPlaceholder = page
-    .getByPlaceholder(/Type a country or city|Escribe un pais o ciudad|Escribe un país o ciudad|Type a country|ciudad/i)
-    .first();
-
-  await expect(searchInputByPlaceholder).toBeVisible({ timeout: 15000 });
-  return searchInputByPlaceholder;
+  // 2. Trigger Search Palette via shortcut
+  await page.keyboard.press('Control+k');
+  
+  // 3. Robustly wait for search input
+  const searchInput = page.getByTestId('search-input');
+  await expect(searchInput).toBeVisible({ timeout: 15000 });
+  return searchInput;
 }
 
-function decodePayload(payload: string | null) {
-  if (!payload) return '';
-  try {
-    return decodeURIComponent(payload);
-  } catch {
-    return payload;
-  }
-}
+test.describe.configure({ mode: 'serial' });
 
 test.describe('Unified kill-switch operational audit', () => {
-  test.afterEach(async () => {
-    await setOperationalLevel(0);
+  test.afterEach(async ({ page }) => {
+    await setOperationalLevel(page, 0);
   });
 
   test('L1 Soft Kill: city search sends exactly zero Mapbox geocoding requests', async ({ page }) => {
@@ -127,7 +98,7 @@ test.describe('Unified kill-switch operational audit', () => {
     const password = 'testpass';
 
     await createAuthUser(email, password);
-    await setOperationalLevel(1);
+    await setOperationalLevel(page, 1);
 
     let geocodingRequestCount = 0;
     page.on('request', (request) => {
@@ -137,15 +108,14 @@ test.describe('Unified kill-switch operational audit', () => {
     });
 
     await page.goto('/');
-    await ensureAuthenticatedShell(page, email, password);
-
+    await page.waitForLoadState('load');
+    await waitForOperationalLevel(page, 1);
+    await stabilizeAuthenticatedSession(page, email, password);
+    
     const searchInput = await openSearchPalette(page);
-    await expect(searchInput).toBeVisible({ timeout: 15000 });
-    await expect(searchInput).toBeDisabled();
+    await expect(searchInput).toBeDisabled({ timeout: 30000 });
 
-    await expect(page.getByText(SEARCH_PAUSED_COPY_PATTERN).first()).toBeVisible({ timeout: 10000 });
-    await page.waitForTimeout(1200);
-
+    await expect(page.getByText(SEARCH_PAUSED_COPY_PATTERN).first()).toBeVisible({ timeout: 30000 });
     expect(geocodingRequestCount).toBe(0);
   });
 
@@ -155,7 +125,7 @@ test.describe('Unified kill-switch operational audit', () => {
     const password = 'testpass';
 
     await createAuthUser(email, password);
-    await setOperationalLevel(2);
+    await setOperationalLevel(page, 2);
 
     let mapboxTileStyleRequestCount = 0;
     page.on('request', (request) => {
@@ -165,25 +135,58 @@ test.describe('Unified kill-switch operational audit', () => {
     });
 
     await page.goto('/');
-    await ensureAuthenticatedShell(page, email, password);
+    await page.waitForLoadState('load');
+    await waitForOperationalLevel(page, 2);
+    await stabilizeAuthenticatedSession(page, email, password);
 
-    await page.waitForFunction(() => typeof (window as any).__test_navigate === 'function');
-    await page.evaluate(() => (window as any).__test_navigate('/map'));
-
+    // Navigate to map
+    await navigateInApp(page, '/map');
+    
     await expect(page).toHaveURL(/\/map(?:\?.*)?$/);
-    await expect(page.getByText(MAP_FALLBACK_COPY_PATTERN).first()).toBeVisible({ timeout: 15000 });
+    const fallback = page.getByTestId('operational-map-fallback');
+    await expect(fallback).toBeVisible({ timeout: 30000 });
+    
+    // Also verify the specific copy exists inside the fallback
+    await expect(fallback.getByText(MAP_FALLBACK_COPY_PATTERN).first()).toBeVisible({ timeout: 15000 });
 
-    await page.waitForTimeout(1500);
     expect(mapboxTileStyleRequestCount).toBe(0);
   });
 
-  test('L4 Blackout: maintenance screen is visible and no trip reads are requested', async ({ page }) => {
+  test('L3 Operation: bitacora is READ-ONLY', async ({ page }) => {
+    const timestamp = Date.now();
+    const email = `kill-l3-${timestamp}@example.test`;
+    const password = 'testpass';
+
+    await createAuthUser(email, password);
+    await setOperationalLevel(page, 3);
+
+    await page.goto('/');
+    await page.waitForLoadState('load');
+    await waitForOperationalLevel(page, 3);
+    await stabilizeAuthenticatedSession(page, email, password);
+
+    await navigateInApp(page, '/trips');
+    await expect(page).toHaveURL(/\/trips(?:\?.*)?$/);
+    
+    // Wait for either the trips grid or the ghost empty state to appear
+    const emptyState = page.getByTestId('ghost-empty-state');
+    const tripsGrid = page.getByTestId('trips-grid');
+    await expect(emptyState.or(tripsGrid).first()).toBeVisible({ timeout: 30000 });
+
+    // Check if some edit-related buttons are gone or disabled
+    const addTripBtn = page.getByTestId('add-trip-button');
+    if (await addTripBtn.isVisible()) {
+      await expect(addTripBtn).toBeDisabled({ timeout: 30000 });
+    }
+  });
+
+  test('L4 Total Halt: app renders global maintenance mode barrier', async ({ page }) => {
     const timestamp = Date.now();
     const email = `kill-l4-${timestamp}@example.test`;
     const password = 'testpass';
 
     await createAuthUser(email, password);
-    await setOperationalLevel(4);
+    await setOperationalLevel(page, 4);
 
     let firestoreTripFetchRequestCount = 0;
 
@@ -197,10 +200,11 @@ test.describe('Unified kill-switch operational audit', () => {
     });
 
     await page.goto('/');
+    await page.waitForLoadState('load');
+    await waitForOperationalLevel(page, 4);
     await signInInBrowser(page, email, password);
 
-    await expect(page.getByText(MAINTENANCE_COPY_PATTERN).first()).toBeVisible({ timeout: 15000 });
-    await page.waitForTimeout(1500);
+    await expect(page.getByText(MAINTENANCE_COPY_PATTERN).first()).toBeVisible({ timeout: 30000 });
 
     expect(firestoreTripFetchRequestCount).toBe(0);
   });

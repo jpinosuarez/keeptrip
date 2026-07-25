@@ -3,8 +3,9 @@
  * Features full-bleed images, floating glass pills, and 3D parallax on desktop hovering.
  */
 import React, { useRef, useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion as Motion, useMotionValue, useTransform, useSpring, AnimatePresence } from 'framer-motion';
-import { Compass, Calendar, MapPin, Trash2, Clock, MoreVertical, Edit2, Share2, Copy } from 'lucide-react';
+import { Compass, Calendar, MapPin, Trash2, Clock, MoreVertical, Edit2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   FOTO_DEFAULT_URL,
@@ -15,21 +16,34 @@ import {
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { cn } from '@shared/lib/utils/cn';
 
-const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMobile = false, variant = 'list', priorityImage = false }) => {
+const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', priorityImage = false }) => {
   const { t, i18n } = useTranslation(['countries', 'dashboard', 'common']);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const buttonRef = useRef(null);
+  const cardRef = useRef(null);
 
   // Close menu when clicking outside
   useEffect(() => {
     if (!isMenuOpen) return;
     const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
+      if (buttonRef.current && !buttonRef.current.contains(e.target)) {
         setIsMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
+
+  // Calculate menu position when it opens
+  useEffect(() => {
+    if (isMenuOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + 8,
+        left: rect.left - 180 + rect.width
+      });
+    }
   }, [isMenuOpen]);
 
   const flags = useMemo(() => 
@@ -74,7 +88,6 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
   const cardAriaLabel = title || t('viewTrip', { ns: 'dashboard', defaultValue: 'Ver viaje' });
 
   // 3D Parallax logic (Desktop Only)
-  const cardRef = useRef(null);
   const x = useMotionValue(0.5); 
   const y = useMotionValue(0.5);
 
@@ -110,10 +123,8 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
   return (
     <Motion.div
       data-testid={`trip-card-${trip.id}`}
-      ref={cardRef}
-      role="button"
-      tabIndex={0}
       aria-label={cardAriaLabel}
+      ref={cardRef}
       style={{
         rotateX: isMobile ? 0 : rotateX,
         rotateY: isMobile ? 0 : rotateY,
@@ -123,15 +134,15 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 100, damping: 20 }}
       whileHover={!isMobile && !isMenuOpen ? { scale: 1.02, zIndex: 10 } : {}}
-      whileTap={{ scale: 0.96 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onClick={onClick}
       className={cn(
-        "relative cursor-pointer group overflow-hidden rounded-2xl shadow-md border border-black/5 bg-charcoalBlue transition-shadow duration-300",
-        isList ? "aspect-auto min-h-[120px]" : "aspect-[4/5]"
+        "relative cursor-default group rounded-2xl shadow-md bg-charcoalBlue transition-shadow duration-300 border-0 overflow-hidden",
+        isList ? "aspect-auto min-h-[120px]" : "h-full min-h-0",
+        isMenuOpen ? "z-dropdown" : "z-base"
       )}
     >
+
       {/* Background Layer */}
       <div className="absolute inset-0 z-0 overflow-hidden rounded-[inherit] pointer-events-none">
         <Motion.div 
@@ -139,7 +150,7 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
             x: isMobile ? 0 : bgX,
             y: isMobile ? 0 : bgY
           }} 
-          className="absolute -inset-[10%] w-[120%] h-[120%] bg-mutedTeal will-change-transform"
+          className="absolute -inset-[10%] w-[120%] h-[120%] will-change-transform overflow-hidden rounded-[inherit]"
         >
           {!isDefaultPhoto ? (
             <img 
@@ -149,9 +160,9 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
               loading={priorityImage ? "eager" : "lazy"}
             />
           ) : (
-            <div className="relative w-full h-full overflow-hidden" aria-hidden="true">
+            <div className="relative w-full h-full overflow-hidden bg-slate-900/10" aria-hidden="true">
               <div className={cn(
-                "grid w-full h-full blur-[2px] scale-105 opacity-60",
+                "grid w-full h-full",
                 auraFlags.length <= 1 ? "grid-cols-1 grid-rows-1" : 
                 auraFlags.length === 2 ? "grid-cols-1 grid-rows-2" : "grid-cols-2 grid-rows-2"
               )}>
@@ -168,15 +179,16 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
                   />
                 ))}
               </div>
-              <div className="absolute inset-0 bg-slate-900/50" />
             </div>
           )}
         </Motion.div>
-        <div className="absolute inset-0 z-[1] bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+        <div className="absolute inset-0 z-[1] bg-black/20 pointer-events-none" />
       </div>
       
-      {/* Top Content */}
-      <div className="relative z-[2] p-4 flex justify-between items-start w-full">
+      {/* Content Wrapper */}
+      <div className="relative z-[2] flex flex-col h-full pb-2">
+        {/* Top Content */}
+        <div className="p-4 flex justify-between items-start w-full">
         <div className="flex flex-wrap items-center gap-1.5 row-gap-1.5">
           {flags.length > 0 ? (
             flags.map((flag, idx) => (
@@ -189,34 +201,48 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
               />
             ))
           ) : (
-             <div className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center justify-center text-white">
-                 <Compass size={14} />
-             </div>
+            <div className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center justify-center text-white">
+                <Compass size={14} />
+            </div>
           )}
         </div>
           
-        <div ref={menuRef} className="relative">
+        <div className="relative">
           <button
-            className="pointer-events-auto bg-white/25 backdrop-blur-lg border border-white/30 rounded-full w-11 h-11 flex items-center justify-center text-white shadow-md hover:bg-white/40 transition-colors"
+            ref={buttonRef}
+            type="button"
+            className="trip-card-menu-btn pointer-events-auto bg-white/25 backdrop-blur-lg border border-white/30 rounded-full w-11 h-11 flex items-center justify-center text-white shadow-md hover:bg-white/40 transition-colors cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
               setIsMenuOpen((prev) => !prev);
             }}
-            aria-label="Abrir opciones de viaje"
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setIsMenuOpen((prev) => !prev);
+            }}
+            aria-label={t('card.menu', { ns: 'dashboard', defaultValue: 'Abrir opciones de viaje' })}
+            data-testid="trip-card-menu-btn"
           >
             <MoreVertical size={20} />
           </button>
-
+ 
           <AnimatePresence>
-            {isMenuOpen && (
+            {isMenuOpen && createPortal(
               <Motion.div
                 initial={{ opacity: 0, scale: 0.95, y: -10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: -10 }}
                 transition={{ duration: 0.15 }}
-                className="absolute top-[52px] right-0 w-[180px] bg-white/85 backdrop-blur-xl rounded-xl shadow-lg p-2 flex flex-col gap-1 z-50"
+                className="fixed w-[180px] bg-white/85 backdrop-blur-xl rounded-xl shadow-lg p-2 flex flex-col gap-1 z-modal"
+                style={{
+                  top: menuPosition.top,
+                  left: menuPosition.left,
+                }}
                 onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                data-testid="trip-card-menu-portal"
               >
                 <button
                   onClick={(e) => {
@@ -225,37 +251,14 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
                     setIsMenuOpen(false);
                     if (onEdit) onEdit(trip.id);
                   }}
-                  className="flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
+                  className="portal-menu-item flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
+                  data-testid="trip-card-menu-edit"
                 >
                   <Edit2 size={16} /> <span>{t('card.edit', { ns: 'dashboard', defaultValue: 'Editar viaje' })}</span>
                 </button>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    setIsMenuOpen(false);
-                    if (onShare) onShare(trip.id);
-                  }}
-                  className="flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
-                >
-                  <Share2 size={16} /> <span>{t('card.share', { ns: 'dashboard', defaultValue: 'Compartir ruta' })}</span>
-                </button>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    setIsMenuOpen(false);
-                    if (onDuplicate) onDuplicate(trip);
-                  }}
-                  className="flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
-                >
-                  <Copy size={16} /> <span>{t('card.duplicate', { ns: 'dashboard', defaultValue: 'Duplicar' })}</span>
-                </button>
-
+ 
                 <div className="h-px bg-black/10 my-1" />
-
+ 
                 {onDelete && (
                   <button
                     onClick={(e) => {
@@ -264,32 +267,35 @@ const TripCard = ({ trip, onClick, onEdit, onShare, onDuplicate, onDelete, isMob
                       setIsMenuOpen(false);
                       onDelete(trip.id);
                     }}
-                    className="flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-danger text-left hover:bg-danger/10 transition-colors font-heading"
+                    className="portal-menu-item danger flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-danger text-left hover:bg-danger/10 transition-colors font-heading"
+                    data-testid="trip-card-menu-delete"
                   >
                     <Trash2 size={16} /> <span>{t('card.delete', { ns: 'dashboard', defaultValue: 'Eliminar' })}</span>
                   </button>
                 )}
-              </Motion.div>
+              </Motion.div>,
+              document.body
             )}
           </AnimatePresence>
         </div>
-      </div>
-
-      {/* Bottom Content */}
-      <div className="relative z-[2] p-4 pt-0 w-full flex flex-col gap-2 mt-auto pointer-events-none">
-        <h4 className="m-0 text-xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] truncate leading-[1.1] tracking-tighter font-heading">
+        </div>
+        
+        {/* Bottom Content */}
+        <div className="px-4 pt-0 pb-5 w-full flex flex-col gap-2 mt-auto pointer-events-none">
+        <h4 className="m-0 text-xl font-black text-white drop-shadow-lg truncate leading-[1.1] tracking-tighter font-heading">
           {title}
         </h4>
-        <div className="flex flex-wrap items-center gap-2 min-w-0">
-          <span className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading">
+        <div className="flex flex-wrap items-center gap-1 min-w-0">
+          <span className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading drop-shadow-lg">
             <Calendar size={14} /> {datePillText}
           </span>
-          <span className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading">
+          <span className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading drop-shadow-lg">
             <MapPin size={14} /> {citiesPillText}
           </span>
-          <span className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading">
+          <span className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading drop-shadow-lg">
             <Clock size={14} /> {durationPillText}
           </span>
+        </div>
         </div>
       </div>
     </Motion.div>

@@ -208,13 +208,16 @@ export const calculateTripDays = (startDate, endDate) => {
   };
 
   const start = toDate(startDate);
+  if (!start) return 0;
+
   const end = toDate(endDate);
-  if (!start || !end) return 0;
+  if (!end) return 1;
 
   const diffInMs = end.getTime() - start.getTime();
   const diffInDays = Math.floor(diffInMs / 86400000) + 1;
   return Math.max(1, diffInDays);
 };
+
 
 export const FOTO_DEFAULT_URL =
   "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%231f2937'/><stop offset='100%' stop-color='%230f766e'/></linearGradient></defs><rect width='1200' height='800' fill='url(%23g)'/><circle cx='180' cy='160' r='90' fill='rgba(255,255,255,0.15)'/><path d='M100 650 L420 360 L600 560 L780 420 L1100 700 L100 700 Z' fill='rgba(255,255,255,0.18)'/><text x='80' y='120' fill='white' font-size='56' font-family='Arial, sans-serif' opacity='0.9'>Viaje</text></svg>";

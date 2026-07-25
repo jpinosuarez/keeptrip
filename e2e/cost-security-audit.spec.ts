@@ -1,65 +1,18 @@
 import { test, expect } from '@playwright/test';
 import { openTripEditorById } from './utils/trip-interactions';
+import { createAuthUser, signInInBrowser, stabilizeAuthenticatedSession, setOperationalLevel } from './utils/e2e-auth';
 
-const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
-
-async function createAuthUser(email: string, password = 'testpass') {
-  const signUpResponse = await fetch(
-    `${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, returnSecureToken: true }),
-    }
-  );
-  const signUpJson = await signUpResponse.json();
-
-  if (signUpJson?.error?.message === 'EMAIL_EXISTS') {
-    const signInResponse = await fetch(
-      `${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake-api-key`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, returnSecureToken: true }),
-      }
-    );
-    return signInResponse.json();
-  }
-
-  return signUpJson;
-}
-
-async function signInInBrowser(page, email: string, password = 'testpass') {
-  await page.waitForFunction(() => typeof (window as any).__test_signInWithEmail === 'function');
-  await page.evaluate(({ email, password }) => (window as any).__test_signInWithEmail({ email, password }), {
-    email,
-    password,
-  });
-  await expect(page.getByTestId('header-avatar')).toBeVisible({ timeout: 15000 });
-}
-
-async function ensureAuthenticatedShell(page, email: string, password: string) {
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    await signInInBrowser(page, email, password);
-    const isOnLanding = await page
-      .getByRole('button', { name: /Log In|Iniciar sesion|Iniciar sesión/i })
-      .isVisible()
-      .catch(() => false);
-
-    if (!isOnLanding) {
-      return;
-    }
-  }
-
-  throw new Error('Could not stabilize an authenticated app shell session.');
-}
+test.beforeEach(async ({ page }) => {
+  // Ensure the app is NOT in maintenance or search-paused mode from other concurrent tests
+  await setOperationalLevel(page, 0);
+});
 
 async function openSearchPalette(page, email: string, password: string) {
-  await ensureAuthenticatedShell(page, email, password);
+  await stabilizeAuthenticatedSession(page, email, password);
 
-  const searchInputByRole = page.getByRole('textbox', { name: /Search|Buscar/i }).first();
-  if (await searchInputByRole.isVisible().catch(() => false)) {
-    return searchInputByRole;
+  const searchInput = page.getByTestId('search-input');
+  if (await searchInput.isVisible().catch(() => false)) {
+    return searchInput;
   }
 
   const addTripButton = page
@@ -70,30 +23,21 @@ async function openSearchPalette(page, email: string, password: string) {
     await addTripButton.click();
   }
 
-  if (!(await searchInputByRole.isVisible().catch(() => false))) {
+  if (!(await searchInput.isVisible().catch(() => false))) {
     const openSearchButton = page.getByRole('button', { name: /Open search|Abrir búsqueda/i }).first();
     if (await openSearchButton.isVisible().catch(() => false)) {
       await openSearchButton.click();
     }
   }
 
-  if (!(await searchInputByRole.isVisible().catch(() => false))) {
+  if (!(await searchInput.isVisible().catch(() => false))) {
     await page.waitForFunction(() => typeof (window as any).__test_abrirSearchPalette === 'function');
     await page.evaluate(() => (window as any).__test_abrirSearchPalette());
   }
 
-  const searchInputByPlaceholder = page
-    .getByPlaceholder(
-      /Type a country or city|Escribe un pais o ciudad|Escribe un país o ciudad|Type a country|ciudad/i
-    )
-    .first();
-
-  if (await searchInputByRole.isVisible().catch(() => false)) {
-    return searchInputByRole;
-  }
-
-  await expect(searchInputByPlaceholder).toBeVisible({ timeout: 15000 });
-  return searchInputByPlaceholder;
+  await expect(searchInput).toBeVisible({ timeout: 15000 });
+  await expect(searchInput).toBeEnabled({ timeout: 10000 });
+  return searchInput;
 }
 
 async function seedTripWithStops(page, ownerUid: string, tripId: string, title: string) {
@@ -151,11 +95,31 @@ test.describe('Cost-security architecture audit', () => {
 
     let geocodingRequestCount = 0;
 
-    page.on('request', (request) => {
-      const url = request.url();
-      if (url.includes('api.mapbox.com/geocoding')) {
-        geocodingRequestCount += 1;
-      }
+    // Intercept Mapbox geocoding requests — return fake data but still count them
+    // to verify caching behavior without requiring a real API token
+    await page.route('https://api.mapbox.com/geocoding/**', async (route) => {
+      geocodingRequestCount += 1;
+      const fakeGeoJson = {
+        type: 'FeatureCollection',
+        query: ['madrid'],
+        features: [
+          {
+            id: 'place.madrid',
+            type: 'Feature',
+            place_type: ['place'],
+            text: 'Madrid',
+            place_name: 'Madrid, Comunidad de Madrid, España',
+            center: [-3.7038, 40.4168],
+            properties: {},
+            context: [{ id: 'country.esp', text: 'España', short_code: 'es' }],
+          },
+        ],
+      };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(fakeGeoJson),
+      });
     });
 
     await page.goto('/');
@@ -166,17 +130,26 @@ test.describe('Cost-security architecture audit', () => {
     geocodingRequestCount = 0;
 
     await searchInput.fill('');
-    await searchInput.type('Mad', { delay: 170 });
-    await page.waitForTimeout(500);
+    await searchInput.pressSequentially('Mad', { delay: 170 });
 
-    await searchInput.type('rid', { delay: 80 });
-    await page.waitForTimeout(500);
+    // Wait for search results to appear (signals the debounce + API call completed)
+    const resultsList = page.locator('[data-testid^="search-result-"]', { hasText: /Madrid/i }).first();
+    await resultsList.waitFor({ state: 'visible', timeout: 15000 });
+
+    await searchInput.pressSequentially('rid', { delay: 80 });
+
+    // Wait for results to update
+    await expect(page.locator('[data-testid^="search-result-"]', { hasText: /Madrid/i }).first()).toBeVisible({ timeout: 10000 });
 
     await searchInput.press('Backspace');
-    await page.waitForTimeout(500);
 
-    await searchInput.type('d', { delay: 80 });
-    await page.waitForTimeout(700);
+    // Wait for results to update after backspace
+    await expect(page.locator('[data-testid^="search-result-"]', { hasText: /Madrid/i }).first()).toBeVisible({ timeout: 10000 });
+
+    await searchInput.pressSequentially('d', { delay: 80 });
+
+    // Final wait for results to settle
+    await expect(page.locator('[data-testid^="search-result-"]', { hasText: /Madrid/i }).first()).toBeVisible({ timeout: 10000 });
 
     expect(geocodingRequestCount).toBeGreaterThan(0);
     expect(geocodingRequestCount).toBeLessThanOrEqual(3);
@@ -221,7 +194,12 @@ test.describe('Cost-security architecture audit', () => {
 
     await expect(titleInput).toHaveCount(0);
     await expect(page).toHaveURL(/\/dashboard(?:\?.*)?$/);
-    await page.waitForTimeout(1200);
+
+    // Wait for Firestore writes to be captured
+    await expect.poll(() => firestoreWritePayloads.length, {
+      message: 'Wait for Firestore write payloads to be captured',
+      timeout: 15000,
+    }).toBeGreaterThan(0);
 
     const combinedPayload = firestoreWritePayloads.join('\n');
     const decodedPayload = decodeURIComponent(combinedPayload);
