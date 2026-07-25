@@ -64,7 +64,7 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, variant = 'compact', co
     <section role="region" aria-label={ariaLabel} className={containerClassName}>
       <div className="w-full bg-gradient-to-r from-white/8 to-white/4 backdrop-blur-md shadow-lg border border-white/10 rounded-2xl px-3 py-3 md:p-4">
         {/* Single-Row Flex Layout: Mobile wraps, Desktop fixed row */}
-        <div className="flex flex-row flex-wrap md:flex-nowrap items-center justify-between gap-2 w-full">
+        <div className="grid grid-cols-2 sm:flex sm:flex-row sm:flex-wrap md:flex-nowrap items-center justify-between gap-2 w-full">
           {/* World Explored Mini Section - Left */}
           <div className="flex items-center gap-1.5 flex-shrink-0 min-w-[110px]">
             <div className="space-y-0.5">
