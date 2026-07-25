@@ -179,7 +179,6 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
                   />
                 ))}
               </div>
-              <div className="absolute inset-0 bg-black/20 pointer-events-none" />
             </div>
           )}
         </Motion.div>
@@ -197,7 +196,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
                 key={idx} 
                 src={flag} 
                 alt="Bandera" 
-                className="w-6 h-6 object-cover rounded-full shadow-sm border border-white/20 opacity-90" 
+                className="w-6 h-6 object-cover rounded-full shadow-sm border border-white/20" 
                 loading={priorityImage ? "eager" : "lazy"} 
               />
             ))
