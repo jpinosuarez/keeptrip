@@ -1,8 +1,10 @@
 import { cn } from '@shared/lib/utils/cn';
-import React from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { Save, LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAuth, useUpload, useToast } from '@app/providers';
+import { useGaleriaViaje } from '@shared/lib/hooks/useGaleriaViaje';
 import { useEdicionModalSave } from '../model/hooks/useEdicionModalSave';
 import { useEdicionGalleryManager } from '../model/hooks/useEdicionGalleryManager';
 import { useEdicionModalLifecycle } from '../model/hooks/useEdicionModalLifecycle';
@@ -11,46 +13,142 @@ import EdicionParadasSection from './components/EdicionParadasSection';
 import EdicionHeaderSection from './components/EdicionHeaderSection';
 import { createPortal } from 'react-dom';
 
-const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSaving = false, onAfterSave }) => {
-  // removed unused uploadCtx logic
+const EdicionModal = ({
+  viaje,
+  onClose,
+  onSave,
+  esBorrador = false,
+  ciudadInicial = null,
+  isSaving: isSavingProp = false,
+  onAfterSave,
+}) => {
+  const { t, i18n } = useTranslation(['editor', 'common', 'countries']);
+  const { usuario } = useAuth();
+  const { pushToast } = useToast();
 
+  const usuarioUid = usuario?.uid || null;
 
+  const uploadCtx = useUpload();
+  const iniciarSubida = uploadCtx?.iniciarSubida || (() => {});
+  const hasUploadContext = typeof uploadCtx?.iniciarSubida === 'function';
+  const uploadStatus = viaje?.id ? uploadCtx?.getEstadoViaje?.(viaje.id) : null;
+
+  // Local UI & Form state with lazy initialization
+  const [activeTab, setActiveTab] = useState('info');
+  const [headerFormData, setHeaderFormData] = useState(() => ({
+    vibe: Array.isArray(viaje?.vibe) ? viaje.vibe : [],
+    highlights: viaje?.highlights || { topFood: '', topView: '', topTip: '' },
+    companions: Array.isArray(viaje?.companions) ? viaje.companions : [],
+    texto: viaje?.texto || '',
+    presupuesto: viaje?.presupuesto || null,
+    titulo: viaje?.titulo || viaje?.nombreEspanol || '',
+    fechaInicio: viaje?.fechaInicio || '',
+    fechaFin: viaje?.fechaFin || '',
+    portadaUrl: viaje?.portadaUrl || viaje?.foto || viaje?.fotoPortada || '',
+    ...viaje,
+  }));
+  const [paradas, setParadas] = useState(() => viaje?.paradas || viaje?.destinos || []);
+  const [galleryFiles, setGalleryFiles] = useState([]);
+  const [galleryPortada, setGalleryPortada] = useState(0);
+  const [captionDrafts, setCaptionDrafts] = useState({});
+  const [isProcessingImage] = useState(false);
+  const [isSaving, setIsSaving] = useState(() => isSavingProp);
+  const [isUploading, setIsUploading] = useState(() => Boolean(uploadStatus?.isUploading));
+
+  const modalRef = useRef(null);
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+
+  useEffect(() => {
+    setIsSaving(isSavingProp);
+  }, [isSavingProp]);
+
+  useEffect(() => {
+    if (uploadStatus?.isUploading !== undefined) {
+      setIsUploading(Boolean(uploadStatus.isUploading));
+    }
+  }, [uploadStatus?.isUploading]);
+
+  // Gallery hook (disabled for drafts)
+  const galeria = useGaleriaViaje(!esBorrador && viaje?.id ? viaje.id : null);
+
+  // Gallery manager hook
   const {
-    activeTab,
-    setActiveTab,
-    headerFormData,
-    setHeaderFormData,
-    paradas,
-    setParadas,
-    galleryFiles,
-    setGalleryFiles,
-    isProcessingImage,
+    handleSetPortadaExistente,
+    handleEliminarFoto,
+    handleCaptionChange,
+    handleCaptionSave,
+  } = useEdicionGalleryManager({
+    galeria,
+    captionDrafts,
+    setCaptionDrafts,
+    pushToast,
+    t,
+  });
+
+  // Modal lifecycle hook for smart title generation and state hydration
+  const {
     isTituloAuto,
+    setIsTituloAuto,
+    limpiarEstado,
     handleTituloChange,
-    handleRegenerateTitle,
-    handleSave,
-    modalRef,
-  } = useEdicionModalSave({
+  } = useEdicionModalLifecycle({
     viaje,
     esBorrador,
     ciudadInicial,
-    onSave,
-    onAfterSave,
-    onClose,
+    usuarioUid,
+    galeria,
+    formData: headerFormData,
+    setFormData: setHeaderFormData,
+    paradas,
+    setParadas,
+    setGalleryFiles,
+    setGalleryPortada,
+    setCaptionDrafts,
+    t,
+    i18n,
   });
 
-  const {
-    galeria,
-    captionDrafts,
-    handleCaptionChange,
-    handleCaptionSave,
-    handleSetPortadaExistente,
-    handleEliminarFoto,
-  } = useEdicionGalleryManager(viaje?.id, setParadas);
+  // Title regeneration handlers
+  const handleRegenerateTitle = useCallback(() => {
+    setIsTituloAuto(true);
+  }, [setIsTituloAuto]);
 
-  useEdicionModalLifecycle(onClose);
+  const handleToggleTituloAuto = useCallback(() => {
+    setIsTituloAuto((prev) => !prev);
+  }, [setIsTituloAuto]);
 
-  const { t } = useTranslation('editor');
+  // Save handler hook
+  const handleSave = useEdicionModalSave({
+    isProcessingImage,
+    isSaving,
+    isUploading,
+    formData: headerFormData,
+    viaje,
+    ciudadInicial,
+    paradas,
+    onSave,
+    galleryFiles,
+    galleryPortada,
+    hasUploadContext,
+    iniciarSubida,
+    pushToast,
+    t,
+    limpiarEstado,
+    onClose,
+    onAfterSave,
+    autoFinalize: true,
+  });
+
+  // Escape key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && !isSaving && onClose) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSaving, onClose]);
 
   const tabs = [
     { id: 'info', label: t('tabs.info') },
@@ -59,9 +157,13 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
   ];
 
   return createPortal(
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-gradient-to-t from-black/40 via-black/10 to-transparent p-4 md:p-6 overflow-hidden">
+    <div
+      className="fixed inset-0 z-modal flex items-center justify-center bg-gradient-to-t from-black/40 via-black/10 to-transparent p-4 md:p-6 overflow-hidden"
+      onClick={isSaving ? undefined : onClose}
+    >
       <Motion.div
         ref={modalRef}
+        onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -75,13 +177,14 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
           <EdicionHeaderSection
             t={t}
             formData={headerFormData}
-            setFormData={setHeaderFormData}
-            paradas={paradas}
-            galleryFiles={galleryFiles}
-            setGalleryFiles={setGalleryFiles}
-            isProcessingImage={isProcessingImage}
-            onTituloChange={handleTituloChange}
+            isMobile={isMobile}
+            isBusy={isSaving || isProcessingImage}
+            esBorrador={esBorrador}
             isTituloAuto={isTituloAuto}
+            isProcessingImage={isProcessingImage}
+            paradas={paradas}
+            onTituloChange={handleTituloChange}
+            onToggleTituloAuto={handleToggleTituloAuto}
             onRegenerateTitle={handleRegenerateTitle}
           />
         </div>
@@ -157,14 +260,23 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
                   t={t}
                   files={galleryFiles}
                   onFilesChange={setGalleryFiles}
+                  portadaIndex={galleryPortada}
+                  onPortadaChange={(urlOrIndex) => {
+                    if (typeof urlOrIndex === 'number') {
+                      setGalleryPortada(urlOrIndex);
+                    } else if (typeof urlOrIndex === 'string') {
+                      setHeaderFormData((prev) => ({ ...prev, portadaUrl: urlOrIndex }));
+                    }
+                  }}
+                  isBusy={isSaving || isProcessingImage}
+                  isMobile={isMobile}
                   galeria={galeria}
                   captionDrafts={captionDrafts}
                   onCaptionChange={handleCaptionChange}
                   onCaptionSave={handleCaptionSave}
                   onSetPortadaExistente={handleSetPortadaExistente}
                   onEliminarFoto={handleEliminarFoto}
-                  portadaUrl={headerFormData.portadaUrl}
-                  onPortadaChange={(url) => setHeaderFormData(prev => ({ ...prev, portadaUrl: url }))}
+                  portadaUrl={headerFormData?.portadaUrl}
                 />
               </Motion.div>
             )}
