@@ -38,7 +38,7 @@ const MenuItemButton = ({ onClick, isDanger, icon: Icon, children }) => {
   );
 };
 
-const ActionMenu = ({ isMobile, showMenu, setShowMenu, fileInputRef, currentPreview, handleRemovePhoto, t }) => {
+const ActionMenu = ({ showMenu, setShowMenu, fileInputRef, currentPreview, handleRemovePhoto, t }) => {
   const content = (
     <>
       <MenuItemButton onClick={() => { fileInputRef.current?.click(); }} icon={ImageIcon} isDanger={false}>
@@ -52,51 +52,44 @@ const ActionMenu = ({ isMobile, showMenu, setShowMenu, fileInputRef, currentPrev
     </>
   );
 
-  if (isMobile) {
-    return (
-      <AnimatePresence>
-        {showMenu && (
-          <>
-            <Motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99]"
-              onClick={() => setShowMenu(false)} 
-            />
-            <Motion.div 
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
-              className="fixed bottom-0 left-0 right-0 p-5 bg-surface rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.15)] z-[100] flex flex-col gap-2"
-            >
-              {content}
-              <button 
-                type="button" 
-                className="w-full flex items-center justify-center gap-3 p-3.5 text-left font-bold text-[0.95rem] transition-colors rounded-lg mt-2 bg-black/5"
-                onClick={() => setShowMenu(false)}
-              >
-                {t('button.cancel', { ns: 'common', defaultValue: 'Cancelar' })}
-              </button>
-            </Motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    );
-  }
-
   return (
     <AnimatePresence>
       {showMenu && (
-        <Motion.div 
-          initial={{ opacity: 0, scale: 0.95, y: -10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: -10 }}
-          className="absolute top-full right-0 mt-2 w-56 bg-surface/95 backdrop-blur-lg border border-border/50 rounded-xl shadow-xl overflow-hidden z-50 p-1"
-        >
-          {content}
-        </Motion.div>
+        <>
+          {/* Mobile backdrop scrim */}
+          <Motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99] md:hidden"
+            onClick={() => setShowMenu(false)} 
+          />
+          {/* Desktop backdrop click catcher */}
+          <div 
+            className="fixed inset-0 z-40 hidden md:block" 
+            onClick={() => setShowMenu(false)} 
+          />
+          {/* Responsive menu: Bottom sheet on mobile, anchored popover on desktop */}
+          <Motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 15 }}
+            transition={{ type: 'spring', bounce: 0, duration: 0.25 }}
+            className={cn(
+              "fixed bottom-0 left-0 right-0 p-5 bg-surface rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.15)] z-[100] flex flex-col gap-2",
+              "md:fixed-none md:absolute md:top-full md:right-0 md:bottom-auto md:left-auto md:w-56 md:bg-surface/95 md:backdrop-blur-lg md:border md:border-border/50 md:rounded-xl md:shadow-xl md:overflow-hidden md:z-50 md:p-1"
+            )}
+          >
+            {content}
+            <button 
+              type="button" 
+              className="w-full flex items-center justify-center gap-3 p-3.5 text-left font-bold text-[0.95rem] transition-colors rounded-lg mt-2 bg-black/5 md:hidden"
+              onClick={() => setShowMenu(false)}
+            >
+              {t('button.cancel', { ns: 'common', defaultValue: 'Cancelar' })}
+            </button>
+          </Motion.div>
+        </>
       )}
     </AnimatePresence>
   );
@@ -108,7 +101,6 @@ const EditableTripHeader = ({
   paradas,
   galleryFiles,
   setGalleryFiles,
-  isMobile,
   isProcessingImage,
   onTituloChange,
   isTituloAuto,
@@ -119,7 +111,7 @@ const EditableTripHeader = ({
   const titleTextareaRef = useRef(null);
   
   const [showMenu, setShowMenu] = useState(false);
-  const [titleFontSize, setTitleFontSize] = useState(isMobile ? 24 : 28);
+  const [titleFontSize, setTitleFontSize] = useState(28);
   const [isTitleFocused, setIsTitleFocused] = useState(false);
   const [isCameraHovered, setIsCameraHovered] = useState(false);
 
@@ -176,8 +168,9 @@ const EditableTripHeader = ({
     const el = titleTextareaRef.current;
     if (!el) return;
     const containerWidth = el.clientWidth || el.parentElement?.clientWidth || 200;
-    const maxSize = isMobile ? 28 : 32;
-    const minSize = isMobile ? 18 : 20;
+    const isCompact = containerWidth < 600;
+    const maxSize = isCompact ? 28 : 32;
+    const minSize = isCompact ? 18 : 20;
     const target = Math.round(Math.max(minSize, Math.min(maxSize, maxSize - (formData?.titulo?.length || 0) * 0.15)));
     
     if (target !== titleFontSize) setTitleFontSize(target);
@@ -189,14 +182,13 @@ const EditableTripHeader = ({
     }
     if (recalculated !== target) setTitleFontSize(recalculated);
     el.style.fontSize = `${recalculated}px`;
-  }, [formData?.titulo, isMobile, titleFontSize]);
+  }, [formData?.titulo, titleFontSize]);
 
   useLayoutEffect(() => {
     // We use useLayoutEffect here because we are measuring DOM elements
     // and setting state based on those measurements before the browser repaints.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     adjustTitleFont();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     adjustTitleHeight();
   }, [adjustTitleFont, adjustTitleHeight]);
 
@@ -217,7 +209,7 @@ const EditableTripHeader = ({
 
   // Drag Handlers para Reposicionamiento Vertical
   const handlePointerDown = (e) => {
-    if (!currentPreview || isMobile) return;
+    if (!currentPreview || e.pointerType === 'touch') return;
     setIsDragging(true);
     dragStartY.current = e.clientY;
     dragStartProgress.current = dragProgress;
@@ -262,7 +254,7 @@ const EditableTripHeader = ({
     <div 
       className={cn(
         "relative w-full overflow-hidden flex flex-col justify-end bg-slate-900 transition-[height] duration-200",
-        isMobile ? "aspect-[4/3] min-h-[280px] rounded-b-3xl" : "aspect-[16/6] min-h-[380px] rounded-xl shadow-lg"
+        "aspect-[4/3] min-h-[280px] rounded-b-3xl md:aspect-[16/6] md:min-h-[380px] md:rounded-xl md:shadow-lg"
       )}
     >
       {/* Dynamic Background */}
@@ -271,7 +263,7 @@ const EditableTripHeader = ({
           ref={imageContainerRef}
           className={cn(
             "w-full h-full relative overflow-hidden select-none touch-none",
-            isMobile ? "cursor-default" : (isDragging ? "cursor-grabbing" : "cursor-grab")
+            isDragging ? "cursor-grabbing" : "cursor-default md:cursor-grab"
           )}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -333,7 +325,6 @@ const EditableTripHeader = ({
             />
           </button>
           <ActionMenu 
-            isMobile={isMobile}
             showMenu={showMenu}
             setShowMenu={setShowMenu}
             fileInputRef={fileInputRef}
