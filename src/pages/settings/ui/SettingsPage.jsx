@@ -352,11 +352,11 @@ const SettingsPage = () => {
         </Motion.div>
 
         {/* ── Language Section ── */}
-        <SectionHeader>{t('settings:language', 'Idioma')}</SectionHeader>
+        <SectionHeader>{t('settings:language.title', 'Idioma')}</SectionHeader>
         <GroupCard>
           <SettingsRow
             icon={Globe}
-            label={t('settings:language')}
+            label={t('settings:language.title')}
             trailing={<LanguageToggle currentLang={i18n.language} onToggle={(lang) => i18n.changeLanguage(lang)} />}
             isLast={true}
           />
@@ -384,7 +384,11 @@ const SettingsPage = () => {
         {canManageOperationalFlags && (
           <>
             <SectionHeader>{t('settings:operational', 'Operacional')}</SectionHeader>
-            <OperationalControlsSection />
+            <OperationalControlsSection
+              canManageOperationalFlags={canManageOperationalFlags}
+              currentUser={user}
+              onNotify={pushToast}
+            />
           </>
         )}
 
