@@ -2,9 +2,8 @@
  * Cinematic TripCard (2026 Restyle)
  * Features full-bleed images, floating glass pills, and 3D parallax on desktop hovering.
  */
-import React, { useRef, useState, useEffect, useMemo } from 'react';
-import { createPortal } from 'react-dom';
-import { motion as Motion, useMotionValue, useTransform, useSpring, AnimatePresence } from 'framer-motion';
+import React, { useRef, useState, useMemo } from 'react';
+import { motion as Motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { Compass, Calendar, MapPin, Trash2, Clock, MoreVertical, Edit2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,36 +14,13 @@ import {
 } from '@shared/lib/utils/viajeUtils';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { cn } from '@shared/lib/utils/cn';
+import PortalDropdown from '@shared/ui/components/PortalDropdown/PortalDropdown';
 
 const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', priorityImage = false }) => {
   const { t, i18n } = useTranslation(['countries', 'dashboard', 'common']);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const buttonRef = useRef(null);
   const cardRef = useRef(null);
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const handleClickOutside = (e) => {
-      if (buttonRef.current && !buttonRef.current.contains(e.target)) {
-        setIsMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isMenuOpen]);
-
-  // Calculate menu position when it opens
-  useEffect(() => {
-    if (isMenuOpen && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setMenuPosition({
-        top: rect.bottom + 8,
-        left: rect.left - 180 + rect.width
-      });
-    }
-  }, [isMenuOpen]);
 
   const flags = useMemo(() => 
     (Array.isArray(trip.banderas) && trip.banderas.filter(Boolean).length > 0 && trip.banderas.filter(Boolean)) ||
@@ -217,66 +193,49 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
               e.preventDefault();
               setIsMenuOpen((prev) => !prev);
             }}
-            onTouchStart={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              setIsMenuOpen((prev) => !prev);
-            }}
             aria-label={t('card.menu', { ns: 'dashboard', defaultValue: 'Abrir opciones de viaje' })}
             data-testid="trip-card-menu-btn"
           >
             <MoreVertical size={20} />
           </button>
  
-          <AnimatePresence>
-            {isMenuOpen && createPortal(
-              <Motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                transition={{ duration: 0.15 }}
-                className="fixed w-[180px] bg-white/85 backdrop-blur-xl rounded-xl shadow-lg p-2 flex flex-col gap-1 z-modal"
-                style={{
-                  top: menuPosition.top,
-                  left: menuPosition.left,
-                }}
-                onClick={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
-                data-testid="trip-card-menu-portal"
-              >
+          <PortalDropdown
+            isOpen={isMenuOpen}
+            onClose={() => setIsMenuOpen(false)}
+            triggerRef={buttonRef}
+            minWidth={180}
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setIsMenuOpen(false);
+                if (onEdit) onEdit(trip.id);
+              }}
+              className="portal-menu-item flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
+              data-testid="trip-card-menu-edit"
+            >
+              <Edit2 size={16} /> <span>{t('card.edit', { ns: 'dashboard', defaultValue: 'Editar viaje' })}</span>
+            </button>
+
+            {onDelete && (
+              <>
+                <div className="h-px bg-black/10 my-1" />
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     setIsMenuOpen(false);
-                    if (onEdit) onEdit(trip.id);
+                    onDelete(trip.id);
                   }}
-                  className="portal-menu-item flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
-                  data-testid="trip-card-menu-edit"
+                  className="portal-menu-item danger flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-danger text-left hover:bg-danger/10 transition-colors font-heading"
+                  data-testid="trip-card-menu-delete"
                 >
-                  <Edit2 size={16} /> <span>{t('card.edit', { ns: 'dashboard', defaultValue: 'Editar viaje' })}</span>
+                  <Trash2 size={16} /> <span>{t('card.delete', { ns: 'dashboard', defaultValue: 'Eliminar' })}</span>
                 </button>
- 
-                <div className="h-px bg-black/10 my-1" />
- 
-                {onDelete && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      setIsMenuOpen(false);
-                      onDelete(trip.id);
-                    }}
-                    className="portal-menu-item danger flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-danger text-left hover:bg-danger/10 transition-colors font-heading"
-                    data-testid="trip-card-menu-delete"
-                  >
-                    <Trash2 size={16} /> <span>{t('card.delete', { ns: 'dashboard', defaultValue: 'Eliminar' })}</span>
-                  </button>
-                )}
-              </Motion.div>,
-              document.body
+              </>
             )}
-          </AnimatePresence>
+          </PortalDropdown>
         </div>
         </div>
         
