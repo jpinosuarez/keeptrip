@@ -199,17 +199,6 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
                 </div>
               )}
             </ErrorBoundary>
-
-            {/* Mobile exploration CTA pill */}
-            <button
-              type="button"
-              onClick={() => navigate('/map')}
-              className="lg:hidden absolute bottom-2.5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-charcoalBlue/85 hover:bg-charcoalBlue text-white backdrop-blur-md px-4 py-2 min-h-[44px] rounded-full text-[0.8rem] font-bold shadow-md transition-all font-heading border border-white/10 cursor-pointer"
-              aria-label={t('viewFullMap')}
-            >
-              <Map size={14} className="text-atomicTangerine" />
-              <span>{t('viewFullMap')}</span>
-            </button>
           </div>
         </div>
       </div>

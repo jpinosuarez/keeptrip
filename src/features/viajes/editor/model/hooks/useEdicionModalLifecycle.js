@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@shared/firebase';
-import { generarTituloInteligente, parseFlexibleDate } from '@shared/lib/utils/viajeUtils';
+import {
+  generarTituloInteligente,
+  parseFlexibleDate,
+  normalizeToIsoDate,
+  resolveCoverPhotoUrl,
+} from '@shared/lib/utils/viajeUtils';
 import { getFlagUrl } from '@shared/lib/utils/countryUtils';
 
 export function useEdicionModalLifecycle({
@@ -107,6 +112,10 @@ export function useEdicionModalLifecycle({
       return;
     }
 
+    const normalizedStartDate = normalizeToIsoDate(viaje.fechaInicio || viaje.startDate || viaje.date) || '';
+    const normalizedEndDate = normalizeToIsoDate(viaje.fechaFin || viaje.endDate) || '';
+    const normalizedCover = resolveCoverPhotoUrl(viaje);
+
     const initSignature = JSON.stringify({
       id: viaje.id || 'none',
       mode: esBorrador ? 'borrador' : 'edicion',
@@ -115,15 +124,15 @@ export function useEdicionModalLifecycle({
       countryName: viaje.nombreEspanol || '',
       flag: viaje.flag || '',
       title: viaje.titulo || '',
-      startDate: viaje.fechaInicio || '',
-      endDate: viaje.fechaFin || '',
+      startDate: normalizedStartDate,
+      endDate: normalizedEndDate,
       text: viaje.texto || '',
       budget: viaje.presupuesto || null,
       vibe: Array.isArray(viaje.vibe) ? viaje.vibe : [],
       companions: Array.isArray(viaje.companions) ? viaje.companions : [],
       highlights: viaje.highlights || { topFood: '', topView: '', topTip: '' },
-      photo: viaje.foto || null,
-      coverPhoto: viaje.portadaUrl || null,
+      photo: normalizedCover,
+      coverPhoto: normalizedCover,
       cityInitial: {
         name: ciudadInicial?.nombre || '',
         countryCode: ciudadInicial?.paisCodigo || '',
@@ -147,13 +156,17 @@ export function useEdicionModalLifecycle({
       ? viaje.titulo || ''
       : viaje.titulo || viaje.nombreEspanol || viaje.code || `Viaje a ${viaje.nombreEspanol || ''}`;
 
+    const fallbackStart = esBorrador ? new Date().toISOString().split('T')[0] : '';
+    const safeStart = normalizedStartDate || fallbackStart;
+    const safeEnd = normalizedEndDate || safeStart;
+
     setFormData({
       ...viaje,
       titulo: resolvedTitulo,
-      fechaInicio: viaje.fechaInicio || new Date().toISOString().split('T')[0],
-      fechaFin: viaje.fechaFin || new Date().toISOString().split('T')[0],
-      foto: viaje.foto,
-      portadaUrl: viaje.portadaUrl || viaje.foto || null,
+      fechaInicio: safeStart,
+      fechaFin: safeEnd,
+      foto: normalizedCover,
+      portadaUrl: normalizedCover,
       texto: viaje.texto || '',
       flag: viaje.flag,
       code: viaje.code,
@@ -411,7 +424,7 @@ export function useEdicionModalLifecycle({
           id: 'init',
           nombre: ciudadInicial.nombre,
           coordenadas: ciudadInicial.coordenadas,
-          fecha: viaje.fechaInicio || new Date().toISOString().split('T')[0],
+          fecha: normalizeToIsoDate(viaje.fechaInicio || viaje.startDate) || new Date().toISOString().split('T')[0],
           paisCodigo: ciudadInicial.paisCodigo,
           flag: viaje.flag,
         },

@@ -17,7 +17,7 @@ const createStopInstanceId = (feature) => {
   return `temp-${baseId}-${uuid}`;
 };
 
-const CityManager = ({ t, paradas, setParadas, tripStartDate, isReadOnlyMode = false }) => {
+const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
   const { i18n, t: searchT } = useTranslation(['search', 'common']);
   const {
     flags: { level: operationalLevel, appReadonlyMode },
