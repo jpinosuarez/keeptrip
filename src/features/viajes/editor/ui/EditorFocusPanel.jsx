@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { useEdicionModalLifecycle } from '../model/hooks/useEdicionModalLifecycle';
 import { useEdicionModalSave } from '../model/hooks/useEdicionModalSave';
@@ -41,7 +40,6 @@ const EditorFocusPanel = ({
   onAfterSave = null,
 }) => {
   const { t, i18n } = useTranslation(['editor', 'countries']);
-  const { isMobile } = useWindowSize(768);
   const {
     flags: { level: operationalLevel, appReadonlyMode },
   } = useOperationalFlags();
@@ -278,16 +276,10 @@ const EditorFocusPanel = ({
   if (!viaje) return null;
 
   // Animation variants
-  const desktopVariants = {
+  const panelVariants = {
     hidden: { x: '100%', opacity: 0 },
     visible: { x: 0, opacity: 1 },
     exit: { x: '100%', opacity: 0 },
-  };
-
-  const mobileVariants = {
-    hidden: { y: '100%', opacity: 0 },
-    visible: { y: 0, opacity: 1 },
-    exit: { y: '100%', opacity: 0 },
   };
 
   const scrimVariants = {
@@ -295,8 +287,6 @@ const EditorFocusPanel = ({
     visible: { opacity: 1 },
     exit: { opacity: 0 },
   };
-
-  const panelVariant = isMobile ? mobileVariants : desktopVariants;
 
   return (
     <>
@@ -324,7 +314,7 @@ const EditorFocusPanel = ({
           style={{
             pointerEvents: isClosingAfterSave ? 'none' : 'auto',
           }}
-          variants={panelVariant}
+          variants={panelVariants}
           initial="hidden"
           animate="visible"
           exit="exit"

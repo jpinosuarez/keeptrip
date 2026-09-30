@@ -27,9 +27,6 @@ const mockPushToast = vi.fn();
 const mockToastReturn = { pushToast: mockPushToast };
 vi.mock('@app/providers/ToastContext', () => ({ useToast: () => mockToastReturn }));
 
-const mockWindowSize = { isMobile: false };
-vi.mock('@shared/lib/hooks/useWindowSize', () => ({ useWindowSize: () => mockWindowSize }));
-
 const mockGaleria = { fotos: [], uploading: false, limpiar: vi.fn(), cambiarPortada: vi.fn(), eliminar: vi.fn(), actualizarCaption: vi.fn() };
 vi.mock('@shared/lib/hooks/useGaleriaViaje', () => ({ useGaleriaViaje: () => mockGaleria }));
 
