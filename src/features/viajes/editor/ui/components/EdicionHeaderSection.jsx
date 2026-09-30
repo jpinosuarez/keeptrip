@@ -7,7 +7,6 @@ import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 const EdicionHeaderSection = ({
   t,
   formData,
-  isMobile,
   isBusy,
   esBorrador,
   isTituloAuto,
@@ -18,7 +17,7 @@ const EdicionHeaderSection = ({
   onRegenerateTitle,
 }) => {
   const titleTextareaRef = React.useRef(null);
-  const [titleFontSize, setTitleFontSize] = React.useState(isMobile ? 20 : 22);
+  const [titleFontSize, setTitleFontSize] = React.useState(22);
 
   const adjustTitleHeight = React.useCallback(() => {
     const el = titleTextareaRef.current;
@@ -35,8 +34,9 @@ const EdicionHeaderSection = ({
     if (!el) return;
 
     const containerWidth = el.clientWidth || el.parentElement?.clientWidth || 1;
-    const maxSize = isMobile ? 22 : 26;
-    const minSize = isMobile ? 14 : 16;
+    const isCompact = containerWidth < 600;
+    const maxSize = isCompact ? 22 : 26;
+    const minSize = isCompact ? 14 : 16;
     const target = Math.round(Math.max(minSize, Math.min(maxSize, maxSize - (formData?.titulo?.length || 0) * 0.12)));
 
     if (target !== titleFontSize) {
@@ -54,7 +54,7 @@ const EdicionHeaderSection = ({
     }
 
     el.style.fontSize = `${recalculated}px`;
-  }, [formData?.titulo, isMobile, titleFontSize]);
+  }, [formData?.titulo, titleFontSize]);
 
   React.useEffect(() => {
     adjustTitleFont();
@@ -114,7 +114,7 @@ const EdicionHeaderSection = ({
     <section className="bg-background p-0 flex flex-col shrink-0">
       <div className={cn(
         "bg-surface border border-border shadow-sm rounded-[20px] flex flex-col gap-4 relative overflow-hidden",
-        isMobile ? "px-3.5 py-4" : "px-4.5 py-5"
+        "px-3.5 py-4 md:px-4.5 md:py-5"
       )}>
         <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-atomicTangerine to-mutedTeal opacity-75 pointer-events-none" aria-hidden="true" />
 

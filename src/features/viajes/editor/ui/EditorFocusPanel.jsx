@@ -143,9 +143,11 @@ const EditorFocusPanel = ({
     ? (uploadCtx?.getEstadoViaje?.(viaje.id) || { isUploading: false })
     : { isUploading: false };
 
+  const isImageBusy = Boolean(isProcessingImage || isUploading || galeria?.uploading);
+
   // Manual save handler (explicit, not auto-save)
   const handleSaveManual = useEdicionModalSave({
-    isProcessingImage,
+    isProcessingImage: isImageBusy,
     isSaving: isSavingManual,
     isUploading,
     formData: effectiveFormData,
@@ -167,7 +169,7 @@ const EditorFocusPanel = ({
   const hasValidStops = Array.isArray(effectiveParadas) && effectiveParadas.length > 0;
   const hasValidTitle = Boolean((formDataWithFallback?.titulo || '').trim());
   const hasValidStartDate = Boolean((effectiveFormData?.fechaInicio || viaje?.fechaInicio || '').toString().trim());
-  const canSave = hasValidStops && hasValidTitle && hasValidStartDate && !isSavingManual && !isReadOnlyMode;
+  const canSave = hasValidStops && hasValidTitle && hasValidStartDate && !isSavingManual && !isReadOnlyMode && !isImageBusy;
 
   // Manual save wrapper with loading state
   const handleSaveWithLoading = useCallback(async () => {
@@ -302,10 +304,7 @@ const EditorFocusPanel = ({
         {/* Scrim */}
         <Motion.div
           key="scrim"
-          className={cn(
-            "fixed inset-0 z-[90] bg-black/20",
-            isMobile ? "bg-black/40" : "bg-black/20"
-          )}
+          className="fixed inset-0 z-[90] bg-black/40 md:bg-black/20"
           style={{
             pointerEvents: isClosingAfterSave ? 'none' : 'auto',
           }}
@@ -321,12 +320,7 @@ const EditorFocusPanel = ({
         <Motion.div
           key="panel"
           data-testid="editor-focus-panel"
-          className={cn(
-            "fixed bg-background z-modal flex flex-col",
-            isMobile 
-              ? "inset-0" 
-              : "top-0 right-0 h-full w-[420px] shadow-2xl border-l border-border"
-          )}
+          className="fixed bg-background z-modal flex flex-col inset-0 md:inset-y-0 md:right-0 md:left-auto md:w-[420px] md:shadow-2xl md:border-l md:border-border"
           style={{
             pointerEvents: isClosingAfterSave ? 'none' : 'auto',
           }}
@@ -346,8 +340,7 @@ const EditorFocusPanel = ({
               paradas={effectiveParadas}
               galleryFiles={effectiveGalleryFiles}
               setGalleryFiles={effectiveSetGalleryFiles}
-              isMobile={isMobile}
-              isProcessingImage={isProcessingImage}
+              isProcessingImage={isImageBusy}
               onTituloChange={handleTituloChange}
               isTituloAuto={autoTitleMode}
               onRegenerateTitle={() => setAutoTitleMode(true)}

@@ -12,7 +12,6 @@ const EdicionGallerySection = ({
   portadaIndex,
   onPortadaChange,
   isBusy,
-  isMobile,
   galeria,
   captionDrafts,
   onCaptionChange,
@@ -103,7 +102,6 @@ const EdicionGallerySection = ({
         onPortadaChange={onPortadaChange}
         maxFiles={1}
         disabled={isBusy || galeria.uploading || isReadOnlyMode}
-        isMobile={isMobile}
       />
       <span className="text-[0.8rem] font-semibold text-mutedTeal">
         {t('gallery.coverOnlyNotice', 'Esta imagen será la foto de portada del viaje.')}

@@ -51,12 +51,10 @@ const EdicionModal = ({
   const [galleryFiles, setGalleryFiles] = useState([]);
   const [galleryPortada, setGalleryPortada] = useState(0);
   const [captionDrafts, setCaptionDrafts] = useState({});
-  const [isProcessingImage] = useState(false);
   const [isSaving, setIsSaving] = useState(() => isSavingProp);
   const [isUploading, setIsUploading] = useState(() => Boolean(uploadStatus?.isUploading));
 
   const modalRef = useRef(null);
-  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
 
   useEffect(() => {
     setIsSaving(isSavingProp);
@@ -70,6 +68,7 @@ const EdicionModal = ({
 
   // Gallery hook (disabled for drafts)
   const galeria = useGaleriaViaje(!esBorrador && viaje?.id ? viaje.id : null);
+  const isProcessingImage = Boolean(uploadStatus?.isUploading || isUploading || galeria?.uploading);
 
   // Gallery manager hook
   const {
@@ -177,7 +176,6 @@ const EdicionModal = ({
           <EdicionHeaderSection
             t={t}
             formData={headerFormData}
-            isMobile={isMobile}
             isBusy={isSaving || isProcessingImage}
             esBorrador={esBorrador}
             isTituloAuto={isTituloAuto}
@@ -269,7 +267,6 @@ const EdicionModal = ({
                     }
                   }}
                   isBusy={isSaving || isProcessingImage}
-                  isMobile={isMobile}
                   galeria={galeria}
                   captionDrafts={captionDrafts}
                   onCaptionChange={handleCaptionChange}
@@ -295,7 +292,7 @@ const EdicionModal = ({
           
           <button
             onClick={handleSave}
-            disabled={isSaving || isProcessingImage}
+            disabled={isSaving || isProcessingImage || isUploading}
             className={cn(
               "flex items-center gap-2 px-8 py-3 rounded-full text-[0.9rem] font-black tracking-wide shadow-lg transition-all",
               "bg-gradient-to-r from-atomicTangerine to-orange-500 text-white hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100"
@@ -305,6 +302,11 @@ const EdicionModal = ({
               <>
                 <LoaderCircle className="animate-spin" size={18} />
                 {t('button.saving', { ns: 'common' })}
+              </>
+            ) : (isProcessingImage || isUploading) ? (
+              <>
+                <LoaderCircle className="animate-spin" size={18} />
+                {t('optimizing', { ns: 'editor', defaultValue: 'Optimizando...' })}
               </>
             ) : (
               <>
