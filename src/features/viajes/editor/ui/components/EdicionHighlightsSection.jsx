@@ -1,14 +1,15 @@
 import React from 'react';
 import InfoTooltip from '@shared/ui/components/InfoTooltip';
-import { COLORS, RADIUS } from '@shared/config';
 
-const EdicionHighlightsSection = ({ styles, t, formData, setFormData }) => {
+const EdicionHighlightsSection = ({ t, formData, setFormData }) => {
+  const inputClasses = "w-full border border-border rounded-sm px-3.5 py-2.5 text-base text-charcoalBlue outline-none bg-background transition-all focus:border-atomicTangerine";
+
   return (
-    <div style={styles.section}>
-      <label style={styles.label}>
+    <div className="flex flex-col gap-2 bg-background p-4 rounded-lg border border-border">
+      <label className="text-[0.78rem] font-extrabold text-textSecondary uppercase tracking-[0.5px] flex items-center gap-1.5">
         {t('labels.highlights')} <InfoTooltip textKey="editor:tooltip.highlights" size={13} />
       </label>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      <div className="grid grid-cols-2 gap-2.5">
         <input
           placeholder={t('highlightPlaceholders.topFood')}
           value={formData.highlights?.topFood || ''}
@@ -19,7 +20,7 @@ const EdicionHighlightsSection = ({ styles, t, formData, setFormData }) => {
             }))
           }
           maxLength={120}
-          style={styles.dateInput}
+          className={inputClasses}
         />
         <input
           placeholder={t('highlightPlaceholders.topView')}
@@ -31,7 +32,7 @@ const EdicionHighlightsSection = ({ styles, t, formData, setFormData }) => {
             }))
           }
           maxLength={120}
-          style={styles.dateInput}
+          className={inputClasses}
         />
         <input
           placeholder={t('highlightPlaceholders.topTip')}
@@ -43,7 +44,7 @@ const EdicionHighlightsSection = ({ styles, t, formData, setFormData }) => {
             }))
           }
           maxLength={120}
-          style={{ ...styles.dateInput, gridColumn: '1 / -1' }}
+          className={`${inputClasses} col-span-2`}
         />
       </div>
     </div>

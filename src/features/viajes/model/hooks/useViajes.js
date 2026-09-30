@@ -142,6 +142,8 @@ export const useViajes = () => {
     }
 
     // Configurar userId en el logger para contexto global
+
+    // Configurar userId en el logger para contexto global
     logger.setUserId(userUid);
     logger.info('Suscribiendo a viajes del usuario', { userId: userUid });
 
@@ -176,6 +178,11 @@ export const useViajes = () => {
               !viajesConOwner.some((viaje) => viaje.id === item.id)
           );
           const next = [...viajesConOwner, ...pendingPersonal, ...compartidos];
+          
+          if (compartidos.length > 0) {
+            console.log(`[E2E DEBUG] onData merging ${viajesConOwner.length} personal and ${compartidos.length} shared trips. Total: ${next.length}`);
+          }
+          
           const sharedStops = allStopsRef.current.filter((item) => item.ownerId !== userUid);
           setBitacoraData(construirBitacoraData(next, [...paradasConOwner, ...sharedStops]));
           return next;
@@ -211,6 +218,7 @@ export const useViajes = () => {
         const personales = prev.filter((item) => item.ownerId === userUid);
         const compartidos = prev.filter((item) => item.ownerId !== userUid && `${item.ownerId}/${item.id}` !== key);
         const next = [...personales, ...compartidos, { ...viaje, ownerId }];
+        console.log(`[E2E DEBUG] upsertSharedViaje: ${key}. Bitacora size: ${next.length}`);
         setBitacoraData(construirBitacoraData(next, allStopsRef.current));
         return next;
       });
@@ -348,6 +356,14 @@ export const useViajes = () => {
       sharedTripListeners.clear();
     };
   }, [usuario?.uid, notifyErrorThrottled]);
+
+  // Exposed for E2E synchronization
+  useEffect(() => {
+    if (typeof window !== 'undefined' && import.meta.env.VITE_ENABLE_TEST_LOGIN === 'true') {
+      window.__test_bitacora = bitacora;
+      window.__test_viajesLoading = loading;
+    }
+  }, [bitacora, loading]);
 
   const paisesVisitados = useMemo(
     () => obtenerPaisesVisitados(bitacora, todasLasParadas),

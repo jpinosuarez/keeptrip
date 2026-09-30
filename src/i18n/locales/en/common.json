@@ -78,5 +78,17 @@
     "photoPlaceholder": "Paste image URL",
     "save": "Save Changes",
     "saving": "Saving..."
+  },
+  "modals": {
+    "deleteTrip": {
+      "title": "Delete {{tripName}}?",
+      "message": "This action will permanently delete the trip and its associated memories. This cannot be undone.",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "searchPalette": {
+      "fallbackMessage": "Search encountered an issue. You can close it and try again.",
+      "closeButton": "Close search"
+    }
   }
 }

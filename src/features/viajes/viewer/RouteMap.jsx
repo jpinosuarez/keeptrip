@@ -1,14 +1,13 @@
+import { cn } from '@shared/lib/utils/cn';
 import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Map, { Source, Layer, NavigationControl, Marker } from 'react-map-gl';
 import mapboxgl from 'mapbox-gl';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { COLORS, RADIUS, SHADOWS, GLASS, FONTS } from '@shared/config';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { setMapLanguage, generateCurvedRoute } from '@shared/lib/geo';
 import { OperationalMapFallback } from '@shared/ui/components';
-import { routeMapStyles as s } from './RouteMap.styles';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -91,16 +90,18 @@ const RouteMap = ({ paradas, activeIndex = 0, hoveredIndex = null, onMarkerHover
     };
   }, [paradas]);
 
-  const containerStyle = isModal ? s.modalContainer : s.container;
   const displayIndex = hoveredIndex != null ? hoveredIndex : activeIndex;
   const activeName = paradas[displayIndex]?.nombre || '';
 
   return (
-    <div style={containerStyle}>
+    <div className={cn(
+      "w-full h-full overflow-hidden relative",
+      isModal ? "rounded-none" : "rounded-xl border border-border"
+    )}>
       {isWebGLDisabled ? (
         <OperationalMapFallback
           message={mapShieldMessage}
-          borderRadius={isModal ? 0 : RADIUS.xl}
+          borderRadius={isModal ? 0 : "var(--radius-xl)"}
         />
       ) : (
         <Map
@@ -121,7 +122,7 @@ const RouteMap = ({ paradas, activeIndex = 0, hoveredIndex = null, onMarkerHover
                 id="ruta-route-line"
                 type="line"
                 paint={{
-                  'line-color': COLORS.atomicTangerine,
+                  'line-color': '#FF6B35', // atomicTangerine
                   'line-width': 2.5,
                   'line-dasharray': [4, 3],
                   'line-opacity': 0.75,
@@ -149,40 +150,25 @@ const RouteMap = ({ paradas, activeIndex = 0, hoveredIndex = null, onMarkerHover
                 style={{ zIndex: highlighted ? 10 : 1 }}
               >
                 <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    transform: highlighted ? 'scale(1.4)' : 'scale(1)',
-                    opacity: highlighted ? 1 : 0.6,
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer',
-                  }}
+                  className={cn(
+                    "flex flex-col items-center transition-all duration-300 cursor-pointer",
+                    highlighted ? "scale-[1.4] opacity-100" : "scale-100 opacity-60"
+                  )}
                   onMouseEnter={() => onMarkerHover?.(i)}
                   onMouseLeave={() => onMarkerHoverEnd?.()}
                   onClick={() => onMarkerClick?.(i)}
                 >
                   {/* Pin */}
-                  <div style={{
-                    width: highlighted ? '30px' : '22px',
-                    height: highlighted ? '30px' : '22px',
-                    borderRadius: '50% 50% 50% 0',
-                    transform: 'rotate(-45deg)',
-                    background: highlighted ? COLORS.atomicTangerine : COLORS.textSecondary,
-                    border: highlighted ? '3px solid white' : '2px solid rgba(255,255,255,0.6)',
-                    boxShadow: highlighted ? SHADOWS.glow : 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.3s ease',
-                  }}>
-                    <span style={{
-                      transform: 'rotate(45deg)',
-                      color: 'white',
-                      fontSize: highlighted ? '0.7rem' : '0.6rem',
-                      fontWeight: '800',
-                      lineHeight: 1,
-                    }}>
+                  <div className={cn(
+                    "rounded-[50%_50%_50%_0] rotate-[-45deg] flex items-center justify-center transition-all duration-300",
+                    highlighted 
+                      ? "w-[30px] h-[30px] bg-atomicTangerine border-[3px] border-white shadow-[0_0_15px_rgba(255,107,53,0.5)]" 
+                      : "w-[22px] h-[22px] bg-textSecondary border-2 border-white/60 shadow-none"
+                  )}>
+                    <span className={cn(
+                      "rotate-45 text-white font-black leading-none",
+                      highlighted ? "text-[0.7rem]" : "text-[0.6rem]"
+                    )}>
                       {i + 1}
                     </span>
                   </div>
@@ -204,7 +190,7 @@ const RouteMap = ({ paradas, activeIndex = 0, hoveredIndex = null, onMarkerHover
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.25 }}
-            style={s.activeLabel}
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 backdrop-blur-md bg-black/40 text-white border border-white/20 rounded-full px-[18px] py-2 text-[0.85rem] font-bold shadow-lg pointer-events-none z-[3] whitespace-nowrap max-w-[calc(100%-32px)] text-center"
           >
             📍 {activeName}
           </Motion.div>

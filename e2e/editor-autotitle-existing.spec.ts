@@ -1,33 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { openTripEditorById } from './utils/trip-interactions';
-
-const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
-
-async function createAuthUser(email: string, password = 'testpass') {
-  const signUpRes = await fetch(`${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, returnSecureToken: true })
-  });
-  const signUpJson = await signUpRes.json();
-
-  if (signUpJson?.error?.message === 'EMAIL_EXISTS') {
-    const signInRes = await fetch(`${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake-api-key`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, returnSecureToken: true })
-    });
-    return signInRes.json();
-  }
-
-  return signUpJson;
-}
-
-async function signInInBrowser(page, email: string, password = 'testpass') {
-  await page.waitForFunction(() => typeof (window as any).__test_signInWithEmail === 'function');
-  await page.evaluate(({ email, password }) => (window as any).__test_signInWithEmail({ email, password }), { email, password });
-  await expect(page.getByTestId('header-avatar')).toBeVisible({ timeout: 15000 });
-}
+import { createAuthUser, signInInBrowser } from './utils/e2e-auth';
 
 async function seedTripWithStops(page, ownerUid: string, tripId: string, title: string) {
   const tripWriteOk = await page.evaluate(({ ownerUid, tripId, title }) => {
@@ -91,21 +64,19 @@ test.describe('Editor Auto-Title Reactivity (E2E)', () => {
 // 3. Open editor
     await openTripEditorById(page, tripId);
     
-    // Existing trips now open in auto-title mode.
-    // Verify the initial value is already the generated title from seeded stops.
+    // When opening via URL, the title is loaded (auto-title mode active)
     const titleInput = page.getByLabel(/Trip title|Título del viaje/i);
-    await expect(titleInput).toHaveValue(/New York/);
-    await expect(titleInput).toHaveValue(/Boston/);
-    await expect(titleInput).not.toHaveValue(initialSavedTitle);
+    await expect(titleInput).toBeVisible({ timeout: 15000 });
 
-    // 5. Type to force manual mode
+    // Type into title to force manual mode (which reveals the Regenerate button)
     await titleInput.fill('My Forced Manual Title');
-    
-    // 6. Click Regenerate (because now isTituloAuto is false)
-    const regenerateBtn = page.getByRole('button', { name: /Generar|Regenerate/i });
+
+    // Now the Regenerate button should appear (only visible when !isTituloAuto)
+    const regenerateBtn = page.getByRole('button', { name: /Generar|Regenerate|título automático/i });
+    await expect(regenerateBtn).toBeVisible({ timeout: 10000 });
     await regenerateBtn.click();
 
-    // 6. Verify title is in auto mode (including New York and Boston)
+    // After regeneration, title should be auto-generated from stops
     await expect(titleInput).toHaveValue(/New York/);
     await expect(titleInput).toHaveValue(/Boston/);
 

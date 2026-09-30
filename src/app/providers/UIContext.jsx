@@ -137,8 +137,10 @@ export const UIProvider = ({ children }) => {
     window.__test_abrirBuscador = () => setSearchPaletteOpen(true);
     // New SearchPalette API
     window.__test_abrirSearchPalette = () => setSearchPaletteOpen(true);
+    // Operational flags API
+    window.__test_getOperationalLevel = () => operationalLevel;
     return undefined;
-  }, []);
+  }, [operationalLevel]);
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;
 };

@@ -1,0 +1,153 @@
+﻿[36m[1mi  emulators:[22m[39m Starting emulators: auth, firestore, storage
+[36m[1mi  firestore:[22m[39m Firestore Emulator logging to [1mfirestore-debug.log[22m
+[32m[1m+  firestore:[22m[39m Firestore Emulator UI websocket is running on 9150.
+[33m[1m! [22m[39m Unexpected rules runtime error: WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by com.google.protobuf.UnsafeUtil$MemoryAccessor (file:/C:/Users/pinos/.cache/firebase/emulators/cloud-storage-rules-runtime-v1.1.3.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.protobuf.UnsafeUtil$MemoryAccessor
+WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release
+
+[36m[1mi [22m[39m Running script: [1mnpx playwright test e2e/kill-switch.spec.ts[22m
+
+Running 4 tests using 1 worker
+
+[E2E] Creating auth user kill-l1-1778521753851@example.test (UID: auto)...
+[E2E] User kill-l1-1778521753851@example.test created/ready. UID: b6WpHIgVxja8jGexkDjNHwhlSgY4
+[E2E] Setting operational level to 1 via REST Admin (Bearer owner)...
+[E2E] Waiting for app to reflect operational level 1...
+[E2E] Signing in as kill-l1-1778521753851@example.test...
+[E2E] Sign-in call successful, waiting for auth session...
+[E2E] Sign-in verified for kill-l1-1778521753851@example.test
+[E2E] Setting operational level to 0 via REST Admin (Bearer owner)...
+  x  1 e2e\kill-switch.spec.ts:106:3 ÔÇ║ Unified kill-switch operational audit ÔÇ║ L1 Soft Kill: city search sends exactly zero Mapbox geocoding requests (40.8s)
+[E2E] Creating auth user kill-l2-1778521797930@example.test (UID: auto)...
+[E2E] User kill-l2-1778521797930@example.test created/ready. UID: ehbDD4k9Qf2jcQobDzUyYndWFlKZ
+[E2E] Setting operational level to 2 via REST Admin (Bearer owner)...
+[E2E] Waiting for app to reflect operational level 2...
+[E2E] Signing in as kill-l2-1778521797930@example.test...
+[E2E] Sign-in call successful, waiting for auth session...
+[E2E] Sign-in verified for kill-l2-1778521797930@example.test
+[E2E] Setting operational level to 0 via REST Admin (Bearer owner)...
+  x  2 e2e\kill-switch.spec.ts:133:3 ÔÇ║ Unified kill-switch operational audit ÔÇ║ L2 Hard Kill: map route sends zero Mapbox tile/style requests and renders fallback (19.1s)
+[E2E] Creating auth user kill-l3-1778521819807@example.test (UID: auto)...
+[E2E] User kill-l3-1778521819807@example.test created/ready. UID: NG7QS3sXOsO6LMZmlSLS3AzYiLkd
+[E2E] Setting operational level to 3 via REST Admin (Bearer owner)...
+[E2E] Waiting for app to reflect operational level 3...
+[E2E] Signing in as kill-l3-1778521819807@example.test...
+[E2E] Sign-in call successful, waiting for auth session...
+[E2E] Sign-in verified for kill-l3-1778521819807@example.test
+[E2E] Setting operational level to 0 via REST Admin (Bearer owner)...
+  x  3 e2e\kill-switch.spec.ts:166:3 ÔÇ║ Unified kill-switch operational audit ÔÇ║ L3 Operation: bitacora is READ-ONLY (18.8s)
+[E2E] Creating auth user kill-l4-1778521841443@example.test (UID: auto)...
+[E2E] User kill-l4-1778521841443@example.test created/ready. UID: q50EQ7ekedjtPBvT2LGPSGuEpkK9
+[E2E] Setting operational level to 4 via REST Admin (Bearer owner)...
+[E2E] Waiting for app to reflect operational level 4...
+[E2E] Signing in as kill-l4-1778521841443@example.test...
+[E2E] Sign-in call successful, waiting for auth session...
+[E2E] Sign-in verified for kill-l4-1778521841443@example.test
+[E2E] Setting operational level to 0 via REST Admin (Bearer owner)...
+  ok 4 e2e\kill-switch.spec.ts:194:3 ÔÇ║ Unified kill-switch operational audit ÔÇ║ L4 Total Halt: app renders global maintenance mode barrier (1.4s)
+
+
+  1) e2e\kill-switch.spec.ts:106:3 ÔÇ║ Unified kill-switch operational audit ÔÇ║ L1 Soft Kill: city search sends exactly zero Mapbox geocoding requests 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  getByTestId('header-login-button').or(getByTestId('header-avatar'))
+    Expected: visible
+    Received: hidden
+    Timeout:  30000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 30000ms[22m
+    [2m  - waiting for getByTestId('header-login-button').or(getByTestId('header-avatar'))[22m
+    [2m    31 ├ù locator resolved to <button type="button" title="Set Up Profile" data-testid="header-avatar" aria-label="Set Up Profile" class="w-11 h-11 rounded-full bg-mutedTeal border-2 border-white/80 shadow-md flex items-center justify-center text-white font-bold text-[0.85rem] shrink-0 cursor-pointer overflow-hidden">ÔÇª</button>[22m
+    [2m       - unexpected value "hidden"[22m
+
+
+      75 |   // Ensure we are in a stable state first
+      76 |   await expect(page.getByTestId('page-loader')).toBeHidden({ timeout: 15000 });
+    > 77 |   await expect(page.getByTestId('header-login-button').or(page.getByTestId('header-avatar'))).toBeVisible({ timeout: 30000 });
+         |                                                                                               ^
+      78 |
+      79 |   // Try keyboard shortcuts first
+      80 |   await page.keyboard.press('Control+k');
+        at openSearchPalette (C:\proyecto-viajes\e2e\kill-switch.spec.ts:77:95)
+        at C:\proyecto-viajes\e2e\kill-switch.spec.ts:126:25
+
+    attachment #1: video (video/webm) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\kill-switch-Unified-kill-s-6a667-o-Mapbox-geocoding-requests\video.webm
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+    Error Context: test-results\kill-switch-Unified-kill-s-6a667-o-Mapbox-geocoding-requests\error-context.md
+
+  2) e2e\kill-switch.spec.ts:133:3 ÔÇ║ Unified kill-switch operational audit ÔÇ║ L2 Hard Kill: map route sends zero Mapbox tile/style requests and renders fallback 
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected pattern: [32m/\/map(?:\?.*)?$/[39m
+    Received string:  [31m"http://localhost:5173/"[39m
+    Timeout: 15000ms
+
+    Call log:
+    [2m  - Expect "toHaveURL" with timeout 15000ms[22m
+    [2m    18 ├ù unexpected value "http://localhost:5173/"[22m
+
+
+      154 |     await navigateInApp(page, '/map');
+      155 |     
+    > 156 |     await expect(page).toHaveURL(/\/map(?:\?.*)?$/);
+          |                        ^
+      157 |     const fallback = page.getByTestId('operational-map-fallback');
+      158 |     await expect(fallback).toBeVisible({ timeout: 30000 });
+      159 |     
+        at C:\proyecto-viajes\e2e\kill-switch.spec.ts:156:24
+
+    attachment #1: video (video/webm) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\kill-switch-Unified-kill-s-64043-quests-and-renders-fallback\video.webm
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+    Error Context: test-results\kill-switch-Unified-kill-s-64043-quests-and-renders-fallback\error-context.md
+
+  3) e2e\kill-switch.spec.ts:166:3 ÔÇ║ Unified kill-switch operational audit ÔÇ║ L3 Operation: bitacora is READ-ONLY 
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected pattern: [32m/\/trips(?:\?.*)?$/[39m
+    Received string:  [31m"http://localhost:5173/"[39m
+    Timeout: 15000ms
+
+    Call log:
+    [2m  - Expect "toHaveURL" with timeout 15000ms[22m
+    [2m    18 ├ù unexpected value "http://localhost:5173/"[22m
+
+
+      178 |
+      179 |     await navigateInApp(page, '/trips');
+    > 180 |     await expect(page).toHaveURL(/\/trips(?:\?.*)?$/);
+          |                        ^
+      181 |     
+      182 |     // Wait for either the trips grid or the ghost empty state to appear
+      183 |     const emptyState = page.getByTestId('ghost-empty-state');
+        at C:\proyecto-viajes\e2e\kill-switch.spec.ts:180:24
+
+    attachment #1: video (video/webm) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\kill-switch-Unified-kill-s-3a563-ation-bitacora-is-READ-ONLY\video.webm
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+    Error Context: test-results\kill-switch-Unified-kill-s-3a563-ation-bitacora-is-READ-ONLY\error-context.md
+
+  3 failed
+    e2e\kill-switch.spec.ts:106:3 ÔÇ║ Unified kill-switch operational audit ÔÇ║ L1 Soft Kill: city search sends exactly zero Mapbox geocoding requests 
+    e2e\kill-switch.spec.ts:133:3 ÔÇ║ Unified kill-switch operational audit ÔÇ║ L2 Hard Kill: map route sends zero Mapbox tile/style requests and renders fallback 
+    e2e\kill-switch.spec.ts:166:3 ÔÇ║ Unified kill-switch operational audit ÔÇ║ L3 Operation: bitacora is READ-ONLY 
+  1 passed (1.6m)
+[33m[1m! [22m[39m Script exited unsuccessfully (code 1)
+[36m[1mi  emulators:[22m[39m Shutting down emulators.
+[36m[1mi  firestore:[22m[39m Stopping Firestore Emulator
+[33m[1m! [22m[39m Firestore Emulator has exited upon receiving signal: SIGINT
+[36m[1mi  auth:[22m[39m Stopping Authentication Emulator
+[36m[1mi  storage:[22m[39m Stopping Storage Emulator
+[36m[1mi  hub:[22m[39m Stopping emulator hub
+[36m[1mi  logging:[22m[39m Stopping Logging Emulator
+
+[1m[31mError:[39m[22m Script "[1mnpx playwright test e2e/kill-switch.spec.ts[22m" exited with code 1

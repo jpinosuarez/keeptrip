@@ -135,7 +135,12 @@ function SettingsRoute() {
 function AppRouter() {
   const {
     flags: { level, appMaintenanceMode },
+    loading
   } = useOperationalFlags();
+
+  if (loading) {
+    return <PageLoader />;
+  }
 
   const isMaintenanceMode = Boolean(appMaintenanceMode) || Number(level || 0) >= 4;
   if (isMaintenanceMode) {

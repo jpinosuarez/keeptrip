@@ -24,7 +24,7 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
   optimizeDeps: {
-    include: ['prop-types', 'topojson-client'],
+    include: ['topojson-client'],
   },
   plugins: [
     react(),

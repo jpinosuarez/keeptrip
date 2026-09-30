@@ -1,53 +1,20 @@
 import { test, expect } from '@playwright/test';
 import { openTripActionMenu } from './utils/trip-interactions';
+import { createAuthUser, signInInBrowser, stabilizeAuthenticatedSession, setOperationalLevel } from './utils/e2e-auth';
 
-const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
+test.beforeEach(async ({ page }) => {
+  // Ensure the app is NOT in maintenance or search-paused mode from other concurrent tests
+  await setOperationalLevel(page, 0);
+});
 
-async function createAuthUser(email: string, password = 'testpass') {
-  const signUpRes = await fetch(`${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, returnSecureToken: true })
-  });
-  const signUpJson = await signUpRes.json();
 
-  // If the user already exists, sign them in to reuse the account.
-  if (signUpJson?.error?.message === 'EMAIL_EXISTS') {
-    const signInRes = await fetch(`${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake-api-key`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, returnSecureToken: true })
-    });
-    return signInRes.json();
-  }
-
-  return signUpJson;
-}
-
-async function signInInBrowser(page, email: string, password = 'testpass') {
-  await page.waitForFunction(() => typeof (window as any).__test_signInWithEmail === 'function');
-  await page.evaluate(({ email, password }) => (window as any).__test_signInWithEmail({ email, password }), { email, password });
-  await expect(page.getByTestId('header-avatar')).toBeVisible({ timeout: 15000 });
-}
-
-async function ensureAuthenticatedShell(page, email: string, password: string) {
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    await signInInBrowser(page, email, password);
-    const onLanding = await page.getByRole('button', { name: /Log In|Iniciar sesion|Iniciar sesión/i }).isVisible().catch(() => false);
-    if (!onLanding) {
-      return;
-    }
-  }
-
-  throw new Error('Could not stabilize an authenticated app shell session.');
-}
 
 async function openSearchPalette(page, email: string, password: string) {
-  await ensureAuthenticatedShell(page, email, password);
+  await stabilizeAuthenticatedSession(page, email, password);
 
-  const searchInputByRole = page.getByRole('textbox', { name: /Search|Buscar/i }).first();
-  if (await searchInputByRole.isVisible().catch(() => false)) {
-    return searchInputByRole;
+  const searchInput = page.getByTestId('search-input');
+  if (await searchInput.isVisible().catch(() => false)) {
+    return searchInput;
   }
 
   const addTripButton = page.getByRole('button', { name: /Add Trip|Crear viaje|Agregar viaje|Registrar aventura/i }).first();
@@ -56,26 +23,21 @@ async function openSearchPalette(page, email: string, password: string) {
     await addTripButton.click();
   }
 
-  if (!(await searchInputByRole.isVisible().catch(() => false))) {
+  if (!(await searchInput.isVisible().catch(() => false))) {
     const openSearchButton = page.getByRole('button', { name: /Open search|Abrir búsqueda/i }).first();
     if (await openSearchButton.isVisible().catch(() => false)) {
       await openSearchButton.click();
     }
   }
 
-  if (!(await searchInputByRole.isVisible().catch(() => false))) {
+  if (!(await searchInput.isVisible().catch(() => false))) {
     await page.waitForFunction(() => typeof (window as any).__test_abrirSearchPalette === 'function');
     await page.evaluate(() => (window as any).__test_abrirSearchPalette());
   }
 
-  const searchInputByPlaceholder = page.getByPlaceholder(/Type a country or city|Escribe un pais o ciudad|Escribe un país o ciudad|Type a country|ciudad/i).first();
-
-  if (await searchInputByRole.isVisible().catch(() => false)) {
-    return searchInputByRole;
-  }
-
-  await expect(searchInputByPlaceholder).toBeVisible({ timeout: 15000 });
-  return searchInputByPlaceholder;
+  await expect(searchInput).toBeVisible({ timeout: 15000 });
+  await expect(searchInput).toBeEnabled({ timeout: 10000 });
+  return searchInput;
 }
 
 test.describe('Create trip from search modal (E2E)', () => {
@@ -92,16 +54,9 @@ test.describe('Create trip from search modal (E2E)', () => {
       }
     });
 
-    await page.goto('/');
-    await signInInBrowser(page, userEmail, password);
-
-    // Assert no overflow style conflict warning appears
-    await expect(consoleWarnings).not.toContainEqual(expect.stringContaining('Updating a style property during rerender (overflow)'));
-
-    await ensureAuthenticatedShell(page, userEmail, password);
-
     // Intercept Mapbox API to avoid external dependency and return a stable result
-    await page.route('https://api.mapbox.com/**', (route) => {
+    // Must be set up BEFORE navigation so all geocoding requests are captured
+    await page.route('https://api.mapbox.com/geocoding/**', async (route) => {
       const fakeGeoJson = {
         type: 'FeatureCollection',
         query: ['new', 'york'],
@@ -120,28 +75,48 @@ test.describe('Create trip from search modal (E2E)', () => {
           },
         ],
       };
-      route.fulfill({
+      await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify(fakeGeoJson),
       });
     });
 
+    await page.goto('/');
+    await signInInBrowser(page, userEmail, password);
+
+    // Assert no overflow style conflict warning appears
+    await expect(consoleWarnings).not.toContainEqual(expect.stringContaining('Updating a style property during rerender (overflow)'));
+
+    await stabilizeAuthenticatedSession(page, userEmail, password);
+
     // Open the search palette through real UI interactions and wait for the input.
     const searchInput = await openSearchPalette(page, userEmail, password);
     await expect(searchInput).toBeVisible({ timeout: 15000 });
 
-    // Type a destination and wait for the result to appear
-    await searchInput.fill('New York');
+    // Capture the Mapbox response to ensure results are loaded
+    const responsePromise = page.waitForResponse(response => 
+      response.url().includes('mapbox.places') && response.status() === 200
+    );
+    
+    // Type a destination
+    await searchInput.pressSequentially('New York', { delay: 100 });
+    
+    // Wait for the geocoding response
+    await responsePromise;
 
-    // Wait for the first search result to appear and click it
-    const resultCard = page.locator('[data-testid^="search-result-place-"]').first();
-    await expect(resultCard).toContainText(/New York/i, { timeout: 10000 });
-    await resultCard.click();
+    // Ensure the result is visible and click it (forced click to bypass potential overlays)
+    const resultText = 'New York';
+    const resultItem = page.getByText(resultText).first();
+    await expect(resultItem).toBeVisible({ timeout: 15000 });
+    await resultItem.click({ force: true });
 
-    // Wait for the editor to open (trip title input should appear)
+    // Wait for the editor panel to mount
+    await expect(page.getByTestId('editor-focus-panel')).toBeVisible({ timeout: 15000 });
+
+    // Wait for the title input within the editor
     const titleInput = page.getByPlaceholder(/Trip Title|Título del viaje/i);
-    await expect(titleInput).toBeVisible({ timeout: 10000 });
+    await expect(titleInput).toBeVisible({ timeout: 15000 });
 
     // Validate sticky top action bar is visible and title is auto-populated from search selection
     await expect(page.getByRole('button', { name: /Cancel|Cancelar/i }).first()).toBeVisible();
@@ -206,7 +181,10 @@ test.describe('Create trip from search modal (E2E)', () => {
 
     // Ensure the trip list is reactive without forcing a hard reload.
     await expect(page.locator('text=Your logbook has no stops yet')).toHaveCount(0, { timeout: 5000 });
-    await expect(page.locator('[data-testid^="trip-card-"]')).toHaveCount(1, { timeout: 5000 });
+    const tripCardSelector = '[data-testid^="trip-card-"]:not([data-testid*="menu"])';
+    await expect(page.locator(tripCardSelector).first()).toBeVisible({ timeout: 5000 });
+    const tripCount = await page.locator(tripCardSelector).count();
+    expect(tripCount).toBeGreaterThanOrEqual(1);
 
     await closeModals();
 

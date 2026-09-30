@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Map, { Source, Layer, Popup } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { COLORS, RADIUS } from '@shared/config';
+import { COLORS } from '@shared/config';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { setMapLanguage } from '@shared/lib/geo';
 import { OperationalMapFallback } from '@shared/ui/components';
@@ -57,7 +57,6 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
   const [hoverInfo, setHoverInfo] = useState(null);
   const mapRef = useRef(null);
   const isMobileRef = useRef(isMobile);
-  useEffect(() => { isMobileRef.current = isMobile; }, [isMobile]);
   const mapContainerRef = useRef(null);
 
   const onHover = useCallback(event => {
@@ -71,15 +70,36 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
   }, []);
 
   const fitWorld = useCallback(map => {
+    if (!map) return;
     const mobile = isMobileRef.current;
+    
+    // Stabilize map dimensions before fitting bounds
+    map.resize();
+    
     map.fitBounds(
       mobile ? WORLD_BOUNDS_MOBILE : WORLD_BOUNDS_DESKTOP,
       {
         padding: mobile ? WORLD_PADDING_MOBILE : WORLD_PADDING_DESKTOP,
         duration: 0,
+        animate: false,
       }
     );
   }, []);
+
+  useEffect(() => { 
+    isMobileRef.current = isMobile; 
+    // Re-fit world framing when switching between mobile/desktop layouts
+    if (mapRef.current) {
+      fitWorld(mapRef.current);
+    }
+  }, [isMobile, fitWorld]);
+
+  // Sync map language when user changes language preference
+  useEffect(() => {
+    if (mapRef.current && i18n.language) {
+      setMapLanguage(mapRef.current, i18n.language);
+    }
+  }, [i18n.language]);
 
   const handleMapLoad = useCallback(e => {
     const map = e.target;
@@ -123,22 +143,13 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
   return (
     <div
       ref={mapContainerRef}
-      style={{
-        width: '100%',
-        minWidth: 0,
-        height: '100%',
-        minHeight: 0,
-        position: 'relative', // Contenedor original restaurado
-        backgroundColor: MAP_OCEAN_COLOR,
-        borderRadius: RADIUS.xl,
-        overflow: 'hidden',
-      }}
+      className="w-full min-w-0 h-full min-h-0 relative bg-[#e0e6ed] rounded-2xl overflow-hidden"
     >
       {isWebGLDisabled ? (
-        <OperationalMapFallback message={mapShieldMessage} borderRadius={RADIUS.xl} />
+        <OperationalMapFallback message={mapShieldMessage} borderRadius="1.5rem" />
       ) : (
         <Map
-          style={{ width: '100%', minWidth: 0, height: '100%', minHeight: 0 }}
+          className="w-full min-w-0 h-full min-h-0"
           initialViewState={{ longitude: 0, latitude: 15, zoom: 1.5 }}
           mapStyle={BLANK_STYLE}
           mapboxAccessToken={MAPBOX_TOKEN}

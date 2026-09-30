@@ -1,33 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { openTripEditorById } from './utils/trip-interactions';
-
-const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
-
-async function createAuthUser(email: string, password = 'testpass') {
-  const signUpRes = await fetch(`${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, returnSecureToken: true })
-  });
-  const signUpJson = await signUpRes.json();
-
-  if (signUpJson?.error?.message === 'EMAIL_EXISTS') {
-    const signInRes = await fetch(`${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake-api-key`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, returnSecureToken: true })
-    });
-    return signInRes.json();
-  }
-
-  return signUpJson;
-}
-
-async function signInInBrowser(page, email: string, password = 'testpass') {
-  await page.waitForFunction(() => typeof (window as any).__test_signInWithEmail === 'function');
-  await page.evaluate(({ email, password }) => (window as any).__test_signInWithEmail({ email, password }), { email, password });
-  await expect(page.getByTestId('header-avatar')).toBeVisible({ timeout: 15000 });
-}
+import { createAuthUser, signInInBrowser } from './utils/e2e-auth';
 
 async function seedTripWithSingleStop(page, ownerUid: string, tripId: string) {
   const tripWriteOk = await page.evaluate(({ ownerUid, tripId }) => {

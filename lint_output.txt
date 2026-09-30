@@ -1,0 +1,217 @@
+
+> proyecto-viajes@0.0.0 lint
+> eslint .
+
+
+C:\proyecto-viajes\src\features\gamification\ui\AchievementCard.jsx
+  189:7   error  'styles' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  196:19  error  'RADIUS' is not defined                                                                 no-undef
+  202:27  error  'SHADOWS' is not defined                                                                no-undef
+  231:17  error  'FONTS' is not defined                                                                  no-undef
+  243:12  error  'COLORS' is not defined                                                                 no-undef
+  245:17  error  'FONTS' is not defined                                                                  no-undef
+  255:19  error  'RADIUS' is not defined                                                                 no-undef
+  258:17  error  'FONTS' is not defined                                                                  no-undef
+  275:19  error  'RADIUS' is not defined                                                                 no-undef
+  282:19  error  'RADIUS' is not defined                                                                 no-undef
+  288:17  error  'FONTS' is not defined                                                                  no-undef
+  294:12  error  'COLORS' is not defined                                                                 no-undef
+  295:17  error  'FONTS' is not defined                                                                  no-undef
+
+C:\proyecto-viajes\src\features\invitations\api\invitationsService.js
+  159:7  warning  Unused eslint-disable directive (no problems were reported from 'no-await-in-loop')
+
+C:\proyecto-viajes\src\features\mapa\ui\MapaView.jsx
+  10:10  error  'cn' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\proyecto-viajes\src\features\mapa\ui\components\TripRoster.jsx
+  74:6  warning  React Hook useMemo has an unnecessary dependency: 'paises'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\proyecto-viajes\src\features\profile\ui\ProfileModal\ProfileModal.jsx
+  7:10  error  'cn' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\proyecto-viajes\src\features\viajes\editor\ui\EdicionModal.jsx
+   2:17  error  'useState' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                               no-unused-vars
+   2:27  error  'useEffect' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                              no-unused-vars
+   2:38  error  'useRef' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                 no-unused-vars
+   6:10  error  'useOperationalFlags' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                    no-unused-vars
+   8:10  error  'formatDateRange' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                        no-unused-vars
+   9:10  error  'useGaleriaViaje' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                        no-unused-vars
+  19:11  error  'usuario' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                       no-unused-vars
+  20:11  error  'pushToast' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                     no-unused-vars
+  25:5   error  'uploadCtx' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                     no-unused-vars
+  25:17  error  React Hook "useUpload" is called conditionally. React Hooks must be called in the exact same order in every component render  react-hooks/rules-of-hooks
+  26:12  error  'e' is defined but never used                                                                                                 no-unused-vars
+
+C:\proyecto-viajes\src\features\viajes\editor\ui\EditorFocusPanel.jsx
+  103:6  warning  React Hook useEffect has missing dependencies: 'effectiveFormData' and 'effectiveParadas'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\proyecto-viajes\src\features\viajes\editor\ui\components\EdicionParadasSection.jsx
+  1:10  error  'cn' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\proyecto-viajes\src\features\viajes\editor\ui\components\EditableTripHeader.jsx
+   44:10  error  'isCameraHovered' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-unused-vars
+  115:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  113 |
+  114 |   useEffect(() => {
+> 115 |     adjustTitleFont();
+      |     ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  116 |     adjustTitleHeight();
+  117 |   }, [adjustTitleFont, adjustTitleHeight]);
+  118 |  react-hooks/set-state-in-effect
+  177:54  error  'IconComponent' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-unused-vars
+  327:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+  325 |             <Camera size={20} strokeWidth={1.5} className="text-white" />
+  326 |           </button>
+> 327 |           <ActionMenu />
+      |            ^^^^^^^^^^ This component is created during render
+  328 |         </div>
+  329 |       </div>
+  330 |
+
+  191 |   };
+  192 |
+> 193 |   const ActionMenu = () => {
+      |                      ^^^^^^^
+> 194 |     const content = (
+      | ^^^^^^^^^^^^^^^^^^^^^
+> 195 |       <>
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^
+> 254 |     );
+      | ^^^^^^^^^^^^^^^^^^^^^
+> 255 |   };
+      | ^^^^ The component is created during render here
+  256 |
+  257 |   return (
+  258 |     <div                                                                                                                               react-hooks/static-components
+
+C:\proyecto-viajes\src\features\viajes\viewer\VisorViaje.jsx
+   1:10  error  'cn' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                        no-unused-vars
+  49:5   error  'setHoveredIndex' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\proyecto-viajes\src\features\viajes\viewer\components\VisorRouteLayout.jsx
+  1:10  error  'cn' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\proyecto-viajes\src\pages\settings\ui\SettingsPage.jsx
+  167:10  error  'savedMsg' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  407:69  error  '__APP_VERSION__' is not defined                                                          no-undef
+
+C:\proyecto-viajes\src\pages\trips\ui\TripsPage.jsx
+  11:10  error  'cn' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\proyecto-viajes\src\shared\config\featureFlags.js
+  3:7  error  'isE2EGamificationEnabled' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\proyecto-viajes\src\shared\ui\components\ErrorBoundary\ErrorFallback.jsx
+  4:10  error  'cn' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\proyecto-viajes\src\shared\ui\components\PWAUpdatePrompt\PWAUpdatePrompt.jsx
+  4:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\proyecto-viajes\src\widgets\travelStats\ui\TravelStatsWidget.jsx
+  17:9  error  'isCompact' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\proyecto-viajes\src\widgets\tripGrid\ui\TripCard.jsx
+  228:24   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  226 |                 className="fixed w-[180px] bg-white/85 backdrop-blur-xl rounded-xl shadow-lg p-2 flex flex-col gap-1 z-modal"
+  227 |                 style={{
+> 228 |                   top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
+      |                        ^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  229 |                   left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left - 180 + buttonRef.current.getBoundingClientRect().width : 0,
+  230 |                 }}
+  231 |                 onClick={(e) => e.stopPropagation()}                                                                   react-hooks/refs
+  228:44   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  226 |                 className="fixed w-[180px] bg-white/85 backdrop-blur-xl rounded-xl shadow-lg p-2 flex flex-col gap-1 z-modal"
+  227 |                 style={{
+> 228 |                   top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
+      |                                            ^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  229 |                   left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left - 180 + buttonRef.current.getBoundingClientRect().width : 0,
+  230 |                 }}
+  231 |                 onClick={(e) => e.stopPropagation()}                        react-hooks/refs
+  228:44   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  226 |                 className="fixed w-[180px] bg-white/85 backdrop-blur-xl rounded-xl shadow-lg p-2 flex flex-col gap-1 z-modal"
+  227 |                 style={{
+> 228 |                   top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
+      |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  229 |                   left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left - 180 + buttonRef.current.getBoundingClientRect().width : 0,
+  230 |                 }}
+  231 |                 onClick={(e) => e.stopPropagation()}  react-hooks/refs
+  229:25   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  227 |                 style={{
+  228 |                   top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
+> 229 |                   left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left - 180 + buttonRef.current.getBoundingClientRect().width : 0,
+      |                         ^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  230 |                 }}
+  231 |                 onClick={(e) => e.stopPropagation()}
+  232 |                 onMouseDown={(e) => e.stopPropagation()}                                                                                                                                       react-hooks/refs
+  229:45   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  227 |                 style={{
+  228 |                   top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
+> 229 |                   left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left - 180 + buttonRef.current.getBoundingClientRect().width : 0,
+      |                                             ^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  230 |                 }}
+  231 |                 onClick={(e) => e.stopPropagation()}
+  232 |                 onMouseDown={(e) => e.stopPropagation()}                                                                                            react-hooks/refs
+  229:45   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  227 |                 style={{
+  228 |                   top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
+> 229 |                   left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left - 180 + buttonRef.current.getBoundingClientRect().width : 0,
+      |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  230 |                 }}
+  231 |                 onClick={(e) => e.stopPropagation()}
+  232 |                 onMouseDown={(e) => e.stopPropagation()}                                                                      react-hooks/refs
+  229:100  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  227 |                 style={{
+  228 |                   top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
+> 229 |                   left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left - 180 + buttonRef.current.getBoundingClientRect().width : 0,
+      |                                                                                                    ^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  230 |                 }}
+  231 |                 onClick={(e) => e.stopPropagation()}
+  232 |                 onMouseDown={(e) => e.stopPropagation()}                                     react-hooks/refs
+  229:100  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+  227 |                 style={{
+  228 |                   top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
+> 229 |                   left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left - 180 + buttonRef.current.getBoundingClientRect().width : 0,
+      |                                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  230 |                 }}
+  231 |                 onClick={(e) => e.stopPropagation()}
+  232 |                 onMouseDown={(e) => e.stopPropagation()}               react-hooks/refs
+
+✖ 52 problems (49 errors, 3 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

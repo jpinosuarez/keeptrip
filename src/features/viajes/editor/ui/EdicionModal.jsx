@@ -1,15 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { cn } from '@shared/lib/utils/cn';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { Save, LoaderCircle } from 'lucide-react';
-import { styles } from './EdicionModal.styles';
-import { COLORS } from '@shared/config';
-import { useAuth } from '@app/providers/AuthContext';
-import { useToast } from '@app/providers/ToastContext';
-import { useUpload } from '@app/providers/UploadContext';
-import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
-import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { useTranslation } from 'react-i18next';
-import { formatDateRange } from '@shared/lib/utils/viajeUtils';
+import { useAuth, useUpload, useToast } from '@app/providers';
 import { useGaleriaViaje } from '@shared/lib/hooks/useGaleriaViaje';
 import { useEdicionModalSave } from '../model/hooks/useEdicionModalSave';
 import { useEdicionGalleryManager } from '../model/hooks/useEdicionGalleryManager';
@@ -17,109 +11,67 @@ import { useEdicionModalLifecycle } from '../model/hooks/useEdicionModalLifecycl
 import EdicionGallerySection from './components/EdicionGallerySection';
 import EdicionParadasSection from './components/EdicionParadasSection';
 import EdicionHeaderSection from './components/EdicionHeaderSection';
+import { createPortal } from 'react-dom';
 
-const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSaving = false, onAfterSave }) => {
+const EdicionModal = ({
+  viaje,
+  onClose,
+  onSave,
+  esBorrador = false,
+  ciudadInicial = null,
+  isSaving: isSavingProp = false,
+  onAfterSave,
+}) => {
+  const { t, i18n } = useTranslation(['editor', 'common', 'countries']);
   const { usuario } = useAuth();
   const { pushToast } = useToast();
-  const { t, i18n } = useTranslation(['editor', 'countries']);
-  const {
-    flags: { level: operationalLevel, appReadonlyMode },
-  } = useOperationalFlags();
-  const isReadOnlyMode = Boolean(appReadonlyMode) || operationalLevel >= 3;
 
-  // useUpload puede no estar disponible en tests aislados; usar fallback seguro
-  let iniciarSubida = () => {};
-  let hasUploadContext = false;
-  let getEstadoViaje = () => ({ isUploading: false });
-  try {
-    const uploadCtx = useUpload();
-    iniciarSubida = uploadCtx?.iniciarSubida || (() => {});
-    getEstadoViaje = uploadCtx?.getEstadoViaje || (() => ({ isUploading: false }));
-    hasUploadContext = typeof uploadCtx?.iniciarSubida === 'function';
-  } catch {
-    iniciarSubida = () => {};
-    hasUploadContext = false;
-  }
-  const { isMobile } = useWindowSize(768);
   const usuarioUid = usuario?.uid || null;
-  const [formData, setFormData] = useState({
-    vibe: [],
-    highlights: { topFood: '', topView: '', topTip: '' },
-    companions: [],
-    texto: '',
-    presupuesto: null,
-  });
-  const [paradas, setParadas] = useState([]);
-  const isProcessingImage = false;
+
+  const uploadCtx = useUpload();
+  const iniciarSubida = uploadCtx?.iniciarSubida || (() => {});
+  const hasUploadContext = typeof uploadCtx?.iniciarSubida === 'function';
+  const uploadStatus = viaje?.id ? uploadCtx?.getEstadoViaje?.(viaje.id) : null;
+
+  // Local UI & Form state with lazy initialization
+  const [activeTab, setActiveTab] = useState('info');
+  const [headerFormData, setHeaderFormData] = useState(() => ({
+    vibe: Array.isArray(viaje?.vibe) ? viaje.vibe : [],
+    highlights: viaje?.highlights || { topFood: '', topView: '', topTip: '' },
+    companions: Array.isArray(viaje?.companions) ? viaje.companions : [],
+    texto: viaje?.texto || '',
+    presupuesto: viaje?.presupuesto || null,
+    titulo: viaje?.titulo || viaje?.nombreEspanol || '',
+    fechaInicio: viaje?.fechaInicio || '',
+    fechaFin: viaje?.fechaFin || '',
+    portadaUrl: viaje?.portadaUrl || viaje?.foto || viaje?.fotoPortada || '',
+    ...viaje,
+  }));
+  const [paradas, setParadas] = useState(() => viaje?.paradas || viaje?.destinos || []);
   const [galleryFiles, setGalleryFiles] = useState([]);
   const [galleryPortada, setGalleryPortada] = useState(0);
   const [captionDrafts, setCaptionDrafts] = useState({});
+  const [isProcessingImage] = useState(false);
+  const [isSaving, setIsSaving] = useState(() => isSavingProp);
+  const [isUploading, setIsUploading] = useState(() => Boolean(uploadStatus?.isUploading));
 
-  const handlePortadaChange = (value) => {
-    if (typeof value === 'number') {
-      setGalleryPortada(value);
-    } else if (typeof value === 'string') {
-      setFormData((prev) => ({ ...prev, portadaUrl: value }));
+  const modalRef = useRef(null);
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+
+  useEffect(() => {
+    setIsSaving(isSavingProp);
+  }, [isSavingProp]);
+
+  useEffect(() => {
+    if (uploadStatus?.isUploading !== undefined) {
+      setIsUploading(Boolean(uploadStatus.isUploading));
     }
-  };
-  const previousGalleryLengthRef = useRef(0);
+  }, [uploadStatus?.isUploading]);
 
-  // Hook de galería: no cargar para borradores (id 'new') — solo cuando es un viaje guardado
+  // Gallery hook (disabled for drafts)
   const galeria = useGaleriaViaje(!esBorrador && viaje?.id ? viaje.id : null);
 
-  const {
-    isTituloAuto,
-    setIsTituloAuto,
-    titlePulse,
-    limpiarEstado,
-    handleTituloChange,
-  } = useEdicionModalLifecycle({
-    viaje,
-    esBorrador,
-    ciudadInicial,
-    usuarioUid,
-    galeria,
-    formData,
-    setFormData,
-    paradas,
-    setParadas,
-    setGalleryFiles,
-    setGalleryPortada,
-    setCaptionDrafts,
-    t,
-    i18n,
-  });
-
-  const { isUploading } = viaje?.id ? getEstadoViaje(viaje.id) : { isUploading: false };
-
-  const handleAfterSave = (savedId) => {
-    if (onAfterSave) {
-      onAfterSave(savedId);
-      return;
-    }
-    onClose();
-  };
-
-  const handleSave = useEdicionModalSave({
-    isProcessingImage,
-    isSaving,
-    isUploading,
-    formData,
-    viaje,
-    ciudadInicial,
-    paradas,
-    onSave,
-    galleryFiles,
-    galleryPortada,
-    hasUploadContext,
-    iniciarSubida,
-    pushToast,
-    t,
-    limpiarEstado,
-    onClose,
-    onAfterSave: handleAfterSave,
-  });
-
+  // Gallery manager hook
   const {
     handleSetPortadaExistente,
     handleEliminarFoto,
@@ -132,187 +84,239 @@ const EdicionModal = ({ viaje, onClose, onSave, esBorrador, ciudadInicial, isSav
     pushToast,
     t,
   });
-  const firstGalleryPhotoUrl = galeria?.fotos?.[0]?.url || null;
 
-  // Auto-set first photo as cover when gallery goes from 0→1 photos
+  // Modal lifecycle hook for smart title generation and state hydration
+  const {
+    isTituloAuto,
+    setIsTituloAuto,
+    limpiarEstado,
+    handleTituloChange,
+  } = useEdicionModalLifecycle({
+    viaje,
+    esBorrador,
+    ciudadInicial,
+    usuarioUid,
+    galeria,
+    formData: headerFormData,
+    setFormData: setHeaderFormData,
+    paradas,
+    setParadas,
+    setGalleryFiles,
+    setGalleryPortada,
+    setCaptionDrafts,
+    t,
+    i18n,
+  });
+
+  // Title regeneration handlers
+  const handleRegenerateTitle = useCallback(() => {
+    setIsTituloAuto(true);
+  }, [setIsTituloAuto]);
+
+  const handleToggleTituloAuto = useCallback(() => {
+    setIsTituloAuto((prev) => !prev);
+  }, [setIsTituloAuto]);
+
+  // Save handler hook
+  const handleSave = useEdicionModalSave({
+    isProcessingImage,
+    isSaving,
+    isUploading,
+    formData: headerFormData,
+    viaje,
+    ciudadInicial,
+    paradas,
+    onSave,
+    galleryFiles,
+    galleryPortada,
+    hasUploadContext,
+    iniciarSubida,
+    pushToast,
+    t,
+    limpiarEstado,
+    onClose,
+    onAfterSave,
+    autoFinalize: true,
+  });
+
+  // Escape key handler
   useEffect(() => {
-    const currentGalleryLength = galeria?.fotos?.length || 0;
-    const prevLength = previousGalleryLengthRef.current;
-
-    // Transition from 0→1+ photos: auto-set first photo as portada
-    if (prevLength === 0 && currentGalleryLength > 0 && !formData.portadaUrl) {
-      if (firstGalleryPhotoUrl) {
-        setFormData((prev) => ({
-          ...prev,
-          portadaUrl: firstGalleryPhotoUrl,
-        }));
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && !isSaving && onClose) {
+        onClose();
       }
-    }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSaving, onClose]);
 
-    previousGalleryLengthRef.current = currentGalleryLength;
-  }, [galeria?.fotos?.length, firstGalleryPhotoUrl, formData.portadaUrl]);
+  const tabs = [
+    { id: 'info', label: t('tabs.info') },
+    { id: 'stops', label: t('tabs.stops') },
+    { id: 'gallery', label: t('tabs.gallery') },
+  ];
 
-  if (!viaje) return null;
-
-  const isBusy = isSaving || isProcessingImage || isUploading;
-  const sinParadas = paradas.length === 0;
-  const fechaRangoDisplay = formatDateRange(formData.fechaInicio, formData.fechaFin);
-  const headerFormData = {
-    ...viaje,
-    ...formData,
-    titulo: formData?.titulo ?? viaje?.titulo ?? viaje?.nombreEspanol ?? '',
-  };
-  const hasValidStops = Array.isArray(paradas) && paradas.length > 0;
-  const hasValidTitle = Boolean((headerFormData?.titulo || '').trim());
-  const hasValidStartDate = Boolean((formData?.fechaInicio || viaje?.fechaInicio || '').toString().trim());
-  const canSave = hasValidStops && hasValidTitle && hasValidStartDate && !isBusy && !isReadOnlyMode;
-
-  return (
-    <AnimatePresence>
-      <Motion.div 
-        style={styles.overlay(isMobile)} 
-        onClick={isBusy ? undefined : onClose} 
-        initial={{ opacity: 0, visibility: 'hidden' }} 
-        animate={{ opacity: 1, visibility: 'visible' }} 
-        exit={{ opacity: 0 }} 
-        transition={{ duration: 0.2 }}
-        tabIndex="-1"
-        className="outline-none items-stretch md:items-center"
+  return createPortal(
+    <div
+      className="fixed inset-0 z-modal flex items-center justify-center bg-gradient-to-t from-black/40 via-black/10 to-transparent p-4 md:p-6 overflow-hidden"
+      onClick={isSaving ? undefined : onClose}
+    >
+      <Motion.div
+        ref={modalRef}
+        onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative w-full max-w-[900px] max-h-[90dvh] bg-surface rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-border/50"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
       >
-        <Motion.div 
-          style={styles.modal(isMobile)} 
-          onClick={e => e.stopPropagation()} 
-          initial={{ y: 10, opacity: 0, scale: 0.98, visibility: 'hidden' }} 
-          animate={{ y: 0, opacity: 1, scale: 1, visibility: 'visible' }} 
-          exit={{ y: 15, opacity: 0, scale: 0.98 }} 
-          transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
-          tabIndex="-1"
-          className="min-w-full md:min-w-[400px] outline-none"
-        >
-          {/* Mobile drag-handle affordance */}
-          {isMobile && (
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              padding: '10px 0 2px',
-              flexShrink: 0,
-              background: '#F8FAFC',
-            }}>
-              <div style={{
-                width: '36px',
-                height: '4px',
-                borderRadius: '2px',
-                background: '#CBD5E1',
-              }} />
-            </div>
-          )}
-          {/* Sección esencial: imágenes y fechas */}
+        {/* Header con Imagen de Portada y Título */}
+        <div className="flex-shrink-0">
           <EdicionHeaderSection
-            styles={styles}
             t={t}
             formData={headerFormData}
             isMobile={isMobile}
-            isBusy={isBusy}
+            isBusy={isSaving || isProcessingImage}
             esBorrador={esBorrador}
             isTituloAuto={isTituloAuto}
-            titlePulse={titlePulse}
             isProcessingImage={isProcessingImage}
             paradas={paradas}
             onTituloChange={handleTituloChange}
-            onToggleTituloAuto={() => setIsTituloAuto((prev) => !prev)}
-            onRegenerateTitle={() => setIsTituloAuto(true)}
+            onToggleTituloAuto={handleToggleTituloAuto}
+            onRegenerateTitle={handleRegenerateTitle}
           />
-          <div style={{ ...styles.body, paddingBottom: 'calc(16px + 64px)' }} className="custom-scroll">
-            {/* Itinerary / Stops */}
-            <EdicionParadasSection
-              styles={styles}
-              t={t}
-              paradas={paradas}
-              setParadas={setParadas}
-              fechaRangoDisplay={fechaRangoDisplay}
-              tripStartDate={formData?.fechaInicio}
-              sinParadas={sinParadas}
-              isReadOnlyMode={isReadOnlyMode}
-              tripStartDate={formData.fechaInicio}
-            />
+        </div>
 
-            {/* Photo gallery */}
-            <EdicionGallerySection
-              styles={styles}
-              t={t}
-              files={galleryFiles}
-              onFilesChange={setGalleryFiles}
-              portadaIndex={galleryPortada}
-              onPortadaChange={handlePortadaChange}
-              portadaUrl={formData.portadaUrl}
-              isBusy={isBusy}
-              isMobile={isMobile}
-              galeria={galeria}
-              captionDrafts={captionDrafts}
-              onCaptionChange={handleCaptionChange}
-              onCaptionSave={handleCaptionSave}
-              onSetPortadaExistente={handleSetPortadaExistente}
-              onEliminarFoto={handleEliminarFoto}
-              isReadOnlyMode={isReadOnlyMode}
-            />
-          </div>
-          <div style={styles.stickyFooter}>
-              <Motion.button
-                onClick={onClose}
-                style={styles.cancelBtn(isBusy, isMobile)}
-                disabled={isBusy}
-                whileHover={!isBusy ? { backgroundColor: COLORS.background } : {}}
-                whileTap={!isBusy ? { scale: 0.97 } : {}}
-                transition={{ duration: 0.15 }}
-              >{t('button.cancel')}</Motion.button>
-              <Motion.button
-                onClick={handleSave}
-                disabled={!canSave}
-                whileHover={canSave ? { scale: 1.02, boxShadow: '0 4px 20px rgba(255,107,53,0.35)' } : {}}
-                whileTap={canSave ? { scale: 0.97 } : {}}
-                transition={{ duration: 0.15 }}
-                aria-disabled={!canSave}
-                aria-label={
-                  isReadOnlyMode
-                    ? t(
-                        'common:operational.readOnlyBlockedAction',
-                        'Keeptrip is in Read-Only mode. Your data is safe, but edits are paused.'
-                      )
-                    : !hasValidStops
-                      ? t('error.tripNeedsStop', 'El viaje debe tener al menos un destino')
-                      : !hasValidTitle
-                        ? t('error.tripNeedsTitle', 'El viaje debe tener un titulo')
-                        : !hasValidStartDate
-                          ? t('error.tripNeedsStartDate', 'El viaje debe tener fecha de inicio')
-                          : undefined
-                }
-                title={
-                  isReadOnlyMode
-                    ? t(
-                        'common:operational.readOnlyBlockedAction',
-                        'Keeptrip is in Read-Only mode. Your data is safe, but edits are paused.'
-                      )
-                    : !hasValidStops
-                      ? t('error.tripNeedsStop', 'El viaje debe tener al menos un destino')
-                      : !hasValidTitle
-                        ? t('error.tripNeedsTitle', 'El viaje debe tener un titulo')
-                        : !hasValidStartDate
-                          ? t('error.tripNeedsStartDate', 'El viaje debe tener fecha de inicio')
-                          : ''
-                }
-                style={{
-                  ...styles.saveBtn(isBusy, isMobile),
-                  opacity: canSave ? 1 : 0.5,
-                  cursor: canSave ? 'pointer' : 'not-allowed',
-                }}
+        {/* Navigation Tabs */}
+        <div className="flex-shrink-0 px-6 py-4 bg-surface border-b border-border flex items-center gap-6 overflow-x-auto no-scrollbar">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "pb-2 text-[0.85rem] font-bold uppercase tracking-widest transition-all relative",
+                activeTab === tab.id 
+                  ? "text-atomicTangerine" 
+                  : "text-textSecondary hover:text-textPrimary"
+              )}
+            >
+              {tab.label}
+              {activeTab === tab.id && (
+                <Motion.div 
+                  layoutId="activeTab"
+                  className="absolute bottom-0 left-0 right-0 h-1 bg-atomicTangerine rounded-full"
+                />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-background/50 custom-scroll">
+          <AnimatePresence mode="wait">
+            {activeTab === 'info' && (
+              <Motion.div
+                key="info"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                className="flex flex-col gap-8"
               >
-                {isBusy ? <LoaderCircle size={18} className="spin" /> : <Save size={18} />}
-                {isProcessingImage ? t('button.processing') : (isSaving ? t('button.saving') : (esBorrador ? t('button.createTrip') : t('button.save')))}
-              </Motion.button>
-          </div>
-        </Motion.div>
+                {/* Aquí irían otros campos de info general si los hubiera */}
+                <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm">
+                  <h3 id="modal-title" className="text-lg font-bold text-charcoalBlue mb-4 drop-shadow-lg">{t('info.generalTitle')}</h3>
+                  <p className="text-[0.9rem] text-textSecondary leading-relaxed">
+                    {t('info.generalDescription')}
+                  </p>
+                </div>
+              </Motion.div>
+            )}
+
+            {activeTab === 'stops' && (
+              <Motion.div
+                key="stops"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+              >
+                <EdicionParadasSection
+                  t={t}
+                  paradas={paradas}
+                  setParadas={setParadas}
+                />
+              </Motion.div>
+            )}
+
+            {activeTab === 'gallery' && (
+              <Motion.div
+                key="gallery"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+              >
+                <EdicionGallerySection
+                  t={t}
+                  files={galleryFiles}
+                  onFilesChange={setGalleryFiles}
+                  portadaIndex={galleryPortada}
+                  onPortadaChange={(urlOrIndex) => {
+                    if (typeof urlOrIndex === 'number') {
+                      setGalleryPortada(urlOrIndex);
+                    } else if (typeof urlOrIndex === 'string') {
+                      setHeaderFormData((prev) => ({ ...prev, portadaUrl: urlOrIndex }));
+                    }
+                  }}
+                  isBusy={isSaving || isProcessingImage}
+                  isMobile={isMobile}
+                  galeria={galeria}
+                  captionDrafts={captionDrafts}
+                  onCaptionChange={handleCaptionChange}
+                  onCaptionSave={handleCaptionSave}
+                  onSetPortadaExistente={handleSetPortadaExistente}
+                  onEliminarFoto={handleEliminarFoto}
+                  portadaUrl={headerFormData?.portadaUrl}
+                />
+              </Motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="flex-shrink-0 p-6 bg-surface border-t border-border flex items-center justify-between gap-4">
+          <button
+            onClick={onClose}
+            className="px-6 py-2.5 text-[0.9rem] font-bold text-textSecondary hover:text-textPrimary transition-colors"
+            disabled={isSaving}
+          >
+            {t('button.cancel', { ns: 'common' })}
+          </button>
+          
+          <button
+            onClick={handleSave}
+            disabled={isSaving || isProcessingImage}
+            className={cn(
+              "flex items-center gap-2 px-8 py-3 rounded-full text-[0.9rem] font-black tracking-wide shadow-lg transition-all",
+              "bg-gradient-to-r from-atomicTangerine to-orange-500 text-white hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100"
+            )}
+          >
+            {isSaving ? (
+              <>
+                <LoaderCircle className="animate-spin" size={18} />
+                {t('button.saving', { ns: 'common' })}
+              </>
+            ) : (
+              <>
+                <Save size={18} />
+                {t('button.save', { ns: 'common' })}
+              </>
+            )}
+          </button>
+        </div>
       </Motion.div>
-    </AnimatePresence>
+    </div>,
+    document.body
   );
 };
 

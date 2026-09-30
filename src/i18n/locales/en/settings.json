@@ -1,5 +1,6 @@
 {
-  "accountTitle": "Account Settings",
+  "account": "Account",
+  "logout": "Log out",
   "settings": "Settings",
   "admin": "Administrator",
   "user": "Explorer",
@@ -38,6 +39,9 @@
   "avatarHint": "Max 15MB, JPG/PNG",
   "avatarUploadSuccess": "Avatar updated!",
   "avatarUploadError": "Upload failed. Please try again.",
+  "footer": {
+    "appVersion": "App Version"
+  },
   "deleteAccount": "Delete account",
   "deleteAccountTitle": "Delete account",
   "deleteAccountMessage": "This will permanently delete your account and all your data. This action cannot be undone.",
@@ -47,7 +51,7 @@
   "deleteAccountNeedsRelogin": "Please log out and log back in to delete your account.",
   "legacyData": "Legacy & Data",
   "legacyDataDesc": "Your logbook belongs to you. Download it anytime.",
-  "exportJSON": "Export trips (JSON)",
+  "operational": "Operational",
   "operationalControls": {
     "sectionTitle": "Operational controls",
     "title": "Contingency shield",

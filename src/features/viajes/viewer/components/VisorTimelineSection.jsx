@@ -1,3 +1,4 @@
+import { cn } from '@shared/lib/utils/cn';
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
 import { formatDateRange } from '@shared/lib/utils/viajeUtils';
@@ -17,7 +18,6 @@ const climaEmoji = (desc) => {
 
 const VisorTimelineSection = ({
   paradas,
-  styles,
   isMobile,
   activeParadaIndex,
   hoveredIndex,
@@ -27,8 +27,8 @@ const VisorTimelineSection = ({
 }) => {
   return (
     <>
-      <h3 style={styles.sectionTitle}>La Crónica del Viaje</h3>
-      <div style={styles.timelineContainer}>
+      <h3 className="text-[0.85rem] uppercase tracking-widest text-mutedTeal mb-4 font-extrabold">La Crónica del Viaje</h3>
+      <div className="flex flex-col gap-0 relative">
         {paradas.map((p, i) => {
           const isActive = activeParadaIndex === i && !isMobile;
           const isHovered = hoveredIndex === i && !isMobile;
@@ -48,60 +48,65 @@ const VisorTimelineSection = ({
             <Motion.div
               key={p.id || i}
               data-testid={`visor-stop-card-${p.id || i}`}
-              style={styles.timelineRow}
+              className="flex gap-4 relative items-start"
               variants={cardVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.2 }}
             >
-              <div style={styles.timelineTrack}>
-                <div style={highlighted ? styles.timelineDotActive : styles.timelineDotInactive} />
-                {i < paradas.length - 1 && <div style={styles.timelineLine} />}
+              <div className="flex flex-col items-center relative min-w-[20px] pt-[18px]">
+                <div className={cn(
+                  "rounded-full relative z-[2] flex-shrink-0 transition-all",
+                  highlighted 
+                    ? "w-3 h-3 bg-atomicTangerine border-[3px] border-white shadow-[0_0_15px_rgba(255,107,53,0.5)]" 
+                    : "w-[10px] h-[10px] bg-border border-2 border-white shadow-sm"
+                )} />
+                {i < paradas.length - 1 && <div className="w-0.5 grow bg-border min-h-[24px] mt-1" />}
               </div>
 
               <div
                 ref={(node) => setParadaRef(i, node)}
-                style={{
-                  ...styles.enrichedStopCard,
-                  ...(highlighted ? styles.enrichedStopCardActive : {}),
-                }}
+                className={cn(
+                  "bg-surface p-6 rounded-lg border border-border shadow-md flex flex-col gap-3 transition-all relative overflow-hidden mb-6 w-full",
+                  highlighted && "border-atomicTangerine shadow-[0_8px_30px_rgba(0,0,0,0.12)] scale-[1.02] z-10"
+                )}
                 onMouseEnter={() => onHover(i)}
                 onMouseLeave={onHoverEnd}
               >
-                <div style={styles.stopCardHeader}>
-                  <span data-testid={`visor-stop-name-${p.id || i}`} style={styles.stopCardName}>
+                <div className="flex justify-between items-baseline gap-2">
+                  <span data-testid={`visor-stop-name-${p.id || i}`} className="text-base font-bold text-charcoalBlue">
                     {p.nombre}
                   </span>
-                  <span style={styles.stopCardDate}>{formatDateRange(p.fechaLlegada || p.fecha, p.fechaSalida)}</span>
+                  <span className="text-[0.75rem] text-textSecondary whitespace-nowrap">{formatDateRange(p.fechaLlegada || p.fecha, p.fechaSalida)}</span>
                 </div>
 
                 {p.relato && p.relato.trim() && (
-                  <div style={styles.paradaRelato}>
-                    <p style={styles.paradaRelatoText}>{p.relato}</p>
+                  <div className="mt-1.5 p-[10px_14px] bg-background rounded-sm border-l-[3px] border-mutedTeal">
+                    <p className="text-[0.88rem] leading-[1.6] text-textPrimary whitespace-pre-wrap m-0">{p.relato}</p>
                   </div>
                 )}
 
                 {/* Bento Metadata Grid */}
-                <div style={styles.stopCardBentoGrid}>
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3 mt-3">
                   {p.clima && (
-                    <div style={styles.bentoItem}>
-                      <span style={styles.bentoLabel}>Clima</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                         <span style={{ fontSize: '1.1rem' }}>{climaEmoji(p.clima.desc)}</span>
-                         <span style={styles.bentoValue}>{Math.round(p.clima.max)}°C</span>
+                    <div className="bg-background p-2.5 rounded-md border border-border flex flex-col gap-1">
+                      <span className="text-[0.65rem] uppercase tracking-[0.05em] text-textSecondary font-bold">Clima</span>
+                      <div className="flex items-center gap-1">
+                         <span className="text-[1.1rem]">{climaEmoji(p.clima.desc)}</span>
+                         <span className="text-[0.9rem] text-textPrimary font-semibold">{Math.round(p.clima.max)}°C</span>
                       </div>
                     </div>
                   )}
                   {p.transporte && (
-                    <div style={styles.bentoItem}>
-                      <span style={styles.bentoLabel}>Transporte</span>
-                      <span style={styles.bentoValue}>{transporteEmoji[p.transporte] || '🚶'} {p.transporte}</span>
+                    <div className="bg-background p-2.5 rounded-md border border-border flex flex-col gap-1">
+                      <span className="text-[0.65rem] uppercase tracking-[0.05em] text-textSecondary font-bold">Transporte</span>
+                      <span className="text-[0.9rem] text-textPrimary font-semibold">{transporteEmoji[p.transporte] || '🚶'} {p.transporte}</span>
                     </div>
                   )}
                   {p.notaCorta && (
-                    <div style={{ ...styles.bentoItem, gridColumn: 'span 2' }}>
-                      <span style={styles.bentoLabel}>Destacado</span>
-                      <span style={styles.bentoValue}>✨ {p.notaCorta}</span>
+                    <div className="bg-background p-2.5 rounded-md border border-border flex flex-col gap-1 col-span-2">
+                      <span className="text-[0.65rem] uppercase tracking-[0.05em] text-textSecondary font-bold">Destacado</span>
+                      <span className="text-[0.9rem] text-textPrimary font-semibold">✨ {p.notaCorta}</span>
                     </div>
                   )}
                 </div>
@@ -109,7 +114,7 @@ const VisorTimelineSection = ({
 
               {/* Transport indicator on the line */}
               {i < paradas.length - 1 && paradas[i + 1]?.transporte && (
-                <div style={styles.transportIconOnLine}>{transporteEmoji[paradas[i + 1].transporte] || '🚶'}</div>
+                <div className="absolute left-0 bottom-[-4px] w-5 text-center text-[0.9rem] z-[3]">{transporteEmoji[paradas[i + 1].transporte] || '🚶'}</div>
               )}
             </Motion.div>
           );

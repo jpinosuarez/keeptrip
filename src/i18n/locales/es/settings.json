@@ -1,5 +1,6 @@
 {
-  "accountTitle": "Configuración de Cuenta",
+  "account": "Cuenta",
+  "logout": "Cerrar sesión",
   "settings": "Ajustes",
   "admin": "Administrador",
   "user": "Explorador",
@@ -38,6 +39,9 @@
   "avatarHint": "Max 15MB, JPG/PNG",
   "avatarUploadSuccess": "Avatar actualizado correctamente.",
   "avatarUploadError": "No se pudo subir el avatar. Intenta de nuevo.",
+  "footer": {
+    "appVersion": "Versión de la app"
+  },
   "deleteAccount": "Eliminar cuenta",
   "deleteAccountTitle": "Eliminar cuenta",
   "deleteAccountMessage": "Esto eliminará permanentemente tu cuenta y todos tus datos. Esta acción no se puede deshacer.",
@@ -47,7 +51,7 @@
   "deleteAccountNeedsRelogin": "Por favor cierra sesión y vuelve a ingresar para eliminar tu cuenta.",
   "legacyData": "Legado & Datos",
   "legacyDataDesc": "Tus viajes son tuyos. Descárgalos cuando quieras.",
-  "exportJSON": "Exportar viajes (JSON)",
+  "operational": "Operacional",
   "operationalControls": {
     "sectionTitle": "Controles operativos",
     "title": "Escudo de contingencia",

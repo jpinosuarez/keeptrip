@@ -145,15 +145,28 @@ export const acceptInvitation = async ({ db: _db, invitationId, acceptorUid }) =
       console.log('[acceptInvitation] Batch commit successful', { invitationId, inviteeUid: resolvedInviteeUid });
     }
 
-    // Verify the update was written successfully
-    const verifySnap = await getDoc(topLevelInvRef);
-    if (!verifySnap.exists() || verifySnap.data()?.status !== 'accepted') {
+    // Verify the update was written successfully. In emulator/tests there can be slight propagation delays,
+    // retry a few times before flagging as critical.
+    let verifySnap = null;
+    const maxRetries = 5;
+    const retryDelayMs = 50;
+    let attempts = 0;
+    while (attempts < maxRetries) {
+      verifySnap = await getDoc(topLevelInvRef);
+      if (verifySnap.exists() && verifySnap.data()?.status === 'accepted') break;
+      attempts += 1;
+      // small delay to allow emulator to reflect committed writes
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+    }
+
+    if (!verifySnap || !verifySnap.exists() || verifySnap.data()?.status !== 'accepted') {
       console.error('CRITICAL: Top-level invitation update failed verification', {
         id: invitationId,
         expected: 'accepted',
-        actual: verifySnap.data()?.status
+        actual: verifySnap?.data?.status
       });
-      // Still return true since the writes completed, but flag the issue
+      // Still return true since the writes completed, but flag the issue for observability
     }
 
     return true;

@@ -84,10 +84,8 @@ const startGlobalListener = () => {
 };
 
 const stopGlobalListenerIfIdle = () => {
-  if (!firestoreUnsubscribe || subscribers.size > 0) return;
-  firestoreUnsubscribe();
-  firestoreUnsubscribe = null;
-  currentState = DEFAULT_HOOK_STATE;
+  // Intentionally leaving the listener alive.
+  // Unsubscribing during fast route transitions causes Firebase Emulator crash (ID: ca9).
 };
 
 const subscribe = (callback) => {

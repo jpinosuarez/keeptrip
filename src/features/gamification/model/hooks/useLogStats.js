@@ -43,10 +43,11 @@ export const useLogStats = (trips = [], tripData = {}) => {
 
     viajes.forEach((viaje) => {
       const stops = getTripStops(viaje, viaje);
-      const startDate = viaje.fechaInicio || viaje.startDate;
+      const startDate = viaje.fechaInicio || viaje.startDate || viaje.date;
       const endDate = viaje.fechaFin || viaje.endDate;
 
       totalDays += calculateTripDays(startDate, endDate);
+
 
       stops.forEach((stop) => {
         const stopCountryCode = stop?.paisCodigo || stop?.countryCode || stop?.code;

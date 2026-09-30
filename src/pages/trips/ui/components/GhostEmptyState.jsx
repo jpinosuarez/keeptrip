@@ -43,6 +43,7 @@ const GhostEmptyState = () => {
       </div>
 
       <Motion.div
+        data-testid="ghost-empty-state"
         initial={{ opacity: 0, scale: 0.96, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 120, damping: 22 }}

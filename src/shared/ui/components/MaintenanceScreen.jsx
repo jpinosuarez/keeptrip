@@ -18,11 +18,14 @@ const MaintenanceScreen = () => {
   const canManageOperationalFlags = hasFounderUidAccess;
 
   return (
-    <div className={cn(
-      "h-[100dvh] min-h-[100dvh] w-full overflow-y-auto overflow-x-hidden",
-      "flex items-start justify-center p-6 bg-background",
-      "bg-[radial-gradient(circle_at_14%_18%,rgba(255,107,53,0.12),transparent_40%),radial-gradient(circle_at_82%_85%,rgba(69,176,168,0.15),transparent_46%)]"
-    )}>
+    <div 
+      data-testid="maintenance-screen"
+      className={cn(
+        "h-[100dvh] min-h-[100dvh] w-full overflow-y-auto overflow-x-hidden",
+        "flex items-start justify-center p-6 bg-background",
+        "bg-[radial-gradient(circle_at_14%_18%,rgba(255,107,53,0.12),transparent_40%),radial-gradient(circle_at_82%_85%,rgba(69,176,168,0.15),transparent_46%)]"
+      )}
+    >
       <div className={cn(
         "w-full max-w-[760px] mx-auto rounded-xl border border-border",
         "bg-white/95 shadow-float p-7 md:p-10 text-center"
