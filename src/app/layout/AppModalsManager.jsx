@@ -114,9 +114,16 @@ function AppModalsManager({
   };
 
   const handleAfterSave = esBorrador
-    ? () => {
+    ? (savedId) => {
         setViajeBorrador(null);
         setCiudadInicialBorrador(null);
+        if (savedId) {
+          setSearchParams((prev) => {
+            const next = new URLSearchParams(prev);
+            next.set('editing', savedId);
+            return next;
+          });
+        }
       }
     : undefined;
 
