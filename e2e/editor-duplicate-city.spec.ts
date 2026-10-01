@@ -77,9 +77,12 @@ test.describe('Duplicate city addition issue', () => {
     // 2. Save initial trip
     await page.getByRole('button', { name: /Save|Guardar/i }).first().click();
 
-    // Wait for the URL to change (Save redirect to ?editing=ID)
-    await page.waitForURL(/\?editing=/, { timeout: 15000 });
-    const initialTripId = new URL(page.url()).searchParams.get('editing') || '';
+    // Verify the editor closes completely and the trip card appears
+    await expect(page.getByTestId('editor-focus-panel')).toHaveCount(0, { timeout: 15000 });
+    const tripCard = page.locator('[data-testid^="trip-card-"]:not([data-testid*="menu"])').first();
+    await expect(tripCard).toBeVisible({ timeout: 20000 });
+    const tripCardTestId = await tripCard.getAttribute('data-testid') || '';
+    const initialTripId = tripCardTestId.replace('trip-card-', '');
     await expect(page.getByLabel(/Trip title|Título del viaje/i)).toHaveCount(0, { timeout: 15000 });
     await expect(page.getByLabel(/Madrid/i).first()).toBeVisible({ timeout: 20000 });
 

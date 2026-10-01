@@ -9,8 +9,12 @@ import {
   construirBitacoraData,
   obtenerPaisesVisitados,
   parseFlexibleDate,
+  normalizeToIsoDate,
+  resolveCoverPhotoUrl,
   formatDateSlash,
-  formatDateRange
+  formatDateRange,
+  formatStorytellingDate,
+  calculateTripDays
 } from './viajeUtils';
 
 describe('viajeUtils', () => {
@@ -245,6 +249,114 @@ describe('viajeUtils', () => {
 
     it('retorna vacío para null', () => {
       expect(formatDateRange(null, null)).toBe('');
+    });
+  });
+
+  // ─── normalizeToIsoDate ───
+  describe('normalizeToIsoDate', () => {
+    it('normaliza string ISO directo YYYY-MM-DD', () => {
+      expect(normalizeToIsoDate('2026-04-01')).toBe('2026-04-01');
+    });
+
+    it('extrae fecha de ISO datetime con timestamp T sin timezone shift', () => {
+      expect(normalizeToIsoDate('2026-04-01T15:30:00.000Z')).toBe('2026-04-01');
+      expect(normalizeToIsoDate('2026-12-31T23:59:59.999Z')).toBe('2026-12-31');
+    });
+
+    it('normaliza instancia Firestore Timestamp (.toDate())', () => {
+      const mockTimestamp = {
+        toDate: () => new Date(2026, 3, 1, 10, 0, 0), // April 1, 2026 local
+      };
+      expect(normalizeToIsoDate(mockTimestamp)).toBe('2026-04-01');
+    });
+
+    it('normaliza objeto plano Firestore Timestamp ({ seconds, nanoseconds })', () => {
+      // 1775001600 = April 1, 2026 UTC
+      const date = new Date(Date.UTC(2026, 3, 1, 12, 0, 0));
+      const mockRawTimestamp = {
+        seconds: Math.floor(date.getTime() / 1000),
+        nanoseconds: 0,
+      };
+      const result = normalizeToIsoDate(mockRawTimestamp);
+      expect(result).toMatch(/^2026-04-0[12]$/); // depending on test runner local tz
+    });
+
+    it('normaliza instancia JS Date', () => {
+      const d = new Date(2026, 3, 1);
+      expect(normalizeToIsoDate(d)).toBe('2026-04-01');
+    });
+
+    it('normaliza timestamp numérico (milisegundos)', () => {
+      const d = new Date(2026, 3, 1);
+      expect(normalizeToIsoDate(d.getTime())).toBe('2026-04-01');
+    });
+
+    it('normaliza formatos flexibles (DD/MM/YYYY)', () => {
+      expect(normalizeToIsoDate('01/04/2026')).toBe('2026-04-01');
+      expect(normalizeToIsoDate('15 Mar 2024')).toBe('2024-03-15');
+    });
+
+    it('retorna null para null, undefined o string vacío', () => {
+      expect(normalizeToIsoDate(null)).toBeNull();
+      expect(normalizeToIsoDate(undefined)).toBeNull();
+      expect(normalizeToIsoDate('')).toBeNull();
+      expect(normalizeToIsoDate('   ')).toBeNull();
+      expect(normalizeToIsoDate('not-a-date')).toBeNull();
+    });
+  });
+
+  // ─── resolveCoverPhotoUrl ───
+  describe('resolveCoverPhotoUrl', () => {
+    it('retorna URL string directa cuando es válida', () => {
+      const url = 'https://images.unsplash.com/photo-123';
+      expect(resolveCoverPhotoUrl(url)).toBe(url);
+    });
+
+    it('retorna null para FOTO_DEFAULT_URL', () => {
+      expect(resolveCoverPhotoUrl(FOTO_DEFAULT_URL)).toBeNull();
+    });
+
+    it('extrae url de objeto foto', () => {
+      expect(resolveCoverPhotoUrl({ url: 'https://storage.com/photo.jpg' })).toBe('https://storage.com/photo.jpg');
+      expect(resolveCoverPhotoUrl({ downloadURL: 'https://storage.com/dl.jpg' })).toBe('https://storage.com/dl.jpg');
+      expect(resolveCoverPhotoUrl({ src: 'https://storage.com/src.jpg' })).toBe('https://storage.com/src.jpg');
+    });
+
+    it('extrae de objeto viaje con prioridad en portadaUrl > foto > fotoPortada > coverUrl', () => {
+      expect(resolveCoverPhotoUrl({ portadaUrl: 'https://cover.com/1.jpg', foto: 'https://cover.com/2.jpg' })).toBe('https://cover.com/1.jpg');
+      expect(resolveCoverPhotoUrl({ foto: 'https://cover.com/2.jpg' })).toBe('https://cover.com/2.jpg');
+      expect(resolveCoverPhotoUrl({ fotoPortada: 'https://cover.com/3.jpg' })).toBe('https://cover.com/3.jpg');
+      expect(resolveCoverPhotoUrl({ coverUrl: 'https://cover.com/4.jpg' })).toBe('https://cover.com/4.jpg');
+    });
+
+    it('resuelve foto anidada como objeto', () => {
+      expect(resolveCoverPhotoUrl({ foto: { url: 'https://cover.com/nested.jpg' } })).toBe('https://cover.com/nested.jpg');
+    });
+
+    it('retorna null para valores vacíos, nulos o no válidos', () => {
+      expect(resolveCoverPhotoUrl(null)).toBeNull();
+      expect(resolveCoverPhotoUrl(undefined)).toBeNull();
+      expect(resolveCoverPhotoUrl('')).toBeNull();
+      expect(resolveCoverPhotoUrl({})).toBeNull();
+    });
+  });
+
+  // ─── formatStorytellingDate & calculateTripDays con fechas normalizadas ───
+  describe('formatStorytellingDate & calculateTripDays integration', () => {
+    it('formatea storytelling date aceptando timestamps o strings con hora', () => {
+      const result = formatStorytellingDate('2026-04-01T10:00:00.000Z', '2026-04-10T18:00:00.000Z', 'es');
+      expect(result).toBe('abril 2026');
+    });
+
+    it('calcula días de viaje correctamente con strings ISO datetime', () => {
+      const days = calculateTripDays('2026-04-01T00:00:00.000Z', '2026-04-05T00:00:00.000Z');
+      expect(days).toBe(5);
+    });
+
+    it('calcula días de viaje con objetos Date', () => {
+      const start = new Date(2026, 3, 1);
+      const end = new Date(2026, 3, 3);
+      expect(calculateTripDays(start, end)).toBe(3);
     });
   });
 });

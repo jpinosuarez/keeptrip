@@ -3,6 +3,9 @@ import { getLocalizedCountryName } from './countryI18n';
 
 export const EXTERNAL_API_TIMEOUT_MS = 3000;
 
+export const FOTO_DEFAULT_URL =
+  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%231f2937'/><stop offset='100%' stop-color='%230f766e'/></linearGradient></defs><rect width='1200' height='800' fill='url(%23g)'/><circle cx='180' cy='160' r='90' fill='rgba(255,255,255,0.15)'/><path d='M100 650 L420 360 L600 560 L780 420 L1100 700 L100 700 Z' fill='rgba(255,255,255,0.18)'/><text x='80' y='120' fill='white' font-size='56' font-family='Arial, sans-serif' opacity='0.9'>Viaje</text></svg>";
+
 // ─── Meses abreviados ES/EN para parseo flexible ───
 const MESES_ES = { ene: 0, feb: 1, mar: 2, abr: 3, may: 4, jun: 5, jul: 6, ago: 7, sep: 8, oct: 9, nov: 10, dic: 11 };
 const MESES_EN = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
@@ -60,6 +63,125 @@ export const parseFlexibleDate = (input) => {
 };
 
 /**
+ * Normalizes any date representation (Firestore Timestamp, JS Date, epoch, ISO datetime string, DD/MM/YYYY)
+ * into a strict YYYY-MM-DD string without timezone-induced day shifting.
+ * @param {unknown} value
+ * @returns {string|null} YYYY-MM-DD or null
+ */
+export const normalizeToIsoDate = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+
+  // String handling
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    // Full ISO or datetime containing 'T' (e.g. "2026-04-01T15:30:00.000Z")
+    if (trimmed.includes('T')) {
+      const datePart = trimmed.split('T')[0];
+      if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+        return datePart;
+      }
+    }
+
+    // Standard YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
+    }
+
+    // Human / slash formats (delegates to parseFlexibleDate)
+    return parseFlexibleDate(trimmed);
+  }
+
+  // Firestore Timestamp instance (has .toDate())
+  if (typeof value?.toDate === 'function') {
+    const d = value.toDate();
+    if (!isNaN(d.getTime())) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    return null;
+  }
+
+  // Raw Firestore timestamp object ({ seconds: number })
+  if (typeof value === 'object' && value !== null && typeof value.seconds === 'number') {
+    const d = new Date(value.seconds * 1000);
+    if (!isNaN(d.getTime())) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    return null;
+  }
+
+  // Native JS Date
+  if (value instanceof Date) {
+    if (!isNaN(value.getTime())) {
+      const y = value.getFullYear();
+      const m = String(value.getMonth() + 1).padStart(2, '0');
+      const day = String(value.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    return null;
+  }
+
+  // Numeric timestamp (seconds or milliseconds)
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    const ms = value < 100000000000 ? value * 1000 : value;
+    const d = new Date(ms);
+    if (!isNaN(d.getTime())) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    return null;
+  }
+
+  return null;
+};
+
+/**
+ * Resolves a valid cover photo URL string from various trip/photo aliases or object structures.
+ * Returns null if no valid image URL exists or if it equals the default placeholder.
+ * @param {unknown} viajeOrPhoto
+ * @returns {string|null} URL string or null
+ */
+export const resolveCoverPhotoUrl = (viajeOrPhoto) => {
+  if (!viajeOrPhoto) return null;
+
+  if (typeof viajeOrPhoto === 'string') {
+    const trimmed = viajeOrPhoto.trim();
+    if (trimmed && trimmed !== FOTO_DEFAULT_URL) return trimmed;
+    return null;
+  }
+
+  if (typeof viajeOrPhoto === 'object' && viajeOrPhoto !== null) {
+    const candidate =
+      viajeOrPhoto.portadaUrl ||
+      viajeOrPhoto.foto ||
+      viajeOrPhoto.fotoPortada ||
+      viajeOrPhoto.coverUrl ||
+      viajeOrPhoto.coverPhoto ||
+      viajeOrPhoto.url ||
+      viajeOrPhoto.downloadURL ||
+      viajeOrPhoto.src;
+
+    if (typeof candidate === 'string') {
+      const trimmed = candidate.trim();
+      if (trimmed && trimmed !== FOTO_DEFAULT_URL) return trimmed;
+    } else if (typeof candidate === 'object' && candidate !== null) {
+      return resolveCoverPhotoUrl(candidate);
+    }
+  }
+
+  return null;
+};
+
+/**
  * Formatea una fecha ISO → texto humano corto (ej: "15 mar 2024").
  * @param {string} isoDate YYYY-MM-DD
  * @returns {string}
@@ -92,17 +214,16 @@ export const formatDateSlash = (isoDate) => {
  * Ej: "Mar 2024", "15–20 Mar 2024", "15 Mar – 3 Abr 2024"
  */
 export const formatDateRange = (start, end) => {
-  const toIso = (v) => parseFlexibleDate(v) || v;
-  const startIso = toIso(start);
+  const startIso = normalizeToIsoDate(start);
   if (!startIso) return '';
   const fmt = (d) => new Date(d + 'T12:00:00');
   const s = fmt(startIso);
-  if (isNaN(s)) return start || '';
+  if (isNaN(s)) return typeof start === 'string' ? start : '';
   const fmtShort = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' });
   const fmtYear = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' });
   const fmtMonthYear = new Intl.DateTimeFormat('es', { month: 'short', year: 'numeric' });
 
-  const endIso = toIso(end);
+  const endIso = normalizeToIsoDate(end);
   if (!endIso || startIso === endIso) return fmtYear.format(s);
 
   const e = fmt(endIso);
@@ -126,8 +247,8 @@ export const formatDateRange = (start, end) => {
 export const formatStorytellingDate = (startDate, endDate, language = 'es') => {
   const locale = language || 'es';
   const toDate = (value) => {
-    const iso = parseFlexibleDate(value) || value;
-    if (!iso || typeof iso !== 'string') return null;
+    const iso = normalizeToIsoDate(value);
+    if (!iso) return null;
     const date = new Date(`${iso}T12:00:00`);
     return Number.isNaN(date.getTime()) ? null : date;
   };
@@ -201,8 +322,8 @@ export const formatCitiesSummary = (paradas = [], t) => {
  */
 export const calculateTripDays = (startDate, endDate) => {
   const toDate = (value) => {
-    const iso = parseFlexibleDate(value) || value;
-    if (!iso || typeof iso !== 'string') return null;
+    const iso = normalizeToIsoDate(value);
+    if (!iso) return null;
     const date = new Date(`${iso}T12:00:00`);
     return Number.isNaN(date.getTime()) ? null : date;
   };
@@ -217,10 +338,6 @@ export const calculateTripDays = (startDate, endDate) => {
   const diffInDays = Math.floor(diffInMs / 86400000) + 1;
   return Math.max(1, diffInDays);
 };
-
-
-export const FOTO_DEFAULT_URL =
-  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%231f2937'/><stop offset='100%' stop-color='%230f766e'/></linearGradient></defs><rect width='1200' height='800' fill='url(%23g)'/><circle cx='180' cy='160' r='90' fill='rgba(255,255,255,0.15)'/><path d='M100 650 L420 360 L600 560 L780 420 L1100 700 L100 700 Z' fill='rgba(255,255,255,0.18)'/><text x='80' y='120' fill='white' font-size='56' font-family='Arial, sans-serif' opacity='0.9'>Viaje</text></svg>";
 
 export const getTodayIsoDate = () => new Date().toISOString().split('T')[0];
 

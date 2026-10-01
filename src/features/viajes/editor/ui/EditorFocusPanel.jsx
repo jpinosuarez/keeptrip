@@ -3,6 +3,7 @@ import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
+import { normalizeToIsoDate, resolveCoverPhotoUrl } from '@shared/lib/utils/viajeUtils';
 import { useEdicionModalLifecycle } from '../model/hooks/useEdicionModalLifecycle';
 import { useEdicionModalSave } from '../model/hooks/useEdicionModalSave';
 import { useAuth } from '@app/providers/AuthContext';
@@ -69,7 +70,10 @@ const EditorFocusPanel = ({
   const formDataWithFallback = {
     ...viaje,
     ...effectiveFormData,
-    titulo: effectiveFormData?.titulo || viaje?.titulo || viaje?.nombreEspanol || ''
+    titulo: effectiveFormData?.titulo || viaje?.titulo || viaje?.nombreEspanol || '',
+    fechaInicio: normalizeToIsoDate(effectiveFormData?.fechaInicio || viaje?.fechaInicio || viaje?.startDate || viaje?.date) || '',
+    fechaFin: normalizeToIsoDate(effectiveFormData?.fechaFin || viaje?.fechaFin || viaje?.endDate) || '',
+    portadaUrl: resolveCoverPhotoUrl(effectiveFormData?.portadaUrl || effectiveFormData?.foto || viaje) || null,
   };
   const effectiveSetFormData = setFormData ?? setLocalFormData;
   const effectiveParadas = paradas ?? localParadas;
@@ -184,12 +188,9 @@ const EditorFocusPanel = ({
       initialFormDataRef.current = structuredClone(effectiveFormData || {});
       initialParadasRef.current = structuredClone(effectiveParadas || []);
       setIsClosingAfterSave(true);
-      onAfterSave?.(savedId);
-
-      // After successful save, close the editor (AppModalsManager will navigate if needed)
       isClosingRef.current = true;
       limpiarEstado();
-      onClose();
+      onAfterSave ? onAfterSave(savedId) : onClose();
     } catch (error) {
       console.error('Save error:', error);
     } finally {

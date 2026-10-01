@@ -5,6 +5,7 @@ import { Save, LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth, useUpload, useToast } from '@app/providers';
 import { useGaleriaViaje } from '@shared/lib/hooks/useGaleriaViaje';
+import { normalizeToIsoDate, resolveCoverPhotoUrl } from '@shared/lib/utils/viajeUtils';
 import { useEdicionModalSave } from '../model/hooks/useEdicionModalSave';
 import { useEdicionGalleryManager } from '../model/hooks/useEdicionGalleryManager';
 import { useEdicionModalLifecycle } from '../model/hooks/useEdicionModalLifecycle';
@@ -42,9 +43,9 @@ const EdicionModal = ({
     texto: viaje?.texto || '',
     presupuesto: viaje?.presupuesto || null,
     titulo: viaje?.titulo || viaje?.nombreEspanol || '',
-    fechaInicio: viaje?.fechaInicio || '',
-    fechaFin: viaje?.fechaFin || '',
-    portadaUrl: viaje?.portadaUrl || viaje?.foto || viaje?.fotoPortada || '',
+    fechaInicio: normalizeToIsoDate(viaje?.fechaInicio || viaje?.startDate || viaje?.date) || '',
+    fechaFin: normalizeToIsoDate(viaje?.fechaFin || viaje?.endDate) || '',
+    portadaUrl: resolveCoverPhotoUrl(viaje) || '',
     ...viaje,
   }));
   const [paradas, setParadas] = useState(() => viaje?.paradas || viaje?.destinos || []);

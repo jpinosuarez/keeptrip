@@ -1,20 +1,17 @@
 import React, { lazy, Suspense, useMemo, useState } from 'react';
-import { WifiOff, AlertTriangle, ArrowRight, Map } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Map } from 'lucide-react';
 import { motion as Motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUI } from '@app/providers/UIContext';
-import { SkeletonList, TripCardSkeleton } from '@shared/ui/components/Skeletons';
 import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
-import { cn } from '@shared/lib/utils/cn';
 import { useLogStats } from '@features/gamification/model';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 
 import WelcomeBento from './components/WelcomeBento';
-import EmptyDashboardState from './components/EmptyDashboardState';
-import TripCard from '@widgets/tripGrid/ui/TripCard';
+import BentoTripGrid from './components/BentoTripGrid';
 import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
 
 const HomeMap = lazy(() => import('@features/mapa/ui/HomeMap'));
@@ -103,7 +100,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
   const logStatsDashboard = useLogStats(log, tripDataMap);
 
   const mapFallback = (
-    <div className="relative w-full h-full min-h-[200px] md:min-h-[220px] flex justify-center items-center p-4 overflow-hidden bg-[#e0e6ed] rounded-2xl" role="status" aria-live="polite">
+    <div className="relative w-full h-full min-h-[144px] lg:min-h-[220px] flex justify-center items-center p-4 overflow-hidden bg-[#e0e6ed] rounded-2xl" role="status" aria-live="polite">
       <div className="absolute inset-0 blur-[0.2px]" aria-hidden="true">
         <div className="absolute w-[40%] aspect-square top-[10%] right-[25%] rounded-full bg-white blur-[30px] opacity-50" />
         <div className="absolute w-[50%] aspect-square left-[10%] bottom-[10%] rounded-full bg-white blur-[40px] opacity-40" />
@@ -124,7 +121,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
   );
 
   const mapLoadingFallback = (
-    <div className="relative w-full h-full min-h-[200px] md:min-h-[220px] flex justify-center items-center p-4 overflow-hidden bg-[#e0e6ed] rounded-2xl" role="status" aria-live="polite">
+    <div className="relative w-full h-full min-h-[144px] lg:min-h-[220px] flex justify-center items-center p-4 overflow-hidden bg-[#e0e6ed] rounded-2xl" role="status" aria-live="polite">
       <div className="absolute inset-0 blur-[0.2px]" aria-hidden="true">
         <div className="absolute w-[40%] aspect-square top-[10%] right-[25%] rounded-full bg-white blur-[30px] opacity-50" />
         <div className="absolute w-[50%] aspect-square left-[10%] bottom-[10%] rounded-full bg-white blur-[40px] opacity-40" />
@@ -143,7 +140,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
   };
 
   return (
-    <div className="w-full box-border min-w-0 grid h-[100dvh] overflow-hidden gap-4 p-4 grid-rows-[auto_auto_auto_minmax(0,1fr)] lg:grid-cols-[minmax(350px,5fr)_minmax(400px,7fr)] lg:grid-rows-[auto_1fr] lg:gap-6 lg:p-6 pb-[max(20px,env(safe-area-inset-bottom,0))]">
+    <div className="w-full box-border min-w-0 grid gap-4 p-4 h-full overflow-y-auto overflow-x-hidden grid-cols-1 auto-rows-max pb-[calc(80px+max(16px,env(safe-area-inset-bottom,0px)))] lg:grid-cols-[minmax(350px,5fr)_minmax(400px,7fr)] lg:grid-rows-[auto_1fr] lg:gap-6 lg:p-6 lg:h-full lg:overflow-hidden lg:pb-6">
       <div className="min-w-0 w-full lg:col-start-1 lg:row-start-1 lg:self-stretch">
         <WelcomeBento 
           name={name}
@@ -166,7 +163,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
             <h2 className="m-0 text-[0.8rem] font-extrabold text-charcoalBlue uppercase tracking-widest leading-none min-w-0 flex-1 font-heading">{t('explorationMap')}</h2>
             <Motion.button
               onClick={() => navigate('/map')}
-              className="flex items-center gap-1.5 bg-atomicTangerine/5 border border-atomicTangerine/15 cursor-pointer text-[0.82rem] font-extrabold text-atomicTangerine px-[18px] py-2 min-h-[40px] rounded-full whitespace-nowrap flex-shrink-0 transition-all duration-200 font-heading"
+              className="flex items-center gap-1.5 bg-atomicTangerine/5 border border-atomicTangerine/15 cursor-pointer text-[0.82rem] font-extrabold text-atomicTangerine px-[18px] py-2 min-h-[44px] rounded-full whitespace-nowrap flex-shrink-0 transition-all duration-200 font-heading"
               aria-label={t('viewFullMap')}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -174,7 +171,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
               {t('viewFullMap')} <Map size={14} />
             </Motion.button>
           </div>
-          <div className="flex items-center justify-center rounded-2xl overflow-hidden w-full min-w-0 min-h-0 shadow-md bg-background relative h-[240px] flex-shrink-0 lg:flex-1 lg:h-full">
+          <div className="flex items-center justify-center rounded-2xl overflow-hidden w-full min-w-0 min-h-0 shadow-md bg-background relative h-36 sm:h-40 flex-shrink-0 lg:flex-1 lg:h-full">
             <ErrorBoundary fallback={mapFallback}>
               {isMapRequested ? (
                 <Suspense fallback={mapLoadingFallback}>
@@ -182,7 +179,16 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
                 </Suspense>
               ) : (
                 <div 
-                  className="relative w-full h-full min-h-[200px] md:min-h-[220px] flex justify-center items-center p-4 overflow-hidden bg-[#e0e6ed] rounded-2xl"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate('/map')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate('/map');
+                    }
+                  }}
+                  className="relative w-full h-full min-h-[144px] lg:min-h-[220px] flex justify-center items-center p-4 overflow-hidden bg-[#e0e6ed] rounded-2xl cursor-pointer"
                   aria-label={t('map.tapToExploreMap')}
                 >
                   <div className="absolute inset-0 blur-[0.2px]" aria-hidden="true">
@@ -203,7 +209,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
           {log.length > 0 && (
             <Motion.button
               onClick={() => navigate('/trips')}
-              className="flex items-center gap-1.5 bg-atomicTangerine/5 border border-atomicTangerine/15 cursor-pointer text-[0.82rem] font-extrabold text-atomicTangerine px-[18px] py-2 min-h-[40px] rounded-full whitespace-nowrap flex-shrink-0 transition-all duration-200 font-heading"
+              className="flex items-center gap-1.5 bg-atomicTangerine/5 border border-atomicTangerine/15 cursor-pointer text-[0.82rem] font-extrabold text-atomicTangerine px-[18px] py-2 min-h-[44px] rounded-full whitespace-nowrap flex-shrink-0 transition-all duration-200 font-heading"
               aria-label={t('viewAllTripSummary')}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -213,56 +219,17 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full min-h-0 auto-rows-fr">
-          {loading ? (
-            <SkeletonList count={2} Component={TripCardSkeleton} />
-          ) : isError ? (
-            <div className="col-span-full flex flex-col items-start gap-2 p-3.5 rounded-lg border border-border bg-gradient-to-b from-white to-background shadow-sm min-w-0" role="status" aria-live="polite">
-              <WifiOff size={18} className="text-warning" />
-              <p className="m-0 text-[0.9rem] leading-tight font-bold text-text-primary">
-                {t('loadTripsError')}
-              </p>
-              {fetchError?.message && (
-                <p className="m-0 text-[0.8rem] leading-tight text-text-secondary break-all">{fetchError.message}</p>
-              )}
-            </div>
-          ) : !isNewTraveler ? (
-            visibleRecentTrips.map((trip, index) => {
-              const enrichedTrip = tripDataMap[trip.id] || trip;
-              const total = visibleRecentTrips.length;
-              
-              // Dynamic Bento Grid Logic (responsive col/row spans)
-              let gridClasses = "col-span-1";
-              if (total === 1) {
-                gridClasses = "col-span-1 md:col-span-2 md:row-span-2";
-              } else if (total === 2) {
-                gridClasses = "col-span-1 md:col-span-2";
-              } else if (total === 3) {
-                if (index === 0) gridClasses = "col-span-1 md:col-span-2";
-                else gridClasses = "col-span-1";
-              }
-              // total === 4 -> col-span-1 (default)
-
-              return (
-                <div 
-                  key={trip.id} 
-                  className={cn("min-h-0 h-full", gridClasses)}
-                >
-                  <TripCard 
-                    trip={enrichedTrip} 
-                    variant="home" 
-                    priorityImage={index === 0}
-                    onEdit={() => openTripEditor(trip.id)} 
-                  />
-                </div>
-              );
-            })
-          ) : (
-            <div className="col-span-full min-w-0 min-h-0 w-full">
-              <EmptyDashboardState />
-            </div>
-          )}
-        </div>
+        <BentoTripGrid
+          trips={visibleRecentTrips}
+          tripData={tripDataMap}
+          loading={loading}
+          isError={isError}
+          fetchError={fetchError}
+          isNewTraveler={isNewTraveler}
+          onEdit={openTripEditor}
+          onNewTrip={openBuscador}
+          priorityImageId={visibleRecentTrips[0]?.id}
+        />
 
       </div>
     </div>

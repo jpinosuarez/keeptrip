@@ -79,8 +79,13 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
   const bgX = useTransform(springX, [0, 1], ['-3%', '3%']);
   const bgY = useTransform(springY, [0, 1], ['-3%', '3%']);
 
+  const isFinePointer = () =>
+    typeof window !== 'undefined' &&
+    Boolean(window.matchMedia?.('(hover: hover) and (pointer: fine)')?.matches);
+
   const handleMouseMove = (e) => {
-    if (isMobile) return;
+    if (isMobile || !isFinePointer()) return;
+    if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
@@ -89,7 +94,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
   };
 
   const handleMouseLeave = () => {
-    if (isMobile) return;
+    if (isMobile || !isFinePointer()) return;
     x.set(0.5);
     y.set(0.5);
   };
@@ -109,7 +114,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
       initial={priorityImage ? false : { opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-      whileHover={!isMobile && !isMenuOpen ? { scale: 1.02, zIndex: 10 } : {}}
+      whileHover={!isMobile && !isMenuOpen && isFinePointer() ? { scale: 1.02, zIndex: 10 } : {}}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className={cn(

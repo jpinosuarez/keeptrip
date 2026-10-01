@@ -1,4 +1,5 @@
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
+import { normalizeToIsoDate, resolveCoverPhotoUrl } from '@shared/lib/utils/viajeUtils';
 
 function resolveSavedTripId(saveResult, tripId) {
   if (typeof saveResult === 'string' && saveResult.trim()) return saveResult;
@@ -32,14 +33,6 @@ export function useEdicionModalSave({
   } = useOperationalFlags();
 
   const handleSave = async () => {
-    const normalizeIsoDate = (value) => {
-      if (!value && value !== 0) return null;
-      if (typeof value === 'number' && !Number.isFinite(value)) return null;
-      const date = new Date(value);
-      if (isNaN(date.getTime())) return null;
-      return date.toISOString().split('T')[0];
-    };
-
     if (isProcessingImage || isSaving || isUploading) return;
 
     const existingStops = viaje?.paradas || viaje?.destinos || [];
@@ -93,10 +86,10 @@ export function useEdicionModalSave({
         paradasNuevas: paradas,
       };
 
-      // Normalize date fields to prevent invalid values (Infinity / NaN) from
+      // Normalize date fields to prevent invalid values (Infinity / NaN / unparsed Timestamps) from
       // being written to Firestore and corrupting trip timestamps.
-      const safeFechaInicio = normalizeIsoDate(savePayload.fechaInicio) || normalizeIsoDate(viaje?.fechaInicio);
-      const safeFechaFin = normalizeIsoDate(savePayload.fechaFin) || normalizeIsoDate(viaje?.fechaFin);
+      const safeFechaInicio = normalizeToIsoDate(savePayload.fechaInicio) || normalizeToIsoDate(viaje?.fechaInicio);
+      const safeFechaFin = normalizeToIsoDate(savePayload.fechaFin) || normalizeToIsoDate(viaje?.fechaFin);
 
       if (safeFechaInicio) savePayload.fechaInicio = safeFechaInicio;
       if (safeFechaFin) savePayload.fechaFin = safeFechaFin;
@@ -106,10 +99,12 @@ export function useEdicionModalSave({
       if (!savePayload.fechaInicio) delete savePayload.fechaInicio;
       if (!savePayload.fechaFin) delete savePayload.fechaFin;
 
-      // Ensure legacy photo field is updated when portadaUrl is set.
-      if (savePayload.portadaUrl) {
-        savePayload.foto = savePayload.portadaUrl;
-        savePayload.fotoPortada = savePayload.portadaUrl;
+      // Ensure photo fields are normalized and synchronized when cover photo is set.
+      const resolvedPortada = resolveCoverPhotoUrl(savePayload.portadaUrl || savePayload.foto);
+      if (resolvedPortada) {
+        savePayload.foto = resolvedPortada;
+        savePayload.fotoPortada = resolvedPortada;
+        savePayload.portadaUrl = resolvedPortada;
       }
 
       // we are inside useEdicionModalSave, and the actual editor has `viaje.paradas`. 
