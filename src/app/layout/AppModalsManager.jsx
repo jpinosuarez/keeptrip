@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate, useMatch } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
@@ -99,33 +99,24 @@ function AppModalsManager({
     : viajeBorrador;
   const esBorrador = !editingId && !!viajeBorrador;
 
-  const closeEditor = () => {
-    if (editingId) {
-      // React Router only detects changes when a new URLSearchParams object is provided.
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.delete('editing');
-        return next;
-      });
-    } else {
-      setViajeBorrador(null);
-      setCiudadInicialBorrador(null);
-    }
-  };
+  const handleCloseEditor = useCallback(() => {
+    setViajeBorrador(null);
+    setCiudadInicialBorrador(null);
 
-  const handleAfterSave = esBorrador
-    ? (savedId) => {
-        setViajeBorrador(null);
-        setCiudadInicialBorrador(null);
-        if (savedId) {
-          setSearchParams((prev) => {
-            const next = new URLSearchParams(prev);
-            next.set('editing', savedId);
-            return next;
-          });
-        }
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      let changed = false;
+      if (next.has('new')) {
+        next.delete('new');
+        changed = true;
       }
-    : undefined;
+      if (next.has('editing')) {
+        next.delete('editing');
+        changed = true;
+      }
+      return changed ? next : prev;
+    }, { replace: true });
+  }, [setSearchParams, setViajeBorrador, setCiudadInicialBorrador]);
 
   // ── ConfirmModal ──────────────────────────────────────────────────────────────
   const viajeAEliminar = confirmarEliminacion
@@ -224,12 +215,12 @@ function AppModalsManager({
             <EditorFocusPanel
               viaje={viajeParaEditar}
               bitacoraData={bitacoraData}
-              onClose={closeEditor}
+              onClose={handleCloseEditor}
               onSave={handleSaveModal}
               isSaving={isSavingModal}
               esBorrador={esBorrador}
               ciudadInicial={ciudadInicialBorrador}
-              onAfterSave={handleAfterSave}
+              onAfterSave={handleCloseEditor}
             />
           </Suspense>
         </ErrorBoundary>

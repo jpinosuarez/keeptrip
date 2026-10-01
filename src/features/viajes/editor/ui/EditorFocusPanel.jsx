@@ -188,12 +188,9 @@ const EditorFocusPanel = ({
       initialFormDataRef.current = structuredClone(effectiveFormData || {});
       initialParadasRef.current = structuredClone(effectiveParadas || []);
       setIsClosingAfterSave(true);
-      onAfterSave?.(savedId);
-
-      // After successful save, close the editor (AppModalsManager will navigate if needed)
       isClosingRef.current = true;
       limpiarEstado();
-      onClose();
+      onAfterSave ? onAfterSave(savedId) : onClose();
     } catch (error) {
       console.error('Save error:', error);
     } finally {
