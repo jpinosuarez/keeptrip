@@ -2,6 +2,15 @@ import React from 'react';
 import InfoTooltip from '@shared/ui/components/InfoTooltip';
 
 const EdicionNotesSection = ({ t, texto, onChange, isBusy }) => {
+  const handleFieldFocus = (e) => {
+    const target = e.currentTarget;
+    setTimeout(() => {
+      if (target && document.activeElement === target && typeof target.scrollIntoView === 'function') {
+        target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 280);
+  };
+
   return (
     <div className="flex flex-col gap-2 bg-background p-4 rounded-lg border border-border">
       <label className="text-[0.78rem] font-extrabold text-textSecondary uppercase tracking-[0.5px] flex items-center gap-1.5">
@@ -10,6 +19,7 @@ const EdicionNotesSection = ({ t, texto, onChange, isBusy }) => {
       <textarea
         value={texto || ''}
         onChange={(e) => onChange(e.target.value)}
+        onFocus={handleFieldFocus}
         className="w-full min-h-[120px] border border-border rounded-sm p-3.5 text-base text-charcoalBlue outline-none bg-background transition-all focus:border-atomicTangerine resize-y"
         placeholder={t('labels.notesPlaceholder')}
         maxLength={5000}
@@ -20,3 +30,4 @@ const EdicionNotesSection = ({ t, texto, onChange, isBusy }) => {
 };
 
 export default EdicionNotesSection;
+
