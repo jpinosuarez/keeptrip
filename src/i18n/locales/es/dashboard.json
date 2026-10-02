@@ -52,10 +52,11 @@
     "exploration": "Exploración"
   },
   "hud": {
+    "uniqueCountries": "Países únicos visitados",
+    "continents": "Continentes",
+    "tripsAndStops": "Viajes / Paradas",
     "countrySingular": "país",
-    "countryPlural": "países",
-    "documentedTripSingular": "viaje",
-    "documentedTripPlural": "viajes"
+    "countryPlural": "países"
   },
   "tooltip": {
     "awaitingFirstCountry": "Aún no has registrado ningún país.",
@@ -121,5 +122,12 @@
       "collapseRoster": "Minimizar",
       "locateMe": "Localizarme"
     }
+  },
+  "viewTrip": "Ver viaje",
+  "tripCoverAlt": "Portada del viaje",
+  "card": {
+    "menu": "Abrir opciones de viaje",
+    "edit": "Editar viaje",
+    "delete": "Eliminar"
   }
 }

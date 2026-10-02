@@ -61,7 +61,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
   const localizedCountryName = getLocalizedCountryName(countryCode, i18n.language, t);
   const defaultTitle = localizedCountryName || trip.nombreEspanol || trip.nameSpanish || '';
   const title = trip.titulo || defaultTitle;
-  const cardAriaLabel = title || t('viewTrip', { ns: 'dashboard', defaultValue: 'Ver viaje' });
+  const cardAriaLabel = title || t('dashboard:viewTrip');
 
   // 3D Parallax logic (Desktop Only)
   const x = useMotionValue(0.5); 
@@ -136,7 +136,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
           {!isDefaultPhoto ? (
             <img 
               src={coverUrl} 
-              alt={title || t('tripCoverAlt', { ns: 'dashboard', defaultValue: 'Portada del viaje' })} 
+              alt={title || t('dashboard:tripCoverAlt')} 
               className="w-full h-full object-cover"
               loading={priorityImage ? "eager" : "lazy"}
             />
@@ -176,7 +176,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
               <img 
                 key={idx} 
                 src={flag} 
-                alt="Bandera" 
+                alt="" 
                 className="w-6 h-6 object-cover rounded-full shadow-sm border border-white/20" 
                 loading={priorityImage ? "eager" : "lazy"} 
               />
@@ -198,7 +198,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
               e.preventDefault();
               setIsMenuOpen((prev) => !prev);
             }}
-            aria-label={t('card.menu', { ns: 'dashboard', defaultValue: 'Abrir opciones de viaje' })}
+            aria-label={t('dashboard:card.menu')}
             data-testid="trip-card-menu-btn"
           >
             <MoreVertical size={20} />
@@ -220,7 +220,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
               className="portal-menu-item flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
               data-testid="trip-card-menu-edit"
             >
-              <Edit2 size={16} /> <span>{t('card.edit', { ns: 'dashboard', defaultValue: 'Editar viaje' })}</span>
+              <Edit2 size={16} /> <span>{t('dashboard:card.edit')}</span>
             </button>
 
             {onDelete && (
@@ -236,7 +236,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
                   className="portal-menu-item danger flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-danger text-left hover:bg-danger/10 transition-colors font-heading"
                   data-testid="trip-card-menu-delete"
                 >
-                  <Trash2 size={16} /> <span>{t('card.delete', { ns: 'dashboard', defaultValue: 'Eliminar' })}</span>
+                  <Trash2 size={16} /> <span>{t('dashboard:card.delete')}</span>
                 </button>
               </>
             )}

@@ -11,8 +11,8 @@ import TravelStatsWidget from '@widgets/travelStats/ui/TravelStatsWidget';
 
 
 const TripsPage = () => {
-  const { t, i18n } = useTranslation(['dashboard', 'countries']);
-  useDocumentTitle(t('pageTitle.journal', 'Mis Viajes'));
+  const { t, i18n } = useTranslation(['dashboard', 'countries', 'nav']);
+  useDocumentTitle(t('nav:pageTitle.journal'));
   
   const { data, crud } = useOutletContext();
   const { busqueda } = useSearch();

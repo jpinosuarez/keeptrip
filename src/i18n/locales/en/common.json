@@ -90,5 +90,12 @@
       "fallbackMessage": "Search encountered an issue. You can close it and try again.",
       "closeButton": "Close search"
     }
-  }
+  },
+  "button": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "add": "Add"
+  },
+  "searchUnavailable": "We couldn't search for places right now. Try again in a few seconds."
 }
