@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef, memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Map, { Source, Layer, Popup } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -225,4 +225,4 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
   );
 };
 
-export default React.memo(HomeMap);
+export default memo(HomeMap);
