@@ -9,6 +9,7 @@ import { normalizeToIsoDate, resolveCoverPhotoUrl } from '@shared/lib/utils/viaj
 import { useEdicionModalSave } from '../model/hooks/useEdicionModalSave';
 import { useEdicionGalleryManager } from '../model/hooks/useEdicionGalleryManager';
 import { useEdicionModalLifecycle } from '../model/hooks/useEdicionModalLifecycle';
+import { useVirtualKeyboard } from '../model/hooks/useVirtualKeyboard';
 import EdicionGallerySection from './components/EdicionGallerySection';
 import EdicionParadasSection from './components/EdicionParadasSection';
 import EdicionHeaderSection from './components/EdicionHeaderSection';
@@ -54,6 +55,8 @@ const EdicionModal = ({
   const [captionDrafts, setCaptionDrafts] = useState({});
   const [isSaving, setIsSaving] = useState(() => isSavingProp);
   const [isUploading, setIsUploading] = useState(() => Boolean(uploadStatus?.isUploading));
+
+  const { keyboardOffset, isKeyboardOpen } = useVirtualKeyboard();
 
   const modalRef = useRef(null);
 
@@ -159,6 +162,11 @@ const EdicionModal = ({
   return createPortal(
     <div
       className="fixed inset-0 z-modal flex items-center justify-center bg-gradient-to-t from-black/40 via-black/10 to-transparent p-4 md:p-6 overflow-hidden"
+      style={
+        isKeyboardOpen && keyboardOffset > 0
+          ? { paddingBottom: `calc(${keyboardOffset}px + 1rem)` }
+          : undefined
+      }
       onClick={isSaving ? undefined : onClose}
     >
       <Motion.div
@@ -168,6 +176,11 @@ const EdicionModal = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         className="relative w-full max-w-[900px] max-h-[90dvh] bg-surface rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-border/50"
+        style={
+          isKeyboardOpen && keyboardOffset > 0
+            ? { maxHeight: `calc(100dvh - ${keyboardOffset}px - 2rem)` }
+            : undefined
+        }
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
@@ -195,7 +208,7 @@ const EdicionModal = ({
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "pb-2 text-[0.85rem] font-bold uppercase tracking-widest transition-all relative",
+                "min-h-[44px] pb-2 text-[0.85rem] font-bold uppercase tracking-widest transition-all relative flex items-center",
                 activeTab === tab.id 
                   ? "text-atomicTangerine" 
                   : "text-textSecondary hover:text-textPrimary"
@@ -213,7 +226,7 @@ const EdicionModal = ({
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-background/50 custom-scroll">
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-background/50 custom-scroll overscroll-contain">
           <AnimatePresence mode="wait">
             {activeTab === 'info' && (
               <Motion.div
@@ -282,10 +295,17 @@ const EdicionModal = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex-shrink-0 p-6 bg-surface border-t border-border flex items-center justify-between gap-4">
+        <div
+          className={cn(
+            "flex-shrink-0 p-4 sm:p-6 bg-surface border-t border-border flex items-center justify-between gap-4 transition-[padding] duration-150",
+            isKeyboardOpen
+              ? "pb-3 sm:pb-4"
+              : "pb-[max(16px,env(safe-area-inset-bottom,16px))] md:pb-6"
+          )}
+        >
           <button
             onClick={onClose}
-            className="px-6 py-2.5 text-[0.9rem] font-bold text-textSecondary hover:text-textPrimary transition-colors"
+            className="min-h-[44px] min-w-[44px] px-6 py-2.5 text-[0.9rem] font-bold text-textSecondary hover:text-textPrimary transition-colors inline-flex items-center justify-center"
             disabled={isSaving}
           >
             {t('button.cancel', { ns: 'common' })}
@@ -295,7 +315,7 @@ const EdicionModal = ({
             onClick={handleSave}
             disabled={isSaving || isProcessingImage || isUploading}
             className={cn(
-              "flex items-center gap-2 px-8 py-3 rounded-full text-[0.9rem] font-black tracking-wide shadow-lg transition-all",
+              "min-h-[44px] flex items-center gap-2 px-8 py-3 rounded-full text-[0.9rem] font-black tracking-wide shadow-lg transition-all",
               "bg-gradient-to-r from-atomicTangerine to-orange-500 text-white hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100"
             )}
           >

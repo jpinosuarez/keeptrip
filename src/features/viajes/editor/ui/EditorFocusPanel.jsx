@@ -6,6 +6,7 @@ import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { normalizeToIsoDate, resolveCoverPhotoUrl } from '@shared/lib/utils/viajeUtils';
 import { useEdicionModalLifecycle } from '../model/hooks/useEdicionModalLifecycle';
 import { useEdicionModalSave } from '../model/hooks/useEdicionModalSave';
+import { useVirtualKeyboard } from '../model/hooks/useVirtualKeyboard';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUpload } from '@app/providers/UploadContext';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
@@ -51,6 +52,8 @@ const EditorFocusPanel = ({
   const [isSavingManual, setIsSavingManual] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isClosingAfterSave, setIsClosingAfterSave] = useState(false);
+
+  const { keyboardOffset, isKeyboardOpen } = useVirtualKeyboard();
 
   // Track initial state for unsaved changes detection
   const initialFormDataRef = useRef(null);
@@ -314,6 +317,7 @@ const EditorFocusPanel = ({
           className="fixed bg-background z-modal flex flex-col inset-0 md:inset-y-0 md:right-0 md:left-auto md:w-[420px] md:shadow-2xl md:border-l md:border-border"
           style={{
             pointerEvents: isClosingAfterSave ? 'none' : 'auto',
+            ...(isKeyboardOpen && keyboardOffset > 0 ? { bottom: `${keyboardOffset}px` } : {}),
           }}
           variants={panelVariants}
           initial="hidden"
@@ -323,7 +327,7 @@ const EditorFocusPanel = ({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Scrollable Body */}
-          <div className="flex-1 overflow-y-auto custom-scroll">
+          <div className="flex-1 overflow-y-auto custom-scroll overscroll-contain">
             {/* Header Section (WYSIWYG) */}
             <EditableTripHeader
               formData={formDataWithFallback}
@@ -351,11 +355,18 @@ const EditorFocusPanel = ({
             )}
           </div>
 
-          <div className="p-4 border-t border-border flex justify-end gap-3 bg-background sticky bottom-0 z-10">
+          <div
+            className={cn(
+              "p-4 border-t border-border flex justify-end gap-3 bg-background sticky bottom-0 z-10 transition-[padding] duration-150",
+              isKeyboardOpen
+                ? "pb-3 sm:pb-4"
+                : "pb-[max(16px,env(safe-area-inset-bottom,16px))]"
+            )}
+          >
             <button
               onClick={handleClose}
               disabled={isSavingManual}
-              className="px-4 py-2 text-[0.875rem] font-bold text-textSecondary rounded-lg hover:bg-surface transition-colors disabled:opacity-50"
+              className="min-h-[44px] min-w-[44px] px-4 py-2 text-[0.875rem] font-bold text-textSecondary rounded-lg hover:bg-surface transition-colors disabled:opacity-50 inline-flex items-center justify-center"
             >
               {t('button.cancel') || 'Cancelar'}
             </button>
@@ -363,7 +374,7 @@ const EditorFocusPanel = ({
               onClick={handleSaveWithLoading}
               disabled={!canSave}
               className={cn(
-                "px-6 py-2 bg-atomicTangerine text-white rounded-full font-bold text-[0.875rem] shadow-sm transition-all flex items-center gap-2",
+                "min-h-[44px] px-6 py-2 bg-atomicTangerine text-white rounded-full font-bold text-[0.875rem] shadow-sm transition-all flex items-center gap-2",
                 canSave ? "hover:shadow-md hover:bg-atomicTangerine/90 cursor-pointer" : "opacity-50 cursor-not-allowed"
               )}
               aria-disabled={!canSave}

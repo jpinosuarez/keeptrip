@@ -31,6 +31,15 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
   // Local state for dates to prevent focus loss/cursor jumping during manual entry
   const [tempDates, setTempDates] = useState({});
   const visibleSearchResults = shouldBlockSearchResults ? [] : searchResults;
+
+  const handleFieldFocus = (e) => {
+    const target = e.currentTarget;
+    setTimeout(() => {
+      if (target && document.activeElement === target && typeof target.scrollIntoView === 'function') {
+        target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 280);
+  };
   
   // Búsqueda reactiva (3 chars)
   useEffect(() => {
@@ -146,6 +155,7 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
           <Search size={16} className="text-textSecondary" />
           <input
             value={searchQuery}
+            onFocus={handleFieldFocus}
             onChange={(e) => {
               const value = e.target.value;
               setSearchQuery(value);
@@ -273,6 +283,7 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
                         ? p.fechaLlegada.split('/').reverse().map((part, i) => i === 0 ? part.padStart(4, '0') : part.padStart(2, '0')).join('-')
                         : '')}
                       min={getMinArrivalDate(index)}
+                      onFocus={handleFieldFocus}
                       onChange={(e) => setTempDates(prev => ({ ...prev, [`${index}-arrival`]: e.target.value }))}
                       onBlur={(e) => {
                         actualizarDato(index, 'fechaLlegada', e.target.value);
@@ -294,6 +305,7 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
                         ? p.fechaSalida.split('/').reverse().map((part, i) => i === 0 ? part.padStart(4, '0') : part.padStart(2, '0')).join('-')
                         : '')}
                       min={p.fechaLlegada ? p.fechaLlegada.split('/').reverse().join('-') : getMinArrivalDate(index)}
+                      onFocus={handleFieldFocus}
                       onChange={(e) => setTempDates(prev => ({ ...prev, [`${index}-departure`]: e.target.value }))}
                       onBlur={(e) => {
                         actualizarDato(index, 'fechaSalida', e.target.value);

@@ -90,6 +90,21 @@ padding-bottom: calc(80px + max(16px, env(safe-area-inset-bottom, 0px)));
 /* = 80px (altura tab) + al menos 16px sobre el home indicator */
 ```
 
+### Regla 6: Modales, Sheets y Formularios de Edición (Virtual Keyboard & visualViewport)
+
+En iOS Safari, las unidades de viewport dinámico (`dvh`) y los contenedores `position: fixed; inset: 0` **no se reducen** cuando el teclado virtual en pantalla se despliega. Como resultado, las barras de acción inferiores (`sticky` o `flex` al fondo) quedan ocultas detrás del teclado virtual si no se gestionan interactivamente:
+
+1. **Aislamiento de Scroll (`overscroll-contain`):**
+   Todos los contenedores con scroll interno en modales/sheets deben tener `overscroll-contain` para evitar el rubber-banding que arrastra la página de fondo.
+2. **Detección interactiva de teclado:**
+   Utilizar `useVirtualKeyboard` para escuchar `window.visualViewport` (`resize` y `scroll` con `{ passive: true }`).
+   - `keyboardOffset = Math.max(0, window.innerHeight - visualViewport.height - visualViewport.offsetTop)`.
+3. **Clearance dinámico de la barra de acciones:**
+   - **Teclado cerrado:** Aplicar `pb-[max(16px,env(safe-area-inset-bottom,16px))]` (para salvar el home indicator).
+   - **Teclado abierto:** Elevar la barra o contraer el contenedor según `keyboardOffset` y compactar el padding a `pb-3 sm:pb-4` (el teclado sustituye al home indicator).
+4. **Auto-scroll en foco:**
+   Los inputs y textareas deben disparar `target.scrollIntoView({ behavior: 'smooth', block: 'nearest' })` tras un delay de ~280ms para esperar la animación de apertura del teclado virtual sin interferir con la inercia táctil.
+
 ---
 
 ## Cheatsheet de patrones
@@ -147,8 +162,8 @@ const SAFE_AREA = {
 | Lightbox overlay | `GalleryGrid.jsx` | ✅ Fixed | Todos los ejes con `max(20px, env(...))` |
 | BottomSheet | `BottomSheet.jsx` | ✅ OK | `paddingBottom: max(16px, env(safe-area-inset-bottom))` |
 | ConfirmModal | `ConfirmModal.styles.js` | ✅ OK | `paddingBottom: max(16px, env(safe-area-inset-bottom))` |
-| EdicionModal | `EdicionModal.styles.js` | ✅ OK | `paddingBottom: max(12px/16px, env(...))` |
-| EditorFocusPanel | `EditorFocusPanel.styles.js` | ✅ N/A | Usa `inset: 0` — fullscreen, sin posiciones absolutas de UI |
+| EdicionModal | `EdicionModal.jsx` | ✅ Compliant | Safe-area `max(16px, env(safe-area-inset-bottom, 16px))`, `overscroll-contain`, y clearance de teclado interactivo via `useVirtualKeyboard` (`visualViewport`) |
+| EditorFocusPanel | `EditorFocusPanel.jsx` | ✅ Compliant | Panel adaptativo con clearance de teclado (`bottom: keyboardOffset`), barra de acciones sticky con `max(16px, env(safe-area-inset-bottom, 16px))` y `overscroll-contain` |
 | VisorViaje | `VisorViaje.styles.js` | ✅ OK | `top/right/bottom: max(Xpx, env(...))` ya aplicados |
 | PWAUpdatePrompt | `PWAUpdatePrompt.styles.js` | ✅ OK | `bottom: max(16px, env(safe-area-inset-bottom))` |
 | ShareStoryButton | `ShareStoryButton.jsx` | ✅ OK | `padding: 0 0 env(safe-area-inset-bottom) 0` |
