@@ -73,7 +73,7 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB — vendor-map (mapbox-gl ~2.5MB raw) necesita margen
         // Permite que el SW responda a nav requests → requerido para el install prompt en Chrome
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api/, /^\/\/__\/auth/],
+        navigateFallbackDenylist: [/^\/api/, /^\/__\/auth/],
         runtimeCaching: [
           {
             // Mapbox tiles
@@ -185,6 +185,6 @@ export default defineConfig({
     // Setup global
     setupFiles: ['./vitest.setup.js'],
     // Excluir E2E del runner de Vitest
-    exclude: ['e2e/**', 'node_modules/**'],
+    exclude: ['e2e/**', 'node_modules/**', '.kilo/**'],
   },
 })
