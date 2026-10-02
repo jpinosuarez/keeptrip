@@ -78,5 +78,24 @@
       "fallbackMessage": "El buscador tuvo un tropiezo. Puedes cerrarlo y abrirlo de nuevo.",
       "closeButton": "Cerrar buscador"
     }
-  }
+  },
+  "profile": {
+    "editTitle": "Editar perfil",
+    "close": "Cerrar",
+    "avatarAlt": "Avatar de usuario",
+    "avatarFallback": "U",
+    "nameLabel": "Nombre",
+    "namePlaceholder": "Ingresa tu nombre",
+    "photoLabel": "URL de foto",
+    "photoPlaceholder": "Pega la URL de la imagen",
+    "save": "Guardar cambios",
+    "saving": "Guardando..."
+  },
+  "button": {
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "add": "Agregar"
+  },
+  "searchUnavailable": "No pudimos buscar lugares en este momento. Intenta de nuevo en unos segundos."
 }

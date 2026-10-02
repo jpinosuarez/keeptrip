@@ -2,16 +2,6 @@
   "photoGallery": "Photo Gallery",
   "optimizing": "Optimizing...",
   "tripTitlePlaceholder": "Trip Title",
-  "autoTitle": "Auto",
-  "manualTitle": "Manual",
-  "tooltip": {
-    "autoUpdate": "The title updates when you add or remove cities.",
-    "manualMode": "Manual mode on. Tap to switch back to auto title.",
-    "vibe": "Define your trip's energy.",
-    "highlights": "Your favorite moments in a few words.",
-    "relato": "Tell each stop like a chapter.",
-    "presupuesto": "Your approximate spending level."
-  },
   "autoTitle": {
     "empty": "Trip draft",
     "single": "Trip to {{city}}",
@@ -21,6 +11,15 @@
     "multiCountry": "Adventure through {{countries}}",
     "expedition": "Expedition through {{country1}}, {{country2}} and more destinations",
     "multiple": "Trip to {{cities}}"
+  },
+  "manualTitle": "Manual",
+  "tooltip": {
+    "autoUpdate": "The title updates when you add or remove cities.",
+    "manualMode": "Manual mode on. Tap to switch back to auto title.",
+    "vibe": "Define your trip's energy.",
+    "highlights": "Your favorite moments in a few words.",
+    "relato": "Tell each stop like a chapter.",
+    "presupuesto": "Your approximate spending level."
   },
   "labels": {
     "draft": "Draft",
@@ -110,7 +109,10 @@
       "car": "🚗 Car",
       "bus": "🚌 Bus",
       "other": "🔁 Other"
-    }
+    },
+    "moveStopUp": "Move destination up",
+    "moveStopDown": "Move destination down",
+    "deleteStop": "Delete destination"
   },
   "error": {
     "tripNeedsStop": "A trip must include at least one destination.",
@@ -144,18 +146,27 @@
     "companionAlreadyAdded": "This companion is already added."
   },
   "gallery": {
-    "dropHere": "Drop photos here",
-    "dragOrClick": "Drag your photos here, or tap to browse",
-    "specs": "JPG or PNG • Max {{max}} photos • Up to {{sizeMB}}MB each",
-    "invalidFormat": "{{count}} photo(s) are not JPG or PNG and were removed.",
-    "tooLarge": "{{count}} photo(s) exceed {{max}}MB and were removed.",
-    "limitReached": "You've reached the {{max}}-photo limit. {{skipped}} skipped.",
-    "optimizing": "Optimizing...",
-    "optimizingCount": "Getting {{count}} photo(s) ready...",
-    "photosSelected": "photos selected",
-    "coverOnlyNotice": "For now, we only allow 1 cover photo for your trip.",
-    "setCover": "Set as cover photo",
-    "currentCover": "Current cover photo",
-    "deletePhoto": "Delete photo"
-  }
+    "changeCover": "Change cover",
+    "removeCover": "Remove photo"
+  },
+  "coverPicker": {
+    "title": "Select Cover Photo",
+    "emptyTitle": "No photos yet",
+    "emptyDescription": "Upload photos in the Gallery section to set a cover",
+    "photoAlt": "Gallery photo",
+    "close": "Close"
+  },
+  "curated": {
+    "loading": "Loading curated photos...",
+    "empty": "No curated photos for this destination.",
+    "credit": "Credit: {{name}}",
+    "photo": "Curated photo"
+  },
+  "header": {
+    "regenerateTitleBtn": "Generate automatic title",
+    "manualTitleHint": "Using manual title",
+    "editTitleHint": "Tap to edit title"
+  },
+  "tripTitleAriaLabel": "Trip title",
+  "coverPreviewAlt": "Cover preview"
 }

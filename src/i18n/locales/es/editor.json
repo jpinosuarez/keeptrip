@@ -2,7 +2,16 @@
   "photoGallery": "Galería de fotos",
   "optimizing": "Optimizando...",
   "tripTitlePlaceholder": "Título del viaje",
-  "autoTitle": "Auto",
+  "autoTitle": {
+    "empty": "Borrador de viaje",
+    "single": "Viaje a {{city}}",
+    "twoCities": "Viaje a {{city1}} y {{city2}}",
+    "twoCountries": "Viaje por {{country1}} y {{country2}}",
+    "countryTour": "Gran tour por {{country}}",
+    "multiCountry": "Aventura por {{countries}}",
+    "expedition": "Expedición por {{country1}}, {{country2}} y más destinos",
+    "multiple": "Viaje a {{cities}}"
+  },
   "manualTitle": "Manual",
   "tooltip": {
     "autoUpdate": "El título cambia cuando agregas o quitas ciudades.",
@@ -47,16 +56,6 @@
     "autoTitle": "Auto",
     "manualTitle": "Manual"
   },
-  "autoTitle": {
-    "empty": "Borrador de viaje",
-    "single": "Viaje a {{city}}",
-    "twoCities": "Viaje a {{city1}} y {{city2}}",
-    "twoCountries": "Viaje por {{country1}} y {{country2}}",
-    "countryTour": "Gran tour por {{country}}",
-    "multiCountry": "Aventura por {{countries}}",
-    "expedition": "Expedición por {{country1}}, {{country2}} y más destinos",
-    "multiple": "Viaje a {{cities}}"
-  },
   "unsavedChanges": {
     "title": "¿Descartar cambios?",
     "message": "Tienes cambios sin guardar en tu viaje. ¿Seguro que quieres cerrar?",
@@ -89,7 +88,6 @@
     "topView": "👀 La Vista",
     "topTip": "💡 El Tip"
   },
-
   "search": {
     "newDestination": "Nuevo Destino",
     "placeholder": "Escribe un país o ciudad...",
@@ -111,7 +109,10 @@
       "car": "🚗 Auto",
       "bus": "🚌 Bus",
       "other": "🔁 Otro"
-    }
+    },
+    "moveStopUp": "Mover destino hacia arriba",
+    "moveStopDown": "Mover destino hacia abajo",
+    "deleteStop": "Eliminar destino"
   },
   "error": {
     "tripNeedsStop": "El viaje debe tener al menos un destino.",
@@ -145,18 +146,27 @@
     "companionAlreadyAdded": "Este compañero ya está agregado."
   },
   "gallery": {
-    "dropHere": "Suelta las fotos aquí",
-    "dragOrClick": "Arrastra tus fotos aquí, o toca para explorar",
-    "specs": "JPG o PNG • Máximo {{max}} fotos • Hasta {{sizeMB}}MB c/u",
-    "invalidFormat": "{{count}} foto(s) no son JPG ni PNG y se descartaron.",
-    "tooLarge": "{{count}} foto(s) pesan más de {{max}}MB y se descartaron.",
-    "limitReached": "Alcanzaste el límite de {{max}} fotos. Se omitieron {{skipped}}.",
-    "optimizing": "Optimizando...",
-    "optimizingCount": "Preparando {{count}} foto(s)...",
-    "photosSelected": "fotos seleccionadas",
-    "coverOnlyNotice": "Esta imagen será la foto de portada del viaje.",
-    "setCover": "Marcar como portada",
-    "currentCover": "Foto de portada actual",
-    "deletePhoto": "Eliminar foto"
-  }
+    "changeCover": "Cambiar portada",
+    "removeCover": "Quitar foto"
+  },
+  "coverPicker": {
+    "title": "Seleccionar foto de portada",
+    "emptyTitle": "Aún no hay fotos",
+    "emptyDescription": "Sube fotos en la sección de Galería para elegir una portada",
+    "photoAlt": "Foto de la galería",
+    "close": "Cerrar"
+  },
+  "curated": {
+    "loading": "Cargando fotos recomendadas...",
+    "empty": "Sin fotos curadas para este destino.",
+    "credit": "Crédito: {{name}}",
+    "photo": "Foto recomendada"
+  },
+  "header": {
+    "regenerateTitleBtn": "Generar título automático",
+    "manualTitleHint": "Usando título manual",
+    "editTitleHint": "Toca para editar el título"
+  },
+  "tripTitleAriaLabel": "Título del viaje",
+  "coverPreviewAlt": "Vista previa de la portada"
 }

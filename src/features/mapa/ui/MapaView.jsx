@@ -31,8 +31,8 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
  *   - Internal roster scroll via overflow-y: auto
  */
 function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
-  const { i18n, t } = useTranslation('dashboard');
-  useDocumentTitle(t('map', 'Mapa 3D'));
+  const { i18n, t } = useTranslation(['dashboard', 'nav']);
+  useDocumentTitle(t('nav:pageTitle.worldMap'));
   const mapRef = useRef(null);
   const spinGlobeRef = useRef(null);
   
