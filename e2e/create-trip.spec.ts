@@ -189,7 +189,7 @@ test.describe('Create trip from search modal (E2E)', () => {
     await closeModals();
 
     // Open the newly created trip via real user interaction and verify editor state.
-    const createdTripCard = page.locator('[data-testid^="trip-card-"]').first();
+    const createdTripCard = page.locator(tripCardSelector).first();
     await expect(createdTripCard).toBeVisible({ timeout: 10000 });
     await openTripActionMenu(page, createdTripCard, /Editar|Edit/i);
 

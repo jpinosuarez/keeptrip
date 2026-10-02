@@ -21,27 +21,16 @@ export async function openTripActionMenu(
   tripCard: Locator,
   action?: RegExp,
 ): Promise<void> {
-  const menuBtn = tripCard.getByTestId('trip-card-menu-btn');
+  const menuBtn = tripCard.getByTestId('trip-card-menu-btn').first();
   const isDelete = action && (action.test('Delete') || action.test('Eliminar'));
   const actionBtnId = isDelete ? 'trip-card-menu-delete' : 'trip-card-menu-edit';
-  const actionBtn = page.getByTestId(actionBtnId);
+  const actionBtn = page.getByTestId(actionBtnId).first();
 
-  await menuBtn.scrollIntoViewIfNeeded();
-  
-  // Dispatching a click event is sometimes more robust than a simulated mouse click
-  // when dealing with complex z-index/portal situations.
-  let attempts = 0;
-  while (attempts < 3) {
-    await menuBtn.dispatchEvent('click');
-    try {
-      await actionBtn.waitFor({ state: 'visible', timeout: 5000 });
-      break;
-    } catch (e) {
-      attempts++;
-      if (attempts === 3) throw e;
-    }
-  }
-  
+  // Playwright's native click automatically scrolls, checks actionability, and auto-retries on detachment
+  await expect(menuBtn).toBeVisible({ timeout: 10000 });
+  await menuBtn.click();
+
+  await expect(actionBtn).toBeVisible({ timeout: 10000 });
   await actionBtn.click();
 }
 
@@ -78,6 +67,19 @@ export async function openTripEditorById(
   page: Page,
   tripId: string,
 ): Promise<void> {
+  if (!tripId || typeof tripId !== 'string') {
+    throw new Error(`[openTripEditorById] Invalid or empty tripId provided: "${tripId}"`);
+  }
+
+  // If the card is already visible on the current page, interact with it directly via UI to guarantee state sync
+  const cardLocator = page.locator(`[data-testid="trip-card-${tripId}"]`).first();
+  if (await cardLocator.isVisible().catch(() => false)) {
+    await openTripActionMenu(page, cardLocator, /Editar|Edit/i);
+    const titleInput = page.getByLabel(/Trip title|Título del viaje/i);
+    await expect(titleInput).toBeVisible({ timeout: 15000 });
+    return;
+  }
+
   const titleInput = page.getByLabel(/Trip title|Título del viaje/i);
   const editorUrlPattern = new RegExp(`\\/(dashboard|trips)\\?.*editing=${tripId}`);
 
@@ -96,10 +98,7 @@ export async function openTripEditorById(
   }
 
   await page.waitForFunction(
-    (tripId) => {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('editing') === tripId;
-    },
+    (id) => new URLSearchParams(window.location.search).get('editing') === id,
     tripId,
     { timeout: 10000 }
   );

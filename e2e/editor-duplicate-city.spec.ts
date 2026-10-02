@@ -81,13 +81,15 @@ test.describe('Duplicate city addition issue', () => {
     await expect(page.getByTestId('editor-focus-panel')).toHaveCount(0, { timeout: 15000 });
     const tripCard = page.locator('[data-testid^="trip-card-"]:not([data-testid*="menu"])').first();
     await expect(tripCard).toBeVisible({ timeout: 20000 });
-    const tripCardTestId = await tripCard.getAttribute('data-testid') || '';
-    const initialTripId = tripCardTestId.replace('trip-card-', '');
+    const tripCardTestId = await tripCard.getAttribute('data-testid');
+    expect(tripCardTestId).toBeTruthy();
+    const initialTripId = tripCardTestId!.replace('trip-card-', '');
+    expect(initialTripId.length).toBeGreaterThan(0);
     await expect(page.getByLabel(/Trip title|Título del viaje/i)).toHaveCount(0, { timeout: 15000 });
     await expect(page.getByLabel(/Madrid/i).first()).toBeVisible({ timeout: 20000 });
 
-    // Reabrir el viaje creado para continuar la edición
-    await openTripEditorById(page, initialTripId);
+    // Reopen the created trip via UI action menu on the verified visible card
+    await openTripActionMenu(page, tripCard, /Editar|Edit/i);
 
     const titleInput = page.getByLabel(/Trip title|Título del viaje/i);
     await expect(titleInput).toBeVisible({ timeout: 10000 });
