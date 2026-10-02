@@ -138,7 +138,7 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
     return () => observer.disconnect();
   }, [fitWorld]);
 
-  const listaPaises = paisesVisitados.length > 0 ? paisesVisitados : ['EMPTY_LIST'];
+  const listaPaises = useMemo(() => (paisesVisitados.length > 0 ? paisesVisitados : ['EMPTY_LIST']), [paisesVisitados]);
 
   return (
     <div
@@ -225,4 +225,4 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
   );
 };
 
-export default HomeMap;
+export default React.memo(HomeMap);

@@ -84,7 +84,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
     return { stopsGeoJson: nextGeoJson };
   }, [coordinateHash, stops]);
 
-  const listaPaises = paises.length > 0 ? paises : ['EMPTY'];
+  const listaPaises = useMemo(() => (paises.length > 0 ? paises : ['EMPTY']), [paises]);
 
   // ── SpinGlobe lifecycle ──────────────────────────────────────────────
   const initSpinGlobe = useCallback((map) => {
@@ -310,5 +310,5 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   );
 }
 
-export default MapaView;
+export default React.memo(MapaView);
 
