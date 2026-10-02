@@ -89,22 +89,20 @@ export async function openTripEditorById(
 
   if (hasNavigateHook) {
     await page.evaluate((url) => {
-      const [path, search] = url.split('?');
-      window.history.pushState({}, '', url);
-      window.dispatchEvent(new PopStateEvent('popstate'));
+      (window as any).__test_navigate(url);
     }, targetUrl);
-    // Give React Router a moment to react to the URL change
-    await page.waitForFunction(
-      (tripId) => {
-        const params = new URLSearchParams(window.location.search);
-        return params.get('editing') === tripId;
-      },
-      tripId,
-      { timeout: 10000 }
-    );
   } else {
-    await page.goto(`http://localhost:5173${targetUrl}`);
+    await page.goto(targetUrl);
   }
+
+  await page.waitForFunction(
+    (tripId) => {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('editing') === tripId;
+    },
+    tripId,
+    { timeout: 10000 }
+  );
 
   await expect(titleInput).toBeVisible({ timeout: 15000 });
   await expect(page).toHaveURL(editorUrlPattern);
