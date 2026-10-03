@@ -66,14 +66,23 @@ describe('Sidebar Component', () => {
     expect(toggleBtn).toBeInTheDocument();
     expect(toggleBtn).toHaveAttribute('aria-label', 'Collapse sidebar');
 
-    // Brand logo should be visible
-    expect(screen.getByRole('img', { name: 'Keeptrip' })).toBeInTheDocument();
+    // Brand logo should be visible inside rigid h-16 header
+    const brandImg = screen.getByRole('img', { name: 'Keeptrip' });
+    expect(brandImg).toBeInTheDocument();
+    const headerSlot = brandImg.closest('.h-16');
+    expect(headerSlot).toBeInTheDocument();
+    expect(headerSlot).toHaveClass('shrink-0', 'relative', 'overflow-hidden');
 
     // Nav labels should be present in desktop sidebar
     const aside = screen.getByRole('complementary');
     expect(aside).toHaveTextContent('Home');
     expect(aside).toHaveTextContent('Map');
     expect(aside).toHaveTextContent('Logbook');
+
+    // Stationary icon slot inside nav button
+    const homeNav = screen.getByTestId('sidebar-nav-home');
+    const iconSlot = homeNav.querySelector('.w-12.h-12.shrink-0');
+    expect(iconSlot).toBeInTheDocument();
 
     // Toggle button click triggers collapse
     fireEvent.click(toggleBtn);

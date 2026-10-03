@@ -140,7 +140,7 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
   };
 
   return (
-    <div className="w-full box-border min-w-0 grid gap-4 p-4 h-full overflow-y-auto overflow-x-hidden grid-cols-1 auto-rows-max pb-[calc(80px+max(16px,env(safe-area-inset-bottom,0px)))] lg:grid-cols-[minmax(350px,5fr)_minmax(400px,7fr)] lg:grid-rows-[auto_1fr] lg:gap-6 lg:p-6 lg:h-full lg:overflow-hidden lg:pb-6">
+    <div className="w-full box-border min-w-0 grid gap-4 p-4 h-full overflow-y-auto overflow-x-hidden grid-cols-1 auto-rows-max pb-[calc(80px+max(16px,env(safe-area-inset-bottom,0px)))] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:grid-rows-[auto_1fr] lg:gap-6 lg:p-6 lg:h-full lg:overflow-hidden lg:pb-6">
       <div className="min-w-0 w-full lg:col-start-1 lg:row-start-1 lg:self-stretch">
         <WelcomeBento 
           name={name}

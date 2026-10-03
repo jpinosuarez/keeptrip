@@ -90,36 +90,41 @@ const RailButton = ({ item, active, collapsed, onClick }) => {
       title={item.label}
       data-testid={`sidebar-nav-${item.id}`}
       className={cn(
-        "flex items-center rounded-xl border-none relative transition-all duration-200 cursor-pointer min-h-[48px]",
-        collapsed
-          ? "justify-center w-12 h-12"
-          : "w-full h-12 px-3.5 gap-3.5",
+        "flex items-center h-12 rounded-xl border-none relative transition-colors duration-200 cursor-pointer p-0",
+        collapsed ? "w-12 justify-center" : "w-full",
         active
           ? "bg-atomicTangerine/10 text-atomicTangerine shadow-[inset_3px_0_0_theme(colors.atomicTangerine)]"
           : "text-text-secondary hover:bg-black/5 hover:text-charcoalBlue bg-transparent"
       )}
     >
-      <Icon
-        size={22}
-        strokeWidth={active ? 2.5 : 1.8}
-        stroke="currentColor"
-        fill="none"
-        className={cn(
-          "shrink-0 transition-all duration-200",
-          active ? "drop-shadow-[0_0_6px_rgba(255,107,53,0.3)]" : ""
-        )}
-      />
+      <div className="w-12 h-12 shrink-0 flex items-center justify-center">
+        <Icon
+          size={22}
+          strokeWidth={active ? 2.5 : 1.8}
+          stroke="currentColor"
+          fill="none"
+          className={cn(
+            "shrink-0 transition-all duration-200",
+            active ? "drop-shadow-[0_0_6px_rgba(255,107,53,0.3)]" : ""
+          )}
+        />
+      </div>
 
-      {!collapsed && (
+      <div
+        className={cn(
+          "overflow-hidden transition-all duration-300 ease-in-out whitespace-nowrap",
+          collapsed ? "w-0 opacity-0 pointer-events-none" : "flex-1 opacity-100 pr-3"
+        )}
+      >
         <span
           className={cn(
-            "font-heading text-sm whitespace-nowrap overflow-hidden text-ellipsis transition-colors",
+            "font-heading text-sm block truncate transition-colors",
             active ? "font-bold text-atomicTangerine" : "font-medium text-text-secondary"
           )}
         >
           {item.label}
         </span>
-      )}
+      </div>
 
       {/* Glassmorphic tooltip (only in collapsed rail mode) */}
       {collapsed && <GlassTooltip label={item.label} visible={hovered} />}
@@ -158,30 +163,30 @@ const Sidebar = () => {
     <aside 
       className={cn(
         "fixed top-0 left-0 h-[100dvh] bg-white/80 backdrop-blur-xl flex flex-col",
-        "py-[max(20px,env(safe-area-inset-top,0px))] border-r border-border z-dropdown hidden md:flex",
-        "transition-[width] duration-300 ease-in-out overflow-x-hidden",
-        sidebarCollapsed ? "w-20 items-center" : "w-64 items-stretch"
+        "py-5 border-r border-border z-dropdown hidden md:flex",
+        "transition-[width] duration-300 ease-in-out overflow-x-hidden px-4",
+        sidebarCollapsed ? "w-20" : "w-64"
       )}
       aria-label={t('navLabel')}
     >
-      {/* Sidebar Header: Brand Anchor */}
-      <div className={cn("w-full mb-6", sidebarCollapsed ? "px-0 flex flex-col items-center" : "px-3")}>
-        <AnimatePresence mode="wait" initial={false}>
+      {/* Sidebar Header: Brand Anchor — Rigid 64px Box (Zero CLS) */}
+      <div className="h-16 shrink-0 w-full mb-2 flex items-center relative overflow-hidden">
+        <AnimatePresence initial={false}>
           {sidebarCollapsed ? (
             <Motion.div
               key="collapsed-brand"
-              initial={{ opacity: 0, scale: 0.85 }}
+              initial={{ opacity: 0, scale: 0.88 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.85 }}
-              transition={{ duration: 0.18, ease: 'easeOut' }}
-              className="flex justify-center w-full"
+              exit={{ opacity: 0, scale: 0.88 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="w-12 h-12 flex items-center justify-center shrink-0 absolute left-0"
             >
               <Motion.button
                 type="button"
                 onClick={() => navigate('/dashboard')}
-                className="bg-none border-none cursor-pointer p-0 flex items-center justify-center w-12 h-12 rounded-xl"
-                whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.92 }}
+                className="w-12 h-12 flex items-center justify-center p-0 bg-transparent border-none cursor-pointer rounded-xl"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.94 }}
                 aria-label="Keeptrip Home"
                 title="Keeptrip"
               >
@@ -191,22 +196,22 @@ const Sidebar = () => {
           ) : (
             <Motion.div
               key="expanded-brand"
-              initial={{ opacity: 0, x: -8 }}
+              initial={{ opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -8 }}
+              exit={{ opacity: 0, x: -6 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="flex items-center w-full px-1"
+              className="w-full h-12 flex items-center shrink-0 absolute left-0"
             >
               <Motion.button
                 type="button"
                 onClick={() => navigate('/dashboard')}
-                className="bg-none border-none cursor-pointer p-0 flex items-center h-10"
+                className="h-12 flex items-center p-0 bg-transparent border-none cursor-pointer"
                 whileHover={{ opacity: 0.85 }}
                 whileTap={{ scale: 0.96 }}
                 aria-label="Keeptrip Home"
                 title="Keeptrip"
               >
-                <BrandLogo className="h-8 w-auto text-slate-900" />
+                <BrandLogo className="h-8 w-auto text-slate-900 dark:text-white" />
               </Motion.button>
             </Motion.div>
           )}
@@ -214,10 +219,7 @@ const Sidebar = () => {
       </div>
 
       <nav
-        className={cn(
-          "flex flex-col gap-3 flex-1 w-full",
-          sidebarCollapsed ? "items-center px-0" : "px-3"
-        )}
+        className="flex flex-col gap-3 flex-1 w-full"
         role="navigation"
       >
         {menuItems.map((item) => (
@@ -231,8 +233,8 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      {/* Footer Rail: Ergonomic Toggle + Logout */}
-      <div className={cn("flex flex-col gap-2 pb-6 w-full", sidebarCollapsed ? "items-center px-0" : "px-3")}>
+      {/* Footer Rail: Stationary Ergonomic Toggle + Logout */}
+      <div className="flex flex-col gap-2 pb-6 w-full shrink-0">
         <Motion.button
           type="button"
           onClick={toggleSidebarCollapse}
@@ -240,41 +242,55 @@ const Sidebar = () => {
           aria-label={sidebarCollapsed ? t('expandSidebar') : t('collapseSidebar')}
           title={sidebarCollapsed ? t('expandSidebar') : t('collapseSidebar')}
           className={cn(
-            "flex items-center rounded-xl border-none bg-transparent text-text-secondary cursor-pointer hover:bg-black/5 hover:text-charcoalBlue transition-all duration-200 min-h-[48px]",
-            sidebarCollapsed ? "justify-center w-12 h-12" : "w-full h-12 px-3.5 gap-3.5"
+            "flex items-center h-12 rounded-xl border-none bg-transparent text-text-secondary cursor-pointer hover:bg-black/5 hover:text-charcoalBlue transition-colors duration-200 p-0 relative",
+            sidebarCollapsed ? "w-12 justify-center" : "w-full"
           )}
           whileTap={{ scale: 0.94 }}
         >
-          {sidebarCollapsed ? (
-            <PanelLeft size={20} className="shrink-0" />
-          ) : (
-            <PanelLeftClose size={20} className="shrink-0" />
-          )}
-          {!sidebarCollapsed && (
-            <span className="font-heading text-sm font-medium whitespace-nowrap">
+          <div className="w-12 h-12 shrink-0 flex items-center justify-center">
+            {sidebarCollapsed ? (
+              <PanelLeft size={20} className="shrink-0" />
+            ) : (
+              <PanelLeftClose size={20} className="shrink-0" />
+            )}
+          </div>
+          <div
+            className={cn(
+              "overflow-hidden transition-all duration-300 ease-in-out whitespace-nowrap",
+              sidebarCollapsed ? "w-0 opacity-0 pointer-events-none" : "flex-1 opacity-100 pr-3"
+            )}
+          >
+            <span className="font-heading text-sm font-medium block truncate">
               {t('collapseSidebar')}
             </span>
-          )}
+          </div>
         </Motion.button>
 
         <Motion.button
           type="button"
           onClick={logout}
           className={cn(
-            "flex items-center rounded-xl border-none bg-transparent text-text-secondary opacity-75 cursor-pointer hover:bg-black/5 hover:text-charcoalBlue hover:opacity-100 transition-all duration-200 min-h-[48px]",
-            sidebarCollapsed ? "justify-center w-12 h-12" : "w-full h-12 px-3.5 gap-3.5"
+            "flex items-center h-12 rounded-xl border-none bg-transparent text-text-secondary opacity-75 cursor-pointer hover:bg-black/5 hover:text-charcoalBlue hover:opacity-100 transition-colors duration-200 p-0 relative",
+            sidebarCollapsed ? "w-12 justify-center" : "w-full"
           )}
           whileTap={{ scale: 0.94 }}
           title={t('exit')}
           aria-label={t('exit')}
           data-testid="sidebar-logout-button"
         >
-          <LogOut size={18} strokeWidth={1.8} className="shrink-0" />
-          {!sidebarCollapsed && (
-            <span className="font-heading text-sm font-medium whitespace-nowrap">
+          <div className="w-12 h-12 shrink-0 flex items-center justify-center">
+            <LogOut size={18} strokeWidth={1.8} className="shrink-0" />
+          </div>
+          <div
+            className={cn(
+              "overflow-hidden transition-all duration-300 ease-in-out whitespace-nowrap",
+              sidebarCollapsed ? "w-0 opacity-0 pointer-events-none" : "flex-1 opacity-100 pr-3"
+            )}
+          >
+            <span className="font-heading text-sm font-medium block truncate">
               {t('exit')}
             </span>
-          )}
+          </div>
         </Motion.button>
       </div>
     </aside>
