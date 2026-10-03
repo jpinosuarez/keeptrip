@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useMemo, useCallback, useEffect, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import Map, { Source, Layer, NavigationControl, FullscreenControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -310,5 +310,5 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   );
 }
 
-export default React.memo(MapaView);
+export default memo(MapaView);
 

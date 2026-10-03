@@ -18,7 +18,7 @@
  *   cada página sin crear suscripciones adicionales a Firestore.
  */
 import React, { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate, useOutletContext } from 'react-router-dom';
+import { Routes, Route, Navigate, useOutletContext, useLocation } from 'react-router-dom';
 import PageLoader from '@shared/ui/components/PageLoader';
 import MaintenanceScreen from '@shared/ui/components/MaintenanceScreen';
 import { ENABLE_IMMERSIVE_VIEWER, ENABLE_INVITATIONS, ENABLE_GAMIFICATION } from '@shared/config';
@@ -45,8 +45,21 @@ const suspenseFallback = <PageLoader />;
 // ── Raíz pública/autenticada ───────────────────────────────────────────────────
 function RootRoute() {
   const { usuario, cargando } = useAuth();
+  const location = useLocation();
+
   if (cargando) return <PageLoader />;
-  if (usuario) return <Navigate to="/dashboard" replace />;
+  if (usuario) {
+    return (
+      <Navigate
+        to={{
+          pathname: '/dashboard',
+          search: location.search,
+        }}
+        replace
+        state={location.state}
+      />
+    );
+  }
   return (
     <Suspense fallback={suspenseFallback}>
       <LandingPage />
