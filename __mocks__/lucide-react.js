@@ -67,3 +67,5 @@ export const RefreshCw = createIconComponent('RefreshCw');
 export const Edit3 = createIconComponent('Edit3');
 export const ArrowLeft = createIconComponent('ArrowLeft');
 export const Globe2 = createIconComponent('Globe2');
+export const PanelLeftClose = createIconComponent('PanelLeftClose');
+export const PanelLeft = createIconComponent('PanelLeft');

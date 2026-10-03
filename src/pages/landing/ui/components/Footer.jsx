@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@shared/lib/utils/cn';
+import { BrandLogo } from '@shared/ui/brand';
 
 const Footer = () => {
   const { t, i18n } = useTranslation('landing');
@@ -28,9 +29,7 @@ const Footer = () => {
       <div className="max-w-[1200px] mx-auto flex flex-col gap-8">
         {/* Brand and Links Row */}
         <div className="flex flex-col md:flex-row items-center justify-between flex-wrap gap-8">
-          <div className="text-[clamp(1.2rem,2vw,1.8rem)] font-black text-white tracking-[-1px] font-heading cursor-pointer transition-all">
-            Keeptrip
-          </div>
+          <BrandLogo className="h-7 w-auto text-slate-700" />
           <nav className="flex flex-wrap justify-start md:justify-center items-center gap-4 md:gap-8" aria-label="Footer navigation">
             {footerLinks.map((link, index) => (
               link.href.startsWith('/') ? (

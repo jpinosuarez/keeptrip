@@ -11,6 +11,8 @@
   "hub": "Hub",
   "adjust": "Settings",
   "addTrip": "Add Trip",
+  "collapseSidebar": "Collapse sidebar",
+  "expandSidebar": "Expand sidebar",
   "searchJournal": "Search the logbook",
   "openSearch": "Open search",
   "closeSearch": "Close search",

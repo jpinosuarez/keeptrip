@@ -9,7 +9,7 @@
  */
 import React, { useState, lazy, Suspense, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Plus, User, X, Bell, Disc } from 'lucide-react';
+import { Search, Plus, User, X, Bell } from 'lucide-react';
 import {
   motion as Motion,
   useScroll,
@@ -22,6 +22,7 @@ import { useSearch, useUI } from '@app/providers/UIContext';
 import { ENABLE_INVITATIONS } from '@shared/config';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@shared/lib/utils/cn';
+import { BrandIsotype } from '@shared/ui/brand';
 
 // Lazy loading AuthModal prevents pulling `BottomSheet` (framer-motion) and `LegalDocumentViewer` into the critical parsing path.
 const authModalPromise = import('@features/auth/ui/AuthModal');
@@ -101,7 +102,7 @@ const Header = ({ invitationsCount = 0 }) => {
       <div className="flex items-center gap-2 min-w-0 flex-1">
         {/* Mobile Brand Anchor (Refinement #3) */}
         <div className="flex md:hidden items-center gap-1.5 shrink-0 mr-1">
-          <Disc size={22} className="text-atomicTangerine" />
+          <BrandIsotype className="text-atomicTangerine w-7 h-7" />
           {!isCompactLogoRoute && (
             <span className="font-black text-base text-charcoalBlue tracking-tight font-heading">
               Keeptrip
