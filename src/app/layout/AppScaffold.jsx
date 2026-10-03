@@ -1,9 +1,20 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Sidebar } from '@widgets/sidebar';
 import { Header } from '@widgets/header';
+import { useUI } from '@app/providers/UIContext';
 import { cn } from '@shared/lib/utils/cn';
 
-function AppScaffold({ invitationsCount, content, overlays }) {
+function AppScaffold({ sidebarCollapsed: propSidebarCollapsed, invitationsCount, content, overlays }) {
+  const { sidebarCollapsed: uiSidebarCollapsed } = useUI();
+  const isCollapsed = propSidebarCollapsed !== undefined ? propSidebarCollapsed : uiSidebarCollapsed;
+
+  const handleTransitionEnd = useCallback((e) => {
+    // Only dispatch on main's margin transition end to avoid noise from children
+    if (e.target === e.currentTarget && (e.propertyName === 'margin-left' || e.propertyName === 'margin')) {
+      window.dispatchEvent(new Event('resize'));
+    }
+  }, []);
+
   return (
     <div className="flex w-full h-[100dvh] min-h-[100dvh] overflow-hidden bg-slate-50 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       
@@ -11,7 +22,13 @@ function AppScaffold({ invitationsCount, content, overlays }) {
       <Sidebar />
 
       {/* Main Content Area - Transitions margin based on sidebar state via CSS */}
-      <main className="flex-1 flex flex-col min-w-0 min-h-0 relative overflow-hidden ml-0 md:ml-20 transition-[margin] duration-300">
+      <main
+        onTransitionEnd={handleTransitionEnd}
+        className={cn(
+          "flex-1 flex flex-col min-w-0 min-h-0 relative overflow-hidden transition-[margin] duration-300 ease-in-out",
+          isCollapsed ? "ml-0 md:ml-20" : "ml-0 md:ml-64"
+        )}
+      >
         <Header invitationsCount={invitationsCount} />
 
         <section className={cn(
