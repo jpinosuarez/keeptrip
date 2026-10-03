@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.1](https://github.com/jpinosuarez/keeptrip/compare/v1.0.0...v1.0.1) (2026-10-03)
+
+
+### Bug Fixes
+
+* **editor:** implement safe-area padding and virtual keyboard avoidance ([#67](https://github.com/jpinosuarez/keeptrip/issues/67)) ([f60ea79](https://github.com/jpinosuarez/keeptrip/commit/f60ea7946f55154a8e5e7f36637d1d77ff6c4805))
+* **editor:** remove useWindowSize from focus panel motion variants ([#65](https://github.com/jpinosuarez/keeptrip/issues/65)) ([efe86bb](https://github.com/jpinosuarez/keeptrip/commit/efe86bbc963c787a83b02cb12ca779afd9ef5e4f))
+* **i18n:** resolve object collisions and synchronize locale parity ([#68](https://github.com/jpinosuarez/keeptrip/issues/68)) ([3dc7a08](https://github.com/jpinosuarez/keeptrip/commit/3dc7a08392b7d23c253230409ecb50a3176d3033))
+* **pwa:** correct auth denylist regex and memoize map rendering ([#69](https://github.com/jpinosuarez/keeptrip/issues/69)) ([80d7c37](https://github.com/jpinosuarez/keeptrip/commit/80d7c376df7451eef606f074c001223274c5166f))
+
 ## 1.0.0 (2026-09-30)
 
 
