@@ -3,6 +3,7 @@ import { motion as Motion } from 'framer-motion';
 
 import { useAuth } from '@app/providers/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { BrandLogo } from '@shared/ui/brand';
 
 
 const AuthModal = React.lazy(() => import('@features/auth/ui/AuthModal'));
@@ -30,7 +31,7 @@ const NavBar = () => {
         className="sticky top-0 z-[100] w-full flex items-center justify-between px-6 md:px-12 py-5 bg-white/80 backdrop-blur-xl"
         variants={itemVariants}
       >
-        <div className="text-[1.6rem] font-black text-charcoalBlue tracking-[-1.2px] font-heading">Keeptrip</div>
+        <BrandLogo className="h-8 w-auto text-slate-900" />
         {usuario ? (
           <div className="flex items-center gap-4">
             <Motion.button

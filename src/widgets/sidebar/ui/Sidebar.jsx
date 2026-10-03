@@ -164,17 +164,17 @@ const Sidebar = () => {
       )}
       aria-label={t('navLabel')}
     >
-      {/* Sidebar Header: Brand + Collapse Toggle */}
+      {/* Sidebar Header: Brand Anchor */}
       <div className={cn("w-full mb-6", sidebarCollapsed ? "px-0 flex flex-col items-center" : "px-3")}>
         <AnimatePresence mode="wait" initial={false}>
           {sidebarCollapsed ? (
             <Motion.div
-              key="collapsed-header"
+              key="collapsed-brand"
               initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.85 }}
               transition={{ duration: 0.18, ease: 'easeOut' }}
-              className="flex flex-col items-center gap-3 w-full"
+              className="flex justify-center w-full"
             >
               <Motion.button
                 type="button"
@@ -187,27 +187,15 @@ const Sidebar = () => {
               >
                 <BrandIsotype className="w-8 h-8 text-atomicTangerine mx-auto" />
               </Motion.button>
-
-              <Motion.button
-                type="button"
-                onClick={toggleSidebarCollapse}
-                data-testid="sidebar-collapse-toggle"
-                aria-label={t('expandSidebar')}
-                title={t('expandSidebar')}
-                className="flex items-center justify-center w-12 h-12 rounded-xl border-none bg-transparent text-text-secondary cursor-pointer hover:bg-black/5 hover:text-charcoalBlue transition-all duration-200"
-                whileTap={{ scale: 0.90 }}
-              >
-                <PanelLeft size={20} />
-              </Motion.button>
             </Motion.div>
           ) : (
             <Motion.div
-              key="expanded-header"
+              key="expanded-brand"
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -8 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="flex items-center justify-between w-full px-1"
+              className="flex items-center w-full px-1"
             >
               <Motion.button
                 type="button"
@@ -218,19 +206,7 @@ const Sidebar = () => {
                 aria-label="Keeptrip Home"
                 title="Keeptrip"
               >
-                <BrandLogo className="h-7 w-auto text-charcoalBlue" />
-              </Motion.button>
-
-              <Motion.button
-                type="button"
-                onClick={toggleSidebarCollapse}
-                data-testid="sidebar-collapse-toggle"
-                aria-label={t('collapseSidebar')}
-                title={t('collapseSidebar')}
-                className="flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border-none bg-transparent text-text-secondary cursor-pointer hover:bg-black/5 hover:text-charcoalBlue transition-all duration-200"
-                whileTap={{ scale: 0.90 }}
-              >
-                <PanelLeftClose size={20} />
+                <BrandLogo className="h-8 w-auto text-slate-900" />
               </Motion.button>
             </Motion.div>
           )}
@@ -255,7 +231,32 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      <div className={cn("flex flex-col pb-6 w-full", sidebarCollapsed ? "items-center px-0" : "px-3")}>
+      {/* Footer Rail: Ergonomic Toggle + Logout */}
+      <div className={cn("flex flex-col gap-2 pb-6 w-full", sidebarCollapsed ? "items-center px-0" : "px-3")}>
+        <Motion.button
+          type="button"
+          onClick={toggleSidebarCollapse}
+          data-testid="sidebar-collapse-toggle"
+          aria-label={sidebarCollapsed ? t('expandSidebar') : t('collapseSidebar')}
+          title={sidebarCollapsed ? t('expandSidebar') : t('collapseSidebar')}
+          className={cn(
+            "flex items-center rounded-xl border-none bg-transparent text-text-secondary cursor-pointer hover:bg-black/5 hover:text-charcoalBlue transition-all duration-200 min-h-[48px]",
+            sidebarCollapsed ? "justify-center w-12 h-12" : "w-full h-12 px-3.5 gap-3.5"
+          )}
+          whileTap={{ scale: 0.94 }}
+        >
+          {sidebarCollapsed ? (
+            <PanelLeft size={20} className="shrink-0" />
+          ) : (
+            <PanelLeftClose size={20} className="shrink-0" />
+          )}
+          {!sidebarCollapsed && (
+            <span className="font-heading text-sm font-medium whitespace-nowrap">
+              {t('collapseSidebar')}
+            </span>
+          )}
+        </Motion.button>
+
         <Motion.button
           type="button"
           onClick={logout}

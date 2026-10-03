@@ -30,17 +30,16 @@ describe('Brand Components', () => {
       expect(svg).toHaveClass('text-charcoalBlue');
     });
 
-    it('renders the flight mark and wordmark with custom token classNames', () => {
-      const { container } = render(
-        <BrandLogo
-          isotypeClassName="text-atomicTangerine"
-          textClassName="text-charcoalBlue"
-        />
-      );
-      const markPaths = container.querySelectorAll('.text-atomicTangerine');
-      expect(markPaths.length).toBe(3);
-      const textPaths = container.querySelectorAll('.text-charcoalBlue');
-      expect(textPaths.length).toBeGreaterThan(0);
+    it('enforces monochromatic fill="currentColor" across all paths', () => {
+      const { container } = render(<BrandLogo />);
+      const svg = screen.getByRole('img', { name: 'Keeptrip' });
+      expect(svg).toHaveClass('text-slate-900', 'dark:text-white');
+
+      const allPaths = container.querySelectorAll('path');
+      expect(allPaths.length).toBe(17);
+      allPaths.forEach((path) => {
+        expect(path).toHaveAttribute('fill', 'currentColor');
+      });
     });
   });
 });
