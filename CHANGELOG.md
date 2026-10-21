@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.0](https://github.com/jpinosuarez/keeptrip/compare/v1.0.1...v1.1.0) (2026-10-21)
+
+
+### Features
+
+* integrate official brand assets, zero-jank sidebar, and unified mobile topbar ([9d6990f](https://github.com/jpinosuarez/keeptrip/commit/9d6990f22d7110ab92862beb3826cbb627531cd2))
+
+
+### Bug Fixes
+
+* **config:** align firebase aliases and project IDs in firebaserc for staging ([#76](https://github.com/jpinosuarez/keeptrip/issues/76)) ([96e68dd](https://github.com/jpinosuarez/keeptrip/commit/96e68dd21416cd8bb2bd913bfb1960e9b17c66ee))
+* **firebase:** enforce host boundary guards on emulators and harden staging build ([#75](https://github.com/jpinosuarez/keeptrip/issues/75)) ([9fadbba](https://github.com/jpinosuarez/keeptrip/commit/9fadbba200b95c6f686a48e557caa38f5bfcbb57))
+
 ## [1.0.1](https://github.com/jpinosuarez/keeptrip/compare/v1.0.0...v1.0.1) (2026-10-03)
 
 
