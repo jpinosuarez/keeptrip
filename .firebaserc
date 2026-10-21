@@ -2,5 +2,21 @@
   "projects": {
     "default": "keeptrip-app-b06b3",
     "staging": "keeptrip-app-staging"
+  },
+  "targets": {
+    "keeptrip-app-b06b3": {
+      "hosting": {
+        "keeptrip": [
+          "keeptrip-app-b06b3"
+        ]
+      }
+    },
+    "keeptrip-app-staging": {
+      "hosting": {
+        "keeptrip-staging": [
+          "keeptrip-app-staging"
+        ]
+      }
+    }
   }
 }
