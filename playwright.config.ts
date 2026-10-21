@@ -22,6 +22,8 @@ export default defineConfig({
     reuseExistingServer: true,
     env: {
       VITE_USE_EMULATORS: 'true',
+      VITE_USE_FIREBASE_EMULATOR: 'true',
+      VITE_E2E: 'true',
       VITE_ENABLE_TEST_LOGIN: 'true',
       VITE_E2E_ENABLE_INVITATIONS: 'true',
       VITE_E2E_ENABLE_IMMERSIVE_VIEWER: 'true',

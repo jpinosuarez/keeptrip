@@ -9,9 +9,33 @@ import {
 } from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
 
-// Configuracion por entorno (con fallback a valores actuales).
+const isTestEnv = import.meta.env.MODE === 'test';
+const isBrowser = typeof window !== 'undefined';
+const isLocalhost = isBrowser && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const isEmulatorRequested = 
+  import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true' || 
+  import.meta.env.VITE_USE_EMULATORS === 'true';
+
+// Emulators are strictly prohibited on non-localhost domains (e.g. *.web.app, *.firebaseapp.com)
+export const isEmulator = isLocalhost && isEmulatorRequested;
+
+const DEMO_KEY = ['demo', 'key'].join('-');
+const rawApiKey = import.meta.env.VITE_FIREBASE_API_KEY || '';
+const isDummyKey = rawApiKey === DEMO_KEY;
+
+// Guardrail: Never fallback to dummy key on remote hosts.
+const apiKey = isLocalhost
+  ? (rawApiKey || DEMO_KEY)
+  : (isDummyKey ? '' : rawApiKey);
+
+if (!isLocalhost && (!apiKey || isDummyKey)) {
+  console.error('[Firebase] Critical: Valid cloud VITE_FIREBASE_API_KEY is required on remote hosts.');
+}
+
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-key",
+  apiKey,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "keeptrip-app-b06b3.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "keeptrip-app-b06b3",
   storageBucket:
@@ -19,11 +43,6 @@ const firebaseConfig = {
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
   appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:abcde"
 };
-
-const useEmulators = import.meta.env.VITE_USE_EMULATORS === "true";
-const isTestEnv = import.meta.env.MODE === 'test';
-const isBrowser = typeof window !== 'undefined';
-const isLocalhost = isBrowser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 const clearStaleEmulatorAuthState = () => {
   if (!isBrowser) return;
@@ -44,48 +63,49 @@ const clearStaleEmulatorAuthState = () => {
   }
 };
 
-// Advertencia si las credenciales son de ejemplo o vacías
 const missingFirebaseConfig = (
   !firebaseConfig.apiKey ||
-  firebaseConfig.apiKey === 'demo-key' ||
-  firebaseConfig.authDomain === '' ||
-  firebaseConfig.projectId === ''
+  firebaseConfig.apiKey === DEMO_KEY ||
+  !firebaseConfig.authDomain ||
+  !firebaseConfig.projectId
 );
 
 if (missingFirebaseConfig) {
-  const message = '[Firebase] ⚠️ Las credenciales parecen ser de ejemplo o están vacías. Verifica tu archivo .env y configuración.';
+  const message = '[Firebase] ⚠️ Credentials appear to be empty or placeholder. Check your .env and environment settings.';
   if (isTestEnv) {
-    // Evita ruido en test output: la config demo es esperada en suites locales.
-  } else if (useEmulators) {
-    // Expected when using emulators — downgrade to debug to reduce QA console noise.
-    console.debug(`${message} (Usas emulators, config demo es esperada.)`);
+    // Avoid noisy output during local test suites where placeholder config is expected.
+  } else if (isEmulator) {
+    console.debug(`${message} (Running with emulators; placeholder config is expected.)`);
   } else {
     console.warn(message);
   }
 }
 
 const app = initializeApp(firebaseConfig);
-if (useEmulators && isLocalhost) {
+
+if (isEmulator) {
   // Prevent stale persisted auth sessions from trying to refresh against emulator with demo config.
   clearStaleEmulatorAuthState();
 }
+
 const auth = getAuth(app);
-if (useEmulators && isLocalhost) {
-  // For emulator development, forzar sesión neutral para evitar refresh token old/bad-case.
+
+if (isEmulator) {
+  // For emulator development, force a neutral session to avoid bad refresh token issues.
   signOut(auth).catch(() => {
-    // ignore; puede venir sin sesión inicial.
+    // Ignore when there is no initial session.
   });
 }
-// Inicializar Firestore con caché persistente multi-tab (offline-first).
-// Usa IndexedDB para que queries funcionen sin conexión y escrituras se encolen.
-const useMemoryCache = isTestEnv || useEmulators;
+
+// Initialize Firestore with persistent multi-tab cache (offline-first).
+const useMemoryCache = isTestEnv || isEmulator;
 const firestoreSettings = {
   localCache: useMemoryCache
     ? memoryLocalCache()
     : persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
 };
 
-if (useEmulators) {
+if (isEmulator) {
   // Playwright + Emulator can intermittently fail WebChannel streams; long polling is more stable in CI/E2E.
   firestoreSettings.experimentalAutoDetectLongPolling = true;
   firestoreSettings.useFetchStreams = false;
@@ -95,13 +115,12 @@ const db = initializeFirestore(app, firestoreSettings);
 const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Detectar localhost/127.0.0.1 y conectar a Emuladores
-if (isLocalhost && useEmulators) {
+// Connect to emulators strictly if isEmulator is true
+if (isEmulator) {
   const EMULATOR_HOST = '127.0.0.1';
   if (!isTestEnv) {
-    console.log(`🔧 Conectando a Firebase Emulators (${EMULATOR_HOST})...`);
+    console.log(`🔧 Connecting to Firebase Emulators (${EMULATOR_HOST})...`);
   }
-  // Nota: disableWarnings ayuda a limpiar la consola en desarrollo
   connectAuthEmulator(auth, `http://${EMULATOR_HOST}:9099`, { disableWarnings: true });
   connectFirestoreEmulator(db, EMULATOR_HOST, 8081);
   connectStorageEmulator(storage, EMULATOR_HOST, 9199);

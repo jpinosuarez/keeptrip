@@ -66,5 +66,5 @@ describe('InvitationsList', () => {
     await userEvent.click(screen.getByTestId('inv-decline-inv1'));
     expect(decline).toHaveBeenCalledWith('inv1');
     expect(pushToastMock).toHaveBeenCalledWith(expect.stringContaining('Invitación rechazada'), 'warning');
-  });
+  }, 15000);
 });

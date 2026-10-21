@@ -8,7 +8,7 @@ import {
   updateProfile,
   signInWithEmailAndPassword
 } from 'firebase/auth';
-import { auth, db, googleProvider } from '@shared/firebase';
+import { auth, db, googleProvider, isEmulator } from '@shared/firebase';
 
 const AuthContext = createContext();
 
@@ -28,7 +28,6 @@ export const AuthProvider = ({ children }) => {
   }, [usuario]);
 
   const login = useCallback(async () => {
-    const isEmulator = import.meta.env.VITE_USE_EMULATORS === 'true';
     const testEmail = import.meta.env.VITE_EMULATOR_TEST_EMAIL;
     const testPassword = import.meta.env.VITE_EMULATOR_TEST_PASSWORD;
 
