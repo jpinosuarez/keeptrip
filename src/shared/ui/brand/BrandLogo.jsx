@@ -12,6 +12,7 @@ const BrandLogo = ({
   className = 'text-atomicTangerine',
   size,
   ariaLabel = 'Keeptrip',
+  style,
   ...props
 }) => {
   return (
@@ -24,7 +25,8 @@ const BrandLogo = ({
       aria-hidden={ariaLabel ? undefined : true}
       width={size || 110}
       height={size || 32}
-      className={cn('shrink-0', className)}
+      style={{ aspectRatio: '418 / 122', ...style }}
+      className={cn('shrink-0 fill-current', className)}
       {...props}
     >
       <path

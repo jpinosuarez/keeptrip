@@ -179,7 +179,7 @@ const Sidebar = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.88 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="w-12 h-12 flex items-center justify-center shrink-0 absolute left-0"
+              className="w-12 h-12 flex items-center justify-center shrink-0 absolute inset-y-0 left-0 my-auto"
             >
               <Motion.button
                 type="button"
@@ -200,18 +200,18 @@ const Sidebar = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -6 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="w-full h-12 flex items-center shrink-0 absolute left-0"
+              className="w-full h-12 flex items-center shrink-0 absolute inset-y-0 left-0 my-auto"
             >
               <Motion.button
                 type="button"
                 onClick={() => navigate('/dashboard')}
-                className="h-12 flex items-center p-0 bg-transparent border-none cursor-pointer"
+                className="h-12 flex items-center p-0 bg-transparent border-none cursor-pointer shrink-0"
                 whileHover={{ opacity: 0.85 }}
                 whileTap={{ scale: 0.96 }}
                 aria-label="Keeptrip Home"
                 title="Keeptrip"
               >
-                <BrandLogo className="h-8 w-auto text-atomicTangerine" />
+                <BrandLogo className="h-8 w-28 text-atomicTangerine" />
               </Motion.button>
             </Motion.div>
           )}

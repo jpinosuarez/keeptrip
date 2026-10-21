@@ -31,7 +31,7 @@ const NavBar = () => {
         className="sticky top-0 z-[100] w-full flex items-center justify-between px-6 md:px-12 py-5 bg-white/80 backdrop-blur-xl"
         variants={itemVariants}
       >
-        <BrandLogo className="h-8 w-auto text-atomicTangerine" />
+        <BrandLogo className="h-8 w-28 text-atomicTangerine" />
         {usuario ? (
           <div className="flex items-center gap-4">
             <Motion.button
