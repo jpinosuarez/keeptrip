@@ -66,21 +66,21 @@ const TripsPage = () => {
 
   return (
     <div className="flex flex-col h-full relative overflow-y-auto overflow-x-hidden">
-      {/* 1. Stats Bar at the top. Increased bottom margin to let it breathe. */}
-      <div className="mb-4 mt-1">
+      {/* 1. Filters & Search Bar directly below the top bar */}
+      <div className="mb-3">
+        <TripCommandBar 
+          activeFilter={activeFilter} 
+          onFilterChange={setActiveFilter}
+        />
+      </div>
+
+      {/* 2. Stats Bar */}
+      <div className="mb-4">
         <TravelStatsWidget
           logStats={tripsLogStats}
           ariaLabel={t('stats.tripSummary')}
           variant="compact"
           containerClassName="w-full md:w-fit md:mx-auto md:justify-center max-w-4xl"
-        />
-      </div>
-
-      {/* 2. Filters Bar below the Stats Bar. Added bottom margin. */}
-      <div className="mb-4">
-        <TripCommandBar 
-          activeFilter={activeFilter} 
-          onFilterChange={setActiveFilter}
         />
       </div>
       

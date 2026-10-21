@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Sidebar } from '@widgets/sidebar';
 import { Header } from '@widgets/header';
 import { useUI } from '@app/providers/UIContext';
@@ -7,6 +8,8 @@ import { cn } from '@shared/lib/utils/cn';
 function AppScaffold({ sidebarCollapsed: propSidebarCollapsed, invitationsCount, content, overlays }) {
   const { sidebarCollapsed: uiSidebarCollapsed } = useUI();
   const isCollapsed = propSidebarCollapsed !== undefined ? propSidebarCollapsed : uiSidebarCollapsed;
+  const location = useLocation();
+  const isMapRoute = location.pathname === '/map' || location.pathname === '/mapa';
 
   const handleTransitionEnd = useCallback((e) => {
     // Only dispatch on main's margin transition end to avoid noise from children
@@ -16,7 +19,7 @@ function AppScaffold({ sidebarCollapsed: propSidebarCollapsed, invitationsCount,
   }, []);
 
   return (
-    <div className="flex w-full h-[100dvh] min-h-[100dvh] overflow-hidden bg-slate-50 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+    <div className="flex w-full h-[100dvh] min-h-[100dvh] overflow-hidden bg-slate-50 pb-safe">
       
       {/* Sidebar - Fixed rail outside main flow */}
       <Sidebar />
@@ -33,7 +36,7 @@ function AppScaffold({ sidebarCollapsed: propSidebarCollapsed, invitationsCount,
 
         <section className={cn(
           "flex flex-col flex-1 min-w-0 min-h-0 w-full max-w-full overflow-hidden",
-          "px-3 py-3 md:px-6 md:py-4",
+          isMapRoute ? "p-0 md:px-6 md:py-4" : "px-3 py-3 md:px-6 md:py-4",
           "pb-[calc(80px+max(16px,env(safe-area-inset-bottom,0px)))] md:pb-[max(24px,env(safe-area-inset-bottom,0px))]"
         )}>
           {content}

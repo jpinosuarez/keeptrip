@@ -8,6 +8,7 @@ export const motion = new Proxy({}, {
 });
 
 export const useMotionValue = (v) => ({ get: () => v, set: () => {} });
+export const useScroll = () => ({ scrollY: { get: () => 0, onChange: () => () => {} }, scrollX: { get: () => 0, onChange: () => () => {} } });
 export const useTransform = () => ({ get: () => 0, set: () => {} });
 export const useSpring = (value) => value;
 export const useReducedMotion = () => false;
