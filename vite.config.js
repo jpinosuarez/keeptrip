@@ -19,10 +19,31 @@ const baseAliases = {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
-  define: {
-    __APP_VERSION__: JSON.stringify(pkg.version),
-  },
+export default defineConfig(({ mode }) => {
+  // Mode-specific environment file takes precedence over ambient shell variables (e.g. demo-key)
+  if (mode) {
+    const modeEnvPath = path.resolve(__dirname, `.env.${mode}`);
+    if (fs.existsSync(modeEnvPath)) {
+      const modeEnvContent = fs.readFileSync(modeEnvPath, 'utf-8');
+      for (const line of modeEnvContent.split(/\r?\n/)) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const eqIdx = trimmed.indexOf('=');
+        if (eqIdx !== -1) {
+          const key = trimmed.slice(0, eqIdx).trim();
+          const val = trimmed.slice(eqIdx + 1).trim().replace(/^['"](.*)['"]$/, '$1');
+          if (process.env[key] === 'demo-key' || mode !== 'development') {
+            process.env[key] = val;
+          }
+        }
+      }
+    }
+  }
+
+  return {
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
+    },
   optimizeDeps: {
     include: ['topojson-client'],
   },
@@ -187,4 +208,5 @@ export default defineConfig({
     // Excluir E2E del runner de Vitest
     exclude: ['e2e/**', 'node_modules/**', '.kilo/**'],
   },
+}
 })
