@@ -33,7 +33,7 @@ describe('Brand Components', () => {
     it('enforces monochromatic fill="currentColor" across all paths', () => {
       const { container } = render(<BrandLogo />);
       const svg = screen.getByRole('img', { name: 'Keeptrip' });
-      expect(svg).toHaveClass('text-slate-900', 'dark:text-white');
+      expect(svg).toHaveClass('text-atomicTangerine');
 
       const allPaths = container.querySelectorAll('path');
       expect(allPaths.length).toBe(17);

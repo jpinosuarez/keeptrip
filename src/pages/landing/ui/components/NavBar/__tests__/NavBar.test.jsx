@@ -24,7 +24,7 @@ describe('NavBar Component', () => {
 
     const logo = screen.getByRole('img', { name: 'Keeptrip' });
     expect(logo).toBeInTheDocument();
-    expect(logo).toHaveClass('h-8', 'w-auto', 'text-slate-900');
+    expect(logo).toHaveClass('h-8', 'w-auto', 'text-atomicTangerine');
   });
 
   it('renders login button when unauthenticated', () => {

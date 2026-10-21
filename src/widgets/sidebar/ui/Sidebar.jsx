@@ -211,7 +211,7 @@ const Sidebar = () => {
                 aria-label="Keeptrip Home"
                 title="Keeptrip"
               >
-                <BrandLogo className="h-8 w-auto text-slate-900 dark:text-white" />
+                <BrandLogo className="h-8 w-auto text-atomicTangerine" />
               </Motion.button>
             </Motion.div>
           )}

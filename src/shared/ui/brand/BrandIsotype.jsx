@@ -8,7 +8,7 @@ import { cn } from '@shared/lib/utils/cn';
  * (e.g. text-atomicTangerine, text-white, text-charcoalBlue).
  */
 const BrandIsotype = ({
-  className,
+  className = 'text-atomicTangerine',
   size,
   ariaLabel = 'Keeptrip',
   ...props
@@ -21,8 +21,8 @@ const BrandIsotype = ({
       role="img"
       aria-label={ariaLabel}
       aria-hidden={ariaLabel ? undefined : true}
-      width={size}
-      height={size}
+      width={size || 110}
+      height={size || 124}
       className={cn('shrink-0 fill-current', className)}
       {...props}
     >

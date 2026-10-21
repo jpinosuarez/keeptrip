@@ -9,7 +9,7 @@ import { cn } from '@shared/lib/utils/cn';
  * Styled via Tailwind text utility classes (e.g. text-slate-900, text-white).
  */
 const BrandLogo = ({
-  className = 'text-slate-900 dark:text-white',
+  className = 'text-atomicTangerine',
   size,
   ariaLabel = 'Keeptrip',
   ...props
@@ -22,8 +22,8 @@ const BrandLogo = ({
       role="img"
       aria-label={ariaLabel}
       aria-hidden={ariaLabel ? undefined : true}
-      width={size}
-      height={size}
+      width={size || 110}
+      height={size || 32}
       className={cn('shrink-0', className)}
       {...props}
     >
