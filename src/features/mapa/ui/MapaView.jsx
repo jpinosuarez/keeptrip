@@ -34,6 +34,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   const { i18n, t } = useTranslation(['dashboard', 'nav']);
   useDocumentTitle(t('nav:pageTitle.worldMap'));
   const mapRef = useRef(null);
+  const mapContainerRef = useRef(null);
   const spinGlobeRef = useRef(null);
   
   const {
@@ -125,6 +126,26 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
     setMapLanguage(mapRef.current, i18n.language);
   }, [i18n.language]);
 
+  // Mapbox WebGL resize synchronization on parent container dimension shifts
+  useEffect(() => {
+    if (typeof ResizeObserver === 'undefined' || !mapContainerRef.current) return undefined;
+
+    let rafId = null;
+    const observer = new ResizeObserver(() => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        mapRef.current?.resize();
+      });
+    });
+
+    observer.observe(mapContainerRef.current);
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      observer.disconnect();
+    };
+  }, []);
+
   // Click on map marker → select trip
   const onMapClick = useCallback((event) => {
     const feature = event.features && event.features[0];
@@ -191,7 +212,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
 
   // ── Render ───────────────────────────────────────────────────────────
   return (
-    <div className="w-full h-[100dvh] md:h-full rounded-3xl overflow-hidden bg-[#e0f2fe] relative">
+    <div ref={mapContainerRef} className="w-full h-[100dvh] md:h-full rounded-3xl overflow-hidden bg-[#e0f2fe] relative">
       {isWebGLDisabled ? (
         <OperationalMapFallback message={mapShieldMessage} borderRadius="var(--radius-xl)" />
       ) : (

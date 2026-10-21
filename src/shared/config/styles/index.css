@@ -101,6 +101,40 @@ html, body, #root {
   line-height: 1 !important;
 }
 
+/* Mapbox Control Group: Keeptrip Glassmorphism */
+.mapboxgl-ctrl-group {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-radius: 1rem !important; /* rounded-2xl */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+  overflow: hidden !important;
+}
+
+.mapboxgl-ctrl-group button {
+  width: 44px !important;
+  height: 44px !important;
+  transition: background-color 0.2s ease;
+}
+
+.mapboxgl-ctrl-group button:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+.mapboxgl-ctrl-group button + button {
+  border-top: 1px solid rgba(226, 232, 240, 0.6) !important;
+}
+
+/* Mobile Mapbox Top-Right Offset: Prevents collision with MapFloatingHud */
+@media (max-width: 767px) {
+  .mapboxgl-ctrl-top-right {
+    top: calc(env(safe-area-inset-top, 0px) + 4.25rem) !important;
+    right: 1rem !important;
+    margin: 0 !important;
+  }
+}
+
 /* ── Phase 3 Native Styles: Zero-JS Responsive Layouts ── */
 
 /* 1. Header UX Silencing */
@@ -152,4 +186,14 @@ html, body, #root {
 }
 .portal-menu-item.danger:hover {
   background-color: #FEE2E2; /* red-100 */
+}
+
+/* 5. Safe Area Utilities (Tailwind v3 Compliance) */
+@layer utilities {
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }

@@ -21,6 +21,18 @@ const readMapStyle = () => {
   }
 };
 
+// ── sidebarCollapsed persistence helpers ──
+const SIDEBAR_COLLAPSED_KEY = 'keeptrip_sidebar_collapsed';
+
+const readSidebarCollapsed = () => {
+  try {
+    const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+    return stored === 'true';
+  } catch {
+    return false;
+  }
+};
+
 export const UIProvider = ({ children }) => {
   const { t } = useTranslation('common');
   const { pushToast } = useToast();
@@ -31,7 +43,24 @@ export const UIProvider = ({ children }) => {
   const isReadOnlyMode = Boolean(appReadonlyMode) || Number(operationalLevel || 0) >= 3;
   const isMaintenanceMode = Boolean(appMaintenanceMode) || Number(operationalLevel || 0) >= 4;
 
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsedState] = useState(readSidebarCollapsed);
+
+  const setSidebarCollapsed = useCallback((valueOrUpdater) => {
+    setSidebarCollapsedState((prev) => {
+      const next = typeof valueOrUpdater === 'function' ? valueOrUpdater(prev) : valueOrUpdater;
+      try {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(Boolean(next)));
+      } catch {
+        // storage unavailable — ignore silently
+      }
+      return Boolean(next);
+    });
+  }, []);
+
+  const toggleSidebarCollapse = useCallback(() => {
+    setSidebarCollapsed((prev) => !prev);
+  }, [setSidebarCollapsed]);
+
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   
   // SearchPalette (Cmd+K) state
@@ -83,7 +112,7 @@ export const UIProvider = ({ children }) => {
         searchPlaceholder: 'Buscar viajes, paises o ciudades...',
         sidebarCollapsed,
         setSidebarCollapsed,
-        toggleSidebarCollapse: () => setSidebarCollapsed((prev) => !prev),
+        toggleSidebarCollapse,
         mobileDrawerOpen,
         setMobileDrawerOpen,
         openMobileDrawer: () => setMobileDrawerOpen(true),
@@ -114,6 +143,8 @@ export const UIProvider = ({ children }) => {
     },
     [
       sidebarCollapsed,
+      setSidebarCollapsed,
+      toggleSidebarCollapse,
       mobileDrawerOpen,
       searchPaletteOpen,
       userMenuOpen,

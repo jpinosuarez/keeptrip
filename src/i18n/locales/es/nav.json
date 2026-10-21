@@ -11,6 +11,8 @@
   "hub": "Hub",
   "adjust": "Ajustes",
   "addTrip": "Añadir Viaje",
+  "collapseSidebar": "Contraer menú",
+  "expandSidebar": "Expandir menú",
   "searchJournal": "Buscar en tus viajes",
   "openSearch": "Abrir búsqueda",
   "closeSearch": "Cerrar búsqueda",

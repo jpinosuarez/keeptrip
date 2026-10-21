@@ -10,7 +10,7 @@ afterEach(() => cleanup());
 describe('Footer Component', () => {
   it('renders footer with Keeptrip brand name', () => {
     render(<MemoryRouter><Footer /></MemoryRouter>);
-    const keeptrip = screen.getByText('Keeptrip');
+    const keeptrip = screen.getByRole('img', { name: 'Keeptrip' });
     expect(keeptrip).toBeInTheDocument();
   });
 
