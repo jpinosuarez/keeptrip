@@ -537,3 +537,117 @@ export const construirViajePayload = ({
     ciudades
   };
 };
+
+/**
+ * Ordena paradas cronológicamente de forma estable:
+ * 1. Primario: fecha de llegada (o fecha) ascendente.
+ * 2. Desempate 1: mayor duración primero (ciudad base antes que escapada).
+ * 3. Desempate 2: orden manual explícito (order/orden) o índice original.
+ *
+ * @param {Array<Object>} paradas - Lista de paradas a ordenar
+ * @returns {Array<Object>} Nueva lista de paradas ordenadas
+ */
+export const ordenarParadasCronologicamente = (paradas = []) => {
+  if (!Array.isArray(paradas) || paradas.length <= 1) {
+    return Array.isArray(paradas) ? [...paradas] : [];
+  }
+
+  const itemsConIndice = paradas.map((parada, idx) => ({
+    parada,
+    originalIndex: idx,
+    inicio: normalizeToIsoDate(parada?.fechaLlegada || parada?.fecha) || '',
+    fin: normalizeToIsoDate(parada?.fechaSalida || parada?.fechaLlegada || parada?.fecha) || '',
+    order: typeof parada?.order === 'number' ? parada.order : (typeof parada?.orden === 'number' ? parada.orden : idx),
+  }));
+
+  itemsConIndice.sort((a, b) => {
+    // 1. Primario: fecha de inicio / llegada ascendente
+    if (a.inicio && b.inicio && a.inicio !== b.inicio) {
+      return a.inicio.localeCompare(b.inicio);
+    }
+    if (a.inicio && !b.inicio) return -1;
+    if (!a.inicio && b.inicio) return 1;
+
+    // 2. Desempate 1: mayor duración primero (ciudad base antes que escapada)
+    const durA = (a.inicio && a.fin) ? Math.max(0, new Date(a.fin) - new Date(a.inicio)) : 0;
+    const durB = (b.inicio && b.fin) ? Math.max(0, new Date(b.fin) - new Date(b.inicio)) : 0;
+    if (durA !== durB) {
+      return durB - durA; // Mayor duración primero
+    }
+
+    // 3. Desempate 2: orden manual explícito
+    if (a.order !== b.order) {
+      return a.order - b.order;
+    }
+
+    // 4. Desempate 3: posición original en el array
+    return a.originalIndex - b.originalIndex;
+  });
+
+  return itemsConIndice.map((item) => item.parada);
+};
+
+/**
+ * Determina si una parada es una escapada (day excursion) contenida dentro de una parada base.
+ *
+ * @param {Object} parada - Parada candidata a escapada
+ * @param {Object} paradaBase - Parada base de referencia
+ * @returns {boolean}
+ */
+export const esParadaEscapada = (parada, paradaBase) => {
+  if (!parada || !paradaBase) return false;
+
+  const baseInicio = normalizeToIsoDate(paradaBase.fechaLlegada || paradaBase.fecha);
+  const baseFin = normalizeToIsoDate(paradaBase.fechaSalida || paradaBase.fechaLlegada || paradaBase.fecha);
+  const paradaInicio = normalizeToIsoDate(parada.fechaLlegada || parada.fecha);
+  const paradaFin = normalizeToIsoDate(parada.fechaSalida || parada.fechaLlegada || parada.fecha);
+
+  if (!baseInicio || !baseFin || !paradaInicio || !paradaFin) return false;
+
+  const dentroDeRango = paradaInicio >= baseInicio && paradaFin <= baseFin;
+  if (!dentroDeRango) return false;
+
+  // Si tienen exactamente las mismas fechas, es coincidencia completa/misma estancia, no escapada
+  if (paradaInicio === baseInicio && paradaFin === baseFin) return false;
+
+  return true;
+};
+
+/**
+ * Calcula el rango envolvente elástico de fechas (inicio y fin) a partir de una lista de paradas.
+ * - Toma todas las fechas válidas de llegada y salida.
+ * - Si una parada solo tiene fecha de llegada (o fecha) y no de salida, esa fecha cuenta como inicio y fin de esa parada.
+ * - Retorna { fechaInicio, fechaFin } si existen fechas válidas, o { fechaInicio: null, fechaFin: null } si no hay fechas asignadas.
+ *
+ * @param {Array<Object>} paradas - Lista de paradas del borrador
+ * @returns {{ fechaInicio: string|null, fechaFin: string|null }}
+ */
+export const calcularRangoFechasParadas = (paradas = []) => {
+  if (!Array.isArray(paradas) || paradas.length === 0) {
+    return { fechaInicio: null, fechaFin: null };
+  }
+
+  const allDates = [];
+
+  for (const p of paradas) {
+    if (!p) continue;
+    const llegada = normalizeToIsoDate(p.fechaLlegada || p.fecha);
+    const salida = normalizeToIsoDate(p.fechaSalida);
+
+    if (llegada) allDates.push(llegada);
+    if (salida) allDates.push(salida);
+  }
+
+  if (allDates.length === 0) {
+    return { fechaInicio: null, fechaFin: null };
+  }
+
+  allDates.sort();
+  const inicio = allDates[0];
+  const fin = allDates[allDates.length - 1];
+
+  return {
+    fechaInicio: inicio,
+    fechaFin: fin >= inicio ? fin : inicio,
+  };
+};

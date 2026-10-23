@@ -257,6 +257,10 @@ const EdicionModal = ({
                   t={t}
                   paradas={paradas}
                   setParadas={setParadas}
+                  fechaRangoDisplay={formData?.fechaInicio && formData?.fechaFin ? `${formData.fechaInicio} - ${formData.fechaFin}` : ''}
+                  tripStartDate={formData?.fechaInicio}
+                  tripEndDate={formData?.fechaFin}
+                  sinParadas={paradas.length === 0}
                 />
               </Motion.div>
             )}

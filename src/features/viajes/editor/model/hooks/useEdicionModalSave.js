@@ -68,6 +68,21 @@ export function useEdicionModalSave({
       return null;
     }
 
+    const invalidStopDate = Array.isArray(paradas) && paradas.find((p) => {
+      const llegada = normalizeToIsoDate(p?.fechaLlegada || p?.fecha);
+      const salida = normalizeToIsoDate(p?.fechaSalida);
+      return Boolean(llegada && salida && salida < llegada);
+    });
+
+    if (invalidStopDate) {
+      pushToast(
+        t('editor.errors.dateInverted', 'La fecha de salida no puede ser anterior a la de llegada') +
+          (invalidStopDate.nombre ? ` (${invalidStopDate.nombre})` : ''),
+        'error'
+      );
+      return null;
+    }
+
     try {
       const savePayload = {
         ...formData,
