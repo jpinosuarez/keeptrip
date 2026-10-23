@@ -14,7 +14,10 @@ import {
   formatDateSlash,
   formatDateRange,
   formatStorytellingDate,
-  calculateTripDays
+  calculateTripDays,
+  ordenarParadasCronologicamente,
+  esParadaEscapada,
+  calcularRangoFechasParadas
 } from './viajeUtils';
 
 describe('viajeUtils', () => {
@@ -378,6 +381,99 @@ describe('viajeUtils', () => {
       const start = new Date(2026, 3, 1);
       const end = new Date(2026, 3, 3);
       expect(calculateTripDays(start, end)).toBe(3);
+    });
+  });
+
+  // ─── ordenarParadasCronologicamente & esParadaEscapada ───
+  describe('ordenarParadasCronologicamente & esParadaEscapada', () => {
+    it('ordena paradas primariamente por fecha de inicio', () => {
+      const paradas = [
+        { nombre: 'Toledo', fechaLlegada: '2026-05-04', fechaSalida: '2026-05-04' },
+        { nombre: 'Madrid', fechaLlegada: '2026-05-01', fechaSalida: '2026-05-10' },
+        { nombre: 'Valencia', fechaLlegada: '2026-05-11', fechaSalida: '2026-05-15' },
+      ];
+
+      const ordenadas = ordenarParadasCronologicamente(paradas);
+      expect(ordenadas.map((p) => p.nombre)).toEqual(['Madrid', 'Toledo', 'Valencia']);
+    });
+
+    it('antepone la ciudad base sobre una escapada de un día cuando inician en la misma fecha', () => {
+      const paradas = [
+        { nombre: 'Museo Prado', fechaLlegada: '2026-05-01', fechaSalida: '2026-05-01' },
+        { nombre: 'Madrid', fechaLlegada: '2026-05-01', fechaSalida: '2026-05-07' },
+      ];
+
+      const ordenadas = ordenarParadasCronologicamente(paradas);
+      expect(ordenadas.map((p) => p.nombre)).toEqual(['Madrid', 'Museo Prado']);
+    });
+
+    it('respeta orden manual cuando fechas y duración son idénticas', () => {
+      const paradas = [
+        { nombre: 'Parada B', fechaLlegada: '2026-05-01', fechaSalida: '2026-05-02', order: 2 },
+        { nombre: 'Parada A', fechaLlegada: '2026-05-01', fechaSalida: '2026-05-02', order: 1 },
+      ];
+
+      const ordenadas = ordenarParadasCronologicamente(paradas);
+      expect(ordenadas.map((p) => p.nombre)).toEqual(['Parada A', 'Parada B']);
+    });
+
+    it('esParadaEscapada detecta correctamente excursiones de un día contenidas dentro de una ciudad base', () => {
+      const baseMadrid = {
+        nombre: 'Madrid',
+        fechaLlegada: '2026-05-01',
+        fechaSalida: '2026-05-10',
+      };
+      const excursionToledo = {
+        nombre: 'Toledo',
+        fechaLlegada: '2026-05-04',
+        fechaSalida: '2026-05-04',
+      };
+      const paradaFuera = {
+        nombre: 'Barcelona',
+        fechaLlegada: '2026-05-11',
+        fechaSalida: '2026-05-15',
+      };
+
+      expect(esParadaEscapada(excursionToledo, baseMadrid)).toBe(true);
+      expect(esParadaEscapada(paradaFuera, baseMadrid)).toBe(false);
+      expect(esParadaEscapada(baseMadrid, baseMadrid)).toBe(false);
+    });
+  });
+
+  // ─── calcularRangoFechasParadas (Elastic Envelope) ───
+  describe('calcularRangoFechasParadas', () => {
+    it('retorna null para array vacío o paradas sin fechas válidas', () => {
+      expect(calcularRangoFechasParadas([])).toEqual({ fechaInicio: null, fechaFin: null });
+      expect(calcularRangoFechasParadas([{ nombre: 'Madrid', fechaLlegada: '', fechaSalida: '' }])).toEqual({
+        fechaInicio: null,
+        fechaFin: null,
+      });
+    });
+
+    it('asigna inicio y fin idénticos para parada con solo fecha de llegada', () => {
+      const rango = calcularRangoFechasParadas([{ nombre: 'Toledo', fechaLlegada: '2026-05-04' }]);
+      expect(rango).toEqual({ fechaInicio: '2026-05-04', fechaFin: '2026-05-04' });
+    });
+
+    it('expande el rango elástico con paradas desordenadas o superpuestas', () => {
+      const paradas = [
+        { nombre: 'Madrid (Base)', fechaLlegada: '2026-05-10', fechaSalida: '2026-05-15' },
+        { nombre: 'Toledo (Temprano)', fechaLlegada: '2026-05-02', fechaSalida: '2026-05-03' },
+        { nombre: 'Valencia (Extensión)', fechaLlegada: '2026-05-16', fechaSalida: '2026-05-18' },
+      ];
+
+      const rango = calcularRangoFechasParadas(paradas);
+      expect(rango).toEqual({ fechaInicio: '2026-05-02', fechaFin: '2026-05-18' });
+    });
+
+    it('contrae el rango cuando se eliminan o excluyen paradas periféricas', () => {
+      const paradas = [
+        { nombre: 'Madrid (Base)', fechaLlegada: '2026-05-10', fechaSalida: '2026-05-15' },
+        { nombre: 'Toledo', fechaLlegada: '2026-05-04', fechaSalida: '2026-05-04' },
+      ];
+
+      const rango = calcularRangoFechasParadas(paradas);
+      expect(rango).toEqual({ fechaInicio: '2026-05-04', fechaFin: '2026-05-15' });
     });
   });
 });

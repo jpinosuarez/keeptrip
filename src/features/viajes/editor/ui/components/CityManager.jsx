@@ -17,7 +17,14 @@ const createStopInstanceId = (feature) => {
   return `temp-${baseId}-${uuid}`;
 };
 
-const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
+const CityManager = ({
+  t,
+  paradas,
+  setParadas,
+  tripStartDate = '',
+  tripEndDate = '',
+  isReadOnlyMode = false,
+}) => {
   const { i18n, t: searchT } = useTranslation(['search', 'common']);
   const {
     flags: { level: operationalLevel, appReadonlyMode },
@@ -77,7 +84,7 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
         coordenadas: feature.center,
         fechaLlegada: '',
         fechaSalida: '',
-        fecha: new Date().toISOString().split('T')[0],
+        fecha: '',
         paisCodigo: countryCode,
         flag: getFlagUrl(countryCode), // Guardar URL SVG
         transporte: null,
@@ -129,15 +136,6 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
     const nuevas = [...paradas];
     nuevas.splice(index, 1);
     setParadas(nuevas);
-  };
-
-  const getMinArrivalDate = (index) => {
-    if (index > 0) {
-      const prev = paradas[index - 1];
-      return normalizeToIsoDate(prev.fechaSalida || prev.fechaLlegada || prev.fecha) || '';
-    }
-    // No min restriction on first stop — users must be able to log past trips
-    return '';
   };
 
   return (
@@ -225,8 +223,13 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
       )}
 
       <div className="flex flex-col gap-2.5">
-        {paradas.map((p, index) => (
-          <div key={p.id ?? `parada-${index}-${p.nombre}`} className="bg-surface border border-border p-3.5 rounded-md shadow-sm" data-testid="editor-stop-item">
+        {paradas.map((p, index) => {
+          const llegadaVal = tempDates[`${index}-arrival`] ?? (normalizeToIsoDate(p.fechaLlegada || p.fecha) || '');
+          const salidaVal = tempDates[`${index}-departure`] ?? (normalizeToIsoDate(p.fechaSalida) || '');
+          const hasDateInverted = Boolean(llegadaVal && salidaVal && salidaVal < llegadaVal);
+
+          return (
+            <div key={p.id ?? `parada-${index}-${p.nombre}`} className="bg-surface border border-border p-3.5 rounded-md shadow-sm" data-testid="editor-stop-item">
             <div className="flex justify-between items-center mb-3">
                <div className="flex items-center gap-2">
                    {p.flag && <img src={p.flag} alt="flag" className="w-6 rounded-sm border border-border-light drop-shadow-sm" />}
@@ -271,13 +274,18 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
                     <label className="text-[0.7rem] uppercase text-textSecondary font-bold">{t('citymanager.arrival') || 'Arrival'}</label>
                     <input
                       type="date"
-                      value={tempDates[`${index}-arrival`] ?? (normalizeToIsoDate(p.fechaLlegada || p.fecha) || '')}
-                      min={getMinArrivalDate(index)}
+                      value={llegadaVal}
                       onFocus={handleFieldFocus}
-                      onChange={(e) => setTempDates(prev => ({ ...prev, [`${index}-arrival`]: e.target.value }))}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTempDates((prev) => ({ ...prev, [`${index}-arrival`]: val }));
+                        if (!val || /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+                          actualizarDato(index, 'fechaLlegada', val);
+                        }
+                      }}
                       onBlur={(e) => {
                         actualizarDato(index, 'fechaLlegada', e.target.value);
-                        setTempDates(prev => {
+                        setTempDates((prev) => {
                           const next = { ...prev };
                           delete next[`${index}-arrival`];
                           return next;
@@ -291,26 +299,42 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
                     <label className="text-[0.7rem] uppercase text-textSecondary font-bold">{t('citymanager.departure') || 'Departure'}</label>
                     <input
                       type="date"
-                      value={tempDates[`${index}-departure`] ?? (normalizeToIsoDate(p.fechaSalida) || '')}
-                      min={normalizeToIsoDate(p.fechaLlegada || p.fecha) || getMinArrivalDate(index)}
+                      value={salidaVal}
                       onFocus={handleFieldFocus}
-                      onChange={(e) => setTempDates(prev => ({ ...prev, [`${index}-departure`]: e.target.value }))}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTempDates((prev) => ({ ...prev, [`${index}-departure`]: val }));
+                        if (!val || /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+                          actualizarDato(index, 'fechaSalida', val);
+                        }
+                      }}
                       onBlur={(e) => {
                         actualizarDato(index, 'fechaSalida', e.target.value);
-                        setTempDates(prev => {
+                        setTempDates((prev) => {
                           const next = { ...prev };
                           delete next[`${index}-departure`];
                           return next;
                         });
                       }}
-                      className="w-full box-sizing-border-box min-h-[48px] border border-border rounded-md px-3.5 py-3 text-base font-inherit text-charcoalBlue bg-background outline-none cursor-pointer transition-all shadow-sm"
+                      className={cn(
+                        "w-full box-sizing-border-box min-h-[48px] border rounded-md px-3.5 py-3 text-base font-inherit text-charcoalBlue bg-background outline-none cursor-pointer transition-all shadow-sm",
+                        hasDateInverted ? "border-danger text-danger focus:border-danger ring-1 ring-danger/30" : "border-border"
+                      )}
                       disabled={isReadOnlyActive}
                     />
                 </div>
             </div>
 
+            {hasDateInverted && (
+              <div className="w-full text-[0.78rem] text-danger font-semibold flex items-center gap-1.5 mt-2" role="alert">
+                <span>⚠️</span>
+                <span>{t('editor.errors.dateInverted', 'La fecha de salida no puede ser anterior a la de llegada')}</span>
+              </div>
+            )}
+
           </div>
-        ))}
+        );
+      })}
       </div>
     </div>
   );

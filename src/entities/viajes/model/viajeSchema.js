@@ -97,7 +97,7 @@ export const CreditoFotoSchema = z.object({
 /**
  * Schema para paradas/ciudades de un viaje
  */
-export const ParadaSchema = z.object({
+export const ParadaSchemaBase = z.object({
   id: z.string().optional(),
   nombre: z.string()
     .min(1, 'Nombre de parada es requerido')
@@ -120,6 +120,20 @@ export const ParadaSchema = z.object({
   relato: z.string().max(3000).optional().nullable(),
   viajeId: z.string().optional() // Referencia al viaje padre
 });
+
+export const ParadaSchema = ParadaSchemaBase.refine(
+  (data) => {
+    const inicio = data.fechaLlegada || data.fecha;
+    if (inicio && data.fechaSalida) {
+      return new Date(data.fechaSalida) >= new Date(inicio);
+    }
+    return true;
+  },
+  {
+    message: 'La fecha de salida no puede ser anterior a la fecha de llegada',
+    path: ['fechaSalida']
+  }
+);
 
 // ==================== VIAJE ====================
 
@@ -248,11 +262,11 @@ export function validarViaje(datosViaje, strict = false) {
     return { esValido: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const primerError = error.errors[0];
+      const primerError = (error.issues || error.errors)?.[0];
       return {
         esValido: false,
-        mensaje: primerError.message,
-        errores: error.flatten().fieldErrors
+        mensaje: primerError ? primerError.message : (error.message || 'Error de validación'),
+        errores: typeof error.flatten === 'function' ? error.flatten().fieldErrors : {}
       };
     }
     return {
@@ -271,14 +285,76 @@ export function validarParada(parada) {
     return { esValido: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const primerError = (error.issues || error.errors)?.[0];
       return {
         esValido: false,
-        mensaje: error.errors[0].message,
-        errores: error.flatten().fieldErrors
+        mensaje: primerError ? primerError.message : (error.message || 'Error de validación'),
+        errores: typeof error.flatten === 'function' ? error.flatten().fieldErrors : {}
       };
     }
     return { esValido: false, mensaje: 'Error de validación desconocido' };
   }
+}
+
+/**
+ * Valida una lista de paradas dentro del rango maestro de un viaje.
+ * - Cada parada debe ser válida individualmente según ParadaSchema.
+ * - Límite Maestro Inquebrantable:
+ *   paradaInicio >= viaje.fechaInicio y paradaFin <= viaje.fechaFin.
+ * - Superposición Permitida:
+ *   Las paradas hermanas SÍ pueden superponerse total o parcialmente (ej. excursiones de un día).
+ * 
+ * @param {Array<Object>} paradas - Lista de paradas a validar
+ * @param {{ fechaInicio?: string, fechaFin?: string }} [viajeFechas] - Fechas maestras del viaje
+ * @returns {{ esValido: boolean, mensaje?: string, errores?: Object, index?: number }}
+ */
+export function validarParadasEnViaje(paradas = [], { fechaInicio, fechaFin } = {}) {
+  if (!Array.isArray(paradas)) {
+    return { esValido: false, mensaje: 'Paradas debe ser un array' };
+  }
+
+  const viajeInicio = fechaInicio ? new Date(fechaInicio) : null;
+  const viajeFin = fechaFin ? new Date(fechaFin) : null;
+
+  for (let i = 0; i < paradas.length; i++) {
+    const parada = paradas[i];
+    const paradaRes = validarParada(parada);
+    if (!paradaRes.esValido) {
+      return {
+        esValido: false,
+        mensaje: `Parada "${parada?.nombre || i}": ${paradaRes.mensaje}`,
+        errores: paradaRes.errores,
+        index: i
+      };
+    }
+
+    const stopInicioStr = parada.fechaLlegada || parada.fecha;
+    const stopFinStr = parada.fechaSalida || parada.fechaLlegada || parada.fecha;
+
+    if (stopInicioStr && viajeInicio) {
+      const stopInicio = new Date(stopInicioStr);
+      if (stopInicio < viajeInicio) {
+        return {
+          esValido: false,
+          mensaje: `La parada "${parada?.nombre || i}" no puede comenzar antes del inicio del viaje (${fechaInicio})`,
+          index: i
+        };
+      }
+    }
+
+    if (stopFinStr && viajeFin) {
+      const stopFin = new Date(stopFinStr);
+      if (stopFin > viajeFin) {
+        return {
+          esValido: false,
+          mensaje: `La parada "${parada?.nombre || i}" no puede finalizar después del fin del viaje (${fechaFin})`,
+          index: i
+        };
+      }
+    }
+  }
+
+  return { esValido: true };
 }
 
 /**
@@ -290,10 +366,11 @@ export function validarFoto(foto) {
     return { esValido: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const primerError = (error.issues || error.errors)?.[0];
       return {
         esValido: false,
-        mensaje: error.errors[0].message,
-        errores: error.flatten().fieldErrors
+        mensaje: primerError ? primerError.message : (error.message || 'Error de validación'),
+        errores: typeof error.flatten === 'function' ? error.flatten().fieldErrors : {}
       };
     }
     return { esValido: false, mensaje: 'Error de validación desconocido' };
@@ -323,12 +400,14 @@ export function validarCoordenadas(coordenadas) {
 export default {
   ViajeSchema,
   ParadaSchema,
+  ParadaSchemaBase,
   FotoSchema,
   CrearViajeSchema,
   ActualizarViajeSchema,
   ViajeMinimalSchema,
   validarViaje,
   validarParada,
+  validarParadasEnViaje,
   validarFoto,
   validarCoordenadas
 };

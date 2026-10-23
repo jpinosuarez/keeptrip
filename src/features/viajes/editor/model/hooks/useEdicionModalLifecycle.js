@@ -6,6 +6,7 @@ import {
   parseFlexibleDate,
   normalizeToIsoDate,
   resolveCoverPhotoUrl,
+  calcularRangoFechasParadas,
 } from '@shared/lib/utils/viajeUtils';
 import { getFlagUrl } from '@shared/lib/utils/countryUtils';
 
@@ -375,22 +376,19 @@ export function useEdicionModalLifecycle({
   useEffect(() => {
     if (paradas.length === 0) return;
 
-    const fechasIso = paradas
-      .map((p) => normalizeToIsoDate(p.fechaLlegada || p.fecha))
-      .filter(Boolean)
-      .sort();
+    const { fechaInicio: nuevoInicio, fechaFin: nuevoFin } = calcularRangoFechasParadas(paradas);
 
-    const fechasSalidaIso = paradas.map((p) => normalizeToIsoDate(p.fechaSalida)).filter(Boolean);
-    const allDates = [...fechasIso, ...fechasSalidaIso].filter(Boolean).sort();
-
-    if (allDates.length > 0) {
-      const inicio = allDates[0];
-      const fin = allDates[allDates.length - 1];
-      setFormData((prev) => ({
-        ...prev,
-        fechaInicio: inicio,
-        fechaFin: fin >= inicio ? fin : inicio,
-      }));
+    if (nuevoInicio && nuevoFin) {
+      setFormData((prev) => {
+        if (prev.fechaInicio === nuevoInicio && prev.fechaFin === nuevoFin) {
+          return prev;
+        }
+        return {
+          ...prev,
+          fechaInicio: nuevoInicio,
+          fechaFin: nuevoFin,
+        };
+      });
     }
   }, [paradas, setFormData]);
 
