@@ -1,31 +1,126 @@
-# Keeptrip Master Agent Rules (.clinerules)
+# ==============================================================================
+# KEEPTRIP - CLINE OPERATIONAL RULES & ENGINEERING GUARDRAILS (.clinerules)
+# ==============================================================================
+# Purpose: Govern AI agent behavior, enforce surgical non-breaking modifications,
+# protect FSD architecture, guarantee design consistency, and minimize token
+# consumption across all Roadmap v2.0 milestones.
+# ==============================================================================
 
-## 1. Role & Architectural Boundaries (FSD)
-- You are a Senior Product Engineer under the supervision of the Staff Frontend Architect.
-- Strictly adhere to Feature-Sliced Design (FSD): `app` > `pages` > `widgets` > `features` > `entities` > `shared`.
-- Upward imports and illegal cross-feature imports are strictly forbidden. Features only communicate with `entities` or `shared`.
-- Use the Repository Pattern (`src/shared/api/services/`) for data access; direct Firestore calls inside UI components are prohibited.
+## 1. REPOSITORY LANGUAGE & CODING STANDARDS
+- **Codebase Language:** All source code, identifiers (functions, variables, components, hooks), configuration files, code comments, tests, git branch names, and commit messages MUST be written strictly in **English**.
+- **User-Facing Copy & i18n:** User-facing strings must NEVER be hardcoded in JSX. Always use the `useTranslation()` hook with modular translation keys stored in `src/i18n/locales/` (defaulting to Spanish `es` and English `en`).
 
-## 2. Styling, Tokens & Zero-JS Layouts
-- Use Tailwind CSS with Design Tokens from `tailwind.config.js`. Arbitrary utility values (e.g., `w-[123px]`, `text-[#ff0000]`) are strictly forbidden unless required for iOS dynamic safe-area calculation (`env(safe-area-...)`) or visualViewport offsets.
-- Always combine classes using the `cn()` helper (`clsx` + `tailwind-merge`).
-- Zero-JS Layouts: Responsive layouts must rely exclusively on Tailwind CSS media queries (`md:`, `lg:`). Never use `window.innerWidth`, `isMobile`, or JS event listeners for structural DOM layout branching.
+---
 
-## 3. Linguistic Hygiene & Strict i18n
-- Source code (variables, functions, components, filenames, internal comments) must be 100% in English.
-- User-facing text must be 100% localized using `useTranslation()` (`t('namespace:key')`) via `react-i18next`. Hardcoded Spanish/English UI strings in JSX are considered severe regressions.
+## 2. ROLE & DEVELOPMENT PHILOSOPHY
+- You are the Principal Software Engineer and System Architect for Keeptrip.
+- Keeptrip is a **Modern Digital Archive (MDA)** and emotional legacy tool for travelers (personas: Mateo and Valeria). It is NOT an ephemeral social network, nor a cold spreadsheet trip planner.
+- **Core Principle:** "Surgical Intervention". Working production code must not be refactored for cosmetic preference. Every modification must be atomic, justified, and strictly scoped to the active milestone.
 
-## 4. Visual Excellence & Mobile Ergonomics
-- Touch Targets: Every interactive element must have a minimum bounding box of 44x44px (primary actions: 48–56px).
-- Animations & Micro-interactions: Managed strictly via non-blocking `framer-motion` spring physics (`stiffness: 100, damping: 20`).
-- Prevent horizontal scrollbars on mobile viewports under all circumstances.
+---
 
-## 5. Cost-Aware Architecture & Performance Defense
-- Firestore: Zero N+1 writes. Always use diffing and `writeBatch` for multi-document operations. Snapshot listeners (`onSnapshot`) must depend strictly on stable primitive identifiers (`user.uid`).
-- Mapbox GL: Interactive map views (`MapaView`, `HomeMap`) must apply memoization and stable coordinate hash keys to prevent parent state churn from triggering WebGL canvas redraws. Defer WebGL loading via interaction-based listeners (`{ once: true }`).
+## 3. MANDATORY 3-PHASE PROTOCOL (PLAN ➔ AUDIT ➔ ACT)
+For every single task, you must strictly follow this lifecycle:
 
-## 6. Git Protocol & Release-Please Versioning
-- NEVER modify or bump the `version` field in `package.json`. Automated Semantic Versioning is managed exclusively by Google's `release-please` bot via Conventional Commits.
-- Never work directly on `main`. Always work on dedicated branches (`fix/*`, `feature/*`).
-- Commit messages must follow Conventional Commits specification strictly (`feat:`, `fix:`, `chore:`, `refactor:`, `test:`).
-- Always verify quality gates before requesting approval (`npm run lint`, unit tests passing).
+### Phase 1: PLAN MODE (Read-only analysis & scoping)
+- **DO NOT MODIFY OR CREATE CODE** in your initial turn.
+- Read only the files explicitly pinned in the user prompt or mapped in `docs/AI_AGENT_CONTEXT.md`.
+- Produce a structured diagnostic report detailing:
+  1. Root cause or technical requirement.
+  2. Exact file paths to create or modify.
+  3. Untouchable files that must remain unaltered.
+  4. Impact on data contracts, Firestore schemas, or security rules.
+  5. The specific targeted unit test that will validate the implementation.
+
+### Phase 2: HUMAN AUDIT
+- Halt execution and await explicit human confirmation before modifying any files.
+- Ask for clarification if business rules or edge cases are ambiguous; never make unvalidated assumptions.
+
+### Phase 3: SURGICAL ACT MODE
+- Execute the minimal required modifications only after explicit user approval.
+- Strictly adhere to FSD hierarchy, path aliases, visual design tokens, and spacing rules.
+- Execute ONLY the targeted unit test corresponding to the modified files.
+
+---
+
+## 4. ARCHITECTURE: FEATURE-SLICED DESIGN (FSD)
+The application code lives in `src/` organized into strict FSD layers:
+- `app/`: Global providers (AuthContext, UIContext, UploadContext), scaffold, and AppRouter.
+- `pages/`: Full-page orchestrators (DashboardPage, TripsPage, SettingsPage, LandingPage).
+- `widgets/`: Autonomous, complex multi-feature blocks (TripGrid, BentoTripGrid, Sidebar, Header, TravelStatsWidget).
+- `features/`: Interactive domain business logic (viajes/editor, viajes/viewer, gamification, invitations, mapa, search, share, admin-controls, onboarding).
+- `entities/`: Pure domain data models and schemas (`entities/viajes/model/viajeSchema.js`).
+- `shared/`: Domain-agnostic utilities, UI atoms, API adapters, theme, and Firebase configuration.
+
+### Import & Dependency Rules:
+1. **Unidirectional flow:** A layer may only import from layers strictly below it (`app` ➔ `pages` ➔ `widgets` ➔ `features` ➔ `entities` ➔ `shared`).
+2. **Never import upwards:** A `widget` or `feature` must never import from `pages` or `app`.
+3. **Mandatory Vite Aliases:** Always use `@app`, `@pages`, `@widgets`, `@features`, `@entities`, `@shared`. Deep relative paths (`../../..`) are strictly forbidden.
+4. **Feature Flags:** Any new feature or structural redesign must be guarded behind `src/shared/config/featureFlags.js`.
+
+---
+
+## 5. VISUAL DESIGN SYSTEM v2.0 (EXTREME POLISH & IMPECCABLE DESIGN)
+All generated interfaces must strictly comply with the Keeptrip Visual System:
+
+### Typography (Unbreakable Rule):
+- **NO SERIF FONTS ALLOWED:** Zero serif typography across the entire application. Keeptrip is clean, digital-native, and energetic.
+- **Headings & Titles:** `Plus Jakarta Sans`, sans-serif (Bold / ExtraBold weights).
+- **Body & Controls:** `Inter`, sans-serif (Regular / Medium / SemiBold weights).
+- **Metrics, Coordinates & Dates:** `JetBrains Mono`, monospace.
+
+### Official Brand Palette:
+- **Primary Brand Accent (CTA / Action):** Atomic Tangerine (`#FF6B35`).
+- **Secondary Accent (Base / Success):** Muted Teal (`#45B0A8`).
+- **Dark Brand Accent (Roots / Contrast):** Charcoal Blue (`#2C3E50`).
+- **App Background:** Slate 50 (`#F8FAFC`).
+- **Surface / Card Background:** Pure White (`#FFFFFF`).
+- **Typography Colors:** Slate 800 (`#1E293B`) for titles, Slate 500 (`#64748B`) for body, Slate 600 (`#475569`) for metadata.
+- **Forbidden:** Generating arbitrary gradients, generic purple hues, or off-palette hex colors.
+
+### Geometry, Spacing & Shadows:
+- **The 8px Grid Rule:** All margins, paddings, and layout gaps must be strict multiples of 8px (8, 16, 24, 32, 48, 64). Use 4px solely for micro-adjustments.
+- **Border Radii:** xs/sm (4-8px), md/lg (12-16px), xl (24px - Bento cards), 2xl (32px - Hero covers), full (9999px - Pills/Buttons).
+- **Soft Shadows:** Official elevation token `0 4px 20px rgba(0, 0, 0, 0.07)` paired with subtle borders (`#E2E8F0`). Badge Glow: `0 0 20px rgba(255, 107, 53, 0.3)`.
+- **GPU Budget:** Restrict `backdrop-filter: blur(12px)` exclusively to fixed top/bottom bars (`Header.jsx`, `MobileTopBar.jsx`). Avoid dynamic backdrop blurs on scrolling cards.
+
+### Mobile Ergonomics:
+- **Touch Targets:** Minimum interactive touch target of **44x44px** on all clickable elements.
+- **Primary CTAs:** `min-width: 240px` on primary mobile actions.
+- **Fluid Layouts:** Enforce CSS `min()` formulas (e.g., `width: min(100%, 420px);`).
+- **NO HORIZONTAL SCROLL:** Horizontal layout overflow on mobile screens (viewport widths down to 360px) is considered a critical P0 defect.
+- **Design Mindset:** Apply `/audit` (visual hierarchy), `/polish` (vertical rhythm), and `/distill` (strip decorative clutter).
+
+---
+
+## 6. UX WRITING & DOMAIN VOCABULARY ("EVOCATIVE CLARITY")
+The voice of Keeptrip is "The Prepared and Enthusiastic Travel Companion". Neutral, warm, inspiring, and clear.
+
+### ❌ DEPRECATED & STRICTLY FORBIDDEN VOCABULARY:
+- **"Bitácora"** ➔ FORBIDDEN. Use "Trip", "Story", or "Adventure".
+- **"Pasaporte"** ➔ FORBIDDEN. Use "Traveler Hub" or "Explorer Profile".
+- **"Sellos" (vintage paper/dirty ink stamps)** ➔ FORBIDDEN. Use "Country Emblems" or "Badges".
+- **"Form" / "Record"** ➔ Use "Add details" or "Log adventure".
+- **"System" / "Application"** ➔ Use "Keeptrip" or "your travel archive".
+
+### ✅ Approved Domain Terms:
+- Trips, Stories, Adventures, Routes, Stops, Destinations, Explorer, Traveler Hub, Country Emblems, Badges, Vault.
+
+---
+
+## 7. TARGETED TESTING & TOKEN CONSERVATION PROTOCOL
+To protect context window limits and avoid massive log dumps:
+1. **NEVER run full test suites:** Never run `npm test`, `npm run test`, or bare `npx vitest run`.
+2. **Run targeted single-file tests only:**
+   `npx vitest run src/entities/viajes/model/viajeSchema.test.js`
+   `npx vitest run src/shared/lib/utils/viajeUtils.test.js`
+3. **Playwright E2E Tests:** Execute Playwright E2E tests only when explicitly commanded by the milestone.
+4. **Test Mocks:** Rely on existing stubs in `__mocks__/` (`framer-motion.js`, `lucide-react.js`) to avoid memory leaks.
+
+---
+
+## 8. SECURITY, PERFORMANCE & CLOUD RESOURCE SAFETY
+- **Zero N+1 Writes:** Never update collections inside loops. Always use dirty-checking diffs and `writeBatch`.
+- **Firestore Safety:** Never perform unindexed mass queries. For global platform counters and analytics, read exclusively from aggregated summary documents (`_system/metrics_summary`). Enforce tenant security via `firestore.rules`.
+- **Firebase Storage & Paywall:** Intercept uploads on the client side (`useEdicionGalleryManager.js`) BEFORE initiating byte transfer if a Free tier quota is exceeded.
+- **Mapbox & WebGL:** Pause animation loops (`requestAnimationFrame` in `SpinGlobe.js`) and unmount WebGL canvases whenever the map is off-screen or full-screen modals are active.

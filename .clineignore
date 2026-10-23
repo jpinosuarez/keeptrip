@@ -1,0 +1,49 @@
+# ==============================================================================
+# KEEPTRIP - CLINE IGNORE RULES (.clineignore)
+# ==============================================================================
+# Purpose: Block generated files, heavy binaries, and verbose reports
+# to prevent massive context reads and reduce AI token consumption by 60-80%.
+# ==============================================================================
+
+# --- Dependencies & Build Artifacts ---
+node_modules/
+package-lock.json
+dist/
+.vite/
+
+# --- Firebase Cache & Staging Temp Files ---
+.firebase/
+.firebase-temp-*.json
+.tmp-staging.rules
+
+# --- Performance Audits, Logs & Test Outputs ---
+lighthouse-report.json
+analyze_lh.cjs
+analyze_lh_v2.cjs
+lint_output.txt
+lint_results_*.txt
+test_output*.txt
+*.log
+
+# --- Test Coverage & Playwright Artifacts ---
+coverage/
+playwright-report/
+test-results/
+.playwright/
+
+# --- Massive Vector Maps (Hundreds of SVG DOM nodes) ---
+public/world-map-blank.svg
+public/world-map-blank.opt.svg
+
+# --- Binary Multimedia Files (Non-parseable by LLM) ---
+public/og-image.jpg
+public/icons/*.png
+src/assets/sellos/*.png
+
+# --- Scratch Scripts & Temporary Utilities ---
+scratch/
+
+# --- OS & IDE Metadata ---
+.DS_Store
+Thumbs.db
+.idea/
