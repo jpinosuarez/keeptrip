@@ -38,6 +38,7 @@ const EdicionModal = ({
   // Local UI & Form state with lazy initialization
   const [activeTab, setActiveTab] = useState('info');
   const [headerFormData, setHeaderFormData] = useState(() => ({
+    ...viaje,
     vibe: Array.isArray(viaje?.vibe) ? viaje.vibe : [],
     highlights: viaje?.highlights || { topFood: '', topView: '', topTip: '' },
     companions: Array.isArray(viaje?.companions) ? viaje.companions : [],
@@ -47,7 +48,6 @@ const EdicionModal = ({
     fechaInicio: normalizeToIsoDate(viaje?.fechaInicio || viaje?.startDate || viaje?.date) || '',
     fechaFin: normalizeToIsoDate(viaje?.fechaFin || viaje?.endDate) || '',
     portadaUrl: resolveCoverPhotoUrl(viaje) || '',
-    ...viaje,
   }));
   const [paradas, setParadas] = useState(() => viaje?.paradas || viaje?.destinos || []);
   const [galleryFiles, setGalleryFiles] = useState([]);

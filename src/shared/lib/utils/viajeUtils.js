@@ -76,69 +76,70 @@ export const normalizeToIsoDate = (value) => {
     const trimmed = value.trim();
     if (!trimmed) return null;
 
-    // Full ISO or datetime containing 'T' (e.g. "2026-04-01T15:30:00.000Z")
-    if (trimmed.includes('T')) {
-      const datePart = trimmed.split('T')[0];
-      if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
-        return datePart;
-      }
+    // Direct ISO date prefix YYYY-MM-DD (e.g. "2026-04-01", "2026-04-01T15:30:00.000Z", "2026-04-01 12:00:00")
+    if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+      return trimmed.slice(0, 10);
     }
 
-    // Standard YYYY-MM-DD
-    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-      return trimmed;
+    // YYYY/MM/DD or YYYY.MM.DD
+    const slashIsoMatch = trimmed.match(/^(\d{4})[/. ](\d{1,2})[/. ](\d{1,2})/);
+    if (slashIsoMatch) {
+      const [, y, m, d] = slashIsoMatch;
+      return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
     }
 
     // Human / slash formats (delegates to parseFlexibleDate)
     return parseFlexibleDate(trimmed);
   }
 
+  const extractDateFromJsDate = (d) => {
+    if (isNaN(d.getTime())) return null;
+    const isUtcMidnight = d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0;
+    const isLocalMidnight = d.getHours() === 0 && d.getMinutes() === 0 && d.getSeconds() === 0;
+
+    let y;
+    let m;
+    let day;
+    if (isUtcMidnight && !isLocalMidnight) {
+      y = d.getUTCFullYear();
+      m = String(d.getUTCMonth() + 1).padStart(2, '0');
+      day = String(d.getUTCDate()).padStart(2, '0');
+    } else {
+      y = d.getFullYear();
+      m = String(d.getMonth() + 1).padStart(2, '0');
+      day = String(d.getDate()).padStart(2, '0');
+    }
+    return `${y}-${m}-${day}`;
+  };
+
   // Firestore Timestamp instance (has .toDate())
   if (typeof value?.toDate === 'function') {
-    const d = value.toDate();
-    if (!isNaN(d.getTime())) {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    }
-    return null;
+    return extractDateFromJsDate(value.toDate());
   }
 
-  // Raw Firestore timestamp object ({ seconds: number })
-  if (typeof value === 'object' && value !== null && typeof value.seconds === 'number') {
-    const d = new Date(value.seconds * 1000);
-    if (!isNaN(d.getTime())) {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    }
-    return null;
+  // Timestamp with .toMillis()
+  if (typeof value?.toMillis === 'function') {
+    return normalizeToIsoDate(value.toMillis());
+  }
+
+  // Raw Firestore timestamp object ({ seconds: number } or { _seconds: number })
+  const seconds = typeof value?.seconds === 'number'
+    ? value.seconds
+    : (typeof value?._seconds === 'number' ? value._seconds : null);
+
+  if (seconds !== null && Number.isFinite(seconds)) {
+    return extractDateFromJsDate(new Date(seconds * 1000));
   }
 
   // Native JS Date
   if (value instanceof Date) {
-    if (!isNaN(value.getTime())) {
-      const y = value.getFullYear();
-      const m = String(value.getMonth() + 1).padStart(2, '0');
-      const day = String(value.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    }
-    return null;
+    return extractDateFromJsDate(value);
   }
 
   // Numeric timestamp (seconds or milliseconds)
   if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
     const ms = value < 100000000000 ? value * 1000 : value;
-    const d = new Date(ms);
-    if (!isNaN(d.getTime())) {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    }
-    return null;
+    return extractDateFromJsDate(new Date(ms));
   }
 
   return null;

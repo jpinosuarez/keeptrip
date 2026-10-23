@@ -303,6 +303,27 @@ describe('viajeUtils', () => {
       expect(normalizeToIsoDate('   ')).toBeNull();
       expect(normalizeToIsoDate('not-a-date')).toBeNull();
     });
+
+    it('normaliza timestamp con _seconds (serialización Firestore Admin/JSON)', () => {
+      expect(normalizeToIsoDate({ _seconds: 1775001600, _nanoseconds: 0 })).toBe('2026-04-01');
+    });
+
+    it('normaliza objeto con método toMillis()', () => {
+      expect(normalizeToIsoDate({ toMillis: () => 1775001600000 })).toBe('2026-04-01');
+    });
+
+    it('normaliza datetime con espacio en vez de T sin desfase horario', () => {
+      expect(normalizeToIsoDate('2026-04-01 15:30:00')).toBe('2026-04-01');
+      expect(normalizeToIsoDate('2026-04-01 00:00:00.000')).toBe('2026-04-01');
+    });
+
+    it('normaliza formato YYYY/MM/DD', () => {
+      expect(normalizeToIsoDate('2026/04/01')).toBe('2026-04-01');
+    });
+
+    it('conserva fecha exacta de ISO UTC medianoche', () => {
+      expect(normalizeToIsoDate('2026-04-01T00:00:00.000Z')).toBe('2026-04-01');
+    });
   });
 
   // ─── resolveCoverPhotoUrl ───

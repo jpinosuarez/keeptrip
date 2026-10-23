@@ -469,6 +469,46 @@ describe('EditorFocusPanel (borrador)', () => {
       expect(screen.getByDisplayValue('Viaje a Barcelona')).toBeInTheDocument();
     });
   });
+
+  test('hidrata fechas de llegada y salida en la parada existente', async () => {
+    const paradasMock = [
+      {
+        id: 'stop-budapest',
+        nombre: 'Budapest',
+        coordenadas: [19.0402, 47.4979],
+        fecha: '2026-09-26',
+        fechaLlegada: '2026-09-26',
+        fechaSalida: '2026-09-28',
+        paisCodigo: 'HU',
+      },
+    ];
+
+    render(
+      <EditorFocusPanel
+        viaje={{
+          id: 'trip-budapest',
+          nombreEspanol: 'Hungría',
+          code: 'HU',
+          titulo: 'Escapada a Budapest',
+          fechaInicio: '2026-09-26',
+          fechaFin: '2026-09-28',
+          paradas: paradasMock,
+        }}
+        paradas={paradasMock}
+        setParadas={vi.fn()}
+        esBorrador={false}
+        onClose={vi.fn()}
+        onSave={vi.fn(async () => true)}
+        isSaving={false}
+      />,
+      { wrapper: RouterWrapper }
+    );
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('2026-09-26')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('2026-09-28')).toBeInTheDocument();
+    });
+  });
 });
 
 // Tests de companion autocomplete e invitaciones se cubren vía E2E (e2e/invitations.spec.ts)
