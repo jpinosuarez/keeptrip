@@ -186,12 +186,15 @@ export function useEdicionModalLifecycle({
 
     if (esBorrador && ciudadInicial) {
       setIsHydratingStops(false);
+      const initialDate = normalizeToIsoDate(viaje.fechaInicio || viaje.startDate) || new Date().toISOString().split('T')[0];
       setParadas([
         {
           id: 'init',
           nombre: ciudadInicial.nombre,
           coordenadas: ciudadInicial.coordenadas,
-          fecha: viaje.fechaInicio || new Date().toISOString().split('T')[0],
+          fecha: initialDate,
+          fechaLlegada: initialDate,
+          fechaSalida: '',
           paisCodigo: ciudadInicial.paisCodigo,
           flag: ciudadInicial.flag || ciudadInicial.paisCodigo,
         },
@@ -208,9 +211,15 @@ export function useEdicionModalLifecycle({
           const snap = await getDocs(paradasRef);
           const loaded = snap.docs.map((d) => {
             const data = d.data();
+            const fechaLlegada = normalizeToIsoDate(data.fechaLlegada || data.fecha) || '';
+            const fechaSalida = normalizeToIsoDate(data.fechaSalida) || '';
+            const fecha = normalizeToIsoDate(data.fecha || data.fechaLlegada) || fechaLlegada;
             return {
               ...data,
               id: d.id,
+              fecha,
+              fechaLlegada,
+              fechaSalida,
               flag: data.flag || (data.paisCodigo ? getFlagUrl(data.paisCodigo) : ''),
             };
           });
@@ -367,11 +376,11 @@ export function useEdicionModalLifecycle({
     if (paradas.length === 0) return;
 
     const fechasIso = paradas
-      .map((p) => parseFlexibleDate(p.fechaLlegada) || p.fecha)
+      .map((p) => normalizeToIsoDate(p.fechaLlegada || p.fecha))
       .filter(Boolean)
       .sort();
 
-    const fechasSalidaIso = paradas.map((p) => parseFlexibleDate(p.fechaSalida)).filter(Boolean);
+    const fechasSalidaIso = paradas.map((p) => normalizeToIsoDate(p.fechaSalida)).filter(Boolean);
     const allDates = [...fechasIso, ...fechasSalidaIso].filter(Boolean).sort();
 
     if (allDates.length > 0) {
@@ -419,12 +428,15 @@ export function useEdicionModalLifecycle({
     // KILL ZOMBIE HOOK: Only initialize paradas on FIRST MOUNT, not when user deletes them
     if (ciudadInicial && paradas.length === 0 && !initializedParadasRef.current) {
       initializedParadasRef.current = true;
+      const initialDate = normalizeToIsoDate(viaje.fechaInicio || viaje.startDate) || new Date().toISOString().split('T')[0];
       setParadas([
         {
           id: 'init',
           nombre: ciudadInicial.nombre,
           coordenadas: ciudadInicial.coordenadas,
-          fecha: normalizeToIsoDate(viaje.fechaInicio || viaje.startDate) || new Date().toISOString().split('T')[0],
+          fecha: initialDate,
+          fechaLlegada: initialDate,
+          fechaSalida: '',
           paisCodigo: ciudadInicial.paisCodigo,
           flag: viaje.flag,
         },

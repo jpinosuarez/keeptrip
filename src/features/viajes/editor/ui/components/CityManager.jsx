@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { getFlagUrl } from '@shared/lib/utils/countryUtils';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
-import { parseFlexibleDate } from '@shared/lib/utils/viajeUtils';
+import { normalizeToIsoDate, parseFlexibleDate } from '@shared/lib/utils/viajeUtils';
 import { fetchGeocoding } from '@shared/api/services/mapboxGeocoding';
 
 const createStopInstanceId = (feature) => {
@@ -107,19 +107,12 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
       const nuevas = [...prevParadas];
       const target = { ...nuevas[index] };
 
-      // Si es una fecha de input type="date", el valor viene como YYYY-MM-DD
-      if ((campo === 'fechaLlegada' || campo === 'fechaSalida') && valor && valor.includes('-')) {
-        const parts = valor.split('-');
-        if (parts.length === 3) {
-          const [y, m, d] = parts;
-          target[campo] = `${d}/${m}/${y}`;
-        } else {
-          target[campo] = valor;
-        }
-        
+      if (campo === 'fechaLlegada' || campo === 'fechaSalida') {
+        const isoValue = normalizeToIsoDate(valor) || valor || '';
+        target[campo] = isoValue;
+
         if (campo === 'fechaLlegada') {
-          const iso = parseFlexibleDate(target[campo]);
-          if (iso) target.fecha = iso;
+          target.fecha = isoValue;
         }
       } else {
         target[campo] = valor;
@@ -141,8 +134,7 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
   const getMinArrivalDate = (index) => {
     if (index > 0) {
       const prev = paradas[index - 1];
-      if (prev.fechaSalida) return prev.fechaSalida.split('/').reverse().join('-');
-      if (prev.fechaLlegada) return prev.fechaLlegada.split('/').reverse().join('-');
+      return normalizeToIsoDate(prev.fechaSalida || prev.fechaLlegada || prev.fecha) || '';
     }
     // No min restriction on first stop — users must be able to log past trips
     return '';
@@ -279,9 +271,7 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
                     <label className="text-[0.7rem] uppercase text-textSecondary font-bold">{t('citymanager.arrival') || 'Arrival'}</label>
                     <input
                       type="date"
-                      value={tempDates[`${index}-arrival`] ?? (p.fechaLlegada?.split('/').length === 3 
-                        ? p.fechaLlegada.split('/').reverse().map((part, i) => i === 0 ? part.padStart(4, '0') : part.padStart(2, '0')).join('-')
-                        : '')}
+                      value={tempDates[`${index}-arrival`] ?? (normalizeToIsoDate(p.fechaLlegada || p.fecha) || '')}
                       min={getMinArrivalDate(index)}
                       onFocus={handleFieldFocus}
                       onChange={(e) => setTempDates(prev => ({ ...prev, [`${index}-arrival`]: e.target.value }))}
@@ -301,10 +291,8 @@ const CityManager = ({ t, paradas, setParadas, isReadOnlyMode = false }) => {
                     <label className="text-[0.7rem] uppercase text-textSecondary font-bold">{t('citymanager.departure') || 'Departure'}</label>
                     <input
                       type="date"
-                      value={tempDates[`${index}-departure`] ?? (p.fechaSalida?.split('/').length === 3 
-                        ? p.fechaSalida.split('/').reverse().map((part, i) => i === 0 ? part.padStart(4, '0') : part.padStart(2, '0')).join('-')
-                        : '')}
-                      min={p.fechaLlegada ? p.fechaLlegada.split('/').reverse().join('-') : getMinArrivalDate(index)}
+                      value={tempDates[`${index}-departure`] ?? (normalizeToIsoDate(p.fechaSalida) || '')}
+                      min={normalizeToIsoDate(p.fechaLlegada || p.fecha) || getMinArrivalDate(index)}
                       onFocus={handleFieldFocus}
                       onChange={(e) => setTempDates(prev => ({ ...prev, [`${index}-departure`]: e.target.value }))}
                       onBlur={(e) => {

@@ -347,8 +347,8 @@ const EditorFocusPanel = ({
                 t={t}
                 paradas={effectiveParadas}
                 setParadas={effectiveSetParadas}
-                fechaRangoDisplay={`${effectiveFormData.fechaInicio} - ${effectiveFormData.fechaFin}`}
-                tripStartDate={effectiveFormData.fechaInicio}
+                fechaRangoDisplay={`${formDataWithFallback.fechaInicio || '--'} - ${formDataWithFallback.fechaFin || '--'}`}
+                tripStartDate={formDataWithFallback.fechaInicio}
                 sinParadas={effectiveParadas.length === 0}
                 isReadOnlyMode={isReadOnlyMode}
               />
