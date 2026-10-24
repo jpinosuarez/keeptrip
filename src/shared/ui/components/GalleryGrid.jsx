@@ -46,6 +46,8 @@ function LazyImage({ src, alt, onClick, isPortada }) {
           <img
             src={src}
             alt={alt}
+            loading="lazy"
+            decoding="async"
             style={{ ...styles.image, opacity: isLoaded ? 1 : 0 }}
             onLoad={() => setIsLoaded(true)}
           />
@@ -83,6 +85,8 @@ function UploadingImage({ preview, status, esPortada, error, onRetry }) {
       <img
         src={preview}
         alt="Subiendo..."
+        loading="lazy"
+        decoding="async"
         style={{ 
           ...styles.image, 
           opacity: isFailed ? 0.4 : isSuccess ? 1 : 0.7,
@@ -349,6 +353,8 @@ const styles = {
     border: isPortada ? `3px solid ${COLORS.atomicTangerine}` : 'none',
     boxShadow: isPortada ? SHADOWS.md : SHADOWS.sm,
     transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+    contentVisibility: 'auto',
+    containIntrinsicSize: 'auto 180px',
     ':hover': {
       transform: 'scale(1.05)',
       boxShadow: SHADOWS.lg,
@@ -505,13 +511,12 @@ const styles = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '8px',
-    backdropFilter: 'blur(2px)',
   },
   uploadText: {
     color: 'white',

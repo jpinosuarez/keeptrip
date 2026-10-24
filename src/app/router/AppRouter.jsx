@@ -47,7 +47,20 @@ function RootRoute() {
   const { usuario, cargando } = useAuth();
   const location = useLocation();
 
-  if (cargando) return <PageLoader />;
+  const hasStoredSession =
+    typeof window !== 'undefined' &&
+    (() => {
+      try {
+        return localStorage.getItem('keeptrip_has_session') === 'true';
+      } catch {
+        return false;
+      }
+    })();
+
+  if (cargando && hasStoredSession) {
+    return <PageLoader />;
+  }
+
   if (usuario) {
     return (
       <Navigate
@@ -61,7 +74,7 @@ function RootRoute() {
     );
   }
   return (
-    <Suspense fallback={suspenseFallback}>
+    <Suspense fallback={null}>
       <LandingPage />
     </Suspense>
   );
@@ -148,12 +161,7 @@ function SettingsRoute() {
 function AppRouter() {
   const {
     flags: { level, appMaintenanceMode },
-    loading
   } = useOperationalFlags();
-
-  if (loading) {
-    return <PageLoader />;
-  }
 
   const isMaintenanceMode = Boolean(appMaintenanceMode) || Number(level || 0) >= 4;
   if (isMaintenanceMode) {

@@ -6,7 +6,7 @@
  *  - Spring-animated stagger transitions
  *  - GhostEmptyState for first-run experience
  */
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -27,7 +27,7 @@ const TripGrid = ({
   const hasNoTrips = totalLogCount === 0;
   const hasNoSearchResults = !hasNoTrips && trips.length === 0;
 
-  const openTrip = (tripId) => {
+  const openTrip = useCallback((tripId) => {
     const trip = trips.find(t => t.id === tripId) || tripData[tripId];
     if (trip && trip.isShared) {
       navigate(`/trips/${tripId}`);
@@ -36,7 +36,31 @@ const TripGrid = ({
     const params = new URLSearchParams(location.search);
     params.set('editing', tripId);
     navigate({ pathname: location.pathname, search: params.toString() });
-  };
+  }, [trips, tripData, navigate, location.search, location.pathname]);
+
+  const normalizedTrips = useMemo(() => {
+    return trips
+      .map((trip) => {
+        const data = tripData[trip.id] || trip || {};
+        if (!data.titulo && !data.nombreEspanol && !data.nameSpanish && !data.paisCodigo && !data.code && !data.countryCode) {
+          return null;
+        }
+
+        const paradaCount = Array.isArray(data.paradas)
+          ? data.paradas.length
+          : String(data.ciudades || '')
+              .split(',')
+              .map((city) => city.trim())
+              .filter(Boolean).length;
+
+        return {
+          ...data,
+          id: trip.id,
+          paradaCount,
+        };
+      })
+      .filter(Boolean);
+  }, [trips, tripData]);
 
   return (
     <div className="w-full pb-14">
@@ -57,40 +81,26 @@ const TripGrid = ({
           </div>
         ) : (
           <AnimatePresence mode="popLayout">
-            {trips.map((trip) => {
-              const data = tripData[trip.id] || trip || {};
-              if (!data.titulo && !data.nombreEspanol && !data.nameSpanish && !data.paisCodigo && !data.code && !data.countryCode) {
-                return null;
-              }
-
-              const paradaCount = Array.isArray(data.paradas)
-                ? data.paradas.length
-                : String(data.ciudades || '')
-                    .split(',')
-                    .map((city) => city.trim())
-                    .filter(Boolean).length;
-              
-              return (
-                <Motion.div 
-                  key={trip.id} 
-                  layout
-                  initial="hidden"
-                  animate="visible"
-                  variants={{
-                    hidden: { opacity: 0, scale: 0.9, y: 30 },
-                    visible: { opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 20 } }
-                  }}
-                  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-                >
-                  <TripCard
-                    trip={{ ...data, id: trip.id, paradaCount }}
-                    variant="grid"
-                    onEdit={() => openTrip(trip.id)}
-                    onDelete={handleDelete}
-                  />
-                </Motion.div>
-              );
-            })}
+            {normalizedTrips.map((trip) => (
+              <Motion.div 
+                key={trip.id} 
+                layout
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: { opacity: 0, scale: 0.9, y: 30 },
+                  visible: { opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 20 } }
+                }}
+                exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+              >
+                <TripCard
+                  trip={trip}
+                  variant="grid"
+                  onEdit={openTrip}
+                  onDelete={handleDelete}
+                />
+              </Motion.div>
+            ))}
           </AnimatePresence>
         )}
       </Motion.div>

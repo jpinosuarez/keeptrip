@@ -2,7 +2,7 @@
  * Cinematic TripCard (2026 Restyle)
  * Features full-bleed images, floating glass pills, and 3D parallax on desktop hovering.
  */
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { motion as Motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { Compass, Calendar, MapPin, Trash2, Clock, MoreVertical, Edit2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +16,7 @@ import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { cn } from '@shared/lib/utils/cn';
 import PortalDropdown from '@shared/ui/components/PortalDropdown/PortalDropdown';
 
-const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', priorityImage = false }) => {
+const TripCard = ({ trip = {}, onEdit, onDelete, isMobile = false, variant = 'list', priorityImage = false }) => {
   const { t, i18n } = useTranslation(['countries', 'dashboard', 'common']);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const buttonRef = useRef(null);
@@ -100,6 +100,10 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
   };
 
   const isList = variant === 'list';
+  const isBentoOrHome = variant === 'bento' || variant === 'home';
+  const virtualizationClass = isBentoOrHome
+    ? "h-full min-h-0 [contain:layout_paint]"
+    : (isList ? "aspect-auto min-h-[120px] cv-auto-card-list" : "h-full min-h-0 cv-auto-card");
 
   return (
     <Motion.div
@@ -110,6 +114,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
         rotateX: isMobile ? 0 : rotateX,
         rotateY: isMobile ? 0 : rotateY,
         transformStyle: 'preserve-3d',
+        contentVisibility: isMenuOpen ? 'visible' : undefined,
       }}
       initial={priorityImage ? false : { opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
@@ -119,7 +124,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
       onMouseLeave={handleMouseLeave}
       className={cn(
         "relative cursor-default group rounded-2xl shadow-md bg-charcoalBlue transition-shadow duration-300 border-0 overflow-hidden",
-        isList ? "aspect-auto min-h-[120px]" : "h-full min-h-0",
+        virtualizationClass,
         isMenuOpen ? "z-dropdown" : "z-base"
       )}
     >
@@ -139,6 +144,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
               alt={title || t('dashboard:tripCoverAlt')} 
               className="w-full h-full object-cover"
               loading={priorityImage ? "eager" : "lazy"}
+              decoding={priorityImage ? "sync" : "async"}
             />
           ) : (
             <div className="relative w-full h-full overflow-hidden bg-slate-900/10" aria-hidden="true">
@@ -157,6 +163,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
                       auraFlags.length === 3 && idx === 2 ? "col-span-2" : ""
                     )}
                     loading={priorityImage ? "eager" : "lazy"}
+                    decoding="async"
                   />
                 ))}
               </div>
@@ -179,10 +186,11 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
                 alt="" 
                 className="w-6 h-6 object-cover rounded-full shadow-sm border border-white/20" 
                 loading={priorityImage ? "eager" : "lazy"} 
+                decoding="async"
               />
             ))
           ) : (
-            <div className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center justify-center text-white">
+            <div className="bg-black/45 border border-white/20 shadow-sm rounded-full px-2.5 py-1 flex items-center justify-center text-white">
                 <Compass size={14} />
             </div>
           )}
@@ -192,7 +200,7 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
           <button
             ref={buttonRef}
             type="button"
-            className="trip-card-menu-btn pointer-events-auto bg-white/25 backdrop-blur-lg border border-white/30 rounded-full w-11 h-11 flex items-center justify-center text-white shadow-md hover:bg-white/40 transition-colors cursor-pointer"
+            className="trip-card-menu-btn pointer-events-auto bg-black/35 hover:bg-black/55 border border-white/25 rounded-full w-11 h-11 flex items-center justify-center text-white shadow-sm transition-colors cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
@@ -250,13 +258,13 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
           {title}
         </h4>
         <div className="flex flex-wrap items-center gap-1 min-w-0">
-          <span className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading drop-shadow-lg">
+          <span className="bg-black/45 border border-white/20 shadow-sm rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading">
             <Calendar size={14} /> {datePillText}
           </span>
-          <span className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading drop-shadow-lg">
+          <span className="bg-black/45 border border-white/20 shadow-sm rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading">
             <MapPin size={14} /> {citiesPillText}
           </span>
-          <span className="bg-white/20 backdrop-blur-lg border border-white/30 shadow-md rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading drop-shadow-lg">
+          <span className="bg-black/45 border border-white/20 shadow-sm rounded-full px-2.5 py-1 flex items-center gap-1.5 text-white text-[0.75rem] font-bold tracking-wide font-heading">
             <Clock size={14} /> {durationPillText}
           </span>
         </div>
@@ -266,4 +274,36 @@ const TripCard = ({ trip, onEdit, onDelete, isMobile = false, variant = 'list', 
   );
 };
 
-export default TripCard;
+function areTripCardPropsEqual(prevProps, nextProps) {
+  if (prevProps.variant !== nextProps.variant) return false;
+  if (prevProps.priorityImage !== nextProps.priorityImage) return false;
+  if (prevProps.isMobile !== nextProps.isMobile) return false;
+  if (prevProps.onEdit !== nextProps.onEdit) return false;
+  if (prevProps.onDelete !== nextProps.onDelete) return false;
+
+  const p = prevProps.trip;
+  const n = nextProps.trip;
+  if (p === n) return true;
+  if (!p || !n) return false;
+
+  return (
+    p.id === n.id &&
+    p.titulo === n.titulo &&
+    p.nombreEspanol === n.nombreEspanol &&
+    p.nameSpanish === n.nameSpanish &&
+    p.foto === n.foto &&
+    p.portadaUrl === n.portadaUrl &&
+    p.fechaInicio === n.fechaInicio &&
+    p.fechaFin === n.fechaFin &&
+    p.startDate === n.startDate &&
+    p.endDate === n.endDate &&
+    p.paradaCount === n.paradaCount &&
+    p.ciudades === n.ciudades &&
+    p.paisCodigo === n.paisCodigo &&
+    p.code === n.code &&
+    p.countryCode === n.countryCode &&
+    p.updatedAt === n.updatedAt
+  );
+}
+
+export default React.memo(TripCard, areTripCardPropsEqual);

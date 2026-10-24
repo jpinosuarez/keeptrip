@@ -35,7 +35,7 @@ const MobileTopBar = ({
   return (
     <header
       data-testid="mobile-top-bar"
-      className="flex md:hidden flex-col w-full bg-white/85 backdrop-blur-md border-b border-border/40 shrink-0 sticky top-0 z-dropdown pt-safe"
+      className="flex md:hidden flex-col w-full bg-white/85 backdrop-blur-md border-b border-border/40 shrink-0 sticky top-0 z-dropdown pt-safe [transform:translate3d(0,0,0)] will-change-transform"
     >
       <div className="flex items-center justify-between h-14 px-4 w-full gap-3">
         {/* Left Side per Route */}
