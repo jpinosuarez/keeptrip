@@ -13,28 +13,19 @@ const containerVariants = {
 };
 
 const LandingPage = () => {
-  // "Never Remove, z-index Push-Behind" (unauthenticated path)
-  // Mirrors AppShell.jsx — see that file for full architecture rationale.
-  // z-index:-1 keeps opacity:1 so LCP tracking is preserved.
-  React.useEffect(() => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const splash = document.getElementById('keeptrip-splash');
-        if (!splash) return;
-
-        splash.setAttribute('aria-hidden', 'true');
-        splash.style.zIndex = '-1';
-        splash.style.pointerEvents = 'none';
-      });
-    });
+  // Synchronous splash dismissal on mount to unblock immediate LCP paint
+  React.useLayoutEffect(() => {
+    const splash = document.getElementById('keeptrip-splash');
+    if (splash) {
+      splash.setAttribute('aria-hidden', 'true');
+      splash.style.display = 'none';
+      splash.style.pointerEvents = 'none';
+    }
   }, []);
 
   return (
-    <Motion.div
+    <div
       className="pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] min-h-[100dvh] h-[100dvh] overflow-y-auto overflow-x-hidden bg-background relative font-heading"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
     >
       {/* Visual, deliberate Background Map */}
       <div className="absolute inset-0 bg-[url('/world-map-blank.opt.svg')] bg-cover bg-[center_15%] opacity-15 z-[1] pointer-events-none [mask-image:linear-gradient(to_bottom,rgba(0,0,0,1)_40%,rgba(0,0,0,0)_95%)]" />
@@ -45,7 +36,7 @@ const LandingPage = () => {
         <BentoFeatures />
         <Footer />
       </React.Suspense>
-    </Motion.div>
+    </div>
   );
 };
 

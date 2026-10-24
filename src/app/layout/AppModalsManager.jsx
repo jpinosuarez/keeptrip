@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { LoaderCircle } from 'lucide-react';
-import UserMenuBottomSheet from '@widgets/userMenu/ui/UserMenuBottomSheet';
 import { COLORS, RADIUS, SHADOWS } from '@shared/config';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 
@@ -15,6 +14,7 @@ import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 // Cada uno genera su propio chunk de Rolldown y solo se descarga cuando el
 // usuario abre la funcionalidad por primera vez. Las visitas siguientes usan
 // la caché del SW de Workbox.
+const UserMenuBottomSheet = lazy(() => import('@widgets/userMenu/ui/UserMenuBottomSheet'));
 const SearchPalette = lazy(() => import('@features/search/ui/SearchPalette/SearchPalette'));
 const EditorFocusPanel = lazy(() =>
   import('@features/viajes/editor/ui/EditorFocusPanel').catch(() => {
@@ -207,7 +207,9 @@ function AppModalsManager({
         </ErrorBoundary>
       )}
 
-      <UserMenuBottomSheet />
+      <Suspense fallback={null}>
+        <UserMenuBottomSheet />
+      </Suspense>
 
       {viajeParaEditar && (
         <ErrorBoundary>

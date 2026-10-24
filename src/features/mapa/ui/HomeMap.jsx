@@ -6,6 +6,7 @@ import { COLORS } from '@shared/config';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { setMapLanguage } from '@shared/lib/geo';
 import { OperationalMapFallback } from '@shared/ui/components';
+import { cn } from '@shared/lib/utils/cn';
 
 // Desktop: full inhabited world (S. Argentina → N. Russia).
 // Asymmetric padding (top > bottom) compensates for Mercator's polar distortion,
@@ -58,8 +59,80 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
   const mapRef = useRef(null);
   const isMobileRef = useRef(isMobile);
   const mapContainerRef = useRef(null);
+  const isIntersectingRef = useRef(true);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const isScrollingRef = useRef(false);
+
+  // Active scroll hibernation: pause Mapbox hit-testing and halt camera during scroll
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    let timer = null;
+    const onScroll = () => {
+      if (!isScrollingRef.current) {
+        isScrollingRef.current = true;
+        setIsScrolling(true);
+        if (mapRef.current?.stop) {
+          mapRef.current.stop();
+        }
+      }
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        isScrollingRef.current = false;
+        setIsScrolling(false);
+      }, 150);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true, capture: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll, { capture: true });
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
+
+  // Hibernation during modal overlays (?editing= or ?new)
+  const [isModalOccluded, setIsModalOccluded] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location?.search || '');
+    return params.has('editing') || params.has('new');
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const checkModalOcclusion = () => {
+      const params = new URLSearchParams(window.location?.search || '');
+      const occluded = params.has('editing') || params.has('new');
+      setIsModalOccluded((prev) => (prev !== occluded ? occluded : prev));
+      if (occluded) setHoverInfo(null);
+    };
+
+    window.addEventListener('popstate', checkModalOcclusion);
+    const interval = setInterval(checkModalOcclusion, 500);
+
+    return () => {
+      window.removeEventListener('popstate', checkModalOcclusion);
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Viewport intersection hibernation
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined' || !mapContainerRef.current) return undefined;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      isIntersectingRef.current = entry.isIntersecting;
+      if (!entry.isIntersecting) {
+        setHoverInfo(null);
+      }
+    }, { threshold: 0.05 });
+
+    observer.observe(mapContainerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const onHover = useCallback(event => {
+    if (isScrollingRef.current || !isIntersectingRef.current || isModalOccluded) return;
     const { features, lngLat } = event;
     const hoveredFeature = features && features[0];
     setHoverInfo(hoveredFeature ? {
@@ -67,7 +140,7 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
       longitude: lngLat.lng,
       latitude: lngLat.lat
     } : null);
-  }, []);
+  }, [isModalOccluded]);
 
   const fitWorld = useCallback(map => {
     if (!map) return;
@@ -126,6 +199,7 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
     if (typeof ResizeObserver === 'undefined' || !mapContainerRef.current) return undefined;
 
     const observer = new ResizeObserver(() => {
+      if (!isIntersectingRef.current || isModalOccluded) return;
       const map = mapRef.current;
       if (!map) return;
 
@@ -136,14 +210,17 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
     observer.observe(mapContainerRef.current);
 
     return () => observer.disconnect();
-  }, [fitWorld]);
+  }, [fitWorld, isModalOccluded]);
 
   const listaPaises = useMemo(() => (paisesVisitados.length > 0 ? paisesVisitados : ['EMPTY_LIST']), [paisesVisitados]);
 
   return (
     <div
       ref={mapContainerRef}
-      className="w-full min-w-0 h-full min-h-0 relative bg-[#e0e6ed] rounded-2xl overflow-hidden"
+      className={cn(
+        "w-full min-w-0 h-full min-h-0 relative bg-[#e0e6ed] rounded-2xl overflow-hidden",
+        isScrolling && "pointer-events-none"
+      )}
     >
       {isWebGLDisabled ? (
         <OperationalMapFallback message={mapShieldMessage} borderRadius="1.5rem" />

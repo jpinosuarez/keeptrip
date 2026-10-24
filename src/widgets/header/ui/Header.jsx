@@ -122,6 +122,8 @@ const Header = ({ invitationsCount = 0 }) => {
           backdropFilter: animBackdrop,
           WebkitBackdropFilter: animBackdrop,
           borderBottom: animBorder,
+          transform: 'translate3d(0, 0, 0)',
+          willChange: 'transform',
         }}
       >
         {/* Left: Page Context Title */}

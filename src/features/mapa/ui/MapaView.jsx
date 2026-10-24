@@ -114,6 +114,37 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
     };
   }, [isEmptyMap]);
 
+  // Pause SpinGlobe when modal overlays are mounted (?editing= or ?new)
+  const [isModalOccluded, setIsModalOccluded] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location?.search || '');
+    return params.has('editing') || params.has('new');
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const checkModalOcclusion = () => {
+      const params = new URLSearchParams(window.location?.search || '');
+      const occluded = params.has('editing') || params.has('new');
+      setIsModalOccluded((prev) => (prev !== occluded ? occluded : prev));
+    };
+
+    window.addEventListener('popstate', checkModalOcclusion);
+    const interval = setInterval(checkModalOcclusion, 500);
+
+    return () => {
+      window.removeEventListener('popstate', checkModalOcclusion);
+      clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (spinGlobeRef.current) {
+      spinGlobeRef.current.setOccluded(isModalOccluded);
+    }
+  }, [isModalOccluded]);
+
   // ── Map event handlers ───────────────────────────────────────────────
   const onMapLoad = useCallback((e) => {
     const map = e.target;
