@@ -196,4 +196,18 @@ html, body, #root {
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+
+  /* 6. Native CSS Virtualization (60fps Scroll Fluency) */
+  .cv-auto-card {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 340px;
+  }
+  .cv-auto-card-list {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 130px;
+  }
+  .cv-auto-gallery-item {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 180px;
+  }
 }

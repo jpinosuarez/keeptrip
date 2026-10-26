@@ -23,7 +23,7 @@ export const OPERATIONAL_WRITES_DISABLED_ERROR =
 
 const DEFAULT_HOOK_STATE = Object.freeze({
   flags: DEFAULT_OPERATIONAL_FLAGS,
-  loading: true,
+  loading: false,
   error: null,
 });
 

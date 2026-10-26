@@ -84,6 +84,7 @@ const TripRosterItem = ({ trip, isActive = false, onSelect, index = 0 }) => {
             src={coverUrl}
             alt={title}
             loading="lazy"
+            decoding="async"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         ) : (
@@ -149,6 +150,8 @@ const TripRosterItem = ({ trip, isActive = false, onSelect, index = 0 }) => {
             key={idx}
             src={flag}
             alt=""
+            loading="lazy"
+            decoding="async"
             style={{
               width: 22,
               height: 16,

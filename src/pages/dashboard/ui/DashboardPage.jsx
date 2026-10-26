@@ -101,9 +101,9 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
 
   const mapFallback = (
     <div className="relative w-full h-full min-h-[144px] lg:min-h-[220px] flex justify-center items-center p-4 overflow-hidden bg-[#e0e6ed] rounded-2xl" role="status" aria-live="polite">
-      <div className="absolute inset-0 blur-[0.2px]" aria-hidden="true">
-        <div className="absolute w-[40%] aspect-square top-[10%] right-[25%] rounded-full bg-white blur-[30px] opacity-50" />
-        <div className="absolute w-[50%] aspect-square left-[10%] bottom-[10%] rounded-full bg-white blur-[40px] opacity-40" />
+      <div className="absolute inset-0" aria-hidden="true">
+        <div className="absolute w-[40%] aspect-square top-[10%] right-[25%] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.7)_0%,transparent_70%)] opacity-50" />
+        <div className="absolute w-[50%] aspect-square left-[10%] bottom-[10%] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.7)_0%,transparent_70%)] opacity-40" />
         <div className="absolute inset-0 opacity-15 [background-image:linear-gradient(rgba(0,0,0,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.2)_1px,transparent_1px)] bg-[length:24px_24px] [mask-image:radial-gradient(circle_at_50%_50%,black_20%,transparent_80%)]" />
       </div>
       <div className="relative z-[1] flex flex-col items-center gap-3 p-4 text-center">
@@ -122,9 +122,9 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
 
   const mapLoadingFallback = (
     <div className="relative w-full h-full min-h-[144px] lg:min-h-[220px] flex justify-center items-center p-4 overflow-hidden bg-[#e0e6ed] rounded-2xl" role="status" aria-live="polite">
-      <div className="absolute inset-0 blur-[0.2px]" aria-hidden="true">
-        <div className="absolute w-[40%] aspect-square top-[10%] right-[25%] rounded-full bg-white blur-[30px] opacity-50" />
-        <div className="absolute w-[50%] aspect-square left-[10%] bottom-[10%] rounded-full bg-white blur-[40px] opacity-40" />
+      <div className="absolute inset-0" aria-hidden="true">
+        <div className="absolute w-[40%] aspect-square top-[10%] right-[25%] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.7)_0%,transparent_70%)] opacity-50" />
+        <div className="absolute w-[50%] aspect-square left-[10%] bottom-[10%] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.7)_0%,transparent_70%)] opacity-40" />
         <div className="absolute inset-0 opacity-15 [background-image:linear-gradient(rgba(0,0,0,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.2)_1px,transparent_1px)] bg-[length:24px_24px] [mask-image:radial-gradient(circle_at_50%_50%,black_20%,transparent_80%)]" />
       </div>
       <div className="relative z-[1] flex flex-col items-center gap-3 p-4 text-center">
@@ -191,9 +191,9 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
                   className="relative w-full h-full min-h-[144px] lg:min-h-[220px] flex justify-center items-center p-4 overflow-hidden bg-[#e0e6ed] rounded-2xl cursor-pointer"
                   aria-label={t('map.tapToExploreMap')}
                 >
-                  <div className="absolute inset-0 blur-[0.2px]" aria-hidden="true">
-                    <div className="absolute w-[40%] aspect-square top-[10%] right-[25%] rounded-full bg-white blur-[30px] opacity-50" />
-                    <div className="absolute w-[50%] aspect-square left-[10%] bottom-[10%] rounded-full bg-white blur-[40px] opacity-40" />
+                  <div className="absolute inset-0" aria-hidden="true">
+                    <div className="absolute w-[40%] aspect-square top-[10%] right-[25%] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.7)_0%,transparent_70%)] opacity-50" />
+                    <div className="absolute w-[50%] aspect-square left-[10%] bottom-[10%] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.7)_0%,transparent_70%)] opacity-40" />
                     <div className="absolute inset-0 opacity-15 [background-image:linear-gradient(rgba(0,0,0,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.2)_1px,transparent_1px)] bg-[length:24px_24px] [mask-image:radial-gradient(circle_at_50%_50%,black_20%,transparent_80%)]" />
                   </div>
                 </div>

@@ -21,6 +21,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
   return {
     ...actual,
     useNavigate: () => mockNavigate,
+    useLocation: () => ({ pathname: '/', search: '' }),
     Outlet: () => null,
   };
 });
@@ -90,9 +91,11 @@ vi.mock('@pages/trips/ui/components/GhostEmptyState', () => {
 });
 
 vi.mock('./ui/TripCard', () => ({
-  default: ({ trip }) => (
+  default: ({ trip, onEdit, onDelete }) => (
     <div data-testid={`trip-card-${trip.id}`}>
-      <h3>{trip.nameSpanish}</h3>
+      <h3>{trip.titulo || trip.nombreEspanol || trip.nameSpanish}</h3>
+      <button onClick={() => onEdit?.(trip.id)}>Edit</button>
+      {onDelete && <button onClick={() => onDelete?.(trip.id)}>Delete</button>}
     </div>
   ),
 }));
@@ -105,10 +108,7 @@ import TripGrid from './TripGrid';
 
 afterEach(() => cleanup());
 
-// TODO: Fix TripGrid test mocking layer - tests are failing due to complex mock interactions
-// between TravelStatsWidget, TripCard, and useLogStats. Component itself is working correctly.
-// Need to either: 1) Create more accurate mocks, or 2) Use snapshot testing
-describe.skip('TripGrid', () => {
+describe('TripGrid', () => {
   const trips = [
     { id: 'trip-1', nameSpanish: 'Spain', date: '2026-02-12' },
     { id: 'trip-2', nameSpanish: 'Italy', date: '2026-03-02' },
@@ -119,144 +119,87 @@ describe.skip('TripGrid', () => {
       titulo: 'Madrid Escape',
       startDate: '2026-02-10',
       endDate: '2026-02-12',
-      cities: 'Madrid, Toledo',
+      ciudades: 'Madrid, Toledo',
       rating: 4,
     },
     'trip-2': {
       titulo: 'Rome Weekend',
       startDate: '2026-03-01',
       endDate: '2026-03-02',
-      cities: 'Rome',
+      ciudades: 'Rome',
     },
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSearchState = {
-      busqueda: '',
-      limpiarBusqueda: mockClearSearch,
-    };
   });
 
-  it('renders log stats from the visible trips', () => {
+  it('renders GhostEmptyState when totalLogCount is 0', () => {
+    render(<TripGrid trips={[]} totalLogCount={0} />);
+    expect(screen.getByTestId('ghost-empty-state')).toBeInTheDocument();
+  });
+
+  it('renders trip cards for provided trips', () => {
     render(
       <TripGrid
         trips={trips}
         tripData={tripData}
+        totalLogCount={2}
         handleDelete={vi.fn()}
       />
     );
 
-    const statsRegion = screen.getByRole('region', { name: 'stats.tripSummary' });
-
-    expect(statsRegion).toBeInTheDocument();
-    expect(within(statsRegion).getByText('2')).toBeInTheDocument();
-    expect(within(statsRegion).getByText('5')).toBeInTheDocument();
-    expect(within(statsRegion).getByText('3')).toBeInTheDocument();
-    expect(within(statsRegion).getByText('stats.worldExploredPercentage')).toBeInTheDocument();
-    expect(within(statsRegion).getByText('stats.uniqueCountries')).toBeInTheDocument();
-    expect(within(statsRegion).getByText('stats.completedTrips')).toBeInTheDocument();
-    expect(within(statsRegion).getByText('stats.totalDays')).toBeInTheDocument();
-    expect(within(statsRegion).getByText('stats.totalStops')).toBeInTheDocument();
-  });
-
-  it('updates log stats when the search filter changes visible trips', () => {
-    const { rerender } = render(
-      <TripGrid
-        trips={trips}
-        tripData={tripData}
-        handleDelete={vi.fn()}
-      />
-    );
-
-    mockSearchState = {
-      busqueda: 'rome',
-      limpiarBusqueda: mockClearSearch,
-    };
-
-    rerender(
-      <TripGrid
-        trips={trips}
-        tripData={tripData}
-        handleDelete={vi.fn()}
-      />
-    );
-
-    const statsRegion = screen.getByRole('region', { name: 'stats.tripSummary' });
-    const worldLabel = within(statsRegion).getByText('stats.worldExploredPercentage');
-    const uniqueCountriesLabel = within(statsRegion).getByText('stats.uniqueCountries');
-    const tripsLabel = within(statsRegion).getByText('stats.completedTrips');
-    const totalDaysLabel = within(statsRegion).getByText('stats.totalDays');
-    const totalStopsLabel = within(statsRegion).getByText('stats.totalStops');
-
-    expect(screen.getByText('bentogrid.searchResults')).toBeInTheDocument();
-    expect(worldLabel).toBeInTheDocument();
-    expect(uniqueCountriesLabel).toBeInTheDocument();
-    expect(tripsLabel).toBeInTheDocument();
-    expect(totalDaysLabel).toBeInTheDocument();
-    expect(totalStopsLabel).toBeInTheDocument();
-    expect(worldLabel.previousSibling).toHaveTextContent('0.0%');
-    expect(uniqueCountriesLabel.previousSibling).toHaveTextContent('0');
-    expect(tripsLabel.previousSibling).toHaveTextContent('1');
-    expect(totalDaysLabel.previousSibling).toHaveTextContent('2');
-    expect(totalStopsLabel.previousSibling).toHaveTextContent('1');
+    expect(screen.getByTestId('trips-grid')).toBeInTheDocument();
+    expect(screen.getByTestId('trip-card-trip-1')).toBeInTheDocument();
     expect(screen.getByTestId('trip-card-trip-2')).toBeInTheDocument();
-    expect(screen.queryByTestId('trip-card-trip-1')).not.toBeInTheDocument();
+    expect(screen.getByText('Madrid Escape')).toBeInTheDocument();
+    expect(screen.getByText('Rome Weekend')).toBeInTheDocument();
   });
 
-  it('renders delete button styled with danger color and triggers handleDelete on click', () => {
+  it('renders no results message when search returns 0 trips but user has logs', () => {
+    render(
+      <TripGrid
+        trips={[]}
+        tripData={{}}
+        totalLogCount={5}
+        handleDelete={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('noResults')).toBeInTheDocument();
+    expect(screen.getByText('noResultsMessage')).toBeInTheDocument();
+  });
+
+  it('triggers edit navigation when edit button is clicked on a trip card', async () => {
+    render(
+      <TripGrid
+        trips={trips}
+        tripData={tripData}
+        totalLogCount={2}
+        handleDelete={vi.fn()}
+      />
+    );
+
+    const editButtons = screen.getAllByRole('button', { name: 'Edit' });
+    await userEvent.click(editButtons[0]);
+
+    expect(mockNavigate).toHaveBeenCalledWith({ pathname: '/', search: 'editing=trip-1' });
+  });
+
+  it('triggers handleDelete when delete button is clicked on a trip card', async () => {
     const mockDelete = vi.fn();
     render(
       <TripGrid
         trips={trips}
         tripData={tripData}
+        totalLogCount={2}
         handleDelete={mockDelete}
       />
     );
 
-    const deleteButtons = screen.getAllByRole('button', { name: 'delete trip' });
-    expect(deleteButtons.length).toBeGreaterThan(0);
-    // check style color token applied
-    expect(deleteButtons[0]).toHaveStyle({ color: expect.stringContaining('EF4444') });
+    const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
+    await userEvent.click(deleteButtons[0]);
 
-    userEvent.click(deleteButtons[0]);
     expect(mockDelete).toHaveBeenCalledWith('trip-1');
-  });
-
-  it('calls clear search from the search meta action', async () => {
-    mockSearchState = {
-      busqueda: 'rome',
-      limpiarBusqueda: mockClearSearch,
-    };
-
-    render(
-      <TripGrid
-        trips={trips}
-        tripData={tripData}
-        handleDelete={vi.fn()}
-      />
-    );
-
-    await userEvent.click(screen.getByRole('button', { name: 'bentogrid.clearSearch' }));
-
-    expect(mockClearSearch).toHaveBeenCalledTimes(1);
-  });
-
-  it('shows emotional empty state and plus button when there are no trips', async () => {
-    render(
-      <TripGrid
-        trips={[]}
-        tripData={{}}
-        handleDelete={vi.fn()}
-      />
-    );
-
-    expect(screen.getByText(/viaje espera aventuras/i)).toBeInTheDocument();
-
-    const ctaButton = screen.getByRole('button', { name: /registrar aventura/i });
-    expect(ctaButton).toBeInTheDocument();
-
-    await userEvent.click(ctaButton);
-    expect(mockOpenBuscador).toHaveBeenCalled();
   });
 });

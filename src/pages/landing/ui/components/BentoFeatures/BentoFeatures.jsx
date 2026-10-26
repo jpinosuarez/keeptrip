@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { motion as Motion } from 'framer-motion';
 import { Map, BarChart2, Camera, MapPin, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { WorldMapSVG } from '@shared/ui/components/WorldMapSVG';
 import TripCard from '../../../../../widgets/tripGrid/ui/TripCard';
 import { mapLandingMockTripToCard } from '../../lib/mapLandingMockTripToCard';
+
+const WorldMapSVG = lazy(() => import('@shared/ui/components/WorldMapSVG'));
 
 const springTransition = { type: 'spring', damping: 20, stiffness: 100 };
 
@@ -53,7 +54,9 @@ const BentoFeatures = () => {
         </div>
 
         <div className="relative w-full flex-1 min-h-[240px] rounded-2xl overflow-hidden bg-gradient-to-br from-[#F8FAFC] to-[#EFF6FF] border border-[#E2E8F0] flex items-stretch justify-center">
-          <WorldMapSVG color="#ff7e42" />
+          <Suspense fallback={<div className="w-full h-full min-h-[240px] bg-slate-100 rounded-2xl animate-pulse" />}>
+            <WorldMapSVG color="#ff7e42" />
+          </Suspense>
         </div>
 
         <div>

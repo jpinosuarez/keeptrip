@@ -2,7 +2,7 @@
  * BentoTripGrid — Dynamic bento grid layout for 1-4 recent trips
  * Encapsulates loading skeletons, error banner, empty state, and responsive col/row spans.
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { WifiOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +25,39 @@ const BentoTripGrid = ({
   priorityImageId = null,
 }) => {
   const { t } = useTranslation('dashboard');
+
+  const normalizedTrips = useMemo(() => {
+    return trips
+      .map((trip, index) => {
+        const { colSpan, rowSpan } = getGridSpan(trips.length, index);
+        const data = tripData[trip.id] || trip || {};
+        const isPriority = trip.id === priorityImageId || index === 0;
+
+        // Skip if trip has no identifiable data
+        if (
+          !trip.id &&
+          !data.titulo &&
+          !data.title &&
+          !data.nombreEspanol &&
+          !data.nameSpanish &&
+          !data.paisCodigo &&
+          !data.code &&
+          !data.countryCode
+        ) {
+          return null;
+        }
+
+        return {
+          trip: { ...data, id: trip.id },
+          colSpan,
+          rowSpan,
+          isPriority,
+          index,
+          key: trip.id || index,
+        };
+      })
+      .filter(Boolean);
+  }, [trips, tripData, priorityImageId]);
 
   if (loading) {
     return (
@@ -78,49 +111,29 @@ const BentoTripGrid = ({
       variants={{ visible: { transition: { staggerChildren: 0.08, delayChildren: 0 } } }}
     >
       <AnimatePresence mode="popLayout">
-        {trips.map((trip, index) => {
-          const { colSpan, rowSpan } = getGridSpan(trips.length, index);
-          const data = tripData[trip.id] || trip || {};
-          const isPriority = trip.id === priorityImageId || index === 0;
-
-          // Skip if trip has no identifiable data
-          if (
-            !trip.id &&
-            !data.titulo &&
-            !data.title &&
-            !data.nombreEspanol &&
-            !data.nameSpanish &&
-            !data.paisCodigo &&
-            !data.code &&
-            !data.countryCode
-          ) {
-            return null;
-          }
-
-          return (
-            <Motion.div
-              key={trip.id || index}
-              layout
-              initial={{ opacity: 0, scale: 0.92, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.2 } }}
-              transition={{ type: 'spring', stiffness: 100, damping: 20, delay: index * 0.08 }}
-              className={cn(
-                "rounded-2xl overflow-hidden min-h-0 h-full",
-                colSpan === 2 && "md:col-span-2",
-                rowSpan === 2 && "md:row-span-2"
-              )}
-            >
-              <TripCard
-                trip={{ ...data, id: trip.id }}
-                variant="bento"
-                onEdit={() => onEdit?.(trip.id)}
-                onDelete={onDelete ? () => onDelete?.(trip.id) : undefined}
-                priorityImage={isPriority}
-              />
-            </Motion.div>
-          );
-        })}
+        {normalizedTrips.map(({ trip, colSpan, rowSpan, isPriority, index, key }) => (
+          <Motion.div
+            key={key}
+            layout
+            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.2 } }}
+            transition={{ type: 'spring', stiffness: 100, damping: 20, delay: index * 0.08 }}
+            className={cn(
+              "rounded-2xl overflow-hidden min-h-0 h-full",
+              colSpan === 2 && "md:col-span-2",
+              rowSpan === 2 && "md:row-span-2"
+            )}
+          >
+            <TripCard
+              trip={trip}
+              variant="bento"
+              onEdit={onEdit}
+              onDelete={onDelete}
+              priorityImage={isPriority}
+            />
+          </Motion.div>
+        ))}
       </AnimatePresence>
     </Motion.div>
   );

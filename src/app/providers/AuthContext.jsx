@@ -47,7 +47,16 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const logout = useCallback(() => signOut(auth), []);
+  const logout = useCallback(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('keeptrip_has_session');
+      }
+    } catch {
+      // Ignore storage errors in restricted contexts
+    }
+    return signOut(auth);
+  }, []);
 
   // NUEVO: Función para actualizar perfil
   const actualizarPerfilUsuario = useCallback(async (nombre, fotoURL) => {
@@ -73,6 +82,17 @@ export const AuthProvider = ({ children }) => {
 
       setUsuario(currentUser);
       setCargando(false);
+      try {
+        if (typeof window !== 'undefined') {
+          if (currentUser) {
+            localStorage.setItem('keeptrip_has_session', 'true');
+          } else {
+            localStorage.removeItem('keeptrip_has_session');
+          }
+        }
+      } catch {
+        // Ignore storage errors in restricted contexts
+      }
 
       // Garantizar que exista un documento de perfil utilizable para búsquedas/autocomplete
       // (usuarios/{uid}) — se crea/actualiza al iniciar sesión
