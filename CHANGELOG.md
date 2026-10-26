@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.1](https://github.com/jpinosuarez/keeptrip/compare/v1.1.0...v1.1.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* **editor:** ensure trip and stop dates hydrate deterministically in editor modal ([#78](https://github.com/jpinosuarez/keeptrip/issues/78)) ([7d9b771](https://github.com/jpinosuarez/keeptrip/commit/7d9b7713faeeb7c5060c4c1a27617d5714636235))
+* **editor:** implement elastic date recalculation and non-blocking stop date selection ([#80](https://github.com/jpinosuarez/keeptrip/issues/80)) ([b6e0a29](https://github.com/jpinosuarez/keeptrip/commit/b6e0a294942a80e6df34036a67289887ee95571a))
+
+
+### Performance Improvements
+
+* **core:** optimize GPU compositing, memoize SVG geometry, and clean card listeners ([#81](https://github.com/jpinosuarez/keeptrip/issues/81)) ([1868c46](https://github.com/jpinosuarez/keeptrip/commit/1868c469e10e75a253f137d18ee941a3161f2d5b))
+
 ## [1.1.0](https://github.com/jpinosuarez/keeptrip/compare/v1.0.1...v1.1.0) (2026-10-21)
 
 
