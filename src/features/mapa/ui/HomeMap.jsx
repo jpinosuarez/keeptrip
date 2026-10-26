@@ -7,6 +7,8 @@ import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { setMapLanguage } from '@shared/lib/geo';
 import { OperationalMapFallback } from '@shared/ui/components';
 import { cn } from '@shared/lib/utils/cn';
+import { useAuth } from '@app/providers/AuthContext';
+import { getCountryISO3, getCountryCentroid } from '@shared/lib/utils/countryUtils';
 
 // Desktop: full inhabited world (S. Argentina → N. Russia).
 // Asymmetric padding (top > bottom) compensates for Mercator's polar distortion,
@@ -45,8 +47,29 @@ const BLANK_STYLE = {
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
-const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
+const HomeMap = ({ paisesVisitados = [], isMobile = false, userProfile: propProfile = null }) => {
   const { i18n, t } = useTranslation('dashboard');
+  const auth = useAuth() || {};
+  const profile = propProfile || auth.userProfile || null;
+
+  const birthIso3 = profile?.birthCountry ? getCountryISO3(profile.birthCountry) : null;
+  const residenceIso3 = profile?.residenceCountry ? getCountryISO3(profile.residenceCountry) : null;
+
+  const initialCameraCoords = useMemo(() => {
+    if (profile?.baseCity?.coordinates) {
+      return profile.baseCity.coordinates;
+    }
+    if (profile?.residenceCountry) {
+      const c = getCountryCentroid(profile.residenceCountry);
+      if (c) return c;
+    }
+    if (profile?.birthCountry) {
+      const c = getCountryCentroid(profile.birthCountry);
+      if (c) return c;
+    }
+    return null;
+  }, [profile]);
+
   const {
     flags: { level: operationalLevel },
   } = useOperationalFlags();
@@ -181,11 +204,19 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
     setMapLanguage(map, i18n.language);
 
     try {
-      fitWorld(map);
+      if (initialCameraCoords) {
+        map.flyTo({
+          center: initialCameraCoords,
+          zoom: isMobileRef.current ? 2.2 : 2.8,
+          duration: 1000,
+        });
+      } else {
+        fitWorld(map);
+      }
     } catch (error) {
       console.error('fitBounds failed:', error);
     }
-  }, [fitWorld, i18n.language]);
+  }, [fitWorld, i18n.language, initialCameraCoords]);
 
   const handleMapResize = useCallback(e => {
     try {
@@ -265,12 +296,25 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false }) => {
               type="fill"
               source-layer="country_boundaries"
               paint={{
-                'fill-color': COLORS.atomicTangerine,
-                // Mantenemos la solución que arregló el renderizado de los países visitados
+                'fill-color': [
+                  'case',
+                  ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', listaPaises]],
+                  COLORS.atomicTangerine,
+                  ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
+                  COLORS.mutedTeal,
+                  ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
+                  COLORS.charcoalBlue,
+                  COLORS.atomicTangerine,
+                ],
+                // Conquistado: 0.8, Base/Raíces no conquistados: 0.45, otros: 0
                 'fill-opacity': [
                   'case',
                   ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', listaPaises]],
                   0.8,
+                  ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
+                  0.45,
+                  ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
+                  0.45,
                   0,
                 ],
               }}

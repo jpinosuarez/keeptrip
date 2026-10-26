@@ -1,13 +1,14 @@
 import React, { lazy, Suspense, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useSearchParams, useNavigate, useMatch } from 'react-router-dom';
+import { useSearchParams, useNavigate, useMatch, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@app/providers/AuthContext';
 
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { LoaderCircle } from 'lucide-react';
-import { COLORS, RADIUS, SHADOWS } from '@shared/config';
+import { COLORS, RADIUS, SHADOWS, ENABLE_ONBOARDING } from '@shared/config';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 
 // ── Lazy-loaded heavy components ───────────────────────────────────────────────
@@ -24,6 +25,7 @@ const EditorFocusPanel = lazy(() =>
 );
 const VisorViaje   = lazy(() => import('@features/viajes/viewer/VisorViaje'));
 const MiniMapaRuta = lazy(() => import('@features/mapa/ui/components/MiniMapaRuta'));
+const OnboardingModal = lazy(() => import('@features/onboarding/ui/OnboardingModal'));
 
 /**
  * Skeleton de pantalla completa para la carga inicial de VisorViaje.
@@ -65,6 +67,30 @@ function AppModalsManager({
   const tripId = match?.params?.id;
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user, userProfile, loadingProfile } = useAuth() || {};
+
+  const isOnboardingManual = searchParams.get('onboarding') === 'true';
+  const isEditingOrNew = searchParams.has('editing') || searchParams.has('new');
+  const isDashboardOrTrips = location.pathname === '/dashboard' || location.pathname === '/trips';
+  const isSkippedInSession = typeof window !== 'undefined' && sessionStorage.getItem('keeptrip_onboarding_skipped') === 'true';
+  const isWebDriver = typeof navigator !== 'undefined' && Boolean(navigator.webdriver);
+
+  const shouldShowOnboarding = Boolean(
+    ENABLE_ONBOARDING &&
+    user &&
+    !loadingProfile &&
+    (
+      isOnboardingManual ||
+      (
+        isDashboardOrTrips &&
+        !userProfile?.hasCompletedOnboarding &&
+        !isSkippedInSession &&
+        !isEditingOrNew &&
+        !isWebDriver
+      )
+    )
+  );
 
   if (import.meta.env.DEV) {
     console.debug('AppModalsManager params', { tripId, searchParams: Object.fromEntries(searchParams.entries()) });
@@ -263,6 +289,41 @@ function AppModalsManager({
         onClose={() => setConfirmarEliminacion(null)}
         isLoading={!!(confirmarEliminacion && deletingTripIds.has(confirmarEliminacion))}
       />
+
+      {shouldShowOnboarding && (
+        <ErrorBoundary>
+          <Suspense fallback={null}>
+            <OnboardingModal
+              isOpen={shouldShowOnboarding}
+              onClose={() => {
+                if (isOnboardingManual) {
+                  setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.delete('onboarding');
+                    return next;
+                  }, { replace: true });
+                }
+              }}
+              onComplete={({ navigateToNew }) => {
+                if (isOnboardingManual) {
+                  setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.delete('onboarding');
+                    return next;
+                  }, { replace: true });
+                }
+                if (navigateToNew) {
+                  setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.set('new', 'true');
+                    return next;
+                  });
+                }
+              }}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      )}
     </>
   );
 }

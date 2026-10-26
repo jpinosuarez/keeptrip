@@ -18,7 +18,9 @@
     "first_detail": "Detail Oriented",
     "first_detail_desc": "Add details to a destination",
     "first_dates": "Timekeeper",
-    "first_dates_desc": "Assign dates to an adventure"
+    "first_dates_desc": "Assign dates to an adventure",
+    "local_explorer": "Hometown Hero",
+    "local_explorer_desc": "Log at least 3 domestic trips or 10 stops in your roots or base"
   },
   "stats": {
     "countries": "Countries",

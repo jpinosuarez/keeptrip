@@ -10,7 +10,20 @@ import {
 } from 'firebase/auth';
 import { auth, db, googleProvider, isEmulator } from '@shared/firebase';
 
-const AuthContext = createContext();
+const defaultAuthContext = {
+  user: null,
+  usuario: null,
+  userProfile: null,
+  loadingProfile: false,
+  cargando: false,
+  isAdmin: false,
+  login: async () => {},
+  logout: () => {},
+  updateUserProfile: async () => {},
+  actualizarPerfilUsuario: async () => {},
+};
+
+const AuthContext = createContext(defaultAuthContext);
 
 const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '')
   .split(',')
@@ -22,6 +35,8 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [userProfile, setUserProfile] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const isAdmin = useMemo(() => {
     if (!usuario?.email) return false;
     return ADMIN_EMAILS.includes(usuario.email.toLowerCase());
@@ -55,25 +70,54 @@ export const AuthProvider = ({ children }) => {
     } catch {
       // Ignore storage errors in restricted contexts
     }
+    setUserProfile(null);
+    setLoadingProfile(false);
     return signOut(auth);
   }, []);
 
-  // NUEVO: Función para actualizar perfil
-  const actualizarPerfilUsuario = useCallback(async (nombre, fotoURL) => {
-    if (!auth.currentUser) return;
-    try {
-      await updateProfile(auth.currentUser, {
-        displayName: nombre,
-        photoURL: fotoURL
-      });
-      // Forzamos actualización del estado local
-      setUsuario({ ...auth.currentUser });
-      return true;
-    } catch (error) {
-      console.error("Error actualizando perfil:", error);
-      return false;
+  const updateUserProfile = useCallback(async (partialDataOrName, photoArg) => {
+    const partialData = typeof partialDataOrName === 'string'
+      ? { displayName: partialDataOrName, photoURL: photoArg }
+      : (partialDataOrName || {});
+
+    // Optimistic update of local userProfile
+    setUserProfile((prev) => ({
+      ...(prev || {}),
+      ...partialData,
+    }));
+
+    if (auth.currentUser) {
+      if (partialData.displayName !== undefined || partialData.photoURL !== undefined) {
+        try {
+          await updateProfile(auth.currentUser, {
+            ...(partialData.displayName !== undefined ? { displayName: partialData.displayName } : {}),
+            ...(partialData.photoURL !== undefined ? { photoURL: partialData.photoURL } : {}),
+          });
+          setUsuario({ ...auth.currentUser });
+        } catch (err) {
+          console.warn('Error updating Firebase Auth profile:', err?.message || err);
+        }
+      }
+
+      try {
+        const { doc, setDoc } = await import('firebase/firestore');
+        const perfilRef = doc(db, 'usuarios', auth.currentUser.uid);
+        await setDoc(perfilRef, {
+          ...partialData,
+          updatedAt: new Date(),
+        }, { merge: true });
+        return true;
+      } catch (error) {
+        console.error('Error actualizando perfil en Firestore:', error);
+        return false;
+      }
     }
+    return true;
   }, []);
+
+  const actualizarPerfilUsuario = useCallback(async (nombre, fotoURL) => {
+    return updateUserProfile(nombre, fotoURL);
+  }, [updateUserProfile]);
   useEffect(() => {
     let mounted = true;
 
@@ -98,17 +142,50 @@ export const AuthProvider = ({ children }) => {
       // (usuarios/{uid}) — se crea/actualiza al iniciar sesión
       if (currentUser && currentUser.uid) {
         try {
-          const { doc, setDoc } = await import('firebase/firestore');
+          const { doc, getDoc, setDoc } = await import('firebase/firestore');
           const perfilRef = doc(db, 'usuarios', currentUser.uid);
+
+          let snapData = null;
+          try {
+            const snap = await getDoc(perfilRef);
+            if (snap.exists()) {
+              snapData = snap.data();
+            }
+          } catch (e) {
+            console.warn('Error reading user profile:', e?.message || e);
+          }
+
+          if (mounted) {
+            const profileData = {
+              displayName: snapData?.displayName || currentUser.displayName || '',
+              email: currentUser.email || '',
+              photoURL: snapData?.photoURL || currentUser.photoURL || '',
+              birthCountry: snapData?.birthCountry || null,
+              residenceCountry: snapData?.residenceCountry || null,
+              baseCity: snapData?.baseCity || null,
+              hasCompletedOnboarding: Boolean(snapData?.hasCompletedOnboarding),
+            };
+            setUserProfile(profileData);
+            setLoadingProfile(false);
+          }
+
           await setDoc(perfilRef, {
-            displayName: currentUser.displayName || null,
+            displayName: snapData?.displayName || currentUser.displayName || null,
             email: currentUser.email || null,
-            photoURL: currentUser.photoURL || null,
+            photoURL: snapData?.photoURL || currentUser.photoURL || null,
             updatedAt: new Date()
           }, { merge: true });
         } catch (err) {
           // No bloquear el flujo si falla (emulator / tests pueden no tener db)
           console.warn('No se pudo escribir perfil en Firestore:', err?.message || err);
+          if (mounted) {
+            setLoadingProfile(false);
+          }
+        }
+      } else {
+        if (mounted) {
+          setUserProfile(null);
+          setLoadingProfile(false);
         }
       }
     });
@@ -165,7 +242,18 @@ export const AuthProvider = ({ children }) => {
     };
   }
 
-  const value = useMemo(() => ({ usuario, login, logout, actualizarPerfilUsuario, cargando, isAdmin }), [usuario, login, logout, actualizarPerfilUsuario, cargando, isAdmin]);
+  const value = useMemo(() => ({
+    usuario,
+    user: usuario,
+    userProfile,
+    loadingProfile,
+    login,
+    logout,
+    updateUserProfile,
+    actualizarPerfilUsuario,
+    cargando,
+    isAdmin,
+  }), [usuario, userProfile, loadingProfile, login, logout, updateUserProfile, actualizarPerfilUsuario, cargando, isAdmin]);
 
   return (
     <AuthContext.Provider value={value}>

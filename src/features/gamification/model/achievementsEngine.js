@@ -12,6 +12,7 @@
 
 import { COUNTRIES_DB } from '../../../assets/sellos/index';
 import { ACHIEVEMENTS } from './achievementDefinitions';
+import { getCountryISO3 } from '@shared/lib/utils/countryUtils';
 
 /** Build a continents Set from an array of ISO-3 country codes. */
 export const getContinents = (countryCodes) => {
@@ -30,7 +31,7 @@ export const getContinents = (countryCodes) => {
  * @param {object[]} bitacora      — trips array
  * @param {object[]} todasLasParadas — all stops
  */
-export const buildStats = (countryCodes, bitacora, todasLasParadas) => {
+export const buildStats = (countryCodes, bitacora, todasLasParadas, userProfile = null) => {
   const continents = getContinents(countryCodes);
 
   // Count trips that have ≥ 3 paradas (detailed documentation)
@@ -81,6 +82,39 @@ export const buildStats = (countryCodes, bitacora, todasLasParadas) => {
     return Boolean(t.fechaInicio || t.startDate);
   });
 
+  // ── Domestic Travel / Roots & Base calculations ──
+  const birthCountry = (userProfile?.birthCountry || '').toUpperCase();
+  const residenceCountry = (userProfile?.residenceCountry || '').toUpperCase();
+  const homeCodes = new Set([
+    birthCountry,
+    residenceCountry,
+    getCountryISO3(birthCountry),
+    getCountryISO3(residenceCountry),
+  ].filter(Boolean));
+
+  let localTripsCount = 0;
+  let localStopsCount = 0;
+
+  for (const t of bitacora) {
+    const stopsForTrip = todasLasParadas.filter((p) => p.viajeId === t.id);
+    const tripCountries = [];
+    if (t.paisCodigo || t.countryCode || t.code) {
+      tripCountries.push(String(t.paisCodigo || t.countryCode || t.code).toUpperCase());
+    }
+    for (const p of stopsForTrip) {
+      const code = String(p.paisCodigo || p.countryCode || p.code || '').toUpperCase();
+      if (code) {
+        tripCountries.push(code);
+        if (homeCodes.has(code)) {
+          localStopsCount++;
+        }
+      }
+    }
+    if (homeCodes.size > 0 && tripCountries.length > 0 && tripCountries.every((c) => homeCodes.has(c))) {
+      localTripsCount++;
+    }
+  }
+
   return {
     countries: countryCodes.length,
     trips: bitacora.length,
@@ -89,6 +123,8 @@ export const buildStats = (countryCodes, bitacora, todasLasParadas) => {
     continentNames: continents,
     longestTrip: longestDays,
     totalPhotos,
+    localTripsCount,
+    localStopsCount,
     // Micro-milestone flags
     hasAnyPhoto,
     hasAnyDetail,
@@ -106,6 +142,7 @@ export const evaluateAchievements = (stats) => {
     trips:          (t) => stats.trips >= t,
     continents:     (t) => stats.continents >= t,
     detailed_trips: (t) => stats.detailedTrips >= t,
+    local_explorer: () => (stats.localTripsCount >= 3 || stats.localStopsCount >= 10),
     // Micro-milestone resolvers (Guardrail #1)
     has_photo:  () => stats.hasAnyPhoto,
     has_detail: () => stats.hasAnyDetail,
@@ -127,6 +164,19 @@ export const evaluateAchievements = (stats) => {
  */
 export const getAchievementsWithProgress = (stats) =>
   ACHIEVEMENTS.map((a) => {
+    if (a.criteria.type === 'local_explorer') {
+      const tripsProg = (stats.localTripsCount || 0) / 3;
+      const stopsProg = (stats.localStopsCount || 0) / 10;
+      const progress = Math.min(Math.max(tripsProg, stopsProg), 1);
+      const unlocked = progress >= 1;
+      return {
+        ...a,
+        progress,
+        current: Math.max(stats.localTripsCount || 0, stats.localStopsCount || 0),
+        unlocked,
+      };
+    }
+
     const valueMap = {
       countries:      stats.countries,
       trips:          stats.trips,

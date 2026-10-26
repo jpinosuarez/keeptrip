@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import * as d3geo from 'd3-geo';
 import * as topojson from 'topojson-client';
 import { cn } from '@shared/lib/utils/cn';
+import { useAuth } from '@app/providers/AuthContext';
+import { getCountryCentroid, getCountryName } from '@shared/lib/utils/countryUtils';
 
 // Real-world TopoJSON from jsDelivr CDN (Natural Earth 110m — CC0 public domain)
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
@@ -27,8 +29,10 @@ const ROUTES = [
   { from: [2.35, 48.86], to: [-68.5, -51.0] },
 ];
 
-export const WorldMapSVG = ({ color = '#FF6B35' }) => {
+export const WorldMapSVG = ({ color = '#FF6B35', userProfile: propProfile = null }) => {
   const { t } = useTranslation();
+  const auth = useAuth() || {};
+  const profile = propProfile || auth.userProfile || null;
   const svgRef = useRef(null);
   const containerRef = useRef(null);
   const [dims, setDims] = useState({ w: 600, h: 280 });
@@ -89,15 +93,32 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
     return topojson.feature(geoData, geoData.objects.countries);
   }, [geoData]);
 
+  const birthName = useMemo(() => {
+    return profile?.birthCountry ? getCountryName(profile.birthCountry) : null;
+  }, [profile?.birthCountry]);
+
+  const residenceName = useMemo(() => {
+    return profile?.residenceCountry ? getCountryName(profile.residenceCountry) : null;
+  }, [profile?.residenceCountry]);
+
   const countryPaths = useMemo(() => {
     if (!countries) return [];
-    return countries.features.map((feature, idx) => ({
-      id: String(feature.id ?? `geo-${idx}`),
-      d: pathGen(feature),
-      isVisited: VISITED_IDS.has(String(feature.id)),
-      name: feature.properties?.name || 'Saved destination',
-    }));
-  }, [countries, pathGen]);
+    return countries.features.map((feature, idx) => {
+      const isVisited = VISITED_IDS.has(String(feature.id));
+      const cName = feature.properties?.name || '';
+      const isResidence = !isVisited && Boolean(residenceName && cName.toLowerCase() === residenceName.toLowerCase());
+      const isBirth = !isVisited && !isResidence && Boolean(birthName && cName.toLowerCase() === birthName.toLowerCase());
+
+      return {
+        id: String(feature.id ?? `geo-${idx}`),
+        d: pathGen(feature),
+        isVisited,
+        isResidence,
+        isBirth,
+        name: cName || 'Saved destination',
+      };
+    });
+  }, [countries, pathGen, residenceName, birthName]);
 
   const arcPaths = useMemo(() => {
     return ROUTES.map((route, index) => {
@@ -143,24 +164,28 @@ export const WorldMapSVG = ({ color = '#FF6B35' }) => {
           <g>
             {/* Country fills */}
             {countryPaths.map((country) => {
-              const { id, d, isVisited } = country;
+              const { id, d, isVisited, isResidence, isBirth } = country;
               const isHovered = hoveredCountry === id;
+              const pathFill = isVisited ? color : (isResidence ? '#45B0A8' : (isBirth ? '#2C3E50' : '#CBD5E1'));
+              const pathOpacity = isVisited ? (isHovered ? 0.85 : 0.6) : ((isResidence || isBirth) ? 0.55 : 0.75);
+              const isInteractive = isVisited || isResidence || isBirth;
+
               return (
                 <path
                   key={id}
                   d={d}
-                  fill={isVisited ? color : '#CBD5E1'}
-                  fillOpacity={isVisited ? (isHovered ? 0.8 : 0.5) : 0.75}
+                  fill={pathFill}
+                  fillOpacity={pathOpacity}
                   stroke="#fff"
                   strokeWidth={0.4}
                   className={cn(
                     "transition-all duration-300",
-                    isVisited ? "cursor-pointer" : "cursor-default"
+                    isInteractive ? "cursor-pointer" : "cursor-default"
                   )}
                   style={{
-                    filter: isVisited && isHovered ? `drop-shadow(0 0 4px ${color}40)` : 'none'
+                    filter: isHovered && isInteractive ? `drop-shadow(0 0 4px ${pathFill}40)` : 'none'
                   }}
-                  onMouseEnter={() => isVisited && setHoveredCountry(id)}
+                  onMouseEnter={() => isInteractive && setHoveredCountry(id)}
                   onMouseLeave={() => setHoveredCountry(null)}
                 />
               );
