@@ -1,14 +1,16 @@
-import React, { lazy, Suspense, useCallback } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useSearchParams, useNavigate, useMatch } from 'react-router-dom';
+import { useSearchParams, useNavigate, useMatch, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@app/providers/AuthContext';
 
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { LoaderCircle } from 'lucide-react';
-import { COLORS, RADIUS, SHADOWS } from '@shared/config';
+import { COLORS, RADIUS, SHADOWS, ENABLE_ONBOARDING } from '@shared/config';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
+import { COUNTRIES_DATA, getCountryCentroid, getFlagUrl } from '@shared/lib/utils/countryUtils';
 
 // ── Lazy-loaded heavy components ───────────────────────────────────────────────
 // Cada uno genera su propio chunk de Rolldown y solo se descarga cuando el
@@ -24,6 +26,7 @@ const EditorFocusPanel = lazy(() =>
 );
 const VisorViaje   = lazy(() => import('@features/viajes/viewer/VisorViaje'));
 const MiniMapaRuta = lazy(() => import('@features/mapa/ui/components/MiniMapaRuta'));
+const OnboardingModal = lazy(() => import('@features/onboarding/ui/OnboardingModal'));
 
 /**
  * Skeleton de pantalla completa para la carga inicial de VisorViaje.
@@ -65,6 +68,78 @@ function AppModalsManager({
   const tripId = match?.params?.id;
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user, userProfile, loadingProfile } = useAuth() || {};
+
+  const [isOnboardingDismissed, setIsOnboardingDismissed] = useState(
+    () => typeof window !== 'undefined' && sessionStorage.getItem('keeptrip_onboarding_skipped') === 'true'
+  );
+
+  const isOnboardingManual = searchParams.get('onboarding') === 'true';
+  const isEditingOrNew = searchParams.has('editing') || searchParams.has('new');
+  const isDashboardOrTrips = location.pathname === '/dashboard' || location.pathname === '/trips';
+  const isSkippedInStorage = typeof window !== 'undefined' && user?.uid && localStorage.getItem(`keeptrip_onboarded_${user.uid}`) === 'true';
+  const isWebDriver = typeof navigator !== 'undefined' && Boolean(navigator.webdriver);
+
+  const shouldShowOnboarding = Boolean(
+    ENABLE_ONBOARDING &&
+    Boolean(user?.uid) &&
+    !loadingProfile &&
+    userProfile !== null &&
+    (
+      isOnboardingManual ||
+      (
+        isDashboardOrTrips &&
+        userProfile.hasCompletedOnboarding === false &&
+        !isSkippedInStorage &&
+        !isOnboardingDismissed &&
+        !isEditingOrNew &&
+        !isWebDriver
+      )
+    )
+  );
+
+  const handleCloseOnboarding = useCallback(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('keeptrip_onboarding_skipped', 'true');
+      }
+    } catch {
+      // Ignore storage errors in restricted contexts
+    }
+    setIsOnboardingDismissed(true);
+    if (searchParams.has('onboarding')) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('onboarding');
+        return next;
+      }, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  const handleCompleteOnboarding = useCallback(({ navigateToNew }) => {
+    try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('keeptrip_onboarding_skipped', 'true');
+      }
+    } catch {
+      // Ignore storage errors in restricted contexts
+    }
+    setIsOnboardingDismissed(true);
+
+    if (navigateToNew) {
+      navigate('/dashboard?new=true');
+    } else {
+      if (searchParams.has('onboarding')) {
+        setSearchParams((prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete('onboarding');
+          return next;
+        }, { replace: true });
+      }
+      navigate('/map');
+    }
+  }, [searchParams, setSearchParams, navigate]);
 
   if (import.meta.env.DEV) {
     console.debug('AppModalsManager params', { tripId, searchParams: Object.fromEntries(searchParams.entries()) });
@@ -93,11 +168,56 @@ function AppModalsManager({
   } = crud;
 
   // ── EdicionModal: ?editing=<id> para viajes existentes, viajeBorrador para nuevos ──
-  const editingId = searchParams.get('editing');
+  const isNewParam = searchParams.get('new') === 'true' || searchParams.get('editing') === 'new';
+  const editingId = !isNewParam ? searchParams.get('editing') : null;
+
+  // Auto-init draft trip if ?new=true is in URL and no draft exists.
+  // The draft is seeded with the traveler's geo identity (residence → origin → ES)
+  // so the editor opens on their current country instead of a hardcoded default.
+  useEffect(() => {
+    if (isNewParam && !viajeBorrador) {
+      const seedCode = (userProfile?.residenceCountry || userProfile?.birthCountry || 'ES').toUpperCase();
+      const seedCountry = COUNTRIES_DATA.find((c) => c.code === seedCode);
+      const seedCoordinates = userProfile?.baseCity?.coordinates
+        || userProfile?.birthCity?.coordinates
+        || getCountryCentroid(seedCode)
+        || null;
+
+      const nuevoBorrador = {
+        id: 'new',
+        code: seedCode,
+        nombreEspanol: seedCountry?.name || getLocalizedCountryName(seedCode, i18n.language) || 'España',
+        flag: getFlagUrl(seedCode),
+        continente: 'Mundo',
+        titulo: '',
+        fechaInicio: new Date().toISOString().split('T')[0],
+        fechaFin: new Date().toISOString().split('T')[0],
+        foto: null,
+        latlng: seedCoordinates,
+        coordenadas: seedCoordinates,
+        vibe: [],
+        highlights: { topFood: '', topView: '', topTip: '' },
+        companions: [],
+        texto: '',
+        presupuesto: null,
+      };
+      setViajeBorrador(nuevoBorrador);
+    }
+  }, [
+    isNewParam,
+    viajeBorrador,
+    setViajeBorrador,
+    userProfile?.residenceCountry,
+    userProfile?.birthCountry,
+    userProfile?.baseCity,
+    userProfile?.birthCity,
+    i18n.language,
+  ]);
+
   const viajeParaEditar = editingId
     ? bitacoraData[editingId] || bitacora.find((v) => v.id === editingId)
     : viajeBorrador;
-  const esBorrador = !editingId && !!viajeBorrador;
+  const esBorrador = (!editingId && !!viajeBorrador) || isNewParam;
 
   const handleCloseEditor = useCallback(() => {
     setViajeBorrador(null);
@@ -263,6 +383,18 @@ function AppModalsManager({
         onClose={() => setConfirmarEliminacion(null)}
         isLoading={!!(confirmarEliminacion && deletingTripIds.has(confirmarEliminacion))}
       />
+
+      {shouldShowOnboarding && (
+        <ErrorBoundary>
+          <Suspense fallback={null}>
+            <OnboardingModal
+              isOpen={shouldShowOnboarding}
+              onClose={handleCloseOnboarding}
+              onComplete={handleCompleteOnboarding}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      )}
     </>
   );
 }

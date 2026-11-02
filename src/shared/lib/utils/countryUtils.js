@@ -24,6 +24,61 @@ export const getFlagUrl = (countryCode) => {
   if (!normalizedCode) return null;
   return `https://flagcdn.com/${normalizedCode.toLowerCase()}.svg`;
 };
+export const getCountryISO2 = (code) => {
+  return normalizeCountryCode(code);
+};
+
+// Coordenadas centroide [longitud, latitud] para cámaras y mapas (Mapbox usa [lng, lat])
+export const COUNTRY_CENTROIDS = {
+  AR: [-63.6167, -38.4161],
+  DE: [10.4515, 51.1657],
+  ES: [-3.7492, 40.4637],
+  FR: [2.2137, 46.2276],
+  IT: [12.5674, 41.8719],
+  GB: [-3.436, 55.3781],
+  US: [-95.7129, 37.0902],
+  MX: [-102.5528, 23.6345],
+  BR: [-51.9253, -14.235],
+  CL: [-71.543, -35.6751],
+  UY: [-55.7658, -32.5228],
+  CO: [-74.2973, 4.5709],
+  PE: [-75.0152, -9.1899],
+  JP: [138.2529, 36.2048],
+  CN: [104.1954, 35.8617],
+  AU: [133.7751, -25.2744],
+  PT: [-8.2245, 39.3999],
+  NL: [5.2913, 52.1326],
+  CH: [8.2275, 46.8182],
+  AT: [14.5501, 47.5162],
+  BE: [4.4699, 50.5039],
+  GR: [21.8243, 39.0742],
+  TR: [35.2433, 38.9637],
+  TH: [100.9925, 15.87],
+  CA: [-106.3468, 56.1304],
+  NZ: [174.886, -40.9006],
+  IE: [-8.2439, 53.4129],
+  NO: [8.4689, 60.472],
+  SE: [18.6435, 60.1282],
+  DK: [9.5018, 56.2639],
+  FI: [25.7482, 61.9241],
+  PL: [19.1451, 51.9194],
+  CZ: [15.473, 49.8175],
+  ZA: [22.9375, -30.5595],
+  IN: [78.9629, 20.5937],
+  KR: [127.7669, 35.9078],
+  ID: [113.9213, -0.7893],
+  VN: [108.2772, 14.0583],
+  EG: [30.8025, 26.8206],
+  MA: [-7.0926, 31.7917],
+};
+
+export const getCountryCentroid = (code) => {
+  if (!code) return null;
+  const iso2 = normalizeCountryCode(code);
+  if (!iso2) return null;
+  return COUNTRY_CENTROIDS[iso2] || null;
+};
+
 // Convierte código Alpha-2 (ej: AR) a Alpha-3 (ej: ARG) para Mapbox
 export const getCountryISO3 = (code2) => {
   if (!code2) return null;

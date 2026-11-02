@@ -3,10 +3,35 @@ import {
   TRAVELER_LEVELS,
   getTravelerLevel,
   getNextLevel,
-  checkLevelUp
+  checkLevelUp,
+  calculateTotalXP,
+  ONBOARDING_XP_BONUS
 } from '../travelerLevel';
 
 describe('travelerLevel', () => {
+  describe('calculateTotalXP', () => {
+    it('awards +50 XP bonus when onboarding is completed', () => {
+      const statsWithoutOnboarding = {
+        uniqueCountries: 1,
+        completedTrips: 1,
+        totalStops: 2,
+        hasCompletedOnboarding: false,
+      };
+      const statsWithOnboarding = {
+        uniqueCountries: 1,
+        completedTrips: 1,
+        totalStops: 2,
+        hasCompletedOnboarding: true,
+      };
+
+      const xpWithout = calculateTotalXP(statsWithoutOnboarding);
+      const xpWith = calculateTotalXP(statsWithOnboarding);
+
+      expect(xpWith - xpWithout).toBe(ONBOARDING_XP_BONUS);
+      expect(ONBOARDING_XP_BONUS).toBe(50);
+    });
+  });
+
   describe('TRAVELER_LEVELS', () => {
     it('están ordenados ascendentemente por min', () => {
       for (let i = 1; i < TRAVELER_LEVELS.length; i++) {

@@ -114,6 +114,11 @@
       "subtitle": "Todo explorador empieza aquí. Marca tu primer destino y observa cómo se despliega tu historia.",
       "cta": "Registrar Primera Aventura"
     },
+    "geoIdentityMarked": "Tu ubicación ya está marcada en el mapa.",
+    "createFirstTrip": "Crear primer viaje",
+    "originAndResidencePin": "Origen y residencia",
+    "birthCityPin": "Ciudad natal",
+    "baseCityPin": "Ciudad base",
     "roster": {
       "title": "Tus Viajes",
       "openLog": "Abrir Viaje",

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { getTravelerLevel } from './travelerLevel';
 import { buildStats, evaluateAchievements, getAchievementsWithProgress } from './achievementsEngine';
 import { ENABLE_GAMIFICATION } from '@shared/config';
+import { useAuth } from '@app/providers/AuthContext';
 
 const STORAGE_KEY = 'keeptrip-achievements';
 const EMPTY_STATS = Object.freeze({});
@@ -29,6 +30,7 @@ const writePersisted = (state) => {
 export const useAchievements = ({ paisesVisitados, bitacora, todasLasParadas }) => {
   const [celebrations, setCelebrations] = useState([]);
   const isInitialLoadRef = useRef(true);
+  const { userProfile } = useAuth() || {};
 
   // Derive meaningful dep values to avoid reacting to reference changes
   const countryCount = paisesVisitados.length;
@@ -38,7 +40,7 @@ export const useAchievements = ({ paisesVisitados, bitacora, todasLasParadas }) 
   useEffect(() => {
     if (!ENABLE_GAMIFICATION) return;
 
-    const stats = buildStats(paisesVisitados, bitacora, todasLasParadas);
+    const stats = buildStats(paisesVisitados, bitacora, todasLasParadas, userProfile);
     const unlocked = evaluateAchievements(stats);
     const currentLevel = getTravelerLevel(countryCount);
     const persisted = readPersisted();
@@ -89,8 +91,8 @@ export const useAchievements = ({ paisesVisitados, bitacora, todasLasParadas }) 
 
   // Always-available data (not dependent on celebrations)
   const stats = useMemo(
-    () => (ENABLE_GAMIFICATION ? buildStats(paisesVisitados, bitacora, todasLasParadas) : EMPTY_STATS),
-    [paisesVisitados, bitacora, todasLasParadas],
+    () => (ENABLE_GAMIFICATION ? buildStats(paisesVisitados, bitacora, todasLasParadas, userProfile) : EMPTY_STATS),
+    [paisesVisitados, bitacora, todasLasParadas, userProfile],
   );
 
   const achievementsWithProgress = useMemo(

@@ -56,6 +56,12 @@ export const ACHIEVEMENTS = [
     tier: 'bronze',
     criteria: { type: 'has_dates', threshold: 1 },
   },
+  {
+    id: 'local_explorer',
+    icon: '🧭',
+    tier: 'bronze',
+    criteria: { type: 'local_explorer', threshold: 3 },
+  },
 
   // ── Original achievements ──
   {

@@ -14,7 +14,8 @@ import { motion as Motion, AnimatePresence } from 'framer-motion';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import {
   User, Globe, LogOut, ChevronRight,
-  CheckCircle, Camera, Pencil, Trash2
+  CheckCircle, Camera, Pencil, Trash2,
+  Compass, Heart, Home, MapPin, Check, Save
 } from 'lucide-react';
 import { useAuth } from '@app/providers/AuthContext';
 import { useToast } from '@app/providers/ToastContext';
@@ -26,6 +27,9 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { deleteUser } from 'firebase/auth';
 import { compressImage } from '@shared/lib/utils/imageUtils';
 import { cn } from '@shared/lib/utils/cn';
+import { CountrySearchSelect } from '@shared/ui/components/CountrySearchSelect';
+import { CityAutocompleteInput } from '@shared/ui/components/CityAutocompleteInput';
+import { deriveResidenceMode, normalizeCity } from '@shared/lib/geo';
 
 const DEBOUNCE_MS = 800;
 const FOUNDER_UID_FALLBACK = 'FOUNDER_UID_HERE';
@@ -150,7 +154,8 @@ const LanguageToggle = ({ currentLang, onToggle }) => {
 const SettingsPage = () => {
   const {
     usuario: user,
-    actualizarPerfilUsuario: updateUserProfile,
+    userProfile,
+    updateUserProfile,
     logout,
     isAdmin,
   } = useAuth();
@@ -163,14 +168,117 @@ const SettingsPage = () => {
   const hasFounderUidAccess = Boolean(user?.uid && user.uid === founderUid);
   const canManageOperationalFlags = hasFounderUidAccess;
 
-  const [displayName, setDisplayName] = useState(user?.displayName || '');
-  const [photoUrl, setPhotoUrl] = useState(user?.photoURL || '');
+  const [displayName, setDisplayName] = useState(userProfile?.displayName || user?.displayName || '');
+  const [photoUrl, setPhotoUrl] = useState(userProfile?.photoURL || user?.photoURL || '');
   const [editingProfile, setEditingProfile] = useState(false);
   const [photoError, setPhotoError] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+  // Geographic Identity states
+  // City state keeps the full record ({ name, coordinates, countryCode }) so a newly
+  // selected city never loses its real coordinates on save (legacy string records are
+  // resolved by normalizeCity instead of crashing).
+  const [birthCountry, setBirthCountry] = useState(userProfile?.birthCountry || 'ES');
+  const [birthCity, setBirthCity] = useState(() =>
+    normalizeCity(userProfile?.birthCity, userProfile?.birthCountry || 'ES')
+  );
+  const [residenceMode, setResidenceMode] = useState(() => {
+    if (userProfile?.residenceCountry && userProfile.birthCountry && userProfile.residenceCountry !== userProfile.birthCountry) {
+      return 'different_country';
+    }
+    if (userProfile?.baseCity && userProfile?.birthCity && userProfile.baseCity.name !== userProfile.birthCity.name) {
+      return 'same_country';
+    }
+    return 'same_city';
+  });
+  const [residenceCountry, setResidenceCountry] = useState(userProfile?.residenceCountry || userProfile?.birthCountry || 'ES');
+  const [baseCity, setBaseCity] = useState(() =>
+    normalizeCity(
+      userProfile?.baseCity,
+      userProfile?.residenceCountry || userProfile?.birthCountry || 'ES'
+    )
+  );
+  const [savingGeo, setSavingGeo] = useState(false);
+
+  // ── Reactive sync: profile → form ──────────────────────────────────────
+  // Render-time adjustment (React's recommended pattern) instead of an effect:
+  // the form re-seeds only when the saved geographic identity actually changes,
+  // so background autosaves (displayName/photoURL) never clobber in-progress edits.
+  const profileBirthCountry = userProfile?.birthCountry || null;
+  const profileResidenceCountry = userProfile?.residenceCountry || null;
+  const profileBirthCity = normalizeCity(
+    userProfile?.birthCity,
+    profileBirthCountry || 'ES'
+  );
+  const profileBaseCity = normalizeCity(
+    userProfile?.baseCity,
+    profileResidenceCountry || profileBirthCountry || 'ES'
+  );
+
+  const identitySyncKey = [
+    profileBirthCountry || '',
+    profileResidenceCountry || '',
+    profileBirthCity?.name || '',
+    profileBirthCity?.coordinates?.[0] ?? '',
+    profileBirthCity?.coordinates?.[1] ?? '',
+    profileBaseCity?.name || '',
+    profileBaseCity?.coordinates?.[0] ?? '',
+    profileBaseCity?.coordinates?.[1] ?? '',
+  ].join('|');
+
+  const [syncedIdentityKey, setSyncedIdentityKey] = useState(identitySyncKey);
+
+  if (identitySyncKey !== syncedIdentityKey) {
+    setSyncedIdentityKey(identitySyncKey);
+    setBirthCountry(profileBirthCountry || 'ES');
+    setBirthCity(profileBirthCity);
+    setResidenceMode(deriveResidenceMode({
+      birthCountry: profileBirthCountry,
+      residenceCountry: profileResidenceCountry,
+      birthCity: profileBirthCity,
+      baseCity: profileBaseCity,
+    }));
+    setResidenceCountry(profileResidenceCountry || profileBirthCountry || 'ES');
+    setBaseCity(profileBaseCity);
+  }
+
+  const handleSaveGeoIdentity = async () => {
+    setSavingGeo(true);
+
+    // Persist the full city record (name + real coordinates), never just the label.
+    const finalBirthCity = birthCity?.name
+      ? { name: birthCity.name, coordinates: birthCity.coordinates, countryCode: birthCountry }
+      : null;
+
+    let finalResidenceCountry = birthCountry;
+    let finalBaseCity = null;
+
+    if (residenceMode === 'same_city') {
+      finalResidenceCountry = birthCountry;
+      finalBaseCity = finalBirthCity;
+    } else {
+      finalResidenceCountry = residenceMode === 'same_country'
+        ? birthCountry
+        : (residenceCountry || birthCountry);
+      finalBaseCity = baseCity?.name
+        ? { name: baseCity.name, coordinates: baseCity.coordinates, countryCode: finalResidenceCountry }
+        : null;
+    }
+
+    if (updateUserProfile) {
+      await updateUserProfile({
+        birthCountry,
+        birthCity: finalBirthCity,
+        residenceCountry: finalResidenceCountry,
+        baseCity: finalBaseCity,
+      });
+      pushToast(t('settings:geoSavedSuccess', 'Identidad geográfica actualizada'), 'success');
+    }
+    setSavingGeo(false);
+  };
 
   const debounceRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -180,7 +288,7 @@ const SettingsPage = () => {
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       if (displayName === (user?.displayName || '') && photoUrl === (user?.photoURL || '')) return;
-      await updateUserProfile(displayName, photoUrl);
+      await updateUserProfile({ displayName, photoURL: photoUrl });
     }, DEBOUNCE_MS);
   }, [displayName, photoUrl, user, updateUserProfile]);
 
@@ -350,6 +458,105 @@ const SettingsPage = () => {
             </AnimatePresence>
           </GroupCard>
         </Motion.div>
+
+        {/* ── Geographic Identity Section ── */}
+        <SectionHeader>{t('settings:geoIdentityTitle', 'Lugar de origen y residencia')}</SectionHeader>
+        <GroupCard>
+          <div className="p-4 md:p-5 flex flex-col gap-4">
+            {/* Roots */}
+            <CountrySearchSelect
+              label={t('settings:birthCountry', 'País de nacimiento')}
+              value={birthCountry}
+              onChange={(code) => {
+                setBirthCountry(code);
+                // A city from a previous country must not survive a country switch.
+                setBirthCity((prev) => (prev && prev.countryCode !== code ? null : prev));
+              }}
+              placeholder={t('common:selectCountry', 'Seleccionar país...')}
+            />
+
+            <CityAutocompleteInput
+              label={t('settings:birthCity', 'Ciudad natal (opcional)')}
+              value={birthCity}
+              countryCode={birthCountry}
+              onChange={(city) => setBirthCity(normalizeCity(city, birthCountry))}
+              placeholder={t('settings:birthCityPlaceholder', 'Ej: Buenos Aires, Rosario...')}
+            />
+
+            {/* Residence Mode Selector */}
+            <div className="flex flex-col gap-1.5 pt-2 border-t border-black/5">
+              <label className="text-[0.78rem] font-bold text-slate-700 flex items-center gap-1.5">
+                <Home size={14} className="text-[#45B0A8]" />
+                <span>{t('settings:residenceMode', 'Lugar de Residencia')}</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                {[
+                  { id: 'same_city', label: t('onboarding.modeSameCity', 'Misma ciudad natal') },
+                  { id: 'same_country', label: t('onboarding.modeSameCountry', 'Otra ciudad del país') },
+                  { id: 'different_country', label: t('onboarding.modeDifferentCountry', 'En otro país') },
+                ].map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => setResidenceMode(option.id)}
+                    className={cn(
+                      "py-2 px-2 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 transition-all min-h-[40px] text-center",
+                      residenceMode === option.id
+                        ? "bg-[#45B0A8] text-white shadow-xs"
+                        : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                    )}
+                  >
+                    {residenceMode === option.id && <Check size={12} className="shrink-0" />}
+                    <span>{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* If different country */}
+            {residenceMode === 'different_country' && (
+              <CountrySearchSelect
+                label={t('settings:residenceCountry', 'País de Residencia')}
+                value={residenceCountry}
+                onChange={(code) => {
+                  setResidenceCountry(code);
+                  // Keep the base city anchored to the country it actually belongs to.
+                  setBaseCity((prev) => (prev && prev.countryCode !== code ? null : prev));
+                }}
+                placeholder={t('common:selectCountry', 'Seleccionar país...')}
+              />
+            )}
+
+            {/* If not same_city */}
+            {residenceMode !== 'same_city' && (
+              <CityAutocompleteInput
+                label={t('settings:baseCity', 'Ciudad Base actual (opcional)')}
+                value={baseCity}
+                countryCode={residenceMode === 'different_country' ? residenceCountry : birthCountry}
+                onChange={(city) =>
+                  setBaseCity(
+                    normalizeCity(
+                      city,
+                      residenceMode === 'different_country' ? residenceCountry : birthCountry
+                    )
+                  )
+                }
+                placeholder={t('settings:baseCityPlaceholder', 'Ej: Madrid, Barcelona...')}
+              />
+            )}
+
+            <Motion.button
+              type="button"
+              whileTap={{ scale: 0.98 }}
+              disabled={savingGeo}
+              onClick={handleSaveGeoIdentity}
+              className="mt-2 py-3 px-5 rounded-xl bg-[#45B0A8] text-white font-bold text-sm flex items-center justify-center gap-2 hover:opacity-95 transition-opacity disabled:opacity-50 min-h-[44px] cursor-pointer"
+            >
+              <Save size={16} />
+              <span>{savingGeo ? t('common:saving', 'Guardando...') : t('settings:saveGeo', 'Guardar')}</span>
+            </Motion.button>
+          </div>
+        </GroupCard>
 
         {/* ── Language Section ── */}
         <SectionHeader>{t('settings:language.title', 'Idioma')}</SectionHeader>

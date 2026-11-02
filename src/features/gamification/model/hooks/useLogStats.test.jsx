@@ -4,7 +4,7 @@ import { renderHook } from '@testing-library/react';
 import { useLogStats } from './useLogStats';
 
 describe('useLogStats', () => {
-  it('returns an empty 5-stat summary when trips are empty', () => {
+  it('returns an empty summary when trips are empty', () => {
     const { result } = renderHook(() => useLogStats([], {}));
 
     expect(result.current).toEqual({
@@ -13,10 +13,16 @@ describe('useLogStats', () => {
       completedTrips: 0,
       totalDays: 0,
       totalStops: 0,
+      localTripsCount: 0,
+      internationalTripsCount: 0,
+      localStopsCount: 0,
+      hasCompletedOnboarding: false,
+      birthCountry: null,
+      residenceCountry: null,
     });
   });
 
-  it('computes the 5 storytelling stats from trip data', () => {
+  it('computes storytelling stats from trip data', () => {
     const trips = [{ id: 'trip-1' }, { id: 'trip-2' }];
     const tripData = {
       'trip-1': {
@@ -35,7 +41,7 @@ describe('useLogStats', () => {
 
     const { result } = renderHook(() => useLogStats(trips, tripData));
 
-    expect(result.current).toEqual({
+    expect(result.current).toMatchObject({
       worldExploredPercentage: '1.5',
       uniqueCountries: 3,
       completedTrips: 2,
@@ -79,5 +85,41 @@ describe('useLogStats', () => {
 
     expect(result.current.totalStops).toBe(3);
     expect(result.current.uniqueCountries).toBe(2);
+  });
+
+  it('correctly tracks domestic vs international trips without inflating uniqueCountries for unvisited home countries', () => {
+    const profile = {
+      birthCountry: 'AR',
+      residenceCountry: 'DE',
+      hasCompletedOnboarding: true,
+    };
+
+    // User has trips in Argentina (domestic) and France (international)
+    // Germany (residence) has NO trips logged
+    const trips = [{ id: 'trip-ar' }, { id: 'trip-fr' }];
+    const tripData = {
+      'trip-ar': {
+        fechaInicio: '2026-05-01',
+        fechaFin: '2026-05-05',
+        paradas: [{ paisCodigo: 'AR' }, { paisCodigo: 'AR' }],
+      },
+      'trip-fr': {
+        fechaInicio: '2026-06-01',
+        fechaFin: '2026-06-05',
+        paradas: [{ paisCodigo: 'FR' }],
+      },
+    };
+
+    const { result } = renderHook(() => useLogStats(trips, tripData, profile));
+
+    // Only AR and FR are unique countries (DE is NOT counted because no trips logged there)
+    expect(result.current.uniqueCountries).toBe(2);
+    expect(result.current.completedTrips).toBe(2);
+    expect(result.current.localTripsCount).toBe(1);
+    expect(result.current.internationalTripsCount).toBe(1);
+    expect(result.current.localStopsCount).toBe(2);
+    expect(result.current.hasCompletedOnboarding).toBe(true);
+    expect(result.current.birthCountry).toBe('AR');
+    expect(result.current.residenceCountry).toBe('DE');
   });
 });

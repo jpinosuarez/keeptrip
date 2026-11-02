@@ -28,6 +28,7 @@ export const Eye = createIconComponent('Eye');
 export const EyeOff = createIconComponent('EyeOff');
 export const AlertTriangle = createIconComponent('AlertTriangle');
 export const CheckCircle2 = createIconComponent('CheckCircle2');
+export const Check = createIconComponent('Check');
 export const ShieldAlert = createIconComponent('ShieldAlert');
 export const CircleAlert = createIconComponent('CircleAlert');
 export const Info = createIconComponent('Info');

@@ -21,6 +21,16 @@
     "title": "Language",
     "description": "Select the interface language."
   },
+  "geoIdentityTitle": "Origin and residence",
+  "birthCountry": "Birth country",
+  "birthCity": "Birth City (optional)",
+  "birthCityPlaceholder": "e.g., Buenos Aires, Rosario...",
+  "residenceMode": "Residence Place",
+  "residenceCountry": "Residence country",
+  "baseCity": "Current Base City (optional)",
+  "baseCityPlaceholder": "e.g., Madrid, Barcelona...",
+  "saveGeo": "Save changes",
+  "geoSavedSuccess": "Geographic identity successfully updated!",
   "appearance": "Appearance",
   "appearanceDesc": "Dark mode is coming soon",
   "mapStyle": {

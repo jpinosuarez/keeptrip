@@ -17,6 +17,31 @@ export const TRAVELER_LEVELS = [
   { id: 'mythic',     min: 201, label: 'Mítico',         icon: '🪄', color: '#EC4899' },
 ];
 
+export const ONBOARDING_XP_BONUS = 50;
+
+/**
+ * Calcula el XP total del viajero sumando países, viajes, paradas,
+ * logros desbloqueados y el bono por completar el onboarding (+50 XP).
+ */
+export const calculateTotalXP = (stats = {}) => {
+  let xp = 0;
+  if (stats?.hasCompletedOnboarding) {
+    xp += ONBOARDING_XP_BONUS;
+  }
+  const countries = stats.uniqueCountries || stats.countries || 0;
+  const trips = stats.completedTrips || stats.trips || 0;
+  const stops = stats.totalStops || 0;
+  const achievements = stats.unlockedAchievementsCount ||
+    (Array.isArray(stats.unlockedAchievements) ? stats.unlockedAchievements.length : 0);
+
+  xp += countries * 100;
+  xp += trips * 50;
+  xp += stops * 20;
+  xp += achievements * 150;
+
+  return xp;
+};
+
 /**
  * Devuelve el nivel actual del viajero basado en cantidad de países.
  * @param {number} countriesCount - Número de países visitados
