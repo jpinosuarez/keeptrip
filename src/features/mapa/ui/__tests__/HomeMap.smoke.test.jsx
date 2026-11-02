@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi, beforeAll } from 'vitest';
 import HomeMap from '../HomeMap';
 import MapaView from '../MapaView';
@@ -70,12 +71,14 @@ describe('HomeMap and MapaView smoke tests', () => {
   it('renders MapaView without throwing ReferenceError', () => {
     expect(() => {
       render(
-        <MapaView
-          paises={['ESP']}
-          paradas={[{ id: '1', nombre: 'Madrid', coordenadas: [-3.7, 40.4] }]}
-          trips={[]}
-          tripData={{}}
-        />
+        <MemoryRouter>
+          <MapaView
+            paises={['ESP']}
+            paradas={[{ id: '1', nombre: 'Madrid', coordenadas: [-3.7, 40.4] }]}
+            trips={[]}
+            tripData={{}}
+          />
+        </MemoryRouter>
       );
     }).not.toThrow();
   });

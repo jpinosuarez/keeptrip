@@ -9,7 +9,7 @@
  *   - Live avatar preview (URL → instant preview, no save required to see)
  *   - Unified color system: atomicTangerine for saves, danger for destructive actions
  */
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import {
@@ -27,9 +27,9 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { deleteUser } from 'firebase/auth';
 import { compressImage } from '@shared/lib/utils/imageUtils';
 import { cn } from '@shared/lib/utils/cn';
-import { CountryFlag } from '@shared/ui/components/CountryFlag';
-import { COUNTRIES_DATA, getCountryCentroid } from '@shared/lib/utils/countryUtils';
-import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
+import { CountrySearchSelect } from '@shared/ui/components/CountrySearchSelect';
+import { CityAutocompleteInput } from '@shared/ui/components/CityAutocompleteInput';
+import { deriveResidenceMode, normalizeCity } from '@shared/lib/geo';
 
 const DEBOUNCE_MS = 800;
 const FOUNDER_UID_FALLBACK = 'FOUNDER_UID_HERE';
@@ -178,8 +178,13 @@ const SettingsPage = () => {
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   // Geographic Identity states
+  // City state keeps the full record ({ name, coordinates, countryCode }) so a newly
+  // selected city never loses its real coordinates on save (legacy string records are
+  // resolved by normalizeCity instead of crashing).
   const [birthCountry, setBirthCountry] = useState(userProfile?.birthCountry || 'ES');
-  const [birthCityName, setBirthCityName] = useState(userProfile?.birthCity?.name || '');
+  const [birthCity, setBirthCity] = useState(() =>
+    normalizeCity(userProfile?.birthCity, userProfile?.birthCountry || 'ES')
+  );
   const [residenceMode, setResidenceMode] = useState(() => {
     if (userProfile?.residenceCountry && userProfile.birthCountry && userProfile.residenceCountry !== userProfile.birthCountry) {
       return 'different_country';
@@ -190,28 +195,62 @@ const SettingsPage = () => {
     return 'same_city';
   });
   const [residenceCountry, setResidenceCountry] = useState(userProfile?.residenceCountry || userProfile?.birthCountry || 'ES');
-  const [baseCityName, setBaseCityName] = useState(userProfile?.baseCity?.name || '');
+  const [baseCity, setBaseCity] = useState(() =>
+    normalizeCity(
+      userProfile?.baseCity,
+      userProfile?.residenceCountry || userProfile?.birthCountry || 'ES'
+    )
+  );
   const [savingGeo, setSavingGeo] = useState(false);
 
-  const sortedCountries = useMemo(() => {
-    return [...COUNTRIES_DATA].map((c) => ({
-      ...c,
-      localizedName: getLocalizedCountryName(c.code, i18n.language) || c.name,
-    })).sort((a, b) => a.localizedName.localeCompare(b.localizedName));
-  }, [i18n.language]);
+  // ── Reactive sync: profile → form ──────────────────────────────────────
+  // Render-time adjustment (React's recommended pattern) instead of an effect:
+  // the form re-seeds only when the saved geographic identity actually changes,
+  // so background autosaves (displayName/photoURL) never clobber in-progress edits.
+  const profileBirthCountry = userProfile?.birthCountry || null;
+  const profileResidenceCountry = userProfile?.residenceCountry || null;
+  const profileBirthCity = normalizeCity(
+    userProfile?.birthCity,
+    profileBirthCountry || 'ES'
+  );
+  const profileBaseCity = normalizeCity(
+    userProfile?.baseCity,
+    profileResidenceCountry || profileBirthCountry || 'ES'
+  );
+
+  const identitySyncKey = [
+    profileBirthCountry || '',
+    profileResidenceCountry || '',
+    profileBirthCity?.name || '',
+    profileBirthCity?.coordinates?.[0] ?? '',
+    profileBirthCity?.coordinates?.[1] ?? '',
+    profileBaseCity?.name || '',
+    profileBaseCity?.coordinates?.[0] ?? '',
+    profileBaseCity?.coordinates?.[1] ?? '',
+  ].join('|');
+
+  const [syncedIdentityKey, setSyncedIdentityKey] = useState(identitySyncKey);
+
+  if (identitySyncKey !== syncedIdentityKey) {
+    setSyncedIdentityKey(identitySyncKey);
+    setBirthCountry(profileBirthCountry || 'ES');
+    setBirthCity(profileBirthCity);
+    setResidenceMode(deriveResidenceMode({
+      birthCountry: profileBirthCountry,
+      residenceCountry: profileResidenceCountry,
+      birthCity: profileBirthCity,
+      baseCity: profileBaseCity,
+    }));
+    setResidenceCountry(profileResidenceCountry || profileBirthCountry || 'ES');
+    setBaseCity(profileBaseCity);
+  }
 
   const handleSaveGeoIdentity = async () => {
     setSavingGeo(true);
-    const fallbackBirthCoords = getCountryCentroid(birthCountry) || [0, 20];
-    const finalBirthCity = birthCityName.trim()
-      ? {
-          name: birthCityName.trim(),
-          coordinates:
-            birthCityName.trim() === userProfile?.birthCity?.name && userProfile?.birthCity?.coordinates
-              ? userProfile.birthCity.coordinates
-              : fallbackBirthCoords,
-          countryCode: birthCountry,
-        }
+
+    // Persist the full city record (name + real coordinates), never just the label.
+    const finalBirthCity = birthCity?.name
+      ? { name: birthCity.name, coordinates: birthCity.coordinates, countryCode: birthCountry }
       : null;
 
     let finalResidenceCountry = birthCountry;
@@ -220,31 +259,12 @@ const SettingsPage = () => {
     if (residenceMode === 'same_city') {
       finalResidenceCountry = birthCountry;
       finalBaseCity = finalBirthCity;
-    } else if (residenceMode === 'same_country') {
-      finalResidenceCountry = birthCountry;
-      const fallbackBaseCoords = getCountryCentroid(birthCountry) || [0, 20];
-      finalBaseCity = baseCityName.trim()
-        ? {
-            name: baseCityName.trim(),
-            coordinates:
-              baseCityName.trim() === userProfile?.baseCity?.name && userProfile?.baseCity?.coordinates
-                ? userProfile.baseCity.coordinates
-                : fallbackBaseCoords,
-            countryCode: birthCountry,
-          }
-        : null;
     } else {
-      finalResidenceCountry = residenceCountry || birthCountry;
-      const fallbackBaseCoords = getCountryCentroid(finalResidenceCountry) || [0, 20];
-      finalBaseCity = baseCityName.trim()
-        ? {
-            name: baseCityName.trim(),
-            coordinates:
-              baseCityName.trim() === userProfile?.baseCity?.name && userProfile?.baseCity?.coordinates
-                ? userProfile.baseCity.coordinates
-                : fallbackBaseCoords,
-            countryCode: finalResidenceCountry,
-          }
+      finalResidenceCountry = residenceMode === 'same_country'
+        ? birthCountry
+        : (residenceCountry || birthCountry);
+      finalBaseCity = baseCity?.name
+        ? { name: baseCity.name, coordinates: baseCity.coordinates, countryCode: finalResidenceCountry }
         : null;
     }
 
@@ -440,45 +460,28 @@ const SettingsPage = () => {
         </Motion.div>
 
         {/* ── Geographic Identity Section ── */}
-        <SectionHeader>{t('settings:geoIdentityTitle', 'Identidad Geográfica: Tus Raíces y Tu Base')}</SectionHeader>
+        <SectionHeader>{t('settings:geoIdentityTitle', 'Lugar de origen y residencia')}</SectionHeader>
         <GroupCard>
           <div className="p-4 md:p-5 flex flex-col gap-4">
             {/* Roots */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[0.78rem] font-bold text-slate-700 flex items-center gap-1.5">
-                <Heart size={14} className="text-atomicTangerine" />
-                <span>{t('settings:birthCountry', 'País Natal (Raíces)')}</span>
-              </label>
-              <div className="relative flex items-center">
-                <div className="absolute left-3 z-10 pointer-events-none">
-                  <CountryFlag code={birthCountry} size="sm" />
-                </div>
-                <select
-                  value={birthCountry}
-                  onChange={(e) => setBirthCountry(e.target.value)}
-                  className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-black/10 bg-slate-50 text-[0.88rem] font-medium outline-none text-charcoalBlue min-h-[44px]"
-                >
-                  {sortedCountries.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.code} — {c.localizedName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            <CountrySearchSelect
+              label={t('settings:birthCountry', 'País de nacimiento')}
+              value={birthCountry}
+              onChange={(code) => {
+                setBirthCountry(code);
+                // A city from a previous country must not survive a country switch.
+                setBirthCity((prev) => (prev && prev.countryCode !== code ? null : prev));
+              }}
+              placeholder={t('common:selectCountry', 'Seleccionar país...')}
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[0.78rem] font-bold text-slate-700 flex items-center gap-1.5">
-                <MapPin size={14} className="text-atomicTangerine" />
-                <span>{t('settings:birthCity', 'Ciudad Natal (opcional)')}</span>
-              </label>
-              <input
-                value={birthCityName}
-                onChange={(e) => setBirthCityName(e.target.value)}
-                placeholder={t('settings:birthCityPlaceholder', 'Ej: Buenos Aires, Rosario...')}
-                className="px-3.5 py-2.5 rounded-lg border border-black/10 text-[0.88rem] outline-none font-body text-charcoalBlue bg-slate-50 w-full min-h-[44px]"
-              />
-            </div>
+            <CityAutocompleteInput
+              label={t('settings:birthCity', 'Ciudad natal (opcional)')}
+              value={birthCity}
+              countryCode={birthCountry}
+              onChange={(city) => setBirthCity(normalizeCity(city, birthCountry))}
+              placeholder={t('settings:birthCityPlaceholder', 'Ej: Buenos Aires, Rosario...')}
+            />
 
             {/* Residence Mode Selector */}
             <div className="flex flex-col gap-1.5 pt-2 border-t border-black/5">
@@ -512,43 +515,34 @@ const SettingsPage = () => {
 
             {/* If different country */}
             {residenceMode === 'different_country' && (
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[0.78rem] font-bold text-slate-700">
-                  {t('settings:residenceCountry', 'País de Residencia (Base)')}
-                </label>
-                <div className="relative flex items-center">
-                  <div className="absolute left-3 z-10 pointer-events-none">
-                    <CountryFlag code={residenceCountry} size="sm" />
-                  </div>
-                  <select
-                    value={residenceCountry}
-                    onChange={(e) => setResidenceCountry(e.target.value)}
-                    className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-black/10 bg-slate-50 text-[0.88rem] font-medium outline-none text-charcoalBlue min-h-[44px]"
-                  >
-                    {sortedCountries.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.code} — {c.localizedName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              <CountrySearchSelect
+                label={t('settings:residenceCountry', 'País de Residencia')}
+                value={residenceCountry}
+                onChange={(code) => {
+                  setResidenceCountry(code);
+                  // Keep the base city anchored to the country it actually belongs to.
+                  setBaseCity((prev) => (prev && prev.countryCode !== code ? null : prev));
+                }}
+                placeholder={t('common:selectCountry', 'Seleccionar país...')}
+              />
             )}
 
             {/* If not same_city */}
             {residenceMode !== 'same_city' && (
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[0.78rem] font-bold text-slate-700 flex items-center gap-1.5">
-                  <MapPin size={14} className="text-[#45B0A8]" />
-                  <span>{t('settings:baseCity', 'Ciudad Base actual (opcional)')}</span>
-                </label>
-                <input
-                  value={baseCityName}
-                  onChange={(e) => setBaseCityName(e.target.value)}
-                  placeholder={t('settings:baseCityPlaceholder', 'Ej: Madrid, Barcelona...')}
-                  className="px-3.5 py-2.5 rounded-lg border border-black/10 text-[0.88rem] outline-none font-body text-charcoalBlue bg-slate-50 w-full min-h-[44px]"
-                />
-              </div>
+              <CityAutocompleteInput
+                label={t('settings:baseCity', 'Ciudad Base actual (opcional)')}
+                value={baseCity}
+                countryCode={residenceMode === 'different_country' ? residenceCountry : birthCountry}
+                onChange={(city) =>
+                  setBaseCity(
+                    normalizeCity(
+                      city,
+                      residenceMode === 'different_country' ? residenceCountry : birthCountry
+                    )
+                  )
+                }
+                placeholder={t('settings:baseCityPlaceholder', 'Ej: Madrid, Barcelona...')}
+              />
             )}
 
             <Motion.button
@@ -559,7 +553,7 @@ const SettingsPage = () => {
               className="mt-2 py-3 px-5 rounded-xl bg-[#45B0A8] text-white font-bold text-sm flex items-center justify-center gap-2 hover:opacity-95 transition-opacity disabled:opacity-50 min-h-[44px] cursor-pointer"
             >
               <Save size={16} />
-              <span>{savingGeo ? t('common:saving', 'Guardando...') : t('settings:saveGeo', 'Guardar Raíces y Base')}</span>
+              <span>{savingGeo ? t('common:saving', 'Guardando...') : t('settings:saveGeo', 'Guardar')}</span>
             </Motion.button>
           </div>
         </GroupCard>

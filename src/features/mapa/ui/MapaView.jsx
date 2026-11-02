@@ -1,14 +1,22 @@
 import React, { useRef, useState, useMemo, useCallback, useEffect, memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import Map, { Source, Layer, NavigationControl, FullscreenControl, Marker } from 'react-map-gl';
+import { useNavigate } from 'react-router-dom';
+import Map, { Source, Layer, NavigationControl, FullscreenControl } from 'react-map-gl';
+import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { COLORS } from '@shared/config';
-import { isMapStyleLoaded, setMapLanguage } from '@shared/lib/geo';
+import {
+  isMapStyleLoaded,
+  setMapLanguage,
+  createPinElement,
+  resolveIdentityPins,
+} from '@shared/lib/geo';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
 import { OperationalMapFallback } from '@shared/ui/components';
 import { useAuth } from '@app/providers/AuthContext';
 import { getCountryISO3, getCountryCentroid } from '@shared/lib/utils/countryUtils';
+import { Plus, MapPin } from 'lucide-react';
 
 
 import TripRoster from './components/TripRoster';
@@ -34,59 +42,49 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
  */
 function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   const { i18n, t } = useTranslation(['dashboard', 'nav']);
+  const navigate = useNavigate();
   useDocumentTitle(t('nav:pageTitle.worldMap'));
   const mapRef = useRef(null);
+  // Raw Mapbox instance (react-map-gl's ref intentionally omits style mutators
+  // such as setPaintProperty, so imperative work always targets the real map).
+  const mapInstanceRef = useRef(null);
   const mapContainerRef = useRef(null);
   const spinGlobeRef = useRef(null);
+  const identityMarkersRef = useRef([]);
+  const cameraTargetRef = useRef(null);
   const { userProfile } = useAuth() || {};
 
-  const birthIso3 = userProfile?.birthCountry ? getCountryISO3(userProfile.birthCountry) : null;
-  const residenceIso3 = userProfile?.residenceCountry ? getCountryISO3(userProfile.residenceCountry) : null;
+  // Granular identity slices: they change only when the geographic identity changes,
+  // so the reactive map effect never re-runs on unrelated profile edits (e.g. avatar).
+  const profileBirthCountry = userProfile?.birthCountry || null;
+  const profileResidenceCountry = userProfile?.residenceCountry || null;
+  const profileBirthCity = userProfile?.birthCity || null;
+  const profileBaseCity = userProfile?.baseCity || null;
+
+  const birthIso3 = profileBirthCountry ? getCountryISO3(profileBirthCountry) : null;
+  const residenceIso3 = profileResidenceCountry ? getCountryISO3(profileResidenceCountry) : null;
+  const hasGeoIdentity = Boolean(
+    profileBirthCountry || profileResidenceCountry || profileBirthCity || profileBaseCity
+  );
 
   // Initial camera focus on roots/base if no trip selected
   const initialBaseCoords = useMemo(() => {
-    if (userProfile?.baseCity?.coordinates) {
-      return userProfile.baseCity.coordinates;
+    if (profileBaseCity?.coordinates) {
+      return profileBaseCity.coordinates;
     }
-    if (userProfile?.birthCity?.coordinates) {
-      return userProfile.birthCity.coordinates;
+    if (profileBirthCity?.coordinates) {
+      return profileBirthCity.coordinates;
     }
-    if (userProfile?.residenceCountry) {
-      const c = getCountryCentroid(userProfile.residenceCountry);
+    if (profileResidenceCountry) {
+      const c = getCountryCentroid(profileResidenceCountry);
       if (c) return c;
     }
-    if (userProfile?.birthCountry) {
-      const c = getCountryCentroid(userProfile.birthCountry);
+    if (profileBirthCountry) {
+      const c = getCountryCentroid(profileBirthCountry);
       if (c) return c;
     }
     return null;
-  }, [userProfile]);
-
-  // Special City Pins for roots & base
-  const { unifiedCityPin, birthCityPin, baseCityPin } = useMemo(() => {
-    const bCity = userProfile?.birthCity;
-    const rCity = userProfile?.baseCity;
-    const bCoords = bCity?.coordinates;
-    const rCoords = rCity?.coordinates;
-
-    if (bCoords && rCoords) {
-      const distance = Math.hypot(bCoords[0] - rCoords[0], bCoords[1] - rCoords[1]);
-      const isSame = distance < 0.05 || (bCity.name && rCity.name && bCity.name.toLowerCase() === rCity.name.toLowerCase());
-      if (isSame) {
-        return {
-          unifiedCityPin: { name: rCity.name || bCity.name, coordinates: rCoords },
-          birthCityPin: null,
-          baseCityPin: null,
-        };
-      }
-    }
-
-    return {
-      unifiedCityPin: null,
-      birthCityPin: bCoords ? { name: bCity.name, coordinates: bCoords } : null,
-      baseCityPin: rCoords ? { name: rCity.name, coordinates: rCoords } : null,
-    };
-  }, [userProfile]);
+  }, [profileBaseCity, profileBirthCity, profileResidenceCountry, profileBirthCountry]);
 
   const {
     flags: { level: operationalLevel },
@@ -104,6 +102,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   }));
 
   const [selectedTrip, setSelectedTrip] = useState(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const stops = useMemo(() => (Array.isArray(paradas) ? paradas : []), [paradas]);
 
   const isEmptyMap = paises.length === 0;
@@ -196,19 +195,116 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
     }
   }, [isModalOccluded]);
 
+  // ── Reactive Geographic Identity (country fills + city pins + camera) ─
+  // Priority: Conquered (#FF6B35) > Residence (#45B0A8) > Origin (#2C3E50).
+  const countryFillPaint = useMemo(() => ({
+    'fill-color': [
+      'case',
+      ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', listaPaises]],
+      COLORS.atomicTangerine,
+      ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
+      COLORS.mutedTeal,
+      ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
+      COLORS.charcoalBlue,
+      COLORS.atomicTangerine,
+    ],
+    'fill-opacity': [
+      'case',
+      ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', listaPaises]],
+      0.65,
+      ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
+      0.45,
+      ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
+      0.45,
+      0,
+    ],
+  }), [listaPaises, residenceIso3, birthIso3]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !mapLoaded) return;
+
+    // A. Clean up previous identity markers (never accumulate stale pins)
+    identityMarkersRef.current.forEach((marker) => marker.remove());
+    identityMarkersRef.current = [];
+
+    // B. Render special city pins
+    const { unified, birth, base } = resolveIdentityPins({
+      birthCity: profileBirthCity,
+      baseCity: profileBaseCity,
+    });
+
+    const addIdentityMarker = (kind, pin, label) => {
+      const marker = new mapboxgl.Marker({ element: createPinElement(kind, label) })
+        .setLngLat(pin.coordinates)
+        .addTo(map);
+      identityMarkersRef.current.push(marker);
+    };
+
+    if (unified) {
+      addIdentityMarker(
+        'unified',
+        unified,
+        `${t('dashboard:map.originAndResidencePin', 'Origen y residencia')}: ${unified.name}`
+      );
+    } else {
+      if (birth) {
+        addIdentityMarker(
+          'origin',
+          birth,
+          `${t('dashboard:map.birthCityPin', 'Ciudad natal')}: ${birth.name}`
+        );
+      }
+      if (base) {
+        addIdentityMarker(
+          'residence',
+          base,
+          `${t('dashboard:map.baseCityPin', 'Ciudad base')}: ${base.name}`
+        );
+      }
+    }
+
+    // C. Smooth camera update if no trip is currently focused.
+    // Guarded by the last camera target so re-runs (or user panning) never fight the camera.
+    const focusCoords =
+      base?.coordinates || birth?.coordinates || unified?.coordinates || initialBaseCoords;
+    const focusSignature = focusCoords ? `${focusCoords[0]},${focusCoords[1]}` : null;
+
+    if (!selectedTrip && focusCoords && cameraTargetRef.current !== focusSignature) {
+      cameraTargetRef.current = focusSignature;
+      map.flyTo({
+        center: focusCoords,
+        zoom: 3.5,
+        speed: 1.2,
+        essential: true,
+      });
+    }
+  }, [
+    initialBaseCoords,
+    mapLoaded,
+    profileBaseCity,
+    profileBirthCity,
+    selectedTrip,
+    t,
+  ]);
+
+  // Release imperative identity markers when leaving the map page
+  useEffect(() => () => {
+    identityMarkersRef.current.forEach((marker) => marker.remove());
+    identityMarkersRef.current = [];
+    mapInstanceRef.current = null;
+  }, []);
+
   // ── Map event handlers ───────────────────────────────────────────────
   const onMapLoad = useCallback((e) => {
     const map = e.target;
+    mapInstanceRef.current = map;
     setMapLanguage(map, i18n.language);
+    setMapLoaded(true);
 
-    if (initialBaseCoords && isEmptyMap) {
-      map.flyTo({
-        center: initialBaseCoords,
-        zoom: 3.2,
-        duration: 1800,
-        essential: true,
-      });
-    } else {
+    // The reactive identity effect owns the camera whenever an identity exists;
+    // the spinning globe only runs on a truly empty archive.
+    if (!initialBaseCoords || !isEmptyMap) {
       initSpinGlobe(map);
     }
   }, [i18n.language, initialBaseCoords, isEmptyMap, initSpinGlobe]);
@@ -344,28 +440,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
               id="country-fills"
               type="fill"
               source-layer="country_boundaries"
-              paint={{
-                'fill-color': [
-                  'case',
-                  ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', listaPaises]],
-                  COLORS.atomicTangerine,
-                  ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
-                  COLORS.mutedTeal,
-                  ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
-                  COLORS.charcoalBlue,
-                  COLORS.atomicTangerine,
-                ],
-                'fill-opacity': [
-                  'case',
-                  ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', listaPaises]],
-                  0.65,
-                  ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
-                  0.45,
-                  ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
-                  0.45,
-                  0,
-                ],
-              }}
+              paint={countryFillPaint}
             />
           </Source>
 
@@ -413,61 +488,6 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
             />
           </Source>
 
-          {/* Special City Pins */}
-          {unifiedCityPin && (
-            <Marker
-              longitude={unifiedCityPin.coordinates[0]}
-              latitude={unifiedCityPin.coordinates[1]}
-              anchor="center"
-            >
-              <div
-                className="relative group cursor-pointer flex items-center justify-center pointer-events-auto"
-                title={`🏡 Raíces y Base: ${unifiedCityPin.name}`}
-              >
-                <div className="w-5 h-5 rounded-full bg-[#45B0A8] border-2 border-white shadow-lg ring-2 ring-[#2C3E50]" />
-                <div className="absolute bottom-full mb-1 hidden group-hover:flex items-center px-2 py-0.5 rounded bg-slate-900/90 text-white text-[10px] whitespace-nowrap pointer-events-none z-50 shadow-md">
-                  🏡 Raíces y Base: {unifiedCityPin.name}
-                </div>
-              </div>
-            </Marker>
-          )}
-
-          {!unifiedCityPin && birthCityPin && (
-            <Marker
-              longitude={birthCityPin.coordinates[0]}
-              latitude={birthCityPin.coordinates[1]}
-              anchor="center"
-            >
-              <div
-                className="relative group cursor-pointer flex items-center justify-center pointer-events-auto"
-                title={`🌱 Ciudad Natal: ${birthCityPin.name}`}
-              >
-                <div className="w-4 h-4 rounded-full bg-[#2C3E50] border-2 border-white shadow-md ring-1 ring-slate-400" />
-                <div className="absolute bottom-full mb-1 hidden group-hover:flex items-center px-2 py-0.5 rounded bg-slate-900/90 text-white text-[10px] whitespace-nowrap pointer-events-none z-50 shadow-md">
-                  🌱 Ciudad Natal: {birthCityPin.name}
-                </div>
-              </div>
-            </Marker>
-          )}
-
-          {!unifiedCityPin && baseCityPin && (
-            <Marker
-              longitude={baseCityPin.coordinates[0]}
-              latitude={baseCityPin.coordinates[1]}
-              anchor="center"
-            >
-              <div
-                className="relative group cursor-pointer flex items-center justify-center pointer-events-auto"
-                title={`🧭 Ciudad Base: ${baseCityPin.name}`}
-              >
-                <div className="w-4 h-4 rounded-full bg-[#45B0A8] border-2 border-white shadow-md ring-1 ring-slate-400" />
-                <div className="absolute bottom-full mb-1 hidden group-hover:flex items-center px-2 py-0.5 rounded bg-slate-900/90 text-white text-[10px] whitespace-nowrap pointer-events-none z-50 shadow-md">
-                  🧭 Ciudad Base: {baseCityPin.name}
-                </div>
-              </div>
-            </Marker>
-          )}
-
           <FullscreenControl position="top-right" />
           <NavigationControl position="top-right" />
         </Map>
@@ -476,8 +496,28 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
       {/* ── OVERLAY LAYER ─────────────────────────────────────────────── */}
       <div className="absolute inset-0 pointer-events-none z-10">
         {isEmptyMap ? (
-          /* STATE: Empty — spinning globe + editorial CTA */
-          <MapEmptyState />
+          hasGeoIdentity ? (
+            /* Floating banner when user has origin/residence configured but 0 trips yet */
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 w-[min(calc(100vw-32px),520px)] bg-[#2C3E50] text-white rounded-2xl md:rounded-full p-3 md:p-2 md:pl-5 shadow-[0_4px_20px_rgba(0,0,0,0.07)] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 pointer-events-auto">
+              <div className="flex items-center gap-2 min-w-0 px-1 sm:px-0">
+                <MapPin size={16} className="text-[#45B0A8] shrink-0" />
+                <span className="text-xs md:text-sm font-semibold font-sans leading-snug">
+                  {t('dashboard:map.geoIdentityMarked', 'Tu ubicación ya está marcada en el mapa.')}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard?new=true')}
+                className="bg-[#FF6B35] hover:bg-[#e85d2a] text-white text-xs font-bold px-4 rounded-full shrink-0 flex items-center justify-center gap-1.5 min-h-[44px] shadow-sm transition-all cursor-pointer font-heading"
+              >
+                <Plus size={14} />
+                <span>{t('dashboard:map.createFirstTrip', 'Crear primer viaje')}</span>
+              </button>
+            </div>
+          ) : (
+            /* STATE: Empty without identity — spinning globe + editorial CTA */
+            <MapEmptyState />
+          )
         ) : (
           /* STATE: Active — trip roster + FABs */
           <>
@@ -489,7 +529,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
               activeTrip={selectedTrip}
               onTripSelect={handleTripSelect}
             />
-            </>
+          </>
         )}
       </div>
     </div>

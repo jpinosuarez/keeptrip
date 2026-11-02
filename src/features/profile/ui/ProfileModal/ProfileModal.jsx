@@ -1,12 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { X, Save, Heart, Home, MapPin, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@app/providers/AuthContext';
 import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
-import { COUNTRIES_DATA, getCountryCentroid } from '@shared/lib/utils/countryUtils';
-import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
-import { CountryFlag } from '@shared/ui/components/CountryFlag';
+import { deriveResidenceMode, normalizeCity } from '@shared/lib/geo';
+import { CountrySearchSelect } from '@shared/ui/components/CountrySearchSelect';
+import { CityAutocompleteInput } from '@shared/ui/components/CityAutocompleteInput';
 import { cn } from '@shared/lib/utils/cn';
 
 import BottomSheet from '@shared/ui/components/BottomSheet';
@@ -17,14 +17,18 @@ function getInitials(name) {
 }
 
 const ProfileModal = ({ isOpen, onClose }) => {
-  const { t, i18n } = useTranslation('common');
+  const { t } = useTranslation('common');
   const { user, userProfile, updateUserProfile } = useAuth() || {};
   const { isMobile } = useWindowSize(768);
 
   const [name, setName] = useState(userProfile?.displayName || user?.displayName || '');
   const [photo, setPhoto] = useState(userProfile?.photoURL || user?.photoURL || '');
   const [birthCountry, setBirthCountry] = useState(userProfile?.birthCountry || 'ES');
-  const [birthCityName, setBirthCityName] = useState(userProfile?.birthCity?.name || '');
+  // City state keeps the full record ({ name, coordinates, countryCode }) so coordinates
+  // selected through the autocomplete are never lost on save.
+  const [birthCity, setBirthCity] = useState(() =>
+    normalizeCity(userProfile?.birthCity, userProfile?.birthCountry || 'ES')
+  );
   const [residenceMode, setResidenceMode] = useState(() => {
     if (userProfile?.residenceCountry && userProfile.birthCountry && userProfile.residenceCountry !== userProfile.birthCountry) {
       return 'different_country';
@@ -35,31 +39,60 @@ const ProfileModal = ({ isOpen, onClose }) => {
     return 'same_city';
   });
   const [residenceCountry, setResidenceCountry] = useState(userProfile?.residenceCountry || userProfile?.birthCountry || 'ES');
-  const [baseCityName, setBaseCityName] = useState(userProfile?.baseCity?.name || '');
+  const [baseCity, setBaseCity] = useState(() =>
+    normalizeCity(
+      userProfile?.baseCity,
+      userProfile?.residenceCountry || userProfile?.birthCountry || 'ES'
+    )
+  );
   const [loading, setLoading] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
 
-  const sortedCountries = useMemo(() => {
-    return [...COUNTRIES_DATA].map((c) => ({
-      ...c,
-      localizedName: getLocalizedCountryName(c.code, i18n.language) || c.name,
-    })).sort((a, b) => a.localizedName.localeCompare(b.localizedName));
-  }, [i18n.language]);
+  // ── Reactive sync: profile → form ──────────────────────────────────────
+  // Render-time adjustment (React's recommended pattern): the modal re-seeds when the
+  // saved identity changes (onboarding, settings, other tabs) without an extra effect.
+  const profileBirthCountry = userProfile?.birthCountry || null;
+  const profileResidenceCountry = userProfile?.residenceCountry || null;
+  const profileBirthCity = normalizeCity(userProfile?.birthCity, profileBirthCountry || 'ES');
+  const profileBaseCity = normalizeCity(
+    userProfile?.baseCity,
+    profileResidenceCountry || profileBirthCountry || 'ES'
+  );
+
+  const identitySyncKey = [
+    profileBirthCountry || '',
+    profileResidenceCountry || '',
+    profileBirthCity?.name || '',
+    profileBirthCity?.coordinates?.[0] ?? '',
+    profileBirthCity?.coordinates?.[1] ?? '',
+    profileBaseCity?.name || '',
+    profileBaseCity?.coordinates?.[0] ?? '',
+    profileBaseCity?.coordinates?.[1] ?? '',
+  ].join('|');
+
+  const [syncedIdentityKey, setSyncedIdentityKey] = useState(identitySyncKey);
+
+  if (identitySyncKey !== syncedIdentityKey) {
+    setSyncedIdentityKey(identitySyncKey);
+    setBirthCountry(profileBirthCountry || 'ES');
+    setBirthCity(profileBirthCity);
+    setResidenceMode(deriveResidenceMode({
+      birthCountry: profileBirthCountry,
+      residenceCountry: profileResidenceCountry,
+      birthCity: profileBirthCity,
+      baseCity: profileBaseCity,
+    }));
+    setResidenceCountry(profileResidenceCountry || profileBirthCountry || 'ES');
+    setBaseCity(profileBaseCity);
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    const fallbackBirthCoords = getCountryCentroid(birthCountry) || [0, 20];
-    const finalBirthCity = birthCityName.trim()
-      ? {
-          name: birthCityName.trim(),
-          coordinates:
-            birthCityName.trim() === userProfile?.birthCity?.name && userProfile?.birthCity?.coordinates
-              ? userProfile.birthCity.coordinates
-              : fallbackBirthCoords,
-          countryCode: birthCountry,
-        }
+    // Persist the full city record (name + real coordinates), never just the label.
+    const finalBirthCity = birthCity?.name
+      ? { name: birthCity.name, coordinates: birthCity.coordinates, countryCode: birthCountry }
       : null;
 
     let finalResidenceCountry = birthCountry;
@@ -68,31 +101,12 @@ const ProfileModal = ({ isOpen, onClose }) => {
     if (residenceMode === 'same_city') {
       finalResidenceCountry = birthCountry;
       finalBaseCity = finalBirthCity;
-    } else if (residenceMode === 'same_country') {
-      finalResidenceCountry = birthCountry;
-      const fallbackBaseCoords = getCountryCentroid(birthCountry) || [0, 20];
-      finalBaseCity = baseCityName.trim()
-        ? {
-            name: baseCityName.trim(),
-            coordinates:
-              baseCityName.trim() === userProfile?.baseCity?.name && userProfile?.baseCity?.coordinates
-                ? userProfile.baseCity.coordinates
-                : fallbackBaseCoords,
-            countryCode: birthCountry,
-          }
-        : null;
     } else {
-      finalResidenceCountry = residenceCountry || birthCountry;
-      const fallbackBaseCoords = getCountryCentroid(finalResidenceCountry) || [0, 20];
-      finalBaseCity = baseCityName.trim()
-        ? {
-            name: baseCityName.trim(),
-            coordinates:
-              baseCityName.trim() === userProfile?.baseCity?.name && userProfile?.baseCity?.coordinates
-                ? userProfile.baseCity.coordinates
-                : fallbackBaseCoords,
-            countryCode: finalResidenceCountry,
-          }
+      finalResidenceCountry = residenceMode === 'same_country'
+        ? birthCountry
+        : (residenceCountry || birthCountry);
+      finalBaseCity = baseCity?.name
+        ? { name: baseCity.name, coordinates: baseCity.coordinates, countryCode: finalResidenceCountry }
         : null;
     }
 
@@ -153,49 +167,32 @@ const ProfileModal = ({ isOpen, onClose }) => {
         />
       </div>
 
-      {/* Tus Raíces y Tu Base */}
+      {/* Origin & residence */}
       <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col gap-3">
         <div className="text-xs font-black text-charcoalBlue uppercase tracking-wider font-heading">
-          {t('profile.rootsAndBaseTitle', 'Tus Raíces y Tu Base')}
+          {t('profile.rootsAndBaseTitle', 'Lugar de origen y residencia')}
         </div>
 
         {/* Birth Country */}
-        <div className="flex flex-col gap-1">
-          <label className="text-[0.75rem] font-bold text-slate-600 flex items-center gap-1">
-            <Heart size={12} className="text-atomicTangerine" />
-            {t('profile.birthCountryLabel', 'País Natal (Raíces)')}
-          </label>
-          <div className="relative flex items-center">
-            <div className="absolute left-3 z-10 pointer-events-none">
-              <CountryFlag code={birthCountry} size="sm" />
-            </div>
-            <select
-              className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-border bg-white text-sm font-medium outline-none min-h-[44px]"
-              value={birthCountry}
-              onChange={(e) => setBirthCountry(e.target.value)}
-            >
-              {sortedCountries.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.code} — {c.localizedName}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+        <CountrySearchSelect
+          label={t('profile.birthCountryLabel', 'País de nacimiento')}
+          value={birthCountry}
+          onChange={(code) => {
+            setBirthCountry(code);
+            // A city from a previous country must not survive a country switch.
+            setBirthCity((prev) => (prev && prev.countryCode !== code ? null : prev));
+          }}
+          placeholder={t('common:selectCountry', 'Seleccionar país...')}
+        />
 
         {/* Birth City */}
-        <div className="flex flex-col gap-1">
-          <label className="text-[0.75rem] font-bold text-slate-600 flex items-center gap-1">
-            <MapPin size={12} className="text-atomicTangerine" />
-            {t('profile.birthCityLabel', 'Ciudad Natal (opcional)')}
-          </label>
-          <input
-            className="w-full p-2.5 rounded-lg border border-border bg-white text-sm font-medium outline-none min-h-[44px]"
-            value={birthCityName}
-            onChange={(e) => setBirthCityName(e.target.value)}
-            placeholder={t('profile.birthCityPlaceholder', 'Ej: Buenos Aires, Rosario...')}
-          />
-        </div>
+        <CityAutocompleteInput
+          label={t('profile.birthCityLabel', 'Ciudad natal (opcional)')}
+          value={birthCity}
+          countryCode={birthCountry}
+          onChange={(city) => setBirthCity(normalizeCity(city, birthCountry))}
+          placeholder={t('profile.birthCityPlaceholder', 'Ej: Buenos Aires, Rosario...')}
+        />
 
         {/* Residence Mode Selector */}
         <div className="flex flex-col gap-1 pt-1 border-t border-slate-200/60">
@@ -214,7 +211,7 @@ const ProfileModal = ({ isOpen, onClose }) => {
                 type="button"
                 onClick={() => setResidenceMode(option.id)}
                 className={cn(
-                  "py-2 px-1.5 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 transition-all min-h-[38px] text-center",
+                  "py-2 px-1.5 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 transition-all min-h-[38px] text-center cursor-pointer",
                   residenceMode === option.id
                     ? "bg-[#45B0A8] text-white shadow-xs"
                     : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
@@ -229,43 +226,34 @@ const ProfileModal = ({ isOpen, onClose }) => {
 
         {/* If different country: reveal residence country */}
         {residenceMode === 'different_country' && (
-          <div className="flex flex-col gap-1">
-            <label className="text-[0.75rem] font-bold text-slate-600">
-              {t('profile.residenceCountryLabel', 'País de Residencia (Base)')}
-            </label>
-            <div className="relative flex items-center">
-              <div className="absolute left-3 z-10 pointer-events-none">
-                <CountryFlag code={residenceCountry} size="sm" />
-              </div>
-              <select
-                className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-border bg-white text-sm font-medium outline-none min-h-[44px]"
-                value={residenceCountry}
-                onChange={(e) => setResidenceCountry(e.target.value)}
-              >
-                {sortedCountries.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.code} — {c.localizedName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <CountrySearchSelect
+            label={t('profile.residenceCountryLabel', 'País de Residencia')}
+            value={residenceCountry}
+            onChange={(code) => {
+              setResidenceCountry(code);
+              // Keep the base city anchored to the country it actually belongs to.
+              setBaseCity((prev) => (prev && prev.countryCode !== code ? null : prev));
+            }}
+            placeholder={t('common:selectCountry', 'Seleccionar país...')}
+          />
         )}
 
         {/* If not same_city: reveal base city */}
         {residenceMode !== 'same_city' && (
-          <div className="flex flex-col gap-1">
-            <label className="text-[0.75rem] font-bold text-slate-600 flex items-center gap-1">
-              <MapPin size={12} className="text-[#45B0A8]" />
-              {t('profile.baseCityLabel', 'Ciudad Base actual (opcional)')}
-            </label>
-            <input
-              className="w-full p-2.5 rounded-lg border border-border bg-white text-sm font-medium outline-none min-h-[44px]"
-              value={baseCityName}
-              onChange={(e) => setBaseCityName(e.target.value)}
-              placeholder={t('profile.baseCityPlaceholder', 'Ej: Madrid, Barcelona...')}
-            />
-          </div>
+          <CityAutocompleteInput
+            label={t('profile.baseCityLabel', 'Ciudad Base actual (opcional)')}
+            value={baseCity}
+            countryCode={residenceMode === 'different_country' ? residenceCountry : birthCountry}
+            onChange={(city) =>
+              setBaseCity(
+                normalizeCity(
+                  city,
+                  residenceMode === 'different_country' ? residenceCountry : birthCountry
+                )
+              )
+            }
+            placeholder={t('profile.baseCityPlaceholder', 'Ej: Madrid, Barcelona...')}
+          />
         )}
       </div>
 

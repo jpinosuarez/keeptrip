@@ -114,6 +114,11 @@
       "subtitle": "Every explorer starts here. Drop your first pin and watch your story unfold.",
       "cta": "Log First Adventure"
     },
+    "geoIdentityMarked": "Your location is already marked on the map.",
+    "createFirstTrip": "Create first trip",
+    "originAndResidencePin": "Origin and residence",
+    "birthCityPin": "Birth city",
+    "baseCityPin": "Base city",
     "roster": {
       "title": "Your Journeys",
       "openLog": "Open Log",

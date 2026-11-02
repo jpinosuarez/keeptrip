@@ -42,7 +42,7 @@ describe('achievementsEngine - local_explorer', () => {
     };
 
     const bitacora = [{ id: 't1', paisCodigo: 'ES' }];
-    const todasLasParadas = Array.from({ length: 10 }, (_, i) => ({
+    const todasLasParadas = Array.from({ length: 10 }, () => ({
       viajeId: 't1',
       paisCodigo: 'ES',
     }));

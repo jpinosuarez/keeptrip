@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate, useMatch, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
@@ -10,6 +10,7 @@ import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { LoaderCircle } from 'lucide-react';
 import { COLORS, RADIUS, SHADOWS, ENABLE_ONBOARDING } from '@shared/config';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
+import { COUNTRIES_DATA, getCountryCentroid, getFlagUrl } from '@shared/lib/utils/countryUtils';
 
 // ── Lazy-loaded heavy components ───────────────────────────────────────────────
 // Cada uno genera su propio chunk de Rolldown y solo se descarga cuando el
@@ -125,15 +126,18 @@ function AppModalsManager({
       // Ignore storage errors in restricted contexts
     }
     setIsOnboardingDismissed(true);
-    if (searchParams.has('onboarding')) {
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.delete('onboarding');
-        return next;
-      }, { replace: true });
-    }
+
     if (navigateToNew) {
       navigate('/dashboard?new=true');
+    } else {
+      if (searchParams.has('onboarding')) {
+        setSearchParams((prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete('onboarding');
+          return next;
+        }, { replace: true });
+      }
+      navigate('/map');
     }
   }, [searchParams, setSearchParams, navigate]);
 
@@ -164,11 +168,56 @@ function AppModalsManager({
   } = crud;
 
   // ── EdicionModal: ?editing=<id> para viajes existentes, viajeBorrador para nuevos ──
-  const editingId = searchParams.get('editing');
+  const isNewParam = searchParams.get('new') === 'true' || searchParams.get('editing') === 'new';
+  const editingId = !isNewParam ? searchParams.get('editing') : null;
+
+  // Auto-init draft trip if ?new=true is in URL and no draft exists.
+  // The draft is seeded with the traveler's geo identity (residence → origin → ES)
+  // so the editor opens on their current country instead of a hardcoded default.
+  useEffect(() => {
+    if (isNewParam && !viajeBorrador) {
+      const seedCode = (userProfile?.residenceCountry || userProfile?.birthCountry || 'ES').toUpperCase();
+      const seedCountry = COUNTRIES_DATA.find((c) => c.code === seedCode);
+      const seedCoordinates = userProfile?.baseCity?.coordinates
+        || userProfile?.birthCity?.coordinates
+        || getCountryCentroid(seedCode)
+        || null;
+
+      const nuevoBorrador = {
+        id: 'new',
+        code: seedCode,
+        nombreEspanol: seedCountry?.name || getLocalizedCountryName(seedCode, i18n.language) || 'España',
+        flag: getFlagUrl(seedCode),
+        continente: 'Mundo',
+        titulo: '',
+        fechaInicio: new Date().toISOString().split('T')[0],
+        fechaFin: new Date().toISOString().split('T')[0],
+        foto: null,
+        latlng: seedCoordinates,
+        coordenadas: seedCoordinates,
+        vibe: [],
+        highlights: { topFood: '', topView: '', topTip: '' },
+        companions: [],
+        texto: '',
+        presupuesto: null,
+      };
+      setViajeBorrador(nuevoBorrador);
+    }
+  }, [
+    isNewParam,
+    viajeBorrador,
+    setViajeBorrador,
+    userProfile?.residenceCountry,
+    userProfile?.birthCountry,
+    userProfile?.baseCity,
+    userProfile?.birthCity,
+    i18n.language,
+  ]);
+
   const viajeParaEditar = editingId
     ? bitacoraData[editingId] || bitacora.find((v) => v.id === editingId)
     : viajeBorrador;
-  const esBorrador = !editingId && !!viajeBorrador;
+  const esBorrador = (!editingId && !!viajeBorrador) || isNewParam;
 
   const handleCloseEditor = useCallback(() => {
     setViajeBorrador(null);

@@ -34,17 +34,29 @@ const bindAbortSignal = (promise, signal) => {
   });
 };
 
-export const fetchGeocoding = async ({ query, language, types = 'country,place,locality', signal }) => {
-  if (!query || query.length < 3) return [];
+const EMPTY_RESULT = Object.freeze({ features: [] });
+
+export const fetchGeocoding = async ({
+  query,
+  language,
+  types = 'country,place,locality',
+  signal,
+  minLength = 3,
+  country,
+}) => {
+  // Keep the response shape stable (always `{ features: [...] }`) so callers
+  // never have to branch between an array and a Mapbox payload.
+  if (!query || query.length < minLength) return EMPTY_RESULT;
 
   ensureOperationalFlagsListener();
   const currentLevel = Number(getOperationalFlagsSnapshot()?.level || 0);
   if (currentLevel >= 1) {
-    return [];
+    return EMPTY_RESULT;
   }
 
   const normalizedLanguage = language || 'en';
-  const cacheKey = `${query.toLowerCase()}_${normalizedLanguage}_${types}`;
+  const normalizedCountry = country ? String(country).trim().toLowerCase() : '';
+  const cacheKey = `${query.toLowerCase()}_${normalizedLanguage}_${types}_${normalizedCountry}`;
 
   // Check cache
   const cachedHit = cache.get(cacheKey);
@@ -61,7 +73,11 @@ export const fetchGeocoding = async ({ query, language, types = 'country,place,l
     try {
       const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
         query
-      )}.json?types=${encodeURIComponent(types)}&language=${encodeURIComponent(normalizedLanguage)}&access_token=${MAPBOX_TOKEN}`;
+      )}.json?types=${encodeURIComponent(types)}&language=${encodeURIComponent(
+        normalizedLanguage
+      )}&access_token=${MAPBOX_TOKEN}${
+        normalizedCountry ? `&country=${encodeURIComponent(normalizedCountry)}` : ''
+      }`;
 
       const res = await fetch(endpoint);
       if (!res.ok) {

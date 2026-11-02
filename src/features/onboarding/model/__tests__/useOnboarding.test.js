@@ -31,7 +31,7 @@ vi.mock('react-i18next', () => ({
 }));
 
 describe('useOnboarding', () => {
-  it('manages 3-step progression (1 -> 2 -> 3)', () => {
+  it('manages 4-step progression (1 -> 2 -> 3 -> 4)', () => {
     const { result } = renderHook(() => useOnboarding());
 
     expect(result.current.step).toBe(1);
@@ -46,16 +46,21 @@ describe('useOnboarding', () => {
     });
     expect(result.current.step).toBe(3);
 
-    // Bound at step 3
     act(() => {
       result.current.nextStep();
     });
-    expect(result.current.step).toBe(3);
+    expect(result.current.step).toBe(4);
+
+    // Bound at step 4
+    act(() => {
+      result.current.nextStep();
+    });
+    expect(result.current.step).toBe(4);
 
     act(() => {
       result.current.prevStep();
     });
-    expect(result.current.step).toBe(2);
+    expect(result.current.step).toBe(3);
   });
 
   it('handles residenceMode: same_city automatically copying birthCity to baseCity', async () => {

@@ -9,7 +9,7 @@ import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 
 const WelcomeBento = ({ name, isNewTraveler, onNewTrip }) => {
   const { t, i18n } = useTranslation('dashboard');
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
   const { userProfile } = useAuth() || {};
 
   const birthCountry = userProfile?.birthCountry;
@@ -48,7 +48,9 @@ const WelcomeBento = ({ name, isNewTraveler, onNewTrip }) => {
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#45B0A8]/10 text-[#45B0A8] border border-[#45B0A8]/20 text-xs font-bold font-heading">
                     <Home size={12} />
                     <CountryFlag code={birthCountry} size="xs" />
-                    <span>{baseCity?.name ? `${baseCity.name}, ` : ''}{birthName}</span>
+                    <span>
+                      {t('onboarding.originAndResidenceLabel', 'Origen y residencia')}: {birthName}{baseCity?.name ? ` (${baseCity.name})` : ''}
+                    </span>
                   </span>
                 ) : (
                   <>
@@ -56,14 +58,18 @@ const WelcomeBento = ({ name, isNewTraveler, onNewTrip }) => {
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#2C3E50]/10 text-[#2C3E50] border border-[#2C3E50]/20 text-xs font-bold font-heading">
                         <Heart size={11} className="text-[#FF6B35]" />
                         <CountryFlag code={birthCountry} size="xs" />
-                        <span>{birthName}</span>
+                        <span>
+                          {t('onboarding.originLabel', 'Origen')}: {birthName}{userProfile?.birthCity?.name ? ` (${userProfile.birthCity.name})` : ''}
+                        </span>
                       </span>
                     )}
                     {residenceCountry && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#45B0A8]/10 text-[#45B0A8] border border-[#45B0A8]/20 text-xs font-bold font-heading">
                         <Home size={11} />
                         <CountryFlag code={residenceCountry} size="xs" />
-                        <span>{baseCity?.name ? `${baseCity.name}, ` : ''}{residenceName}</span>
+                        <span>
+                          {t('onboarding.livingInLabel', 'Vives en')}: {residenceName}{baseCity?.name ? ` (${baseCity.name})` : ''}
+                        </span>
                       </span>
                     )}
                   </>
@@ -76,10 +82,10 @@ const WelcomeBento = ({ name, isNewTraveler, onNewTrip }) => {
               <button
                 type="button"
                 onClick={handleOpenOnboarding}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#FF6B35]/15 to-[#FF6B35]/5 border border-[#FF6B35]/30 text-[#FF6B35] text-xs font-black hover:bg-[#FF6B35]/25 transition-all cursor-pointer font-heading min-h-[36px]"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-[#FF6B35]/10 border border-[#FF6B35]/30 text-[#FF6B35] text-xs font-black hover:bg-[#FF6B35]/20 transition-all cursor-pointer font-heading min-h-[44px] text-left"
               >
                 <Sparkles size={13} className="animate-pulse" />
-                <span>{t('onboarding.setupRootsCta', '✨ Configurar mis raíces y base (+50 XP)')}</span>
+                <span>{t('onboarding.setupRootsCta', 'Configurar mi origen y residencia (+50 XP)')}</span>
               </button>
             )}
           </div>
