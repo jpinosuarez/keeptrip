@@ -4,7 +4,8 @@
  */
 import React, { useState, useRef, useMemo } from 'react';
 import { motion as Motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
-import { Compass, Calendar, MapPin, Trash2, Clock, MoreVertical, Edit2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Compass, Calendar, MapPin, Trash2, Clock, MoreVertical, Edit2, Eye } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   FOTO_DEFAULT_URL,
@@ -16,11 +17,22 @@ import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { cn } from '@shared/lib/utils/cn';
 import PortalDropdown from '@shared/ui/components/PortalDropdown/PortalDropdown';
 
-const TripCard = ({ trip = {}, onEdit, onDelete, isMobile = false, variant = 'list', priorityImage = false }) => {
+const TripCard = ({ trip = {}, onEdit, onDelete, onView, isMobile = false, variant = 'list', priorityImage = false }) => {
   const { t, i18n } = useTranslation(['countries', 'dashboard', 'common']);
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const buttonRef = useRef(null);
   const cardRef = useRef(null);
+
+  const handleCardClick = (event) => {
+    // Ignore clicks coming from the menu trigger, any button or an open dropdown.
+    if (event.target.closest('button') || event.target.closest('[role="menu"]')) return;
+    if (onView) {
+      onView(trip.id);
+    } else if (trip.id) {
+      navigate(`/trips/${trip.id}`);
+    }
+  };
 
   const flags = useMemo(() => 
     (Array.isArray(trip.banderas) && trip.banderas.filter(Boolean).length > 0 && trip.banderas.filter(Boolean)) ||
@@ -110,6 +122,7 @@ const TripCard = ({ trip = {}, onEdit, onDelete, isMobile = false, variant = 'li
       data-testid={`trip-card-${trip.id}`}
       aria-label={cardAriaLabel}
       ref={cardRef}
+      onClick={handleCardClick}
       style={{
         rotateX: isMobile ? 0 : rotateX,
         rotateY: isMobile ? 0 : rotateY,
@@ -123,7 +136,7 @@ const TripCard = ({ trip = {}, onEdit, onDelete, isMobile = false, variant = 'li
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className={cn(
-        "relative cursor-default group rounded-2xl shadow-md bg-charcoalBlue transition-shadow duration-300 border-0 overflow-hidden",
+        "relative cursor-pointer group rounded-2xl shadow-md bg-charcoalBlue transition-shadow duration-300 border-0 overflow-hidden",
         virtualizationClass,
         isMenuOpen ? "z-dropdown" : "z-base"
       )}
@@ -223,6 +236,20 @@ const TripCard = ({ trip = {}, onEdit, onDelete, isMobile = false, variant = 'li
                 e.stopPropagation();
                 e.preventDefault();
                 setIsMenuOpen(false);
+                if (onView) onView(trip.id);
+                else if (trip.id) navigate(`/trips/${trip.id}`);
+              }}
+              className="portal-menu-item flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
+              data-testid="trip-card-menu-view"
+            >
+              <Eye size={15} /> <span>{t('dashboard:card.viewTrip', 'Ver viaje')}</span>
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setIsMenuOpen(false);
                 if (onEdit) onEdit(trip.id);
               }}
               className="portal-menu-item flex items-center gap-2 w-full p-3 border-none bg-transparent rounded-lg cursor-pointer text-[0.85rem] font-bold text-slate-800 text-left hover:bg-black/5 transition-colors font-heading"
@@ -280,6 +307,7 @@ function areTripCardPropsEqual(prevProps, nextProps) {
   if (prevProps.isMobile !== nextProps.isMobile) return false;
   if (prevProps.onEdit !== nextProps.onEdit) return false;
   if (prevProps.onDelete !== nextProps.onDelete) return false;
+  if (prevProps.onView !== nextProps.onView) return false;
 
   const p = prevProps.trip;
   const n = nextProps.trip;

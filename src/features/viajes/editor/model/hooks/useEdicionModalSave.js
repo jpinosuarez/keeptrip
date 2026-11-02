@@ -159,10 +159,13 @@ export function useEdicionModalSave({
         limpiarEstado();
         if (onAfterSave) {
           onAfterSave(savedTripId);
-        } else {
-          onClose();
         }
       }
+
+      // Explicit close guarantee (Block 2.1): the editor must never stay open
+      // after a successful save, even when the caller disables autoFinalize
+      // (EditorFocusPanel manages its own loading state).
+      onClose?.();
 
       return savedTripId;
     } catch (error) {

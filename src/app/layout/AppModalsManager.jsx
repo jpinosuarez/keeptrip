@@ -227,6 +227,16 @@ function AppModalsManager({
     }, { replace: true });
   }, [setSearchParams, setViajeBorrador, setCiudadInicialBorrador]);
 
+  // Block 2.1: guarantee the editor closes after a successful save. The crud
+  // handler returns the saved trip id (string) on success and null on failure.
+  const handleSaveTrip = useCallback(async (id, payload, existingStops) => {
+    const savedId = await handleSaveModal(id, payload, existingStops);
+    if (savedId) {
+      handleCloseEditor();
+    }
+    return savedId;
+  }, [handleSaveModal, handleCloseEditor]);
+
   // ── ConfirmModal ──────────────────────────────────────────────────────────────
   const viajeAEliminar = confirmarEliminacion
     ? (bitacoraData[confirmarEliminacion] || bitacora.find((v) => v.id === confirmarEliminacion))
@@ -310,7 +320,7 @@ function AppModalsManager({
               onClose={closeSearchPalette}
               allTrips={bitacora}
               onSelectPlace={onLugarSeleccionado}
-              onSelectTrip={(tripId) => navigate({ pathname: '/trips', search: `editing=${tripId}` })}
+              onSelectTrip={(tripId) => navigate(`/trips/${tripId}`)}
             />
           </Suspense>
         </ErrorBoundary>
@@ -327,7 +337,7 @@ function AppModalsManager({
               viaje={viajeParaEditar}
               bitacoraData={bitacoraData}
               onClose={handleCloseEditor}
-              onSave={handleSaveModal}
+              onSave={handleSaveTrip}
               isSaving={isSavingModal}
               esBorrador={esBorrador}
               ciudadInicial={ciudadInicialBorrador}

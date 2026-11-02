@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
-import { Calendar, MapPin, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, Eye } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { COLORS, RADIUS } from '@shared/config';
@@ -162,6 +162,19 @@ const TripRosterItem = ({ trip, isActive = false, onSelect, index = 0 }) => {
             }}
           />
         ))}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/trips/${trip.id}`);
+          }}
+          className="p-1.5 rounded-lg text-slate-400 hover:text-[#FF6B35] hover:bg-slate-100 transition-colors inline-flex items-center justify-center cursor-pointer min-h-[44px] min-w-[44px]"
+          title={t('map.roster.viewTrip', 'Ver viaje')}
+          aria-label={t('map.roster.viewTrip', 'Ver viaje')}
+          data-testid={`trip-roster-view-${trip.id}`}
+        >
+          <Eye size={16} />
+        </button>
         {isActive && (
           <Motion.div
             initial={{ opacity: 0, scale: 0.8 }}
