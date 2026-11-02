@@ -2,7 +2,7 @@ import React from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Compass, Heart, Home, MapPin, Check, ArrowRight, ArrowLeft } from 'lucide-react';
-import { getCountryFlagEmoji } from '@shared/lib/utils/countryUtils';
+import { CountryFlag } from '@shared/ui/components/CountryFlag';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { cn } from '@shared/lib/utils/cn';
 
@@ -16,10 +16,14 @@ export const OnboardingStep2 = ({ onboarding, sortedCountries }) => {
   const { t, i18n } = useTranslation('common');
 
   const currentBirthCountryName = getLocalizedCountryName(onboarding.birthCountry, i18n.language);
-  const currentResidenceCountryName = getLocalizedCountryName(
-    onboarding.sameAsBirth ? onboarding.birthCountry : onboarding.residenceCountry,
-    i18n.language
-  );
+  const effectiveResidenceCountry = onboarding.residenceMode === 'different_country'
+    ? onboarding.residenceCountry
+    : onboarding.birthCountry;
+  const currentResidenceCountryName = getLocalizedCountryName(effectiveResidenceCountry, i18n.language);
+
+  const effectiveBaseCityName = onboarding.residenceMode === 'same_city'
+    ? (onboarding.birthCity?.name || onboarding.birthCityQuery)
+    : (onboarding.baseCity?.name || onboarding.baseCityQuery);
 
   return (
     <Motion.div
@@ -37,150 +41,206 @@ export const OnboardingStep2 = ({ onboarding, sortedCountries }) => {
           {t('onboarding.step2Title', 'Tus Raíces y Tu Base')}
         </h2>
       </div>
-      <p className="text-xs md:text-sm text-slate-600 mb-5">
-        {t('onboarding.step2Subtitle', 'Configura tu mapa global. Tu país de origen y tu residencia actual tendrán una presencia especial en tus mapas.')}
+      <p className="text-xs md:text-sm text-slate-600 mb-4">
+        {t('onboarding.step2Subtitle', 'Configura tu mapa global. Tu lugar de origen y tu base actual tendrán una presencia especial en tus mapas.')}
       </p>
 
-      {/* Birth Country Selector */}
-      <div className="flex flex-col gap-1.5 mb-4">
-        <label className="text-xs font-bold text-[#2C3E50] uppercase tracking-wider flex items-center gap-1.5">
+      {/* ── SECCIÓN 1: TUS RAÍCES ── */}
+      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 mb-4 flex flex-col gap-3">
+        <div className="text-xs font-black text-[#2C3E50] uppercase tracking-wider flex items-center gap-1.5 font-heading">
           <Heart size={14} className="text-[#FF6B35]" />
-          {t('onboarding.birthCountryLabel', '¿Dónde naciste o creciste? (Tus Raíces)')}
-        </label>
-        <div className="relative">
-          <select
-            value={onboarding.birthCountry}
-            onChange={(e) => onboarding.setBirthCountry(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium text-sm focus:border-[#45B0A8] focus:ring-2 focus:ring-[#45B0A8]/20 outline-none transition-all appearance-none cursor-pointer min-h-[44px]"
-          >
-            {sortedCountries.map((c) => (
-              <option key={c.code} value={c.code}>
-                {getCountryFlagEmoji(c.code)} {c.localizedName}
-              </option>
-            ))}
-          </select>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-            ▼
+          <span>{t('onboarding.rootsSectionTitle', 'Tus Raíces (Origen)')}</span>
+        </div>
+
+        {/* Birth Country */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+            {t('onboarding.birthCountryLabel', '¿Dónde naciste o creciste?')}
+          </label>
+          <div className="relative flex items-center">
+            <div className="absolute left-3.5 z-10 pointer-events-none">
+              <CountryFlag code={onboarding.birthCountry} size="sm" />
+            </div>
+            <select
+              value={onboarding.birthCountry}
+              onChange={(e) => onboarding.setBirthCountry(e.target.value)}
+              className="w-full pl-10 pr-8 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium text-sm focus:border-[#45B0A8] focus:ring-2 focus:ring-[#45B0A8]/20 outline-none transition-all appearance-none cursor-pointer min-h-[44px]"
+            >
+              {sortedCountries.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.code} — {c.localizedName}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-3.5 pointer-events-none text-slate-400 text-xs">▼</div>
           </div>
         </div>
-      </div>
 
-      {/* Same As Birth Toggle */}
-      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 mb-4">
-        <label className="text-xs font-bold text-slate-700 block mb-2">
-          {t('onboarding.sameCountryQuestion', '¿Vives actualmente allí?')}
-        </label>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => onboarding.setSameAsBirth(true)}
-            className={cn(
-              "py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all min-h-[44px]",
-              onboarding.sameAsBirth
-                ? "bg-[#45B0A8] text-white shadow-sm"
-                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-            )}
-          >
-            {onboarding.sameAsBirth && <Check size={14} />}
-            {t('onboarding.sameYes', 'Sí, sigo viviendo allí')}
-          </button>
-          <button
-            type="button"
-            onClick={() => onboarding.setSameAsBirth(false)}
-            className={cn(
-              "py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all min-h-[44px]",
-              !onboarding.sameAsBirth
-                ? "bg-[#45B0A8] text-white shadow-sm"
-                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-            )}
-          >
-            {!onboarding.sameAsBirth && <Check size={14} />}
-            {t('onboarding.sameNo', 'No, vivo en otro país')}
-          </button>
-        </div>
-      </div>
-
-      {/* Residence Country (if not same) */}
-      <AnimatePresence>
-        {!onboarding.sameAsBirth && (
-          <Motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={springTransition}
-            className="flex flex-col gap-1.5 mb-4 overflow-hidden"
-          >
-            <label className="text-xs font-bold text-[#2C3E50] uppercase tracking-wider flex items-center gap-1.5">
-              <Home size={14} className="text-[#45B0A8]" />
-              {t('onboarding.residenceCountryLabel', 'País de Residencia Actual (Tu Base)')}
-            </label>
-            <div className="relative">
-              <select
-                value={onboarding.residenceCountry}
-                onChange={(e) => onboarding.setResidenceCountry(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium text-sm focus:border-[#45B0A8] focus:ring-2 focus:ring-[#45B0A8]/20 outline-none transition-all appearance-none cursor-pointer min-h-[44px]"
-              >
-                {sortedCountries.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {getCountryFlagEmoji(c.code)} {c.localizedName}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                ▼
+        {/* Birth City Autocomplete */}
+        <div className="flex flex-col gap-1 relative">
+          <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider flex items-center justify-between">
+            <span>{t('onboarding.birthCityLabel', 'Ciudad Natal')}</span>
+            <span className="text-[10px] text-slate-400 lowercase">{t('common.optional', 'opcional')}</span>
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              value={onboarding.birthCityQuery}
+              onChange={(e) => {
+                onboarding.setBirthCityQuery(e.target.value);
+                onboarding.setBirthCity(null);
+              }}
+              placeholder={t('onboarding.birthCityPlaceholder', 'Ej: Buenos Aires, Rosario, Córdoba...')}
+              className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium text-sm focus:border-[#45B0A8] focus:ring-2 focus:ring-[#45B0A8]/20 outline-none transition-all min-h-[44px]"
+            />
+            {onboarding.isLoadingBirthCities && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 animate-pulse font-mono">
+                ...
               </div>
-            </div>
-          </Motion.div>
-        )}
-      </AnimatePresence>
+            )}
+          </div>
 
-      {/* Base City Input (Optional with Autocomplete) */}
-      <div className="flex flex-col gap-1.5 mb-4 relative">
-        <label className="text-xs font-bold text-[#2C3E50] uppercase tracking-wider flex items-center justify-between">
-          <span className="flex items-center gap-1.5">
-            <MapPin size={14} className="text-[#FF6B35]" />
-            {t('onboarding.baseCityLabel', 'Ciudad Base actual (opcional)')}
-          </span>
-          <span className="text-[10px] text-slate-400 lowercase">{t('common.optional', 'opcional')}</span>
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={onboarding.cityQuery}
-            onChange={(e) => {
-              onboarding.setCityQuery(e.target.value);
-              onboarding.setBaseCity(null);
-            }}
-            placeholder={t('onboarding.cityPlaceholder', 'Ej: Buenos Aires, Madrid, Berlín...')}
-            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium text-sm focus:border-[#45B0A8] focus:ring-2 focus:ring-[#45B0A8]/20 outline-none transition-all min-h-[44px]"
-          />
-          {onboarding.isLoadingCities && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 animate-pulse font-mono">
-              ...
+          {onboarding.birthCitySuggestions.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-30 max-h-40 overflow-y-auto">
+              {onboarding.birthCitySuggestions.map((sug, idx) => (
+                <button
+                  key={`${sug.name}-${idx}`}
+                  type="button"
+                  onClick={() => onboarding.selectBirthCitySuggestion(sug)}
+                  className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100 last:border-b-0 text-xs font-medium text-slate-700 min-h-[40px]"
+                >
+                  <MapPin size={12} className="text-[#FF6B35] shrink-0" />
+                  <span className="truncate">{sug.fullName || sug.name}</span>
+                </button>
+              ))}
             </div>
           )}
         </div>
+      </div>
 
-        {/* City Autocomplete Dropdown */}
-        {onboarding.citySuggestions.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-20 max-h-48 overflow-y-auto">
-            {onboarding.citySuggestions.map((sug, idx) => (
+      {/* ── SECCIÓN 2: TU BASE ACTUAL ── */}
+      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 mb-4 flex flex-col gap-3">
+        <div className="text-xs font-black text-[#45B0A8] uppercase tracking-wider flex items-center gap-1.5 font-heading">
+          <Home size={14} className="text-[#45B0A8]" />
+          <span>{t('onboarding.baseSectionTitle', 'Tu Base Actual')}</span>
+        </div>
+
+        {/* 3-Option Residence Mode Selector */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[11px] font-bold text-slate-700">
+            {t('onboarding.residenceQuestion', '¿Dónde vives actualmente?')}
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+            {[
+              { id: 'same_city', label: t('onboarding.modeSameCity', 'Misma ciudad natal') },
+              { id: 'same_country', label: t('onboarding.modeSameCountry', 'Otra ciudad del país') },
+              { id: 'different_country', label: t('onboarding.modeDifferentCountry', 'En otro país') },
+            ].map((option) => (
               <button
-                key={`${sug.name}-${idx}`}
+                key={option.id}
                 type="button"
-                onClick={() => onboarding.selectCitySuggestion(sug)}
-                className="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100 last:border-b-0 text-xs font-medium text-slate-700 min-h-[44px]"
+                onClick={() => onboarding.setResidenceMode(option.id)}
+                className={cn(
+                  "py-2.5 px-2 rounded-xl font-bold text-[11px] flex items-center justify-center gap-1 transition-all min-h-[44px] text-center",
+                  onboarding.residenceMode === option.id
+                    ? "bg-[#45B0A8] text-white shadow-sm"
+                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                )}
               >
-                <MapPin size={12} className="text-[#FF6B35] shrink-0" />
-                <span className="truncate">{sug.fullName || sug.name}</span>
+                {onboarding.residenceMode === option.id && <Check size={12} className="shrink-0" />}
+                <span>{option.label}</span>
               </button>
             ))}
           </div>
-        )}
+        </div>
+        {/* If different country: reveal residence country selector */}
+        <AnimatePresence>
+          {onboarding.residenceMode === 'different_country' && (
+            <Motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={springTransition}
+              className="flex flex-col gap-1 overflow-hidden pt-1"
+            >
+              <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                {t('onboarding.residenceCountryLabel', 'País de Residencia')}
+              </label>
+              <div className="relative flex items-center">
+                <div className="absolute left-3.5 z-10 pointer-events-none">
+                  <CountryFlag code={onboarding.residenceCountry} size="sm" />
+                </div>
+                <select
+                  value={onboarding.residenceCountry}
+                  onChange={(e) => onboarding.setResidenceCountry(e.target.value)}
+                  className="w-full pl-10 pr-8 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium text-sm focus:border-[#45B0A8] focus:ring-2 focus:ring-[#45B0A8]/20 outline-none transition-all appearance-none cursor-pointer min-h-[44px]"
+                >
+                  {sortedCountries.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} — {c.localizedName}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3.5 pointer-events-none text-slate-400 text-xs">▼</div>
+              </div>
+            </Motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* If same_country or different_country: reveal base city input */}
+        <AnimatePresence>
+          {onboarding.residenceMode !== 'same_city' && (
+            <Motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={springTransition}
+              className="flex flex-col gap-1 relative overflow-hidden pt-1"
+            >
+              <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider flex items-center justify-between">
+                <span>{t('onboarding.baseCityLabel', 'Ciudad Base actual')}</span>
+                <span className="text-[10px] text-slate-400 lowercase">{t('common.optional', 'opcional')}</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={onboarding.baseCityQuery}
+                  onChange={(e) => {
+                    onboarding.setBaseCityQuery(e.target.value);
+                    onboarding.setBaseCity(null);
+                  }}
+                  placeholder={t('onboarding.baseCityPlaceholder', 'Ej: Madrid, Barcelona, Valencia...')}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium text-sm focus:border-[#45B0A8] focus:ring-2 focus:ring-[#45B0A8]/20 outline-none transition-all min-h-[44px]"
+                />
+                {onboarding.isLoadingBaseCities && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 animate-pulse font-mono">
+                    ...
+                  </div>
+                )}
+              </div>
+
+              {onboarding.baseCitySuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-30 max-h-40 overflow-y-auto">
+                  {onboarding.baseCitySuggestions.map((sug, idx) => (
+                    <button
+                      key={`${sug.name}-${idx}`}
+                      type="button"
+                      onClick={() => onboarding.selectBaseCitySuggestion(sug)}
+                      className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100 last:border-b-0 text-xs font-medium text-slate-700 min-h-[40px]"
+                    >
+                      <MapPin size={12} className="text-[#FF6B35] shrink-0" />
+                      <span className="truncate">{sug.fullName || sug.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </Motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Visual Identity Badges Preview */}
-      <div className="flex items-center gap-2 mb-6 p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
+      <div className="flex items-center gap-2 mb-5 p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
         <div className="flex-1 flex items-center gap-2 min-w-0">
           <span className="w-7 h-7 rounded-lg bg-[#2C3E50] text-white flex items-center justify-center shrink-0">
             <Heart size={14} />
@@ -189,8 +249,11 @@ export const OnboardingStep2 = ({ onboarding, sortedCountries }) => {
             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
               {t('onboarding.roots', 'Raíces')}
             </div>
-            <div className="text-xs font-extrabold text-[#2C3E50] truncate font-heading">
-              {getCountryFlagEmoji(onboarding.birthCountry)} {currentBirthCountryName}
+            <div className="text-xs font-extrabold text-[#2C3E50] truncate font-heading flex items-center gap-1.5">
+              <CountryFlag code={onboarding.birthCountry} size="xs" />
+              <span className="truncate">
+                {onboarding.birthCityQuery ? `${onboarding.birthCityQuery}, ` : ''}{currentBirthCountryName}
+              </span>
             </div>
           </div>
         </div>
@@ -205,9 +268,11 @@ export const OnboardingStep2 = ({ onboarding, sortedCountries }) => {
             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
               {t('onboarding.base', 'Base')}
             </div>
-            <div className="text-xs font-extrabold text-[#45B0A8] truncate font-heading">
-              {getCountryFlagEmoji(onboarding.sameAsBirth ? onboarding.birthCountry : onboarding.residenceCountry)}{' '}
-              {onboarding.cityQuery ? `${onboarding.cityQuery}, ` : ''}{currentResidenceCountryName}
+            <div className="text-xs font-extrabold text-[#45B0A8] truncate font-heading flex items-center gap-1.5">
+              <CountryFlag code={effectiveResidenceCountry} size="xs" />
+              <span className="truncate">
+                {effectiveBaseCityName ? `${effectiveBaseCityName}, ` : ''}{currentResidenceCountryName}
+              </span>
             </div>
           </div>
         </div>

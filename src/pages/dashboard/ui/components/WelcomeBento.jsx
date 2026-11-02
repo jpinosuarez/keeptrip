@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Compass, Sparkles, Heart, Home } from 'lucide-react';
 import { motion as Motion } from 'framer-motion';
 import { useAuth } from '@app/providers/AuthContext';
-import { getCountryFlagEmoji } from '@shared/lib/utils/countryUtils';
+import { CountryFlag } from '@shared/ui/components/CountryFlag';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 
 const WelcomeBento = ({ name, isNewTraveler, onNewTrip }) => {
@@ -47,7 +47,7 @@ const WelcomeBento = ({ name, isNewTraveler, onNewTrip }) => {
                 {birthCountry === residenceCountry ? (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#45B0A8]/10 text-[#45B0A8] border border-[#45B0A8]/20 text-xs font-bold font-heading">
                     <Home size={12} />
-                    <span>{getCountryFlagEmoji(birthCountry)}</span>
+                    <CountryFlag code={birthCountry} size="xs" />
                     <span>{baseCity?.name ? `${baseCity.name}, ` : ''}{birthName}</span>
                   </span>
                 ) : (
@@ -55,14 +55,14 @@ const WelcomeBento = ({ name, isNewTraveler, onNewTrip }) => {
                     {birthCountry && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#2C3E50]/10 text-[#2C3E50] border border-[#2C3E50]/20 text-xs font-bold font-heading">
                         <Heart size={11} className="text-[#FF6B35]" />
-                        <span>{getCountryFlagEmoji(birthCountry)}</span>
+                        <CountryFlag code={birthCountry} size="xs" />
                         <span>{birthName}</span>
                       </span>
                     )}
                     {residenceCountry && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#45B0A8]/10 text-[#45B0A8] border border-[#45B0A8]/20 text-xs font-bold font-heading">
                         <Home size={11} />
-                        <span>{getCountryFlagEmoji(residenceCountry)}</span>
+                        <CountryFlag code={residenceCountry} size="xs" />
                         <span>{baseCity?.name ? `${baseCity.name}, ` : ''}{residenceName}</span>
                       </span>
                     )}

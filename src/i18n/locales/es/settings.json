@@ -21,6 +21,16 @@
     "title": "Idioma",
     "description": "Selecciona el idioma de la interfaz."
   },
+  "geoIdentityTitle": "Identidad Geográfica: Tus Raíces y Tu Base",
+  "birthCountry": "País Natal (Raíces)",
+  "birthCity": "Ciudad Natal (opcional)",
+  "birthCityPlaceholder": "Ej: Buenos Aires, Rosario...",
+  "residenceMode": "Lugar de Residencia",
+  "residenceCountry": "País de Residencia (Base)",
+  "baseCity": "Ciudad Base actual (opcional)",
+  "baseCityPlaceholder": "Ej: Madrid, Barcelona...",
+  "saveGeo": "Guardar Raíces y Base",
+  "geoSavedSuccess": "¡Identidad geográfica actualizada con éxito!",
   "appearance": "Apariencia",
   "appearanceDesc": "Modo oscuro próximamente",
   "mapStyle": {

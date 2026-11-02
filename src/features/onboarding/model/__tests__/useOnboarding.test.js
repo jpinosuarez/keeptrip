@@ -11,6 +11,7 @@ vi.mock('@app/providers/AuthContext', () => ({
     userProfile: {
       displayName: 'Valeria Traveler',
       birthCountry: null,
+      birthCity: null,
       residenceCountry: null,
       baseCity: null,
       hasCompletedOnboarding: false,
@@ -57,34 +58,65 @@ describe('useOnboarding', () => {
     expect(result.current.step).toBe(2);
   });
 
-  it('syncs residenceCountry to birthCountry when sameAsBirth is true', () => {
-    const { result } = renderHook(() => useOnboarding());
+  it('handles residenceMode: same_city automatically copying birthCity to baseCity', async () => {
+    mockUpdateUserProfile.mockResolvedValue(true);
+    const onComplete = vi.fn();
+    const { result } = renderHook(() => useOnboarding({ onComplete }));
+
+    act(() => {
+      result.current.setBirthCountry('AR');
+      result.current.setBirthCityQuery('Rosario');
+      result.current.setResidenceMode('same_city');
+    });
 
     expect(result.current.sameAsBirth).toBe(true);
+    expect(result.current.residenceCountry).toBe('AR');
 
-    act(() => {
-      result.current.setBirthCountry('AR');
+    await act(async () => {
+      await result.current.completeOnboarding({ navigateToNew: false });
     });
 
-    expect(result.current.birthCountry).toBe('AR');
-    expect(result.current.residenceCountry).toBe('AR');
+    expect(mockUpdateUserProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        birthCountry: 'AR',
+        birthCity: expect.objectContaining({ name: 'Rosario', countryCode: 'AR' }),
+        residenceCountry: 'AR',
+        baseCity: expect.objectContaining({ name: 'Rosario', countryCode: 'AR' }),
+        hasCompletedOnboarding: true,
+      })
+    );
   });
 
-  it('allows distinct birthCountry and residenceCountry when sameAsBirth is false', () => {
+  it('handles residenceMode: same_country setting distinct baseCity in same country', async () => {
+    mockUpdateUserProfile.mockResolvedValue(true);
     const { result } = renderHook(() => useOnboarding());
 
     act(() => {
       result.current.setBirthCountry('AR');
-      result.current.setSameAsBirth(false);
-      result.current.setResidenceCountry('DE');
+      result.current.setBirthCityQuery('Rosario');
+      result.current.setResidenceMode('same_country');
+      result.current.setBaseCityQuery('Buenos Aires');
     });
 
-    expect(result.current.sameAsBirth).toBe(false);
-    expect(result.current.birthCountry).toBe('AR');
-    expect(result.current.residenceCountry).toBe('DE');
+    expect(result.current.sameAsBirth).toBe(true);
+    expect(result.current.residenceCountry).toBe('AR');
+
+    await act(async () => {
+      await result.current.completeOnboarding({ navigateToNew: false });
+    });
+
+    expect(mockUpdateUserProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        birthCountry: 'AR',
+        birthCity: expect.objectContaining({ name: 'Rosario', countryCode: 'AR' }),
+        residenceCountry: 'AR',
+        baseCity: expect.objectContaining({ name: 'Buenos Aires', countryCode: 'AR' }),
+        hasCompletedOnboarding: true,
+      })
+    );
   });
 
-  it('completes onboarding with fallback centroid coordinates when baseCity text is entered manually', async () => {
+  it('handles residenceMode: different_country with distinct country and city', async () => {
     mockUpdateUserProfile.mockResolvedValue(true);
     const onComplete = vi.fn();
     const { result } = renderHook(() => useOnboarding({ onComplete }));
@@ -92,10 +124,13 @@ describe('useOnboarding', () => {
     act(() => {
       result.current.setDisplayName('Mateo Explorer');
       result.current.setBirthCountry('ES');
-      result.current.setSameAsBirth(false);
+      result.current.setBirthCityQuery('Madrid');
+      result.current.setResidenceMode('different_country');
       result.current.setResidenceCountry('FR');
-      result.current.setCityQuery('Paris');
+      result.current.setBaseCityQuery('Paris');
     });
+
+    expect(result.current.sameAsBirth).toBe(false);
 
     await act(async () => {
       await result.current.completeOnboarding({ navigateToNew: true });
@@ -105,13 +140,14 @@ describe('useOnboarding', () => {
       expect.objectContaining({
         displayName: 'Mateo Explorer',
         birthCountry: 'ES',
+        birthCity: expect.objectContaining({ name: 'Madrid', countryCode: 'ES' }),
         residenceCountry: 'FR',
-        hasCompletedOnboarding: true,
         baseCity: expect.objectContaining({
           name: 'Paris',
           countryCode: 'FR',
           coordinates: [2.2137, 46.2276], // Centroid of France
         }),
+        hasCompletedOnboarding: true,
       })
     );
 
@@ -122,3 +158,4 @@ describe('useOnboarding', () => {
     );
   });
 });
+

@@ -87,6 +87,14 @@ export const AuthProvider = ({ children }) => {
     }));
 
     if (auth.currentUser) {
+      if (partialData.hasCompletedOnboarding && typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(`keeptrip_onboarded_${auth.currentUser.uid}`, 'true');
+        } catch {
+          // Ignore storage errors in restricted contexts
+        }
+      }
+
       if (partialData.displayName !== undefined || partialData.photoURL !== undefined) {
         try {
           await updateProfile(auth.currentUser, {
@@ -141,6 +149,7 @@ export const AuthProvider = ({ children }) => {
       // Garantizar que exista un documento de perfil utilizable para búsquedas/autocomplete
       // (usuarios/{uid}) — se crea/actualiza al iniciar sesión
       if (currentUser && currentUser.uid) {
+        setLoadingProfile(true);
         try {
           const { doc, getDoc, setDoc } = await import('firebase/firestore');
           const perfilRef = doc(db, 'usuarios', currentUser.uid);
@@ -156,14 +165,24 @@ export const AuthProvider = ({ children }) => {
           }
 
           if (mounted) {
+            const hasCompletedOnboarding = Boolean(snapData?.hasCompletedOnboarding);
+            if (hasCompletedOnboarding && typeof window !== 'undefined') {
+              try {
+                localStorage.setItem(`keeptrip_onboarded_${currentUser.uid}`, 'true');
+              } catch {
+                // Ignore storage errors in restricted contexts
+              }
+            }
+
             const profileData = {
               displayName: snapData?.displayName || currentUser.displayName || '',
               email: currentUser.email || '',
               photoURL: snapData?.photoURL || currentUser.photoURL || '',
               birthCountry: snapData?.birthCountry || null,
+              birthCity: snapData?.birthCity || null,
               residenceCountry: snapData?.residenceCountry || null,
               baseCity: snapData?.baseCity || null,
-              hasCompletedOnboarding: Boolean(snapData?.hasCompletedOnboarding),
+              hasCompletedOnboarding,
             };
             setUserProfile(profileData);
             setLoadingProfile(false);

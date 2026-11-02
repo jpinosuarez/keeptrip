@@ -128,11 +128,33 @@ export const WorldMapSVG = ({ color = '#FF6B35', userProfile: propProfile = null
   }, [buildArc]);
 
   const projectedPins = useMemo(() => {
-    return PINS.map((pin, index) => {
+    const list = [...PINS];
+
+    const bCity = profile?.birthCity;
+    const rCity = profile?.baseCity;
+    const bCoords = bCity?.coordinates;
+    const rCoords = rCity?.coordinates;
+
+    if (bCoords && rCoords) {
+      const distance = Math.hypot(bCoords[0] - rCoords[0], bCoords[1] - rCoords[1]);
+      const isSame = distance < 0.05 || (bCity.name && rCity.name && bCity.name.toLowerCase() === rCity.name.toLowerCase());
+      if (isSame) {
+        list.push({ name: rCity.name || bCity.name, coords: rCoords, color: '#45B0A8' });
+      } else {
+        list.push({ name: bCity.name, coords: bCoords, color: '#2C3E50' });
+        list.push({ name: rCity.name, coords: rCoords, color: '#45B0A8' });
+      }
+    } else if (bCoords) {
+      list.push({ name: bCity.name, coords: bCoords, color: '#2C3E50' });
+    } else if (rCoords) {
+      list.push({ name: rCity.name, coords: rCoords, color: '#45B0A8' });
+    }
+
+    return list.map((pin, index) => {
       const pt = project(pin.coords);
-      return pt ? { ...pin, px: pt[0], py: pt[1], index } : null;
+      return pt ? { ...pin, px: pt[0], py: pt[1], index, pinColor: pin.color || color } : null;
     }).filter(Boolean);
-  }, [project]);
+  }, [project, profile, color]);
 
   const activeCountry = useMemo(() => {
     if (!hoveredCountry || !countryPaths.length) return null;
@@ -211,10 +233,11 @@ export const WorldMapSVG = ({ color = '#FF6B35', userProfile: propProfile = null
             {/* Destination Pins (Lens Markers) */}
             <AnimatePresence>
               {pinsReady && projectedPins.map((pin) => {
-                const { name, px, py, index } = pin;
+                const { name, px, py, index, pinColor } = pin;
+                const activeColor = pinColor || color;
                 return (
                   <Motion.g
-                    key={name}
+                    key={`${name}-${index}`}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.98 }}
                     className="cursor-pointer pointer-events-auto"
@@ -228,7 +251,7 @@ export const WorldMapSVG = ({ color = '#FF6B35', userProfile: propProfile = null
                       cy={py}
                       r={9}
                       fill="none"
-                      stroke={color}
+                      stroke={activeColor}
                       strokeWidth={1.5}
                       animate={{ scale: [1, 2.2, 1], opacity: [0.6, 0, 0.6] }}
                       transition={{ duration: 2.5, repeat: Infinity, delay: index * 0.4, ease: 'easeOut' }}
@@ -243,7 +266,7 @@ export const WorldMapSVG = ({ color = '#FF6B35', userProfile: propProfile = null
                       cx={px}
                       cy={py}
                       r={4.5}
-                      fill={color}
+                      fill={activeColor}
                       stroke="white"
                       strokeWidth={1.5}
                       initial={{ scale: 0, opacity: 0 }}
@@ -263,7 +286,7 @@ export const WorldMapSVG = ({ color = '#FF6B35', userProfile: propProfile = null
                           "border border-slate-200/80 rounded-full h-[18px] shadow-sm"
                         )}
                       >
-                        <span className="text-[8px] font-extrabold text-slate-800 font-jakarta">
+                        <span className="text-[8px] font-extrabold text-slate-800 font-jakarta truncate px-1">
                           {name.toUpperCase()}
                         </span>
                       </Motion.div>

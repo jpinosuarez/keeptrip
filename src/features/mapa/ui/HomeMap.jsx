@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import Map, { Source, Layer, Popup } from 'react-map-gl';
+import Map, { Source, Layer, Popup, Marker } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { COLORS } from '@shared/config';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
@@ -55,19 +55,30 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false, userProfile: propProf
   const birthIso3 = profile?.birthCountry ? getCountryISO3(profile.birthCountry) : null;
   const residenceIso3 = profile?.residenceCountry ? getCountryISO3(profile.residenceCountry) : null;
 
-  const initialCameraCoords = useMemo(() => {
-    if (profile?.baseCity?.coordinates) {
-      return profile.baseCity.coordinates;
+  // City pins for roots and base
+  const { unifiedCityPin, birthCityPin, baseCityPin } = useMemo(() => {
+    const bCity = profile?.birthCity;
+    const rCity = profile?.baseCity;
+    const bCoords = bCity?.coordinates;
+    const rCoords = rCity?.coordinates;
+
+    if (bCoords && rCoords) {
+      const distance = Math.hypot(bCoords[0] - rCoords[0], bCoords[1] - rCoords[1]);
+      const isSame = distance < 0.05 || (bCity.name && rCity.name && bCity.name.toLowerCase() === rCity.name.toLowerCase());
+      if (isSame) {
+        return {
+          unifiedCityPin: { name: rCity.name || bCity.name, coordinates: rCoords },
+          birthCityPin: null,
+          baseCityPin: null,
+        };
+      }
     }
-    if (profile?.residenceCountry) {
-      const c = getCountryCentroid(profile.residenceCountry);
-      if (c) return c;
-    }
-    if (profile?.birthCountry) {
-      const c = getCountryCentroid(profile.birthCountry);
-      if (c) return c;
-    }
-    return null;
+
+    return {
+      unifiedCityPin: null,
+      birthCityPin: bCoords ? { name: bCity.name, coordinates: bCoords } : null,
+      baseCityPin: rCoords ? { name: rCity.name, coordinates: rCoords } : null,
+    };
   }, [profile]);
 
   const {
@@ -204,19 +215,11 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false, userProfile: propProf
     setMapLanguage(map, i18n.language);
 
     try {
-      if (initialCameraCoords) {
-        map.flyTo({
-          center: initialCameraCoords,
-          zoom: isMobileRef.current ? 2.2 : 2.8,
-          duration: 1000,
-        });
-      } else {
-        fitWorld(map);
-      }
+      fitWorld(map);
     } catch (error) {
       console.error('fitBounds failed:', error);
     }
-  }, [fitWorld, i18n.language, initialCameraCoords]);
+  }, [fitWorld, i18n.language]);
 
   const handleMapResize = useCallback(e => {
     try {
@@ -326,6 +329,61 @@ const HomeMap = ({ paisesVisitados = [], isMobile = false, userProfile: propProf
               paint={{ 'line-color': '#cbd5e1', 'line-width': 0.5, 'line-opacity': 0.6 }}
             />
           </Source>
+          {/* Special City Pins */}
+          {unifiedCityPin && (
+            <Marker
+              longitude={unifiedCityPin.coordinates[0]}
+              latitude={unifiedCityPin.coordinates[1]}
+              anchor="center"
+            >
+              <div
+                className="relative group cursor-pointer flex items-center justify-center"
+                title={`🏡 Raíces y Base: ${unifiedCityPin.name}`}
+              >
+                <div className="w-4 h-4 rounded-full bg-[#45B0A8] border-2 border-white shadow-md ring-2 ring-[#2C3E50]" />
+                <div className="absolute bottom-full mb-1 hidden group-hover:flex items-center px-2 py-0.5 rounded bg-slate-900/90 text-white text-[10px] whitespace-nowrap pointer-events-none z-50">
+                  🏡 Raíces y Base: {unifiedCityPin.name}
+                </div>
+              </div>
+            </Marker>
+          )}
+
+          {!unifiedCityPin && birthCityPin && (
+            <Marker
+              longitude={birthCityPin.coordinates[0]}
+              latitude={birthCityPin.coordinates[1]}
+              anchor="center"
+            >
+              <div
+                className="relative group cursor-pointer flex items-center justify-center"
+                title={`🌱 Ciudad Natal: ${birthCityPin.name}`}
+              >
+                <div className="w-3.5 h-3.5 rounded-full bg-[#2C3E50] border-2 border-white shadow-md ring-1 ring-slate-400" />
+                <div className="absolute bottom-full mb-1 hidden group-hover:flex items-center px-2 py-0.5 rounded bg-slate-900/90 text-white text-[10px] whitespace-nowrap pointer-events-none z-50">
+                  🌱 Ciudad Natal: {birthCityPin.name}
+                </div>
+              </div>
+            </Marker>
+          )}
+
+          {!unifiedCityPin && baseCityPin && (
+            <Marker
+              longitude={baseCityPin.coordinates[0]}
+              latitude={baseCityPin.coordinates[1]}
+              anchor="center"
+            >
+              <div
+                className="relative group cursor-pointer flex items-center justify-center"
+                title={`🧭 Ciudad Base: ${baseCityPin.name}`}
+              >
+                <div className="w-3.5 h-3.5 rounded-full bg-[#45B0A8] border-2 border-white shadow-md ring-1 ring-slate-400" />
+                <div className="absolute bottom-full mb-1 hidden group-hover:flex items-center px-2 py-0.5 rounded bg-slate-900/90 text-white text-[10px] whitespace-nowrap pointer-events-none z-50">
+                  🧭 Ciudad Base: {baseCityPin.name}
+                </div>
+              </div>
+            </Marker>
+          )}
+
           {hoverInfo && (
             <Popup
               longitude={hoverInfo.longitude}

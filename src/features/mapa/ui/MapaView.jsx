@@ -1,12 +1,14 @@
 import React, { useRef, useState, useMemo, useCallback, useEffect, memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import Map, { Source, Layer, NavigationControl, FullscreenControl } from 'react-map-gl';
+import Map, { Source, Layer, NavigationControl, FullscreenControl, Marker } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { COLORS } from '@shared/config';
 import { isMapStyleLoaded, setMapLanguage } from '@shared/lib/geo';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
 import { OperationalMapFallback } from '@shared/ui/components';
+import { useAuth } from '@app/providers/AuthContext';
+import { getCountryISO3, getCountryCentroid } from '@shared/lib/utils/countryUtils';
 
 
 import TripRoster from './components/TripRoster';
@@ -36,7 +38,56 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
   const spinGlobeRef = useRef(null);
-  
+  const { userProfile } = useAuth() || {};
+
+  const birthIso3 = userProfile?.birthCountry ? getCountryISO3(userProfile.birthCountry) : null;
+  const residenceIso3 = userProfile?.residenceCountry ? getCountryISO3(userProfile.residenceCountry) : null;
+
+  // Initial camera focus on roots/base if no trip selected
+  const initialBaseCoords = useMemo(() => {
+    if (userProfile?.baseCity?.coordinates) {
+      return userProfile.baseCity.coordinates;
+    }
+    if (userProfile?.birthCity?.coordinates) {
+      return userProfile.birthCity.coordinates;
+    }
+    if (userProfile?.residenceCountry) {
+      const c = getCountryCentroid(userProfile.residenceCountry);
+      if (c) return c;
+    }
+    if (userProfile?.birthCountry) {
+      const c = getCountryCentroid(userProfile.birthCountry);
+      if (c) return c;
+    }
+    return null;
+  }, [userProfile]);
+
+  // Special City Pins for roots & base
+  const { unifiedCityPin, birthCityPin, baseCityPin } = useMemo(() => {
+    const bCity = userProfile?.birthCity;
+    const rCity = userProfile?.baseCity;
+    const bCoords = bCity?.coordinates;
+    const rCoords = rCity?.coordinates;
+
+    if (bCoords && rCoords) {
+      const distance = Math.hypot(bCoords[0] - rCoords[0], bCoords[1] - rCoords[1]);
+      const isSame = distance < 0.05 || (bCity.name && rCity.name && bCity.name.toLowerCase() === rCity.name.toLowerCase());
+      if (isSame) {
+        return {
+          unifiedCityPin: { name: rCity.name || bCity.name, coordinates: rCoords },
+          birthCityPin: null,
+          baseCityPin: null,
+        };
+      }
+    }
+
+    return {
+      unifiedCityPin: null,
+      birthCityPin: bCoords ? { name: bCity.name, coordinates: bCoords } : null,
+      baseCityPin: rCoords ? { name: rCity.name, coordinates: rCoords } : null,
+    };
+  }, [userProfile]);
+
   const {
     flags: { level: operationalLevel },
   } = useOperationalFlags();
@@ -149,8 +200,18 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   const onMapLoad = useCallback((e) => {
     const map = e.target;
     setMapLanguage(map, i18n.language);
-    initSpinGlobe(map);
-  }, [i18n.language, initSpinGlobe]);
+
+    if (initialBaseCoords && isEmptyMap) {
+      map.flyTo({
+        center: initialBaseCoords,
+        zoom: 3.2,
+        duration: 1800,
+        essential: true,
+      });
+    } else {
+      initSpinGlobe(map);
+    }
+  }, [i18n.language, initialBaseCoords, isEmptyMap, initSpinGlobe]);
 
   useEffect(() => {
     if (!mapRef.current || !isMapStyleLoaded(mapRef.current)) return;
@@ -284,8 +345,26 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
               type="fill"
               source-layer="country_boundaries"
               paint={{
-                'fill-color': COLORS.atomicTangerine,
-                'fill-opacity': ['match', ['get', 'iso_3166_1_alpha_3'], listaPaises, 0.6, 0],
+                'fill-color': [
+                  'case',
+                  ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', listaPaises]],
+                  COLORS.atomicTangerine,
+                  ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
+                  COLORS.mutedTeal,
+                  ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
+                  COLORS.charcoalBlue,
+                  COLORS.atomicTangerine,
+                ],
+                'fill-opacity': [
+                  'case',
+                  ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', listaPaises]],
+                  0.65,
+                  ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
+                  0.45,
+                  ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
+                  0.45,
+                  0,
+                ],
               }}
             />
           </Source>
@@ -333,6 +412,61 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
               }}
             />
           </Source>
+
+          {/* Special City Pins */}
+          {unifiedCityPin && (
+            <Marker
+              longitude={unifiedCityPin.coordinates[0]}
+              latitude={unifiedCityPin.coordinates[1]}
+              anchor="center"
+            >
+              <div
+                className="relative group cursor-pointer flex items-center justify-center pointer-events-auto"
+                title={`🏡 Raíces y Base: ${unifiedCityPin.name}`}
+              >
+                <div className="w-5 h-5 rounded-full bg-[#45B0A8] border-2 border-white shadow-lg ring-2 ring-[#2C3E50]" />
+                <div className="absolute bottom-full mb-1 hidden group-hover:flex items-center px-2 py-0.5 rounded bg-slate-900/90 text-white text-[10px] whitespace-nowrap pointer-events-none z-50 shadow-md">
+                  🏡 Raíces y Base: {unifiedCityPin.name}
+                </div>
+              </div>
+            </Marker>
+          )}
+
+          {!unifiedCityPin && birthCityPin && (
+            <Marker
+              longitude={birthCityPin.coordinates[0]}
+              latitude={birthCityPin.coordinates[1]}
+              anchor="center"
+            >
+              <div
+                className="relative group cursor-pointer flex items-center justify-center pointer-events-auto"
+                title={`🌱 Ciudad Natal: ${birthCityPin.name}`}
+              >
+                <div className="w-4 h-4 rounded-full bg-[#2C3E50] border-2 border-white shadow-md ring-1 ring-slate-400" />
+                <div className="absolute bottom-full mb-1 hidden group-hover:flex items-center px-2 py-0.5 rounded bg-slate-900/90 text-white text-[10px] whitespace-nowrap pointer-events-none z-50 shadow-md">
+                  🌱 Ciudad Natal: {birthCityPin.name}
+                </div>
+              </div>
+            </Marker>
+          )}
+
+          {!unifiedCityPin && baseCityPin && (
+            <Marker
+              longitude={baseCityPin.coordinates[0]}
+              latitude={baseCityPin.coordinates[1]}
+              anchor="center"
+            >
+              <div
+                className="relative group cursor-pointer flex items-center justify-center pointer-events-auto"
+                title={`🧭 Ciudad Base: ${baseCityPin.name}`}
+              >
+                <div className="w-4 h-4 rounded-full bg-[#45B0A8] border-2 border-white shadow-md ring-1 ring-slate-400" />
+                <div className="absolute bottom-full mb-1 hidden group-hover:flex items-center px-2 py-0.5 rounded bg-slate-900/90 text-white text-[10px] whitespace-nowrap pointer-events-none z-50 shadow-md">
+                  🧭 Ciudad Base: {baseCityPin.name}
+                </div>
+              </div>
+            </Marker>
+          )}
 
           <FullscreenControl position="top-right" />
           <NavigationControl position="top-right" />

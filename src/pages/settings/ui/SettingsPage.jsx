@@ -9,12 +9,13 @@
  *   - Live avatar preview (URL → instant preview, no save required to see)
  *   - Unified color system: atomicTangerine for saves, danger for destructive actions
  */
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import {
   User, Globe, LogOut, ChevronRight,
-  CheckCircle, Camera, Pencil, Trash2
+  CheckCircle, Camera, Pencil, Trash2,
+  Compass, Heart, Home, MapPin, Check, Save
 } from 'lucide-react';
 import { useAuth } from '@app/providers/AuthContext';
 import { useToast } from '@app/providers/ToastContext';
@@ -26,6 +27,9 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { deleteUser } from 'firebase/auth';
 import { compressImage } from '@shared/lib/utils/imageUtils';
 import { cn } from '@shared/lib/utils/cn';
+import { CountryFlag } from '@shared/ui/components/CountryFlag';
+import { COUNTRIES_DATA, getCountryCentroid } from '@shared/lib/utils/countryUtils';
+import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 
 const DEBOUNCE_MS = 800;
 const FOUNDER_UID_FALLBACK = 'FOUNDER_UID_HERE';
@@ -150,7 +154,8 @@ const LanguageToggle = ({ currentLang, onToggle }) => {
 const SettingsPage = () => {
   const {
     usuario: user,
-    actualizarPerfilUsuario: updateUserProfile,
+    userProfile,
+    updateUserProfile,
     logout,
     isAdmin,
   } = useAuth();
@@ -163,14 +168,97 @@ const SettingsPage = () => {
   const hasFounderUidAccess = Boolean(user?.uid && user.uid === founderUid);
   const canManageOperationalFlags = hasFounderUidAccess;
 
-  const [displayName, setDisplayName] = useState(user?.displayName || '');
-  const [photoUrl, setPhotoUrl] = useState(user?.photoURL || '');
+  const [displayName, setDisplayName] = useState(userProfile?.displayName || user?.displayName || '');
+  const [photoUrl, setPhotoUrl] = useState(userProfile?.photoURL || user?.photoURL || '');
   const [editingProfile, setEditingProfile] = useState(false);
   const [photoError, setPhotoError] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+  // Geographic Identity states
+  const [birthCountry, setBirthCountry] = useState(userProfile?.birthCountry || 'ES');
+  const [birthCityName, setBirthCityName] = useState(userProfile?.birthCity?.name || '');
+  const [residenceMode, setResidenceMode] = useState(() => {
+    if (userProfile?.residenceCountry && userProfile.birthCountry && userProfile.residenceCountry !== userProfile.birthCountry) {
+      return 'different_country';
+    }
+    if (userProfile?.baseCity && userProfile?.birthCity && userProfile.baseCity.name !== userProfile.birthCity.name) {
+      return 'same_country';
+    }
+    return 'same_city';
+  });
+  const [residenceCountry, setResidenceCountry] = useState(userProfile?.residenceCountry || userProfile?.birthCountry || 'ES');
+  const [baseCityName, setBaseCityName] = useState(userProfile?.baseCity?.name || '');
+  const [savingGeo, setSavingGeo] = useState(false);
+
+  const sortedCountries = useMemo(() => {
+    return [...COUNTRIES_DATA].map((c) => ({
+      ...c,
+      localizedName: getLocalizedCountryName(c.code, i18n.language) || c.name,
+    })).sort((a, b) => a.localizedName.localeCompare(b.localizedName));
+  }, [i18n.language]);
+
+  const handleSaveGeoIdentity = async () => {
+    setSavingGeo(true);
+    const fallbackBirthCoords = getCountryCentroid(birthCountry) || [0, 20];
+    const finalBirthCity = birthCityName.trim()
+      ? {
+          name: birthCityName.trim(),
+          coordinates:
+            birthCityName.trim() === userProfile?.birthCity?.name && userProfile?.birthCity?.coordinates
+              ? userProfile.birthCity.coordinates
+              : fallbackBirthCoords,
+          countryCode: birthCountry,
+        }
+      : null;
+
+    let finalResidenceCountry = birthCountry;
+    let finalBaseCity = null;
+
+    if (residenceMode === 'same_city') {
+      finalResidenceCountry = birthCountry;
+      finalBaseCity = finalBirthCity;
+    } else if (residenceMode === 'same_country') {
+      finalResidenceCountry = birthCountry;
+      const fallbackBaseCoords = getCountryCentroid(birthCountry) || [0, 20];
+      finalBaseCity = baseCityName.trim()
+        ? {
+            name: baseCityName.trim(),
+            coordinates:
+              baseCityName.trim() === userProfile?.baseCity?.name && userProfile?.baseCity?.coordinates
+                ? userProfile.baseCity.coordinates
+                : fallbackBaseCoords,
+            countryCode: birthCountry,
+          }
+        : null;
+    } else {
+      finalResidenceCountry = residenceCountry || birthCountry;
+      const fallbackBaseCoords = getCountryCentroid(finalResidenceCountry) || [0, 20];
+      finalBaseCity = baseCityName.trim()
+        ? {
+            name: baseCityName.trim(),
+            coordinates:
+              baseCityName.trim() === userProfile?.baseCity?.name && userProfile?.baseCity?.coordinates
+                ? userProfile.baseCity.coordinates
+                : fallbackBaseCoords,
+            countryCode: finalResidenceCountry,
+          }
+        : null;
+    }
+
+    if (updateUserProfile) {
+      await updateUserProfile({
+        birthCountry,
+        birthCity: finalBirthCity,
+        residenceCountry: finalResidenceCountry,
+        baseCity: finalBaseCity,
+      });
+      pushToast(t('settings:geoSavedSuccess', 'Identidad geográfica actualizada'), 'success');
+    }
+    setSavingGeo(false);
+  };
 
   const debounceRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -180,7 +268,7 @@ const SettingsPage = () => {
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       if (displayName === (user?.displayName || '') && photoUrl === (user?.photoURL || '')) return;
-      await updateUserProfile(displayName, photoUrl);
+      await updateUserProfile({ displayName, photoURL: photoUrl });
     }, DEBOUNCE_MS);
   }, [displayName, photoUrl, user, updateUserProfile]);
 
@@ -350,6 +438,131 @@ const SettingsPage = () => {
             </AnimatePresence>
           </GroupCard>
         </Motion.div>
+
+        {/* ── Geographic Identity Section ── */}
+        <SectionHeader>{t('settings:geoIdentityTitle', 'Identidad Geográfica: Tus Raíces y Tu Base')}</SectionHeader>
+        <GroupCard>
+          <div className="p-4 md:p-5 flex flex-col gap-4">
+            {/* Roots */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[0.78rem] font-bold text-slate-700 flex items-center gap-1.5">
+                <Heart size={14} className="text-atomicTangerine" />
+                <span>{t('settings:birthCountry', 'País Natal (Raíces)')}</span>
+              </label>
+              <div className="relative flex items-center">
+                <div className="absolute left-3 z-10 pointer-events-none">
+                  <CountryFlag code={birthCountry} size="sm" />
+                </div>
+                <select
+                  value={birthCountry}
+                  onChange={(e) => setBirthCountry(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-black/10 bg-slate-50 text-[0.88rem] font-medium outline-none text-charcoalBlue min-h-[44px]"
+                >
+                  {sortedCountries.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} — {c.localizedName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[0.78rem] font-bold text-slate-700 flex items-center gap-1.5">
+                <MapPin size={14} className="text-atomicTangerine" />
+                <span>{t('settings:birthCity', 'Ciudad Natal (opcional)')}</span>
+              </label>
+              <input
+                value={birthCityName}
+                onChange={(e) => setBirthCityName(e.target.value)}
+                placeholder={t('settings:birthCityPlaceholder', 'Ej: Buenos Aires, Rosario...')}
+                className="px-3.5 py-2.5 rounded-lg border border-black/10 text-[0.88rem] outline-none font-body text-charcoalBlue bg-slate-50 w-full min-h-[44px]"
+              />
+            </div>
+
+            {/* Residence Mode Selector */}
+            <div className="flex flex-col gap-1.5 pt-2 border-t border-black/5">
+              <label className="text-[0.78rem] font-bold text-slate-700 flex items-center gap-1.5">
+                <Home size={14} className="text-[#45B0A8]" />
+                <span>{t('settings:residenceMode', 'Lugar de Residencia')}</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                {[
+                  { id: 'same_city', label: t('onboarding.modeSameCity', 'Misma ciudad natal') },
+                  { id: 'same_country', label: t('onboarding.modeSameCountry', 'Otra ciudad del país') },
+                  { id: 'different_country', label: t('onboarding.modeDifferentCountry', 'En otro país') },
+                ].map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => setResidenceMode(option.id)}
+                    className={cn(
+                      "py-2 px-2 rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 transition-all min-h-[40px] text-center",
+                      residenceMode === option.id
+                        ? "bg-[#45B0A8] text-white shadow-xs"
+                        : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                    )}
+                  >
+                    {residenceMode === option.id && <Check size={12} className="shrink-0" />}
+                    <span>{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* If different country */}
+            {residenceMode === 'different_country' && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.78rem] font-bold text-slate-700">
+                  {t('settings:residenceCountry', 'País de Residencia (Base)')}
+                </label>
+                <div className="relative flex items-center">
+                  <div className="absolute left-3 z-10 pointer-events-none">
+                    <CountryFlag code={residenceCountry} size="sm" />
+                  </div>
+                  <select
+                    value={residenceCountry}
+                    onChange={(e) => setResidenceCountry(e.target.value)}
+                    className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-black/10 bg-slate-50 text-[0.88rem] font-medium outline-none text-charcoalBlue min-h-[44px]"
+                  >
+                    {sortedCountries.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.code} — {c.localizedName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* If not same_city */}
+            {residenceMode !== 'same_city' && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.78rem] font-bold text-slate-700 flex items-center gap-1.5">
+                  <MapPin size={14} className="text-[#45B0A8]" />
+                  <span>{t('settings:baseCity', 'Ciudad Base actual (opcional)')}</span>
+                </label>
+                <input
+                  value={baseCityName}
+                  onChange={(e) => setBaseCityName(e.target.value)}
+                  placeholder={t('settings:baseCityPlaceholder', 'Ej: Madrid, Barcelona...')}
+                  className="px-3.5 py-2.5 rounded-lg border border-black/10 text-[0.88rem] outline-none font-body text-charcoalBlue bg-slate-50 w-full min-h-[44px]"
+                />
+              </div>
+            )}
+
+            <Motion.button
+              type="button"
+              whileTap={{ scale: 0.98 }}
+              disabled={savingGeo}
+              onClick={handleSaveGeoIdentity}
+              className="mt-2 py-3 px-5 rounded-xl bg-[#45B0A8] text-white font-bold text-sm flex items-center justify-center gap-2 hover:opacity-95 transition-opacity disabled:opacity-50 min-h-[44px] cursor-pointer"
+            >
+              <Save size={16} />
+              <span>{savingGeo ? t('common:saving', 'Guardando...') : t('settings:saveGeo', 'Guardar Raíces y Base')}</span>
+            </Motion.button>
+          </div>
+        </GroupCard>
 
         {/* ── Language Section ── */}
         <SectionHeader>{t('settings:language.title', 'Idioma')}</SectionHeader>

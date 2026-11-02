@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback } from 'react';
+import React, { lazy, Suspense, useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate, useMatch, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
@@ -70,27 +70,72 @@ function AppModalsManager({
   const location = useLocation();
   const { user, userProfile, loadingProfile } = useAuth() || {};
 
+  const [isOnboardingDismissed, setIsOnboardingDismissed] = useState(
+    () => typeof window !== 'undefined' && sessionStorage.getItem('keeptrip_onboarding_skipped') === 'true'
+  );
+
   const isOnboardingManual = searchParams.get('onboarding') === 'true';
   const isEditingOrNew = searchParams.has('editing') || searchParams.has('new');
   const isDashboardOrTrips = location.pathname === '/dashboard' || location.pathname === '/trips';
-  const isSkippedInSession = typeof window !== 'undefined' && sessionStorage.getItem('keeptrip_onboarding_skipped') === 'true';
+  const isSkippedInStorage = typeof window !== 'undefined' && user?.uid && localStorage.getItem(`keeptrip_onboarded_${user.uid}`) === 'true';
   const isWebDriver = typeof navigator !== 'undefined' && Boolean(navigator.webdriver);
 
   const shouldShowOnboarding = Boolean(
     ENABLE_ONBOARDING &&
-    user &&
+    Boolean(user?.uid) &&
     !loadingProfile &&
+    userProfile !== null &&
     (
       isOnboardingManual ||
       (
         isDashboardOrTrips &&
-        !userProfile?.hasCompletedOnboarding &&
-        !isSkippedInSession &&
+        userProfile.hasCompletedOnboarding === false &&
+        !isSkippedInStorage &&
+        !isOnboardingDismissed &&
         !isEditingOrNew &&
         !isWebDriver
       )
     )
   );
+
+  const handleCloseOnboarding = useCallback(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('keeptrip_onboarding_skipped', 'true');
+      }
+    } catch {
+      // Ignore storage errors in restricted contexts
+    }
+    setIsOnboardingDismissed(true);
+    if (searchParams.has('onboarding')) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('onboarding');
+        return next;
+      }, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  const handleCompleteOnboarding = useCallback(({ navigateToNew }) => {
+    try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('keeptrip_onboarding_skipped', 'true');
+      }
+    } catch {
+      // Ignore storage errors in restricted contexts
+    }
+    setIsOnboardingDismissed(true);
+    if (searchParams.has('onboarding')) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('onboarding');
+        return next;
+      }, { replace: true });
+    }
+    if (navigateToNew) {
+      navigate('/dashboard?new=true');
+    }
+  }, [searchParams, setSearchParams, navigate]);
 
   if (import.meta.env.DEV) {
     console.debug('AppModalsManager params', { tripId, searchParams: Object.fromEntries(searchParams.entries()) });
@@ -295,31 +340,8 @@ function AppModalsManager({
           <Suspense fallback={null}>
             <OnboardingModal
               isOpen={shouldShowOnboarding}
-              onClose={() => {
-                if (isOnboardingManual) {
-                  setSearchParams((prev) => {
-                    const next = new URLSearchParams(prev);
-                    next.delete('onboarding');
-                    return next;
-                  }, { replace: true });
-                }
-              }}
-              onComplete={({ navigateToNew }) => {
-                if (isOnboardingManual) {
-                  setSearchParams((prev) => {
-                    const next = new URLSearchParams(prev);
-                    next.delete('onboarding');
-                    return next;
-                  }, { replace: true });
-                }
-                if (navigateToNew) {
-                  setSearchParams((prev) => {
-                    const next = new URLSearchParams(prev);
-                    next.set('new', 'true');
-                    return next;
-                  });
-                }
-              }}
+              onClose={handleCloseOnboarding}
+              onComplete={handleCompleteOnboarding}
             />
           </Suspense>
         </ErrorBoundary>
