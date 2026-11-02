@@ -1,14 +1,21 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useAuth, useUpload, useToast } from '@app/providers';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
-import EdicionModal from '@features/viajes/editor/ui/EdicionModal';
+import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
+import {
+  ordenarParadasCronologicamente,
+  computeRouteTelemetry,
+} from '@shared/lib/utils/viajeUtils';
+import { normalizeCountryCode } from '@shared/lib/utils/countryUtils';
+import { calculateTripXP } from '@features/gamification/model/travelerLevel';
 
 import { useVisorViajeData } from './hooks/useVisorViajeData';
 import { useVisorViajeUI } from './hooks/useVisorViajeUI';
 import { useVisorViajeGallery } from './hooks/useVisorViajeGallery';
 import { useVisorViajeStory } from './hooks/useVisorViajeStory';
 import { useDocumentaryState } from './hooks/useDocumentaryState';
+import { buildTripStoryDeck, getHomeConnectionStatus } from './lib/buildTripStoryDeck';
 
 import DocumentaryHero from './components/DocumentaryHero';
 import VisorRouteLayout from './components/VisorRouteLayout';
@@ -17,42 +24,45 @@ import VisorContextSection from './components/VisorContextSection';
 import VisorStorySection from './components/VisorStorySection';
 import VisorGallerySection from './components/VisorGallerySection';
 import VisorTimelineSection from './components/VisorTimelineSection';
+import VisorFooterSection from './components/VisorFooterSection';
+import TripStoriesPlayerModal from './components/TripStoriesPlayerModal';
 
 const VisorViaje = ({
   viajeId,
   tripData,
   tripList,
   onClose,
-  onSave,
   onDelete,
+  openEditor,
+  onNavigateTrip,
+  isDeleting = false,
+  MapRoutePreview,
 }) => {
-  const { usuario } = useAuth();
+  const { usuario, userProfile } = useAuth();
   const { pushToast } = useToast();
   const { getEstadoViaje, reintentarFoto } = useUpload();
-  
-  const { 
-    viajeBase, 
-    hasViajeData, 
-    data, 
-    ownerUid, 
-    paradas, 
+  const { isMobile } = useWindowSize();
+
+  const {
+    viajeBase,
+    hasViajeData,
+    data,
+    ownerUid,
+    paradas,
     isSharedTrip,
     ownerDisplayName,
-    reloadParadas 
   } = useVisorViajeData({ viajeId, bitacoraData: tripData, bitacoraLista: tripList, usuario });
 
   const {
-    showEditModal,
-    setShowEditModal,
     hoveredIndex,
     activeParadaIndex,
     setParadaRef,
-    showMapModal,
-    setShowMapModal,
+    showStories,
+    setShowStories,
     handleMarkerHover,
     handleMarkerHoverEnd,
     handleMarkerClick,
-  } = useVisorViajeUI({ isRouteMode: paradas.length > 1, isMobile: false });
+  } = useVisorViajeUI({ isRouteMode: paradas.length > 1, isMobile });
 
   const {
     galeria,
@@ -65,41 +75,91 @@ const VisorViaje = ({
     handleCaptionSave,
     handleSetPortadaExistente,
     handleEliminarFoto,
-  } = useVisorViajeGallery({ 
-    viajeId, 
-    ownerUid, 
-    pushToast, 
-    getEstadoViaje, 
-    reintentarFoto 
+  } = useVisorViajeGallery({
+    viajeId,
+    ownerUid,
+    pushToast,
+    getEstadoViaje,
+    reintentarFoto,
   });
 
-  const {
-    fotoMostrada,
-    storyData,
-  } = useVisorViajeStory({ data, viajeBase, paradas });
-
-  const {
-    mapSyncIndex
-  } = useDocumentaryState({ isMobile: false, enabled: true });
+  const { fotoMostrada, storyData } = useVisorViajeStory({ data, viajeBase, paradas });
+  const { mapSyncIndex } = useDocumentaryState({ enabled: true });
 
   useDocumentTitle(storyData?.titulo || 'Keeptrip');
+
+  const paradasOrdenadas = useMemo(
+    () => ordenarParadasCronologicamente(paradas),
+    [paradas]
+  );
+
+  const countryCodes = useMemo(() => {
+    const codes = new Set();
+    const push = (value) => {
+      const iso2 = normalizeCountryCode(value);
+      if (iso2) codes.add(iso2);
+    };
+    push(data?.paisCodigo);
+    push(data?.code);
+    paradasOrdenadas.forEach((parada) => push(parada?.paisCodigo));
+    return [...codes];
+  }, [data?.paisCodigo, data?.code, paradasOrdenadas]);
+
+  const telemetry = useMemo(
+    () =>
+      computeRouteTelemetry(paradasOrdenadas, {
+        fechaInicio: data?.fechaInicio,
+        fechaFin: data?.fechaFin,
+      }),
+    [paradasOrdenadas, data?.fechaInicio, data?.fechaFin]
+  );
+
+  const homeStatus = useMemo(
+    () => getHomeConnectionStatus({ viaje: data, paradasOrdenadas, userProfile }),
+    [data, paradasOrdenadas, userProfile]
+  );
+
+  const xpEarned = useMemo(
+    () => calculateTripXP(data, paradasOrdenadas, galeria?.fotos || []),
+    [data, paradasOrdenadas, galeria?.fotos]
+  );
+
+  const storyDeck = useMemo(
+    () =>
+      showStories
+        ? buildTripStoryDeck({
+            viaje: data,
+            paradasOrdenadas,
+            photos: galeria?.fotos || [],
+            telemetry,
+            userProfile,
+          })
+        : [],
+    [showStories, data, paradasOrdenadas, galeria?.fotos, telemetry, userProfile]
+  );
+
+  const handleOpenEditor = () => {
+    if (typeof openEditor === 'function') openEditor(viajeId);
+  };
 
   if (!hasViajeData) return null;
 
   const isOwner = !isSharedTrip;
-  const isRouteMode = paradas.length > 1;
+  const isRouteMode = paradasOrdenadas.length > 1;
   const Layout = isRouteMode ? VisorRouteLayout : VisorDestinoLayout;
+  const tripStoryText = data?.texto || data?.relato || '';
 
   const sections = {
     context: (
       <VisorContextSection
         data={data}
-        isMobile={false}
+        isMobile={isMobile}
       />
     ),
     timeline: (
       <VisorTimelineSection
-        paradas={paradas}
+        paradas={paradasOrdenadas}
+        isMobile={isMobile}
         activeParadaIndex={activeParadaIndex}
         setParadaRef={setParadaRef}
         hoveredIndex={hoveredIndex}
@@ -109,9 +169,9 @@ const VisorViaje = ({
       />
     ),
     bitacora: (
-      <VisorStorySection 
-        storyData={storyData} 
-        fotoMostrada={fotoMostrada}
+      <VisorStorySection
+        stops={paradasOrdenadas}
+        text={tripStoryText}
       />
     ),
     gallery: (
@@ -127,6 +187,8 @@ const VisorViaje = ({
         onSetPortadaExistente={handleSetPortadaExistente}
         onEliminarFoto={handleEliminarFoto}
         isOwner={isOwner}
+        isMobile={isMobile}
+        onAddPhotos={handleOpenEditor}
       />
     ),
   };
@@ -137,26 +199,33 @@ const VisorViaje = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-modal bg-background flex flex-col overflow-hidden"
+        className="fixed inset-y-0 right-0 left-0 md:left-64 z-30 bg-background flex flex-col overflow-hidden"
       >
         <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth">
-          <DocumentaryHero 
+          <DocumentaryHero
             data={data}
             viajeBase={viajeBase}
             storyData={storyData}
             fotoMostrada={fotoMostrada}
             onClose={onClose}
             onDelete={() => onDelete(viajeId)}
-            onOpenEdit={() => setShowEditModal(true)}
+            onOpenEdit={handleOpenEditor}
             isSharedTrip={isSharedTrip}
             ownerDisplayName={ownerDisplayName}
             isRouteMode={isRouteMode}
-            isMobile={false}
+            isMobile={isMobile}
+            isDeleting={isDeleting}
+            countryCodes={countryCodes}
+            telemetry={telemetry}
+            homeStatus={homeStatus}
+            onOpenStories={() => setShowStories(true)}
           />
 
-          <Layout 
-            isMobile={false}
-            paradas={paradas}
+          <Layout
+            isMobile={isMobile}
+            paradas={paradasOrdenadas}
+            countryCodes={countryCodes}
+            paisCodigo={data?.paisCodigo || data?.code || null}
             sections={sections}
             activeParadaIndex={activeParadaIndex}
             mapSyncIndex={mapSyncIndex}
@@ -164,26 +233,26 @@ const VisorViaje = ({
             onMarkerHover={handleMarkerHover}
             onMarkerHoverEnd={handleMarkerHoverEnd}
             onMarkerClick={handleMarkerClick}
-            showMapModal={showMapModal}
-            onOpenMap={() => setShowMapModal(true)}
-            onCloseMap={() => setShowMapModal(false)}
+            MapRoutePreview={MapRoutePreview}
           />
+
+          <div className="max-w-[960px] mx-auto w-full px-4 md:px-6 pb-10">
+            <VisorFooterSection
+              tripList={tripList}
+              viajeId={viajeId}
+              xp={xpEarned}
+              shareData={storyData}
+              onNavigateTrip={onNavigateTrip}
+            />
+          </div>
         </div>
 
-        {showEditModal && (
-          <EdicionModal
-            viaje={data}
-            onClose={() => setShowEditModal(false)}
-            onSave={async (id, newData) => {
-              const success = await onSave(id, newData);
-              if (success) {
-                reloadParadas();
-                if (galeria.recargar) galeria.recargar();
-                setShowEditModal(false);
-              }
-            }}
-          />
-        )}
+        <TripStoriesPlayerModal
+          isOpen={showStories}
+          slides={storyDeck}
+          onClose={() => setShowStories(false)}
+          shareData={storyData}
+        />
       </Motion.div>
     </AnimatePresence>
   );

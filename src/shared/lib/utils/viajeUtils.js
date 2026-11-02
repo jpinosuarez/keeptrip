@@ -651,3 +651,73 @@ export const calcularRangoFechasParadas = (paradas = []) => {
     fechaFin: fin >= inicio ? fin : inicio,
   };
 };
+
+/**
+ * Great-circle distance between two [lng, lat] coordinates in kilometres.
+ * Pure helper (no external deps) used by the viewer's route telemetry.
+ *
+ * @param {[number, number]|null} from
+ * @param {[number, number]|null} to
+ * @returns {number} distance in km (0 for invalid input)
+ */
+export const haversineKm = (from, to) => {
+  if (!Array.isArray(from) || !Array.isArray(to)) return 0;
+  const [lng1, lat1] = from;
+  const [lng2, lat2] = to;
+  if (![lng1, lat1, lng2, lat2].every((v) => Number.isFinite(v))) return 0;
+
+  const EARTH_RADIUS_KM = 6371;
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+
+  return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(a)));
+};
+
+/**
+ * Computes route telemetry for the Documentary Viewer hero/story deck.
+ *
+ * @param {Array<Object>} paradasOrdenadas - Stops in chronological user order
+ * @param {{ fechaInicio?: string|null, fechaFin?: string|null }} [viaje] - Trip dates (preferred for totalDays)
+ * @returns {{ totalKm: number, totalDays: number, totalStops: number }}
+ */
+export const computeRouteTelemetry = (paradasOrdenadas = [], viaje = {}) => {
+  const stops = Array.isArray(paradasOrdenadas) ? paradasOrdenadas.filter(Boolean) : [];
+
+  const withCoords = stops.filter(
+    (p) => Array.isArray(p?.coordenadas) && p.coordenadas.length >= 2
+  );
+
+  let totalKm = 0;
+  for (let i = 1; i < withCoords.length; i += 1) {
+    totalKm += haversineKm(withCoords[i - 1].coordenadas, withCoords[i].coordenadas);
+  }
+
+  let totalDays = calculateTripDays(viaje?.fechaInicio, viaje?.fechaFin) || 0;
+
+  if (!totalDays) {
+    const dates = [];
+    for (const p of stops) {
+      const llegada = normalizeToIsoDate(p?.fechaLlegada || p?.fecha);
+      const salida = normalizeToIsoDate(p?.fechaSalida);
+      if (llegada) dates.push(llegada);
+      if (salida) dates.push(salida);
+    }
+    if (dates.length > 0) {
+      dates.sort();
+      const first = new Date(`${dates[0]}T00:00:00`);
+      const last = new Date(`${dates[dates.length - 1]}T00:00:00`);
+      totalDays = Math.max(1, Math.round((last - first) / 86400000) + 1);
+    }
+  }
+
+  return {
+    totalKm: Math.round(totalKm),
+    totalDays: totalDays || 0,
+    totalStops: stops.length,
+  };
+};

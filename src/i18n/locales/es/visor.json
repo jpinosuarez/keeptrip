@@ -24,5 +24,57 @@
   },
   "error": {
     "captionSaveFailed": "No se pudo guardar el caption."
+  },
+  "hero": {
+    "edit": "Editar",
+    "storiesCta": "Revivir en Stories",
+    "sharedBy": "Compartido por {{name}}",
+    "localBadge": "Aventura Local",
+    "distanceBadge": "A {{distance}} km de {{city}}",
+    "days_one": "{{count}} día",
+    "days_other": "{{count}} días",
+    "stops_one": "{{count}} parada",
+    "stops_other": "{{count}} paradas"
+  },
+  "timeline": {
+    "title": "La Crónica del Viaje",
+    "climate": "Clima",
+    "transport": "Transporte",
+    "highlight": "Destacado",
+    "dayTripFrom": "Escapada de día desde {{city}}"
+  },
+  "context": {
+    "highlights": "Highlights",
+    "budget": "Presupuesto",
+    "vibe": "Vibe",
+    "companions": "Compañeros",
+    "weather": "Clima histórico"
+  },
+  "gallery": {
+    "title": "Recuerdos Consolidados",
+    "addPhotos": "Añadir fotos a este viaje"
+  },
+  "footer": {
+    "xpEarned": "+{{xp}} XP",
+    "previousTrip": "Viaje anterior",
+    "nextTrip": "Siguiente viaje"
+  },
+  "map": {
+    "interact": "Interactuar con el mapa"
+  },
+  "stories": {
+    "aria": "Historias del viaje",
+    "untitled": "Mi viaje",
+    "daysCount": "{{count}} días",
+    "routeTitle": "La ruta",
+    "metricDays": "días",
+    "metricStops": "paradas",
+    "metricKm": "recorridos",
+    "contextTitle": "Lo que recordarás",
+    "finaleTitle": "Fin del viaje",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "pause": "Pausar",
+    "close": "Cerrar"
   }
 }

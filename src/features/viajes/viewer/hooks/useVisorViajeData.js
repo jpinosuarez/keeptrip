@@ -26,6 +26,19 @@ export function useVisorViajeData({ viajeId, bitacoraData, bitacoraLista, usuari
   const [ownerDisplayName, setOwnerDisplayName] = useState(null);
   const isSharedTrip = Boolean(data.ownerId && usuario && data.ownerId !== usuario.uid);
 
+  // Dirty-check stamp: when the EditorFocusPanel saves (via ?editing=TRIP_ID)
+  // the trip document updates, which must refetch the stops afterwards.
+  const tripUpdatedStamp = useMemo(() => {
+    const raw = data?.updatedAt || data?.fechaActualizacion || data?.timestamp || null;
+    if (!raw) return null;
+    if (typeof raw?.toMillis === 'function') return raw.toMillis();
+    if (raw instanceof Date) return raw.getTime();
+    if (typeof raw === 'object' && typeof raw.seconds === 'number') {
+      return raw.seconds * 1000 + Math.floor((raw.nanoseconds || 0) / 1e6);
+    }
+    return raw;
+  }, [data?.updatedAt, data?.fechaActualizacion, data?.timestamp]);
+
   // If the trip isn't part of the user's local bitacora yet, try to resolve it using
   // the accepted invitation record (this allows direct deep links to shared trips).
   useEffect(() => {
@@ -198,7 +211,7 @@ export function useVisorViajeData({ viajeId, bitacoraData, bitacoraLista, usuari
   }, [viajeId, ownerUid]);
 
   useEffect(() => {
-    if (!viajeId || !ownerUid) return;
+    if (!viajeId || !ownerUid) return undefined;
 
     let mounted = true;
 
@@ -220,7 +233,7 @@ export function useVisorViajeData({ viajeId, bitacoraData, bitacoraLista, usuari
     return () => {
       mounted = false;
     };
-  }, [viajeId, ownerUid]);
+  }, [viajeId, ownerUid, tripUpdatedStamp]);
 
   return {
     viajeBase: tripBase,

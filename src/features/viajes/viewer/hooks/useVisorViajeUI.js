@@ -2,8 +2,8 @@ import { useCallback, useRef, useState } from 'react';
 import { useActiveParada } from '@shared/lib/hooks/useActiveParada';
 
 export function useVisorViajeUI({ isRouteMode, isMobile }) {
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
+  const [showStories, setShowStories] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
   const { activeIndex: activeParadaIndex, setParadaRef, getParadaNode } = useActiveParada(
@@ -36,10 +36,10 @@ export function useVisorViajeUI({ isRouteMode, isMobile }) {
   );
 
   return {
-    showEditModal,
-    setShowEditModal,
     showMapModal,
     setShowMapModal,
+    showStories,
+    setShowStories,
     hoveredIndex,
     setHoveredIndex,
     activeParadaIndex,

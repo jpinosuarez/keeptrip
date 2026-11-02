@@ -2,11 +2,13 @@ import { cn } from '@shared/lib/utils/cn';
 import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Map, { Source, Layer, NavigationControl, Marker } from 'react-map-gl';
-import mapboxgl from 'mapbox-gl';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { setMapLanguage, generateCurvedRoute } from '@shared/lib/geo';
+import { getTripMapBounds, collectCountryCodes } from '@shared/lib/geo/mapBounds';
+import { getCountryISO3, normalizeCountryCode } from '@shared/lib/utils/countryUtils';
+import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { OperationalMapFallback } from '@shared/ui/components';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -16,8 +18,9 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
  * Se centra con fitBounds al cargar; el feedback de parada activa
  * se da únicamente con el highlight del Marker (sin flyTo).
  */
-const RouteMap = ({ paradas, activeIndex = 0, hoveredIndex = null, onMarkerHover, onMarkerHoverEnd, onMarkerClick, isModal = false }) => {
-  const { i18n, t } = useTranslation('dashboard');
+const RouteMap = ({ paradas = [], countryCodes = [], paisCodigo = null, activeIndex = 0, hoveredIndex = null, onMarkerHover, onMarkerHoverEnd, onMarkerClick, isModal = false }) => {
+  const { i18n, t } = useTranslation(['dashboard', 'visor']);
+  const { isMobile } = useWindowSize();
   const {
     flags: { level: operationalLevel },
   } = useOperationalFlags();
@@ -28,58 +31,60 @@ const RouteMap = ({ paradas, activeIndex = 0, hoveredIndex = null, onMarkerHover
   );
   const mapRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [gesturesEnabled, setGesturesEnabled] = useState(false);
+  const effectiveInteractive = !isMobile || gesturesEnabled;
+
+  const resolvedCountryCodes = useMemo(() => {
+    const provided = (Array.isArray(countryCodes) ? countryCodes : [])
+      .map((code) => normalizeCountryCode(code))
+      .filter(Boolean);
+    if (provided.length > 0) return provided;
+    return collectCountryCodes(paradas, paisCodigo);
+  }, [countryCodes, paradas, paisCodigo]);
+
+  const countryIso3List = useMemo(
+    () => resolvedCountryCodes.map((code) => getCountryISO3(code)).filter(Boolean),
+    [resolvedCountryCodes]
+  );
+
+  const tripBounds = useMemo(
+    () => getTripMapBounds({ paradas, countryCodes: resolvedCountryCodes }),
+    [paradas, resolvedCountryCodes]
+  );
 
   const handleMapLoad = useCallback(() => {
     setMapLoaded(true);
     if (mapRef.current) setMapLanguage(mapRef.current, i18n.language);
   }, [i18n.language]);
 
-  // ─── fitBounds helper — reutilizado en load y en modal resize ───
+  // ─── fitBounds helper — country-framed, runs ONCE on load (no flyTo) ───
   const fitMapToBounds = useCallback(() => {
-    if (paradas.length === 0 || !mapRef.current) return;
+    if (!mapRef.current || !tripBounds) return;
     const map = mapRef.current;
-    const bounds = new mapboxgl.LngLatBounds();
-    paradas.forEach((p) => {
-      if (p.coordenadas) bounds.extend(p.coordenadas);
+    map.resize(); // fuerza recalcular dimensiones del contenedor
+    map.fitBounds(tripBounds, {
+      padding: 48,
+      maxZoom: 6,
+      duration: 0,
     });
-    if (!bounds.isEmpty()) {
-      map.resize(); // fuerza recalcular dimensiones del contenedor
-      map.fitBounds(bounds, {
-        padding: { top: 100, bottom: 100, left: 80, right: 80 },
-        duration: 1000,
-        maxZoom: 6,
-      });
-    }
-  }, [paradas]);
+  }, [tripBounds]);
 
   // ─── fitBounds inicial (espera a que el mapa cargue) ───
   useEffect(() => {
-    if (!mapLoaded) return;
+    if (!mapLoaded) return undefined;
     if (isModal) {
-      const timer = setTimeout(fitMapToBounds, 350);
+      const timer = setTimeout(fitMapToBounds, 200);
       return () => clearTimeout(timer);
     }
     fitMapToBounds();
+    return undefined;
   }, [mapLoaded, fitMapToBounds, isModal]);
-
-  // ─── Cinematic Fly-To on Active Index change ───
-  useEffect(() => {
-    if (!mapLoaded || !mapRef.current || isModal) return;
-    const parada = paradas[activeIndex];
-    if (parada && parada.coordenadas) {
-      mapRef.current.flyTo({
-        center: parada.coordenadas,
-        zoom: 5.5,
-        speed: 0.8,
-        curve: 1,
-        essential: true,
-      });
-    }
-  }, [activeIndex, mapLoaded, paradas, isModal]);
 
   // ─── GeoJSON: ruta curvada ───
   const rutaGeoJSON = useMemo(() => {
-    const coords = paradas.filter((p) => p.coordenadas).map((p) => p.coordenadas);
+    const coords = paradas
+      .filter((p) => Array.isArray(p?.coordenadas) && p.coordenadas.length >= 2)
+      .map((p) => p.coordenadas);
     if (coords.length < 2) return null;
     return {
       type: 'Feature',
@@ -111,11 +116,35 @@ const RouteMap = ({ paradas, activeIndex = 0, hoveredIndex = null, onMarkerHover
           mapboxAccessToken={MAPBOX_TOKEN}
           projection="mercator"
           onLoad={handleMapLoad}
-          scrollZoom={false}
+          scrollZoom={effectiveInteractive}
+          dragPan={effectiveInteractive}
+          touchZoomRotate={effectiveInteractive}
+          doubleClickZoom={effectiveInteractive}
           dragRotate={false}
+          touchPitch={false}
+          pitchWithRotate={false}
+          renderWorldCopies={false}
           reuseMaps
         >
-          {/* Línea de ruta curvada */}
+          {/* País(es) del viaje resaltados (Atomic Tangerine) sobre country-boundaries */}
+          <Source id="trip-countries" type="vector" url="mapbox://mapbox.country-boundaries-v1">
+            <Layer
+              id="trip-countries-fill"
+              type="fill"
+              source-layer="country_boundaries"
+              filter={['in', ['get', 'iso_3166_1_alpha_3'], ['literal', countryIso3List]]}
+              paint={{ 'fill-color': '#FF6B35', 'fill-opacity': 0.18 }}
+            />
+            <Layer
+              id="trip-countries-border"
+              type="line"
+              source-layer="country_boundaries"
+              filter={['in', ['get', 'iso_3166_1_alpha_3'], ['literal', countryIso3List]]}
+              paint={{ 'line-color': '#FF6B35', 'line-width': 1.5, 'line-opacity': 0.9 }}
+            />
+          </Source>
+
+          {/* Línea de ruta curvada (dashed) */}
           {rutaGeoJSON && (
             <Source id="ruta-route" type="geojson" data={rutaGeoJSON}>
               <Layer
@@ -123,9 +152,9 @@ const RouteMap = ({ paradas, activeIndex = 0, hoveredIndex = null, onMarkerHover
                 type="line"
                 paint={{
                   'line-color': '#FF6B35', // atomicTangerine
-                  'line-width': 2.5,
-                  'line-dasharray': [4, 3],
-                  'line-opacity': 0.75,
+                  'line-width': 3,
+                  'line-dasharray': [2, 2],
+                  'line-opacity': 0.95,
                 }}
                 layout={{
                   'line-cap': 'round',
@@ -137,7 +166,7 @@ const RouteMap = ({ paradas, activeIndex = 0, hoveredIndex = null, onMarkerHover
 
           {/* Pin Markers con número de orden */}
           {paradas.map((p, i) => {
-            if (!p.coordenadas) return null;
+            if (!Array.isArray(p?.coordenadas) || p.coordenadas.length < 2) return null;
             const isActive = i === activeIndex;
             const isHovered = i === hoveredIndex;
             const highlighted = isActive || isHovered;
@@ -179,6 +208,17 @@ const RouteMap = ({ paradas, activeIndex = 0, hoveredIndex = null, onMarkerHover
 
           <NavigationControl position="top-right" />
         </Map>
+      )}
+
+      {/* Mobile scroll-trap guard: gestures only after explicit opt-in */}
+      {!isWebGLDisabled && isMobile && !gesturesEnabled && (
+        <button
+          type="button"
+          onClick={() => setGesturesEnabled(true)}
+          className="absolute top-3 left-3 z-[5] inline-flex items-center gap-1.5 min-h-[44px] rounded-full bg-white/95 text-charcoalBlue text-[0.78rem] font-bold px-4 shadow-md border border-slate-200"
+        >
+          {t('visor:map.interact', { defaultValue: 'Interactuar con el mapa' })}
+        </button>
       )}
 
       {/* Label de parada activa */}

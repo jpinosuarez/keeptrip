@@ -36,21 +36,10 @@ const OnboardingModal = lazy(() => import('@features/onboarding/ui/OnboardingMod
 function VisorViajeFallback() {
   return createPortal(
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(15, 23, 42, 0.85)',
-        zIndex: 9999,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
+      data-testid="visor-fallback"
+      className="fixed inset-y-0 right-0 left-0 md:left-64 z-[9999] flex items-center justify-center bg-slate-900/85"
     >
-      <LoaderCircle 
-        className="animate-spin" 
-        size={32} 
-        color={COLORS.atomicTangerine} 
-      />
+      <LoaderCircle className="animate-spin" size={32} color={COLORS.atomicTangerine} />
     </div>,
     document.body
   );
@@ -363,6 +352,8 @@ function AppModalsManager({
                 tripData={bitacoraData}
                 MapRoutePreview={MiniMapaRuta}
                 onClose={() => navigate('/trips')}
+                openEditor={(id) => setSearchParams({ editing: id }, { replace: true })}
+                onNavigateTrip={(id) => navigate(`/trips/${id}`)}
                 onSave={handleSaveFromViewer}
                 onDelete={requestTripDelete}
                 isSaving={isSavingViewer}

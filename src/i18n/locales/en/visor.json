@@ -24,5 +24,57 @@
   },
   "error": {
     "captionSaveFailed": "Could not save the caption."
+  },
+  "hero": {
+    "edit": "Edit",
+    "storiesCta": "Relive in Stories",
+    "sharedBy": "Shared by {{name}}",
+    "localBadge": "Local Adventure",
+    "distanceBadge": "{{distance}} km from {{city}}",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "stops_one": "{{count}} stop",
+    "stops_other": "{{count}} stops"
+  },
+  "timeline": {
+    "title": "The Trip Chronicle",
+    "climate": "Weather",
+    "transport": "Transport",
+    "highlight": "Highlight",
+    "dayTripFrom": "Day trip from {{city}}"
+  },
+  "context": {
+    "highlights": "Highlights",
+    "budget": "Budget",
+    "vibe": "Vibe",
+    "companions": "Companions",
+    "weather": "Historic weather"
+  },
+  "gallery": {
+    "title": "Consolidated Memories",
+    "addPhotos": "Add photos to this trip"
+  },
+  "footer": {
+    "xpEarned": "+{{xp}} XP",
+    "previousTrip": "Previous trip",
+    "nextTrip": "Next trip"
+  },
+  "map": {
+    "interact": "Interact with the map"
+  },
+  "stories": {
+    "aria": "Trip stories",
+    "untitled": "My trip",
+    "daysCount": "{{count}} days",
+    "routeTitle": "The route",
+    "metricDays": "days",
+    "metricStops": "stops",
+    "metricKm": "traveled",
+    "contextTitle": "What you'll remember",
+    "finaleTitle": "End of the trip",
+    "previous": "Previous",
+    "next": "Next",
+    "pause": "Pause",
+    "close": "Close"
   }
 }

@@ -1,13 +1,14 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
-import { Calendar, ArrowLeft, Trash2, LoaderCircle, Edit3 } from 'lucide-react';
+import { Calendar, ArrowLeft, Trash2, LoaderCircle, Edit3, Play } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { formatDateRange, getInitials, FOTO_DEFAULT_URL } from '@shared/lib/utils/viajeUtils';    
-import { getFlagUrl } from '@shared/lib/utils/countryUtils';
+import { formatDateRange, getInitials, FOTO_DEFAULT_URL } from '@shared/lib/utils/viajeUtils';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { cn } from '@shared/lib/utils/cn';
 import ShareStoryButton from '@shared/ui/components/ShareStoryButton';
+import CountryFlag from '@shared/ui/components/CountryFlag';
 import DocumentaryFlagHero from '@shared/ui/components/DocumentaryFlagHero';
+import { formatKmLabel } from '../lib/buildTripStoryDeck';
 
 /**
  * Premium editorial cover with dynamic flag shards and spatial typography.
@@ -26,6 +27,10 @@ const DocumentaryHero = ({
   viajeBase,
   ownerDisplayName,
   isRouteMode,
+  countryCodes = [],
+  telemetry = null,
+  homeStatus = null,
+  onOpenStories,
 }) => {
   const { t, i18n } = useTranslation(['countries', 'visor']);
 
@@ -104,7 +109,7 @@ const DocumentaryHero = ({
               )}
               disabled={isBusy}
             >
-              <Edit3 size={15} /> Editar
+              <Edit3 size={15} /> {t('hero.edit', { ns: 'visor', defaultValue: 'Editar' })}
             </button>
           )}
         </div>
@@ -120,21 +125,13 @@ const DocumentaryHero = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <div className="flex gap-2 items-center">
-            {data.banderas && data.banderas.length > 0 ? (
-              data.banderas.slice(0, 5).map((b, i) => (
-                <img 
-                  key={i} 
-                  src={b.startsWith('http') ? b : getFlagUrl(b)} 
-                  alt="flag" 
-                  loading="lazy" 
-                  className="w-9 h-auto rounded shadow-sm border border-white/20"
-                />
-              ))
-            ) : (
-              <span className="text-[2.4rem] [text-shadow:0_4px_10px_rgba(0,0,0,0.3)]">✈️</span>
-            )}
-          </div>
+          {countryCodes.length > 0 && (
+            <div className="flex gap-2 items-center">
+              {countryCodes.slice(0, 5).map((code) => (
+                <CountryFlag key={code} code={code} size="xl" className="shadow-sm border border-white/20" />
+              ))}
+            </div>
+          )}
 
           <h1 
             data-testid="visor-title" 
@@ -153,10 +150,51 @@ const DocumentaryHero = ({
 
             {isSharedTrip && (
               <span data-testid="visor-shared-badge" className="inline-flex items-center gap-1.5 backdrop-blur-md bg-black/40 px-3.5 py-[7px] rounded-full text-[#e0e7ff] text-[0.82rem] font-semibold border border-white/10">
-                🤝 Compartido por {ownerDisplayName || '...'}
+                🤝 {t('hero.sharedBy', { ns: 'visor', name: ownerDisplayName || '...', defaultValue: 'Compartido por {{name}}' })}
               </span>
             )}
           </div>
+
+          {(telemetry || homeStatus) && (
+            <div className="flex items-center gap-2 flex-wrap mt-1">
+              {telemetry && telemetry.totalDays > 0 && (
+                <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-mono border border-white/15">
+                  {t('hero.days', { ns: 'visor', count: telemetry.totalDays, defaultValue: '{{count}} días' })}
+                </span>
+              )}
+              {telemetry && telemetry.totalStops > 0 && (
+                <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-mono border border-white/15">
+                  {t('hero.stops', { ns: 'visor', count: telemetry.totalStops, defaultValue: '{{count}} paradas' })}
+                </span>
+              )}
+              {telemetry && telemetry.totalKm > 0 && (
+                <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-mono border border-white/15">
+                  {formatKmLabel(telemetry.totalKm)}
+                </span>
+              )}
+              {homeStatus?.type === 'local' && (
+                <span data-testid="visor-home-local" className="backdrop-blur-md bg-mutedTeal/25 px-3 py-[6px] rounded-full text-[#9de4de] text-[0.78rem] font-semibold border border-mutedTeal/40">
+                  🏡 {t('hero.localBadge', { ns: 'visor', defaultValue: 'Aventura Local' })}
+                </span>
+              )}
+              {homeStatus?.type === 'distance' && (
+                <span data-testid="visor-home-distance" className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-semibold border border-white/15">
+                  ✈️ {t('hero.distanceBadge', { ns: 'visor', distance: formatKmLabel(homeStatus.distanceKm), city: homeStatus.baseCityName || '', defaultValue: 'A {{distance}} km de {{city}}' })}
+                </span>
+              )}
+            </div>
+          )}
+
+          {onOpenStories && (
+            <button
+              type="button"
+              onClick={onOpenStories}
+              data-testid="documentary-hero-stories"
+              className="inline-flex items-center justify-center gap-2 self-start mt-3 bg-[#FF6B35] hover:bg-[#e85d2a] text-white font-bold px-6 py-3 rounded-full transition-all shadow-md min-w-[240px]"
+            >
+              <Play size={16} fill="currentColor" /> {t('hero.storiesCta', { ns: 'visor', defaultValue: 'Revivir en Stories' })}
+            </button>
+          )}
 
           {isRouteMode && (
             <div data-testid="visor-storytelling" className="mt-5">

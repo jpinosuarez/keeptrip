@@ -21,7 +21,7 @@ import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useOutletContext, useLocation } from 'react-router-dom';
 import PageLoader from '@shared/ui/components/PageLoader';
 import MaintenanceScreen from '@shared/ui/components/MaintenanceScreen';
-import { ENABLE_IMMERSIVE_VIEWER, ENABLE_INVITATIONS, ENABLE_GAMIFICATION } from '@shared/config';
+import { ENABLE_DOCUMENTARY_VIEWER, ENABLE_INVITATIONS, ENABLE_GAMIFICATION } from '@shared/config';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 
 import AuthGuard from './AuthGuard';
@@ -188,12 +188,12 @@ function AppRouter() {
 
             <Route path="dashboard" element={<DashboardRoute />} />
 
-            {/* TripGrid con soporte futuro de nested route para VisorViaje (Fase 4) */}
+            {/* TripGrid + canonical Documentary Viewer (mounted by AppModalsManager on /trips/:id) */}
             <Route path="trips">
               <Route index element={<TripsRoute />} />
               <Route
                 path=":id"
-                element={ENABLE_IMMERSIVE_VIEWER ? <TripsRoute /> : <Navigate to="/dashboard" replace />}
+                element={ENABLE_DOCUMENTARY_VIEWER ? <TripsRoute /> : <Navigate to="/dashboard" replace />}
               />
             </Route>
 
