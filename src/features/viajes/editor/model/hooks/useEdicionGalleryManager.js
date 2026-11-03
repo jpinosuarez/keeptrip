@@ -20,8 +20,12 @@ export function useEdicionGalleryManager({ galeria, captionDrafts, setCaptionDra
         return;
       }
 
-      const ok = await galeria.cambiarPortada(fotoId);
-      if (!ok) pushToast(t('error.coverUpdateFailed'), 'error');
+      try {
+        const ok = await galeria.cambiarPortada(fotoId);
+        if (!ok) pushToast(t('error.coverUpdateFailed'), 'error');
+      } catch {
+        pushToast(t('error.coverUpdateFailed', 'No se pudo actualizar la portada.'), 'error');
+      }
     },
     [galeria, isReadOnlyMode, pushToast, t]
   );
@@ -41,8 +45,12 @@ export function useEdicionGalleryManager({ galeria, captionDrafts, setCaptionDra
 
       const confirm = window.confirm(t('confirm.deletePhoto'));
       if (!confirm) return;
-      const ok = await galeria.eliminar(fotoId);
-      if (!ok) pushToast(t('error.photoDeleteFailed'), 'error');
+      try {
+        const ok = await galeria.eliminar(fotoId);
+        if (!ok) pushToast(t('error.photoDeleteFailed'), 'error');
+      } catch {
+        pushToast(t('error.photoDeleteFailed', 'No se pudo eliminar la foto.'), 'error');
+      }
     },
     [galeria, isReadOnlyMode, pushToast, t]
   );
@@ -72,13 +80,16 @@ export function useEdicionGalleryManager({ galeria, captionDrafts, setCaptionDra
       const currentCaption = foto.caption || null;
       if (currentCaption === nextCaption) return;
 
-      const ok = await galeria.actualizarCaption(foto.id, nextCaption);
-      if (!ok) {
-        pushToast(t('error.captionSaveFailed'), 'error');
-        return;
+      try {
+        const ok = await galeria.actualizarCaption(foto.id, nextCaption);
+        if (!ok) {
+          pushToast(t('error.captionSaveFailed'), 'error');
+          return;
+        }
+        pushToast(t('toast.captionUpdated'), 'success', 1500);
+      } catch {
+        pushToast(t('error.captionSaveFailed', 'No se pudo guardar la descripción.'), 'error');
       }
-
-      pushToast(t('toast.captionUpdated'), 'success', 1500);
     },
     [captionDrafts, galeria, isReadOnlyMode, pushToast, t]
   );

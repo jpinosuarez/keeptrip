@@ -8,6 +8,9 @@ const getImageCompression = async () => {
 /** Hard limit: reject files over 15 MB to prevent mobile memory crashes. */
 export const MAX_FILE_SIZE = 15 * 1024 * 1024;
 
+/** Strict upper bound for image compression; after this we fall back to the original file. */
+export const IMAGE_COMPRESSION_TIMEOUT_MS = 8000;
+
 const readFileAsDataURL = (file) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -15,6 +18,18 @@ const readFileAsDataURL = (file) =>
     reader.onerror = () => reject(new Error('No se pudo leer el archivo de imagen.'));
     reader.readAsDataURL(file);
   });
+
+/**
+ * Resolves with `fallbackValue` if `promise` does not settle within `ms`.
+ * Prevents the "Optimizando..." UI from hanging forever.
+ */
+const withTimeout = (promise, ms, fallbackValue) => {
+  let timeoutId;
+  const timeout = new Promise((resolve) => {
+    timeoutId = setTimeout(() => resolve(fallbackValue), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+};
 
 /**
  * Compress an image off the main thread via browser-image-compression (Web Worker).
@@ -34,23 +49,38 @@ export const compressImage = async (file, maxWidth = 1920, quality = 0.8, onProg
     throw new Error(`El archivo supera el límite de ${Math.round(MAX_FILE_SIZE / 1024 / 1024)} MB.`);
   }
 
-  const imageCompression = await getImageCompression();
+  // Fallback target: never let a hung/failed compression block the upload.
+  let target = file;
 
-  const compressed = await imageCompression(file, {
-    maxSizeMB: 0.5,
-    maxWidthOrHeight: maxWidth,
-    initialQuality: quality,
-    useWebWorker: true,
-    fileType: 'image/jpeg',
-    onProgress,
-  });
+  try {
+    const imageCompression = await getImageCompression();
+    const compressed = await withTimeout(
+      imageCompression(file, {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: maxWidth,
+        initialQuality: quality,
+        useWebWorker: true,
+        fileType: 'image/jpeg',
+        onProgress,
+      }),
+      IMAGE_COMPRESSION_TIMEOUT_MS,
+      null
+    );
 
-  const dataUrl = await readFileAsDataURL(compressed);
+    if (compressed instanceof Blob) {
+      target = compressed;
+    }
+  } catch {
+    // Compression threw (worker crash, unsupported codec, etc.) → use original.
+    target = file;
+  }
+
+  const dataUrl = await readFileAsDataURL(target);
 
   return {
-    blob: compressed,
+    blob: target,
     dataUrl,
-    size: compressed.size,
+    size: target.size,
   };
 };
 

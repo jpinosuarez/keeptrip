@@ -1,17 +1,14 @@
 /** @vitest-environment jsdom */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, waitFor, within } from '@testing-library/react';
 import TripCommandBar from '../TripCommandBar';
 
-const mockPushToast = vi.fn();
 const mockSetBusqueda = vi.fn();
 const mockLimpiarBusqueda = vi.fn();
 let mockQuery = '';
 
 vi.mock('@app/providers', () => ({
-  useToast: () => ({ pushToast: mockPushToast }),
-  useUI: () => ({ searchPaletteOpen: false }),
   useSearch: () => ({
     busqueda: mockQuery,
     setBusqueda: mockSetBusqueda,
@@ -21,77 +18,170 @@ vi.mock('@app/providers', () => ({
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key) => {
+    t: (key, options) => {
       const translations = {
-        'filters.all': 'Todos',
-        'filters.year': 'Este año',
-        'viewGrid': 'Vista cuadrícula',
-        'viewList': 'Vista lista',
-        'toast.comingSoon': 'Próximamente disponible',
-        'searchJournal': 'Buscar en tus viajes',
-        'clearSearch': 'Limpiar búsqueda',
+        searchTripsPlaceholder: 'Filtrar viajes por título, ciudad o país...',
+        viewModeGrid: 'Cuadrícula',
+        viewModeList: 'Lista',
+        yearPrefix: 'Año',
+        countryPrefix: 'País',
+        scopePrefix: 'Tipo',
+        durationPrefix: 'Duración',
+        curationPrefix: 'Estado',
+        sortPrefix: 'Ordenar',
+        sortBy: 'Ordenar por',
+        filterAllYearsShort: 'Todos',
+        filterAllCountriesShort: 'Todos',
+        filterThisYear: 'Este año',
+        filterAllScopes: 'Todos',
+        filterLocal: 'Aventuras Locales',
+        filterInternational: 'Internacionales',
+        filterAllDurations: 'Todas',
+        filterDurationShort: 'Escapadas (<4d)',
+        filterDurationMedium: 'Viajes Medios (5-14d)',
+        filterDurationLong: 'Grandes Expediciones (15+d)',
+        filterAllCuration: 'Todos',
+        filterCompleted: 'Completos',
+        filterIncomplete: 'Por enriquecer',
+        sortRecent: 'Más recientes',
+        sortOldest: 'Más antiguos',
+        sortDuration: 'Mayor duración',
+        sortStops: 'Más paradas',
+        clearFilters: 'Limpiar filtros',
+        clearSearch: 'Limpiar búsqueda',
+        filtersButton: 'Filtros',
+        applyFilters: 'Aplicar',
       };
-      return translations[key] || key;
+      if (translations[key] !== undefined) return translations[key];
+      if (typeof options === 'string') return options;
+      if (options && typeof options.defaultValue === 'string') {
+        return options.defaultValue.replace(/\{\{(\w+)\}\}/g, (_, token) =>
+          String(options[token] ?? '')
+        );
+      }
+      return key;
     },
   }),
 }));
 
+vi.mock('@shared/ui/components/BottomSheet/BottomSheet', () => ({
+  default: ({ isOpen, children }) =>
+    isOpen ? <div data-testid="bottom-sheet">{children}</div> : null,
+}));
+
+const baseFilters = {
+  viewMode: 'grid',
+  year: 'all',
+  country: 'all',
+  scope: 'all',
+  duration: 'all',
+  curation: 'all',
+  sort: 'recent',
+};
+
+const openDropdown = (testId, label) => {
+  const container = screen.getByTestId(testId);
+  fireEvent.click(within(container).getByRole('button', { name: label }));
+  return container;
+};
+
 describe('TripCommandBar Component', () => {
-  const mockOnFilterChange = vi.fn();
+  const mockOnChange = vi.fn();
+  const mockOnClear = vi.fn();
+
+  const renderBar = (overrides = {}) =>
+    render(
+      <TripCommandBar
+        filters={baseFilters}
+        onChange={mockOnChange}
+        onClearFilters={mockOnClear}
+        yearOptions={[2026, 2025]}
+        countryOptions={[{ code: 'JP', name: 'Japón', count: 2 }]}
+        {...overrides}
+      />
+    );
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockQuery = '';
+    window.localStorage.clear();
   });
 
   afterEach(() => cleanup());
 
-  it('renders filter buttons with >= 44x44px touch targets', () => {
-    render(<TripCommandBar activeFilter="all" onFilterChange={mockOnFilterChange} />);
-
-    const allButton = screen.getByRole('button', { name: 'Todos' });
-    const yearButton = screen.getByRole('button', { name: 'Este año' });
-
-    expect(allButton.className).toContain('min-h-[44px]');
-    expect(allButton.className).toContain('min-w-[44px]');
-    expect(yearButton.className).toContain('min-h-[44px]');
-    expect(yearButton.className).toContain('min-w-[44px]');
-
-    fireEvent.click(yearButton);
-    expect(mockOnFilterChange).toHaveBeenCalledWith('year');
+  it('debounces the unified live-filter search input', async () => {
+    renderBar();
+    const input = screen.getByPlaceholderText('Filtrar viajes por título, ciudad o país...');
+    fireEvent.change(input, { target: { value: 'Japón' } });
+    await waitFor(() => expect(mockSetBusqueda).toHaveBeenCalledWith('Japón'), { timeout: 1000 });
   });
 
-  it('renders mobile inline search input and wires to useSearch state', () => {
-    render(<TripCommandBar activeFilter="all" onFilterChange={mockOnFilterChange} />);
-
-    const searchInput = screen.getByPlaceholderText('Buscar en tus viajes');
-    expect(searchInput).toBeTruthy();
-
-    fireEvent.change(searchInput, { target: { value: 'Japón' } });
-    expect(mockSetBusqueda).toHaveBeenCalledWith('Japón');
+  it('switches view mode, persists the preference and fires onChange', () => {
+    renderBar();
+    const listButton = screen.getByRole('button', { name: 'Lista' });
+    expect(listButton.className).toContain('min-h-[44px]');
+    expect(listButton.className).toContain('min-w-[44px]');
+    fireEvent.click(listButton);
+    expect(mockOnChange).toHaveBeenCalledWith({ viewMode: 'list' });
+    expect(window.localStorage.getItem('keeptrip_trips_view_mode')).toBe('list');
   });
 
-  it('renders clear search button when query is present and triggers clearQuery', () => {
-    mockQuery = 'Italia';
-    render(<TripCommandBar activeFilter="all" onFilterChange={mockOnFilterChange} />);
-
-    const clearBtn = screen.getByRole('button', { name: 'Limpiar búsqueda' });
-    expect(clearBtn).toBeTruthy();
-    expect(clearBtn.className).toContain('min-h-[44px]');
-    expect(clearBtn.className).toContain('min-w-[44px]');
-
-    fireEvent.click(clearBtn);
-    expect(mockLimpiarBusqueda).toHaveBeenCalled();
+  it('Año dropdown updates the year filter', () => {
+    renderBar();
+    openDropdown('filter-year', 'Año');
+    fireEvent.click(screen.getByText('2025'));
+    expect(mockOnChange).toHaveBeenCalledWith({ year: '2025' });
   });
 
-  it('renders view toggle buttons with >= 44x44px touch targets and triggers toast on list toggle', () => {
-    render(<TripCommandBar activeFilter="all" onFilterChange={mockOnFilterChange} />);
+  it('País dropdown renders flag + count and updates the country filter', () => {
+    renderBar();
+    openDropdown('filter-country', 'País');
+    expect(screen.getByText('Japón')).toBeTruthy();
+    expect(screen.getByText('(2)')).toBeTruthy();
+    fireEvent.click(screen.getByText('Japón'));
+    expect(mockOnChange).toHaveBeenCalledWith({ country: 'JP' });
+  });
 
-    const listBtn = screen.getByRole('button', { name: 'Vista lista' });
-    expect(listBtn.className).toContain('min-h-[44px]');
-    expect(listBtn.className).toContain('min-w-[44px]');
+  it('Alcance dropdown updates the scope filter', () => {
+    renderBar();
+    openDropdown('filter-scope', 'Alcance geográfico');
+    fireEvent.click(screen.getByText('Aventuras Locales'));
+    expect(mockOnChange).toHaveBeenCalledWith({ scope: 'local' });
+  });
 
-    fireEvent.click(listBtn);
-    expect(mockPushToast).toHaveBeenCalledWith('Próximamente disponible', 'info');
+  it('Duración dropdown updates the duration filter', () => {
+    renderBar();
+    openDropdown('filter-duration', 'Duración');
+    fireEvent.click(screen.getByText('Escapadas (<4d)'));
+    expect(mockOnChange).toHaveBeenCalledWith({ duration: 'short' });
+  });
+
+  it('Estado dropdown updates the curation filter', () => {
+    renderBar();
+    openDropdown('filter-curation', 'Estado de curación');
+    fireEvent.click(screen.getByText('Completos'));
+    expect(mockOnChange).toHaveBeenCalledWith({ curation: 'complete' });
+  });
+
+  it('sort dropdown updates the sort order', () => {
+    renderBar();
+    openDropdown('sort-dropdown', 'Ordenar');
+    fireEvent.click(screen.getByText('Más antiguos'));
+    expect(mockOnChange).toHaveBeenCalledWith({ sort: 'oldest' });
+  });
+
+  it('shows results indicator + clear button when filters are active', () => {
+    renderBar({ filters: { ...baseFilters, scope: 'local' }, resultCount: 3, totalCount: 10 });
+    expect(screen.getByText(/Mostrando 3 de 10 viajes/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+    expect(mockOnChange).toHaveBeenCalledWith({ sort: 'recent' });
+    expect(mockOnClear).toHaveBeenCalled();
+  });
+
+  it('opens the mobile filters BottomSheet with a sort section', () => {
+    renderBar();
+    fireEvent.click(screen.getByRole('button', { name: /^Filtros/ }));
+    expect(screen.getByTestId('bottom-sheet')).toBeTruthy();
+    expect(screen.getByText('Ordenar por')).toBeTruthy();
   });
 });
