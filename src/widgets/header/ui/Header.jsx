@@ -67,7 +67,9 @@ const Header = ({ invitationsCount = 0 }) => {
   // Page title
   const pageTitleKey = PAGE_TITLES[pathname] ?? (pathname.startsWith('/trips/') ? 'pageTitle.journal' : null);
   const headerTitle = pageTitleKey ? t(`nav:${pageTitleKey}`) : 'Keeptrip';
-  const showSearch = pathname === '/trips' || pathname.startsWith('/trips/');
+  // Block 2.2: on the Trips list page, TripCommandBar owns the single live-filter
+  // input. Suppress the generic desktop search here to avoid duplicate search UIs.
+  const showSearch = pathname.startsWith('/trips/') && pathname !== '/trips';
   const searchPlaceholder = t('nav:searchJournal');
 
   const initials = useMemo(

@@ -97,12 +97,21 @@ export function GalleryUploader({
 
     setOptimizing((prev) => prev + acceptedFiles.length);
     setTimeout(() => {
-      acceptedFiles.forEach((file) => {
-        const url = URL.createObjectURL(file);
-        objectUrlsRef.current.add(url);
-        setPreviews((prev) => [...prev, { file, url }]);
-        setOptimizing((prev) => Math.max(0, prev - 1));
-      });
+      try {
+        acceptedFiles.forEach((file) => {
+          const url = URL.createObjectURL(file);
+          objectUrlsRef.current.add(url);
+          setPreviews((prev) => [...prev, { file, url }]);
+        });
+      } catch (err) {
+        pushToast(
+          t('gallery.previewError', { defaultValue: 'Error al procesar la imagen' }),
+          'error'
+        );
+      } finally {
+        // Always release the "optimizing" lock so the UI never hangs.
+        setOptimizing((prev) => Math.max(0, prev - acceptedFiles.length));
+      }
     }, 0);
   };
 
