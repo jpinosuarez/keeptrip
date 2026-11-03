@@ -79,6 +79,99 @@ export const getCountryCentroid = (code) => {
   return COUNTRY_CENTROIDS[iso2] || null;
 };
 
+/**
+ * Simplified country bounding boxes: [minLng, minLat, maxLng, maxLat].
+ * The boxes are intentionally generous so the camera never crops a country
+ * when framing a trip route (Block 2.1 — Country-Framed Route Map).
+ */
+export const COUNTRY_BOUNDS = {
+  AR: [-73.6, -55.1, -53.6, -21.8],
+  AU: [112.9, -43.7, 153.6, -10.7],
+  AT: [9.5, 46.4, 17.2, 49.0],
+  BE: [2.5, 49.5, 6.4, 51.5],
+  BO: [-69.7, -22.9, -57.5, -9.7],
+  BR: [-73.9, -33.8, -34.8, 5.3],
+  BG: [22.4, 41.2, 28.6, 44.2],
+  CA: [-141.0, 41.7, -52.6, 83.1],
+  CH: [5.9, 45.8, 10.5, 47.8],
+  CL: [-75.7, -55.9, -66.9, -17.5],
+  CN: [73.5, 18.2, 134.8, 53.6],
+  CO: [-79.0, -4.2, -66.9, 12.5],
+  CR: [-85.9, 8.0, -82.5, 11.3],
+  CU: [-85.0, 19.8, -74.1, 23.3],
+  CY: [32.2, 34.5, 34.6, 35.7],
+  CZ: [12.1, 48.6, 18.9, 51.1],
+  DE: [5.9, 47.3, 15.0, 55.1],
+  DK: [8.0, 54.5, 12.7, 57.8],
+  DO: [-72.0, 17.5, -68.3, 19.9],
+  EC: [-81.1, -5.0, -75.2, 1.5],
+  EG: [24.7, 22.0, 36.9, 31.7],
+  ES: [-9.3, 36.0, 3.3, 43.8],
+  FI: [19.5, 59.8, 31.6, 70.1],
+  FR: [-5.1, 41.3, 9.6, 51.1],
+  GB: [-8.6, 49.9, 1.8, 60.9],
+  GR: [19.4, 34.8, 28.2, 41.8],
+  HR: [13.5, 42.4, 19.4, 46.6],
+  HU: [16.1, 45.7, 22.9, 48.6],
+  ID: [95.3, -11.0, 141.1, 6.1],
+  IE: [-10.5, 51.4, -6.0, 55.4],
+  IL: [34.3, 29.5, 35.9, 33.4],
+  IN: [68.1, 8.0, 97.4, 35.5],
+  IS: [-24.5, 63.3, -13.5, 66.6],
+  IT: [6.6, 36.6, 18.5, 47.1],
+  JP: [122.9, 24.0, 146.0, 45.5],
+  KH: [102.3, 10.4, 107.6, 14.7],
+  KR: [125.1, 33.1, 129.6, 38.6],
+  MA: [-17.1, 27.7, -1.0, 35.9],
+  MX: [-118.4, 14.5, -86.7, 32.7],
+  MY: [99.6, 0.9, 119.3, 7.4],
+  NL: [3.3, 50.7, 7.2, 53.6],
+  NO: [4.6, 57.9, 31.1, 71.2],
+  NZ: [166.4, -47.3, 178.6, -34.4],
+  PE: [-81.3, -18.4, -68.7, 0.0],
+  PH: [116.9, 4.6, 126.6, 21.1],
+  PL: [14.1, 49.0, 24.2, 54.9],
+  PT: [-9.5, 36.9, -6.2, 42.2],
+  PY: [-62.6, -27.6, -54.3, -19.3],
+  RO: [20.3, 43.6, 29.7, 48.3],
+  RU: [-180.0, 41.2, 180.0, 81.9],
+  SE: [11.1, 55.3, 24.2, 69.1],
+  SG: [103.6, 1.1, 104.1, 1.5],
+  SK: [16.8, 47.7, 22.6, 49.6],
+  TH: [97.3, 5.6, 105.6, 20.5],
+  TR: [26.0, 35.8, 44.8, 42.1],
+  UA: [22.1, 44.4, 40.2, 52.4],
+  US: [-171.8, 18.9, -66.9, 71.4],
+  UY: [-58.5, -35.0, -53.1, -30.1],
+  VE: [-73.4, 0.6, -59.8, 12.2],
+  VN: [102.1, 8.6, 109.5, 23.4],
+  ZA: [16.4, -34.9, 32.9, -22.1],
+};
+
+/**
+ * Returns the [minLng, minLat, maxLng, maxLat] box for a country code.
+ * Falls back to a padded centroid box (±8°) so the camera never fails or
+ * crops when a country has no explicit bounds entry.
+ */
+export const getCountryBounds = (code) => {
+  const iso2 = normalizeCountryCode(code);
+  if (!iso2) return null;
+
+  const bounds = COUNTRY_BOUNDS[iso2];
+  if (bounds) return [...bounds];
+
+  const centroid = COUNTRY_CENTROIDS[iso2];
+  if (!centroid) return null;
+
+  const [lng, lat] = centroid;
+  return [
+    Math.max(-180, lng - 8),
+    Math.max(-85, lat - 8),
+    Math.min(180, lng + 8),
+    Math.min(85, lat + 8),
+  ];
+};
+
 // Convierte código Alpha-2 (ej: AR) a Alpha-3 (ej: ARG) para Mapbox
 export const getCountryISO3 = (code2) => {
   if (!code2) return null;

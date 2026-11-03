@@ -1,5 +1,6 @@
 import { cn } from '@shared/lib/utils/cn';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { getInitials } from '@shared/lib/utils/viajeUtils';
 import ContextCard from '../ContextCard';
 
@@ -10,10 +11,15 @@ const VisorContextSection = ({
   activeCarouselDot,
   onCarouselScroll,
 }) => {
+  const { t } = useTranslation('visor');
+  const weatherLabel =
+    typeof data?.weather === 'string' && data.weather.trim()
+      ? data.weather.trim()
+      : data?.weather?.desc || data?.clima || null;
   const hasHighlights = data.highlights?.topFood || data.highlights?.topView || data.highlights?.topTip;
   const hasCompanions = (data.companions || []).length > 0;
   const hasVibe = (data.vibe || []).length > 0;
-  const hasContextCards = hasHighlights || hasCompanions || hasVibe || data.presupuesto;
+  const hasContextCards = hasHighlights || hasCompanions || hasVibe || data.presupuesto || Boolean(weatherLabel);
 
   if (!hasContextCards) return null;
 
@@ -26,7 +32,7 @@ const VisorContextSection = ({
   const cards = [];
   if (highlightItems.length > 0) {
     cards.push(
-      <ContextCard key="highlights" icon="⭐" label="Highlights" className={isMobile ? "min-w-[220px] max-w-[280px] shrink-0 snap-start" : undefined}>
+      <ContextCard key="highlights" icon="⭐" label={t('context.highlights', 'Highlights')} className={isMobile ? "min-w-[220px] max-w-[280px] shrink-0 snap-start" : undefined}>
         <div className="flex flex-col gap-1.5">
           {highlightItems.map((h, i) => (
             <div key={i} className="flex items-center gap-2 py-1">
@@ -44,7 +50,7 @@ const VisorContextSection = ({
       <ContextCard
         key="presupuesto"
         icon="💰"
-        label="Presupuesto"
+        label={t('context.budget', 'Presupuesto')}
         value={data.presupuesto}
         className={isMobile ? "min-w-[220px] max-w-[280px] shrink-0 snap-start" : undefined}
       />
@@ -53,13 +59,13 @@ const VisorContextSection = ({
 
   if (hasVibe) {
     cards.push(
-      <ContextCard key="vibe" icon="✨" label="Vibe" value={(data.vibe || []).join(', ')} className={isMobile ? "min-w-[220px] max-w-[280px] shrink-0 snap-start" : undefined} />
+      <ContextCard key="vibe" icon="✨" label={t('context.vibe', 'Vibe')} value={(data.vibe || []).join(', ')} className={isMobile ? "min-w-[220px] max-w-[280px] shrink-0 snap-start" : undefined} />
     );
   }
 
   if (hasCompanions) {
     cards.push(
-      <ContextCard key="companions" icon="👥" label="Compañeros" className={isMobile ? "min-w-[220px] max-w-[280px] shrink-0 snap-start" : undefined}>
+      <ContextCard key="companions" icon="👥" label={t('context.companions', 'Compañeros')} className={isMobile ? "min-w-[220px] max-w-[280px] shrink-0 snap-start" : undefined}>
         <div className="flex flex-wrap gap-1.5">
           {(data.companions || []).map((c, idx) => (
             <div key={idx} title={c.name || c.email || ''} className="w-[30px] h-[30px] rounded-full bg-background flex items-center justify-center text-[0.7rem] font-bold border border-border text-textPrimary">
@@ -68,6 +74,18 @@ const VisorContextSection = ({
           ))}
         </div>
       </ContextCard>
+    );
+  }
+
+  if (weatherLabel) {
+    cards.push(
+      <ContextCard
+        key="weather"
+        icon="🌤️"
+        label={t('context.weather', 'Clima histórico')}
+        value={weatherLabel}
+        className={isMobile ? "min-w-[220px] max-w-[280px] shrink-0 snap-start" : undefined}
+      />
     );
   }
 

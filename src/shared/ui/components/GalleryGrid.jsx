@@ -345,6 +345,7 @@ const styles = {
   }),
   imageContainer: (isPortada) => ({
     position: 'relative',
+    display: 'block',
     width: '100%',
     paddingBottom: '100%', // Aspecto cuadrado
     overflow: 'hidden',
@@ -366,7 +367,9 @@ const styles = {
     left: 0,
     width: '100%',
     height: '100%',
+    display: 'block',
     objectFit: 'cover',
+    objectPosition: 'center',
     transition: 'opacity 0.3s ease',
   },
   imagePlaceholder: {

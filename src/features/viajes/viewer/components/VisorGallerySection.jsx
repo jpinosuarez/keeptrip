@@ -1,12 +1,12 @@
 import { cn } from '@shared/lib/utils/cn';
-import { Star, Trash2, Share2, Sparkles } from 'lucide-react';
+import { Star, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { GalleryGrid } from '@shared/ui/components/GalleryGrid';
-import ShareStoryButton from '@shared/ui/components/ShareStoryButton';
 
 const VisorGallerySection = ({
-  isSharedTrip,
+  isOwner = true,
   showGalleryTools,
-  onToggleGalleryTools,
+  toggleGalleryTools,
   galeria,
   fotosSubiendo,
   onReintentarFoto,
@@ -14,15 +14,22 @@ const VisorGallerySection = ({
   captionDrafts,
   onCaptionChange,
   onCaptionSave,
-  onSetPortada,
+  onSetPortadaExistente,
   onEliminarFoto,
   isBusy,
+  onAddPhotos,
 }) => {
+  const { t } = useTranslation('visor');
+  const fotos = galeria?.fotos || [];
+
+  // Zero-slop: a shared trip without photos hides the whole section.
+  if (fotos.length === 0 && !isOwner) return null;
+
   return (
     <div className="mt-12 pt-8 border-t border-border">
       <div className="flex items-center justify-between gap-3 mb-4">
-        <h3 className="text-[0.85rem] uppercase tracking-widest text-mutedTeal font-extrabold m-0">Recuerdos Consolidados</h3>
-        {!isSharedTrip && (
+        <h3 className="text-[0.85rem] uppercase tracking-widest text-mutedTeal font-extrabold m-0">{t('gallery.title', 'Recuerdos Consolidados')}</h3>
+        {isOwner && fotos.length > 0 && (
           <button
             type="button"
             className={cn(
@@ -31,31 +38,40 @@ const VisorGallerySection = ({
                 ? "border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine" 
                 : "border-border bg-white text-textPrimary"
             )}
-            onClick={onToggleGalleryTools}
+            onClick={toggleGalleryTools}
           >
-            {showGalleryTools ? 'Ocultar edición' : 'Editar galería'}
+            {showGalleryTools ? t('hideEditing', 'Ocultar edición') : t('editGallery', 'Editar galería')}
           </button>
         )}
       </div>
       
-      {galeria.fotos.length > 0 ? (
+      {fotos.length > 0 ? (
         <>
-          <p className="mt-[-6px] mb-3 text-textSecondary text-[0.9rem]">La colección completa de tu aventura.</p>
-          <GalleryGrid
-            fotos={galeria.fotos}
-            fotosSubiendo={fotosSubiendo}
-            onReintentarFoto={onReintentarFoto}
-            isMobile={isMobile}
-          />
+          <p className="mt-[-6px] mb-3 text-textSecondary text-[0.9rem]">{t('gallerySubtitle', 'Tu colección completa de la aventura.')}</p>
+          <div className="w-full">
+            <GalleryGrid
+              fotos={fotos}
+              fotosSubiendo={fotosSubiendo}
+              onReintentarFoto={onReintentarFoto}
+              isMobile={isMobile}
+            />
+          </div>
         </>
       ) : (
-        <div className="italic text-textSecondary">No hay fotos adicionales en la galería.</div>
+        <button
+          type="button"
+          onClick={onAddPhotos}
+          data-testid="gallery-add-photos"
+          className="w-full min-h-[44px] rounded-xl border border-dashed border-border bg-white text-textPrimary text-sm font-semibold px-4 py-3 transition-all hover:border-atomicTangerine hover:text-atomicTangerine cursor-pointer"
+        >
+          + {t('gallery.addPhotos', 'Añadir fotos a este viaje')}
+        </button>
       )}
 
 
-      {showGalleryTools && galeria.fotos.length > 0 && (
+      {showGalleryTools && fotos.length > 0 && (
         <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3">
-          {galeria.fotos.map((f) => (
+          {fotos.map((f) => (
             <div key={f.id} className={cn(
               "border rounded-md overflow-hidden bg-surface flex flex-col gap-2 p-2 transition-all",
               f.esPortada ? "border-atomicTangerine shadow-md" : "border-border shadow-sm"
@@ -79,24 +95,24 @@ const VisorGallerySection = ({
                       ? "border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine" 
                       : "border-border bg-white text-textPrimary"
                   )}
-                  onClick={() => onSetPortada(f.id)}
+                  onClick={() => onSetPortadaExistente(f.id)}
                   disabled={isBusy}
-                  title="Marcar como portada"
-                  aria-label="Marcar como portada"
+                  title={t('aria.currentCover', 'Marcar como portada')}
+                  aria-label={t('aria.currentCover', 'Marcar como portada')}
                 >
                   <Star size={14} />
-                  {f.esPortada ? 'Portada' : 'Hacer portada'}
+                  {f.esPortada ? t('cover', 'Portada') : t('makeCover', 'Hacer portada')}
                 </button>
                 <button
                   type="button"
                   className="border border-border bg-surface text-danger rounded-full px-2.5 py-1.5 text-[0.75rem] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all tap-btn"
                   onClick={() => onEliminarFoto(f.id)}
                   disabled={isBusy}
-                  title="Eliminar foto"
-                  aria-label="Eliminar foto"
+                  title={t('aria.deletePhoto', 'Eliminar foto')}
+                  aria-label={t('aria.deletePhoto', 'Eliminar foto')}
                 >
                   <Trash2 size={14} />
-                  Eliminar
+                  {t('aria.deletePhoto', 'Eliminar')}
                 </button>
               </div>
             </div>

@@ -25,6 +25,7 @@ export function useEdicionModalSave({
   t,
   limpiarEstado,
   onClose,
+  resetDirty,
   onAfterSave,
   autoFinalize = true,
 }) {
@@ -128,6 +129,12 @@ export function useEdicionModalSave({
       const saveResult = isPersistedTrip
         ? await onSave(viaje.id, savePayload, existingStops)
         : await onSave(viaje.id, savePayload);
+
+      if (saveResult === false) {
+        pushToast(t('error.saveFailed'), 'error');
+        return null;
+      }
+
       const savedTripId = resolveSavedTripId(saveResult, viaje?.id);
 
       if (!savedTripId) {
@@ -155,14 +162,21 @@ export function useEdicionModalSave({
         }
       }
 
+      // A completed save must always release the editor. Flush any dirty guard
+      // BEFORE closing so a successful save can never be blocked by isDirty.
+      resetDirty?.();
+
       if (autoFinalize) {
         limpiarEstado();
         if (onAfterSave) {
           onAfterSave(savedTripId);
-        } else {
-          onClose();
         }
       }
+
+      // Explicit close guarantee (Block 2.1): the editor must never stay open
+      // after a successful save, even when the caller disables autoFinalize
+      // (EditorFocusPanel manages its own loading state).
+      onClose?.();
 
       return savedTripId;
     } catch (error) {

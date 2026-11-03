@@ -35,8 +35,8 @@ let mockDataHook = {
 };
 
 let mockUiHook = {
-  showEditModal: false,
-  setShowEditModal: vi.fn(),
+  showStories: false,
+  setShowStories: vi.fn(),
   showMapModal: false,
   setShowMapModal: vi.fn(),
   hoveredIndex: null,
@@ -123,6 +123,14 @@ vi.mock('./components/VisorTimelineSection', () => ({
   default: () => <div data-testid="timeline-section" />,
 }));
 
+vi.mock('./components/VisorFooterSection', () => ({
+  default: () => <div data-testid="visor-footer" />,
+}));
+
+vi.mock('./components/TripStoriesPlayerModal', () => ({
+  default: () => <div data-testid="trip-stories-player-stub" />,
+}));
+
 vi.mock('@features/viajes/editor/ui/EdicionModal', () => ({
   default: ({ onSave }) => (
     <button data-testid="modal-save" onClick={() => onSave('v1', { titulo: 'nuevo' })}>
@@ -149,8 +157,8 @@ describe('VisorViaje (phase 4 assembler)', () => {
       reloadParadas: mockReloadParadas,
     };
     mockUiHook = {
-      showEditModal: false,
-      setShowEditModal: vi.fn(),
+      showStories: false,
+      setShowStories: vi.fn(),
       showMapModal: false,
       setShowMapModal: vi.fn(),
       hoveredIndex: null,
@@ -200,9 +208,8 @@ describe('VisorViaje (phase 4 assembler)', () => {
     expect(screen.queryByTestId('route-layout')).not.toBeInTheDocument();
   });
 
-  test('al guardar desde edicion recarga paradas y galeria', async () => {
-    const onSave = vi.fn(async () => true);
-    mockUiHook.showEditModal = true;
+  test('click en Editar abre el editor en modo edit-in-place (openEditor)', () => {
+    const openEditor = vi.fn();
 
     render(
       <VisorViaje
@@ -210,18 +217,28 @@ describe('VisorViaje (phase 4 assembler)', () => {
         tripData={{}}
         tripList={[]}
         onClose={vi.fn()}
-        onSave={onSave}
+        openEditor={openEditor}
         onDelete={vi.fn()}
       />
     );
 
-    fireEvent.click(screen.getByTestId('modal-save'));
+    fireEvent.click(screen.getByTestId('documentary-hero-open-edit'));
+    expect(openEditor).toHaveBeenCalledWith('v1');
+  });
 
-    await waitFor(() => {
-      expect(onSave).toHaveBeenCalledWith('v1', { titulo: 'nuevo' });
-      expect(mockReloadParadas).toHaveBeenCalledTimes(1);
-      expect(mockRecargarGaleria).toHaveBeenCalledTimes(1);
-    });
+  test('renderiza el colofon con navegacion secuencial y XP', () => {
+    render(
+      <VisorViaje
+        viajeId="v1"
+        tripData={{}}
+        tripList={[{ id: 'v1', fechaInicio: '2026-01-01' }]}
+        onClose={vi.fn()}
+        openEditor={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    );
+
+    expect(screen.getByTestId('visor-footer')).toBeInTheDocument();
   });
 
   test('boton delete del hero dispara onDelete con viajeId', () => {

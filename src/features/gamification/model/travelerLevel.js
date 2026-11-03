@@ -43,6 +43,21 @@ export const calculateTotalXP = (stats = {}) => {
 };
 
 /**
+ * XP contributed by a single trip (used by the viewer colophon and the
+ * Stories finale slide). Deterministic and display-only.
+ *
+ * @param {Object} viaje
+ * @param {Array<Object>} paradas
+ * @param {Array<Object>} photos
+ * @returns {number}
+ */
+export const calculateTripXP = (viaje, paradas = [], photos = []) => {
+  const stops = Array.isArray(paradas) ? paradas.length : 0;
+  const gallery = Array.isArray(photos) ? photos.length : 0;
+  return 100 + stops * 50 + gallery * 10;
+};
+
+/**
  * Devuelve el nivel actual del viajero basado en cantidad de países.
  * @param {number} countriesCount - Número de países visitados
  * @returns {{ id: string, min: number, label: string, icon: string, color: string }}

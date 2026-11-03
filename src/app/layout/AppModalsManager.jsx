@@ -36,21 +36,10 @@ const OnboardingModal = lazy(() => import('@features/onboarding/ui/OnboardingMod
 function VisorViajeFallback() {
   return createPortal(
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(15, 23, 42, 0.85)',
-        zIndex: 9999,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
+      data-testid="visor-fallback"
+      className="fixed inset-0 md:left-[var(--sidebar-width,256px)] z-[9999] flex items-center justify-center bg-slate-900/85"
     >
-      <LoaderCircle 
-        className="animate-spin" 
-        size={32} 
-        color={COLORS.atomicTangerine} 
-      />
+      <LoaderCircle className="animate-spin" size={32} color={COLORS.atomicTangerine} />
     </div>,
     document.body
   );
@@ -238,6 +227,16 @@ function AppModalsManager({
     }, { replace: true });
   }, [setSearchParams, setViajeBorrador, setCiudadInicialBorrador]);
 
+  // Block 2.1: guarantee the editor closes after a successful save. The crud
+  // handler returns the saved trip id (string) on success and null on failure.
+  const handleSaveTrip = useCallback(async (id, payload, existingStops) => {
+    const result = await handleSaveModal(id, payload, existingStops);
+    if (result !== false) {
+      handleCloseEditor();
+    }
+    return result;
+  }, [handleSaveModal, handleCloseEditor]);
+
   // ── ConfirmModal ──────────────────────────────────────────────────────────────
   const viajeAEliminar = confirmarEliminacion
     ? (bitacoraData[confirmarEliminacion] || bitacora.find((v) => v.id === confirmarEliminacion))
@@ -321,7 +320,7 @@ function AppModalsManager({
               onClose={closeSearchPalette}
               allTrips={bitacora}
               onSelectPlace={onLugarSeleccionado}
-              onSelectTrip={(tripId) => navigate({ pathname: '/trips', search: `editing=${tripId}` })}
+              onSelectTrip={(tripId) => navigate(`/trips/${tripId}`)}
             />
           </Suspense>
         </ErrorBoundary>
@@ -338,7 +337,7 @@ function AppModalsManager({
               viaje={viajeParaEditar}
               bitacoraData={bitacoraData}
               onClose={handleCloseEditor}
-              onSave={handleSaveModal}
+              onSave={handleSaveTrip}
               isSaving={isSavingModal}
               esBorrador={esBorrador}
               ciudadInicial={ciudadInicialBorrador}
@@ -363,6 +362,8 @@ function AppModalsManager({
                 tripData={bitacoraData}
                 MapRoutePreview={MiniMapaRuta}
                 onClose={() => navigate('/trips')}
+                openEditor={(id) => setSearchParams({ editing: id }, { replace: true })}
+                onNavigateTrip={(id) => navigate(`/trips/${id}`)}
                 onSave={handleSaveFromViewer}
                 onDelete={requestTripDelete}
                 isSaving={isSavingViewer}

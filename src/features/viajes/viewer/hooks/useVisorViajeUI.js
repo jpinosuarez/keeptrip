@@ -1,14 +1,12 @@
 import { useCallback, useRef, useState } from 'react';
-import { useActiveParada } from '@shared/lib/hooks/useActiveParada';
 
-export function useVisorViajeUI({ isRouteMode, isMobile }) {
-  const [showEditModal, setShowEditModal] = useState(false);
+/**
+ * Viewer UI state. Block 2.1 final polish: stop highlighting is driven by a
+ * SINGLE hover state owned by VisorViaje (hoveredStopId). No scroll observers.
+ */
+export function useVisorViajeUI() {
   const [showMapModal, setShowMapModal] = useState(false);
-  const [hoveredIndex, setHoveredIndex] = useState(null);
-
-  const { activeIndex: activeParadaIndex, setParadaRef, getParadaNode } = useActiveParada(
-    isRouteMode && !isMobile
-  );
+  const [showStories, setShowStories] = useState(false);
 
   const carouselRef = useRef(null);
   const [activeCarouselDot, setActiveCarouselDot] = useState(0);
@@ -21,34 +19,13 @@ export function useVisorViajeUI({ isRouteMode, isMobile }) {
     setActiveCarouselDot(idx);
   }, []);
 
-  const handleMarkerHover = useCallback((i) => setHoveredIndex(i), []);
-  const handleMarkerHoverEnd = useCallback(() => setHoveredIndex(null), []);
-
-  const handleMarkerClick = useCallback(
-    (i) => {
-      const node = getParadaNode(i);
-      if (!node) return;
-      node.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setHoveredIndex(i);
-      setTimeout(() => setHoveredIndex(null), 2000);
-    },
-    [getParadaNode]
-  );
-
   return {
-    showEditModal,
-    setShowEditModal,
     showMapModal,
     setShowMapModal,
-    hoveredIndex,
-    setHoveredIndex,
-    activeParadaIndex,
-    setParadaRef,
+    showStories,
+    setShowStories,
     carouselRef,
     activeCarouselDot,
     handleCarouselScroll,
-    handleMarkerHover,
-    handleMarkerHoverEnd,
-    handleMarkerClick,
   };
 }

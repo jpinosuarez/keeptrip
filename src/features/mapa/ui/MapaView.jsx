@@ -413,7 +413,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
           interactiveLayerIds={['unclustered-point']}
           mapStyle="mapbox://styles/mapbox/light-v11"
           mapboxAccessToken={MAPBOX_TOKEN}
-          projection={(typeof window !== 'undefined' && window.innerWidth < 768) ? 'mercator' : 'globe'}
+          projection="globe"
           minZoom={1}
           maxZoom={20}
           doubleClickZoom={true}
