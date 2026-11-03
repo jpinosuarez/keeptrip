@@ -168,6 +168,7 @@ const EditorFocusPanel = ({
     t,
     limpiarEstado,
     onClose,
+    resetDirty: limpiarEstado,
     autoFinalize: false,
   });
 

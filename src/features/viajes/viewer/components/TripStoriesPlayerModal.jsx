@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Pause, Play, MapPin, X } from 'lucide-react';
 import CountryFlag from '@shared/ui/components/CountryFlag';
@@ -65,6 +66,16 @@ const TripStoriesPlayerModal = ({ isOpen = false, slides = [], onClose, shareDat
   useEffect(() => () => {
     if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
   }, []);
+
+  // Lock body scroll while Stories is open so no mobile chrome can leak.
+  useEffect(() => {
+    if (!isOpen || typeof document === 'undefined') return undefined;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
 
   const handlePointerDown = () => {
     didHoldRef.current = false;
@@ -257,9 +268,9 @@ const TripStoriesPlayerModal = ({ isOpen = false, slides = [], onClose, shareDat
     );
   }
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-[100] w-screen h-[100dvh] bg-black flex flex-col justify-between overflow-hidden md:items-center md:justify-center md:bg-slate-950/95 md:p-6"
+      className="fixed inset-0 z-[99999] w-screen h-[100dvh] rounded-none bg-black flex flex-col justify-between overflow-hidden md:items-center md:justify-center md:bg-slate-950/95 md:p-6"
       data-testid="trip-stories-player"
       role="dialog"
       aria-modal="true"
@@ -331,6 +342,11 @@ const TripStoriesPlayerModal = ({ isOpen = false, slides = [], onClose, shareDat
       </div>
     </div>
   );
+
+  // Portal to document.body so the player escapes every parent stacking
+  // context and fully covers mobile bottom bar / top bar / FAB.
+  if (typeof document === 'undefined') return modalContent;
+  return createPortal(modalContent, document.body);
 };
 
 export default TripStoriesPlayerModal;

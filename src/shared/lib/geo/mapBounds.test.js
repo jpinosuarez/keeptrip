@@ -44,4 +44,18 @@ describe('collectCountryCodes', () => {
   it('accepts a raw country code string as the trip argument', () => {
     expect(collectCountryCodes([], 'AR')).toEqual(['AR']);
   });
+
+  it('STOP-FIRST: ignores stale trip-level countries when stops exist', () => {
+    const codes = collectCountryCodes({
+      viaje: {
+        paisCodigo: 'DE',
+        paises: ['DE'],
+        banderas: ['https://flagcdn.com/de.svg'],
+      },
+      paradas: [{ paisCodigo: 'HU' }, { countryCode: 'CZ' }],
+    });
+
+    expect(codes).toEqual(['HU', 'CZ']);
+    expect(codes).not.toContain('DE');
+  });
 });

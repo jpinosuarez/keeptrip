@@ -48,12 +48,14 @@ const VisorGallerySection = ({
       {fotos.length > 0 ? (
         <>
           <p className="mt-[-6px] mb-3 text-textSecondary text-[0.9rem]">{t('gallerySubtitle', 'Tu colección completa de la aventura.')}</p>
-          <GalleryGrid
-            fotos={fotos}
-            fotosSubiendo={fotosSubiendo}
-            onReintentarFoto={onReintentarFoto}
-            isMobile={isMobile}
-          />
+          <div className="w-full">
+            <GalleryGrid
+              fotos={fotos}
+              fotosSubiendo={fotosSubiendo}
+              onReintentarFoto={onReintentarFoto}
+              isMobile={isMobile}
+            />
+          </div>
         </>
       ) : (
         <button

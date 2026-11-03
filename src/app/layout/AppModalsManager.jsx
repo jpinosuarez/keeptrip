@@ -230,11 +230,11 @@ function AppModalsManager({
   // Block 2.1: guarantee the editor closes after a successful save. The crud
   // handler returns the saved trip id (string) on success and null on failure.
   const handleSaveTrip = useCallback(async (id, payload, existingStops) => {
-    const savedId = await handleSaveModal(id, payload, existingStops);
-    if (savedId) {
+    const result = await handleSaveModal(id, payload, existingStops);
+    if (result !== false) {
       handleCloseEditor();
     }
-    return savedId;
+    return result;
   }, [handleSaveModal, handleCloseEditor]);
 
   // ── ConfirmModal ──────────────────────────────────────────────────────────────

@@ -4,19 +4,15 @@ import RouteMap from '../RouteMap';
 /**
  * Natural-flow editorial route layout (Block 2.1).
  * NO sticky split-screen: the country-framed map and the story sections
- * scroll together with the page.
+ * scroll together with the page. Highlighting is hover-only.
  */
 const VisorRouteLayout = ({
   paradas = [],
   countryCodes = [],
   paisCodigo = null,
-  activeParadaIndex,
-  mapSyncIndex,
-  hoveredIndex,
   hoveredStopId = null,
-  onMarkerHover,
-  onMarkerHoverEnd,
-  onMarkerClick,
+  onHoverStop,
+  telemetry = null,
   sections,
 }) => (
   <div className="max-w-[960px] mx-auto w-full px-4 md:px-6 py-6 flex flex-col gap-y-10">
@@ -27,12 +23,9 @@ const VisorRouteLayout = ({
         paradas={paradas}
         countryCodes={countryCodes}
         paisCodigo={paisCodigo}
-        activeIndex={mapSyncIndex !== undefined ? mapSyncIndex : activeParadaIndex}
-        hoveredIndex={hoveredIndex}
         hoveredStopId={hoveredStopId}
-        onMarkerHover={onMarkerHover}
-        onMarkerHoverEnd={onMarkerHoverEnd}
-        onMarkerClick={onMarkerClick}
+        onHoverStop={onHoverStop}
+        telemetry={telemetry}
       />
     </div>
 

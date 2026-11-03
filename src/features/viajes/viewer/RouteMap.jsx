@@ -2,7 +2,6 @@ import { cn } from '@shared/lib/utils/cn';
 import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Map, { Source, Layer, Marker } from 'react-map-gl';
-import { motion as Motion, AnimatePresence } from 'framer-motion';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { setMapLanguage, generateCurvedRoute } from '@shared/lib/geo';
@@ -16,7 +15,7 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
  * Static infographic route map for the Trip Viewer.
  * No pan/zoom/rotate: it frames the trip once and never moves (no flyTo).
  */
-const RouteMap = ({ paradas = [], countryCodes = [], paisCodigo = null, activeIndex = 0, hoveredIndex = null, hoveredStopId = null, onMarkerHover, onMarkerHoverEnd, onMarkerClick, isModal = false }) => {
+const RouteMap = ({ paradas = [], countryCodes = [], paisCodigo = null, hoveredStopId = null, onHoverStop, telemetry = null, isModal = false }) => {
   const { i18n, t } = useTranslation(['dashboard', 'visor']);
   const {
     flags: { level: operationalLevel },
@@ -30,11 +29,20 @@ const RouteMap = ({ paradas = [], countryCodes = [], paisCodigo = null, activeIn
   const [mapLoaded, setMapLoaded] = useState(false);
 
   const resolvedCountryCodes = useMemo(() => {
+    const hasStops = Array.isArray(paradas) && paradas.length > 0;
+
+    // STOP-FIRST: once stops exist they are the only geographic truth. Root
+    // trip metadata may be stale and must never add "intruder" countries.
+    if (hasStops) {
+      return collectCountryCodes({ viaje: { paisCodigo }, paradas });
+    }
+
     const provided = (Array.isArray(countryCodes) ? countryCodes : [])
       .map((code) => normalizeCountryCode(code))
       .filter(Boolean);
     if (provided.length > 0) return provided;
-    return collectCountryCodes(paradas, paisCodigo);
+
+    return collectCountryCodes({ viaje: { paisCodigo }, paradas: [] });
   }, [countryCodes, paradas, paisCodigo]);
 
   const countryIso3List = useMemo(
@@ -52,28 +60,36 @@ const RouteMap = ({ paradas = [], countryCodes = [], paisCodigo = null, activeIn
     if (mapRef.current) setMapLanguage(mapRef.current, i18n.language);
   }, [i18n.language]);
 
-  // ─── fitBounds helper — country-framed, runs ONCE on load (no flyTo) ───
-  const fitMapToBounds = useCallback(() => {
-    if (!mapRef.current || !tripBounds) return;
-    const map = mapRef.current;
-    map.resize(); // fuerza recalcular dimensiones del contenedor
-    map.fitBounds(tripBounds, {
-      padding: 48,
-      maxZoom: 6,
-      duration: 0,
-    });
-  }, [tripBounds]);
+  // ─── Country-framed camera: refit when the bounds SIGNATURE changes ───
+  // This guarantees the map frames only the real stops/countries as soon as
+  // `paradas` finishes loading (or after edits), never before.
+  const lastFittedBoundsKeyRef = useRef('');
+  const boundsKey = tripBounds ? JSON.stringify(tripBounds) : '';
 
-  // ─── fitBounds inicial (espera a que el mapa cargue) ───
   useEffect(() => {
-    if (!mapLoaded) return undefined;
+    if (!mapLoaded || !tripBounds || !boundsKey) return undefined;
+    if (boundsKey === lastFittedBoundsKeyRef.current) return undefined;
+
+    const applyBounds = () => {
+      const map = mapRef.current;
+      if (!map) return;
+      lastFittedBoundsKeyRef.current = boundsKey;
+      map.resize(); // fuerza recalcular dimensiones del contenedor
+      map.fitBounds(tripBounds, {
+        padding: 48,
+        maxZoom: 6,
+        duration: 0,
+      });
+    };
+
     if (isModal) {
-      const timer = setTimeout(fitMapToBounds, 200);
+      const timer = setTimeout(applyBounds, 200);
       return () => clearTimeout(timer);
     }
-    fitMapToBounds();
+
+    applyBounds();
     return undefined;
-  }, [mapLoaded, fitMapToBounds, isModal]);
+  }, [mapLoaded, tripBounds, boundsKey, isModal]);
 
   // ─── GeoJSON: ruta curvada ───
   const rutaGeoJSON = useMemo(() => {
@@ -90,9 +106,15 @@ const RouteMap = ({ paradas = [], countryCodes = [], paisCodigo = null, activeIn
     };
   }, [paradas]);
 
-  const displayIndex = hoveredIndex != null ? hoveredIndex : activeIndex;
-  const activeName = paradas[displayIndex]?.nombre || '';
-
+  const hoveredStop = hoveredStopId
+    ? paradas.find((parada) => parada?.id === hoveredStopId) || null
+    : null;
+  const routeSummary =
+    paradas
+      .map((parada) => parada?.ciudad || parada?.nombre || parada?.name)
+      .filter(Boolean)
+      .join(' ➔ ') || t('visor:map.routeSummary', 'Ruta del viaje');
+  const totalKm = Number(telemetry?.totalKm) > 0 ? ` · ${telemetry.totalKm} km` : '';
   return (
     <div className={cn(
       "w-full h-full overflow-hidden relative",
@@ -165,28 +187,26 @@ const RouteMap = ({ paradas = [], countryCodes = [], paisCodigo = null, activeIn
           {/* Pines numerados — siempre visibles (infografía estática) */}
           {paradas.map((p, i) => {
             if (!Array.isArray(p?.coordenadas) || p.coordenadas.length < 2) return null;
-            const isActive = i === activeIndex;
-            const isIndexHovered = i === hoveredIndex;
-            const isIdHovered = Boolean(hoveredStopId && p.id === hoveredStopId);
-            const highlighted = isActive || isIndexHovered || isIdHovered;
+            const isHovered = Boolean(hoveredStopId && p.id === hoveredStopId);
             return (
               <Marker
                 key={p.id || i}
                 longitude={p.coordenadas[0]}
                 latitude={p.coordenadas[1]}
                 anchor="center"
-                style={{ zIndex: highlighted ? 20 : 1 }}
+                style={{ zIndex: isHovered ? 30 : 10 }}
               >
                 <div
                   data-testid={`route-map-stop-${p.id || i}`}
                   className={cn(
                     "flex items-center justify-center w-7 h-7 rounded-full opacity-100",
                     "bg-atomicTangerine border-2 border-white shadow-md transition-transform duration-200",
-                    highlighted && "scale-125 z-20 ring-4 ring-[#FF6B35]/30"
+                    isHovered
+                      ? "scale-125 z-30 ring-4 ring-[#FF6B35]/40 shadow-lg"
+                      : "scale-100 z-10"
                   )}
-                  onMouseEnter={() => onMarkerHover?.(i)}
-                  onMouseLeave={() => onMarkerHoverEnd?.()}
-                  onClick={() => onMarkerClick?.(i)}
+                  onMouseEnter={() => onHoverStop?.(p.id)}
+                  onMouseLeave={() => onHoverStop?.(null)}
                 >
                   <span className="text-white text-[0.72rem] font-black leading-none">
                     {i + 1}
@@ -198,21 +218,28 @@ const RouteMap = ({ paradas = [], countryCodes = [], paisCodigo = null, activeIn
         </Map>
       )}
 
-      {/* Label de parada activa */}
-      <AnimatePresence mode="wait">
-        {!isWebGLDisabled && activeName && (
-          <Motion.div
-            key={activeName}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.25 }}
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 backdrop-blur-md bg-black/40 text-white border border-white/20 rounded-full px-[18px] py-2 text-[0.85rem] font-bold shadow-lg pointer-events-none z-[3] whitespace-nowrap max-w-[calc(100%-32px)] text-center"
-          >
-            📍 {activeName}
-          </Motion.div>
-        )}
-      </AnimatePresence>
+      {/* Bottom legend: route overview (idle) ⇄ stop details (hover) */}
+      {!isWebGLDisabled && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none max-w-[calc(100%-32px)]">
+          {hoveredStop ? (
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF6B35] text-white text-xs font-semibold shadow-lg border border-white/20 transition-all duration-200">
+              <span>📍</span>
+              <span className="truncate">
+                {hoveredStop.orden || (paradas.indexOf(hoveredStop) + 1)}.{' '}
+                {hoveredStop.ciudad || hoveredStop.nombre || hoveredStop.name}
+              </span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF6B35] text-white text-xs font-semibold shadow-lg border border-white/20 transition-all duration-200">
+              <span>🗺️</span>
+              <span className="truncate">
+                {routeSummary}
+                {totalKm}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

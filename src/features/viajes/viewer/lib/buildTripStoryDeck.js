@@ -23,20 +23,35 @@ export const formatKmLabel = (km) => {
   return `${String(rounded).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} km`;
 };
 
+const STOP_COUNTRY_FIELDS = ['paisCodigo', 'countryCode', 'codigoPais', 'pais', 'country'];
+
 /**
  * Resolves the primary ISO-2 country code of a trip.
+ *
+ * STOP-FIRST: when stops exist, their country fields are the only valid source
+ * (stale root metadata such as `viaje.paisCodigo = 'DE'` must never leak into a
+ * HU/CZ trip). Root trip fields are only used when there are no stops.
+ *
  * @param {Object} viaje
  * @param {Array<Object>} paradas
  * @returns {string|null}
  */
 export const resolveTripCountryCode = (viaje = {}, paradas = []) => {
-  const direct = normalizeCountryCode(viaje?.paisCodigo || viaje?.code || viaje?.countryCode || null);
-  if (direct) return direct;
+  const stops = Array.isArray(paradas) ? paradas.filter(Boolean) : [];
 
-  return (
-    (Array.isArray(paradas) ? paradas : [])
-      .map((parada) => normalizeCountryCode(parada?.paisCodigo))
-      .find(Boolean) || null
+  if (stops.length > 0) {
+    for (const stop of stops) {
+      for (const field of STOP_COUNTRY_FIELDS) {
+        const iso2 = normalizeCountryCode(stop?.[field]);
+        if (iso2) return iso2;
+      }
+    }
+    // Stops exist but none carry a country: never fall back to root metadata.
+    return null;
+  }
+
+  return normalizeCountryCode(
+    viaje?.paisCodigo || viaje?.code || viaje?.countryCode || null
   );
 };
 
@@ -194,7 +209,14 @@ export const buildTripStoryDeck = ({
       image: (typeof parada?.foto === 'string' && parada.foto) || linkedPhoto?.url || null,
       dayTripFrom:
         previousStop && esParadaEscapada(parada, previousStop) ? previousStop?.nombre || null : null,
-      countryCode: normalizeCountryCode(parada?.paisCodigo) || countryCode,
+      countryCode:
+        normalizeCountryCode(
+          parada?.paisCodigo ||
+            parada?.countryCode ||
+            parada?.codigoPais ||
+            parada?.pais ||
+            parada?.country
+        ) || countryCode,
     });
   });
 

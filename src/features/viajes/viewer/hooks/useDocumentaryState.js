@@ -1,19 +1,13 @@
-import { useActiveParada } from '@shared/lib/hooks/useActiveParada';
-
 /**
- * useDocumentaryState — active-stop detection for the Editorial Viewer.
- *
- * Block 2.1: the map is no longer sticky and the cinematic `flyTo` was
- * removed (motion-sickness + 60fps scroll). The hook now exposes the
- * IntersectionObserver-driven active index so markers/timeline stay in sync.
+ * Scroll is fully decoupled from the viewer map (Block 2.1 final polish).
+ * There is NO IntersectionObserver and NO scroll listener: page scrolling can
+ * never change active stops or the map. Highlighting is hover-only.
  */
-export function useDocumentaryState({ enabled = true } = {}) {
-  const { activeIndex, setParadaRef, getParadaNode } = useActiveParada(enabled);
-
+export function useDocumentaryState() {
   return {
-    activeIndex,
-    mapSyncIndex: activeIndex,
-    setParadaRef,
-    getParadaNode,
+    activeIndex: null,
+    mapSyncIndex: null,
+    setParadaRef: () => {},
+    getParadaNode: () => null,
   };
 }

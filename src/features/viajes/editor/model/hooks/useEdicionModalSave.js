@@ -25,6 +25,7 @@ export function useEdicionModalSave({
   t,
   limpiarEstado,
   onClose,
+  resetDirty,
   onAfterSave,
   autoFinalize = true,
 }) {
@@ -128,6 +129,12 @@ export function useEdicionModalSave({
       const saveResult = isPersistedTrip
         ? await onSave(viaje.id, savePayload, existingStops)
         : await onSave(viaje.id, savePayload);
+
+      if (saveResult === false) {
+        pushToast(t('error.saveFailed'), 'error');
+        return null;
+      }
+
       const savedTripId = resolveSavedTripId(saveResult, viaje?.id);
 
       if (!savedTripId) {
@@ -154,6 +161,10 @@ export function useEdicionModalSave({
           throw new Error('Upload context no disponible');
         }
       }
+
+      // A completed save must always release the editor. Flush any dirty guard
+      // BEFORE closing so a successful save can never be blocked by isDirty.
+      resetDirty?.();
 
       if (autoFinalize) {
         limpiarEstado();

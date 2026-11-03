@@ -5,14 +5,18 @@ import { Calendar, ArrowLeft, Trash2, LoaderCircle, Edit3, Play } from 'lucide-r
 import { useTranslation } from 'react-i18next';
 import { formatDateRange, getInitials, FOTO_DEFAULT_URL } from '@shared/lib/utils/viajeUtils';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
-import { cn } from '@shared/lib/utils/cn';
 import ShareStoryButton from '@shared/ui/components/ShareStoryButton';
 import CountryFlag from '@shared/ui/components/CountryFlag';
 import DocumentaryFlagHero from '@shared/ui/components/DocumentaryFlagHero';
 import { formatKmLabel } from '../lib/buildTripStoryDeck';
 
+const ACTION_BUTTON_CLASS =
+  'bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white rounded-full p-2.5 shadow-sm transition-colors disabled:opacity-50 cursor-pointer';
+
 /**
- * Premium editorial cover with dynamic flag shards and spatial typography.
+ * Premium editorial cover: 100% full-bleed photo with floating actions and
+ * bottom-anchored trip details. The cover image is a direct child of the
+ * full-width root so it always spans the viewport with zero side gaps.
  */
 const DocumentaryHero = ({
   isMobile,
@@ -46,202 +50,192 @@ const DocumentaryHero = ({
     }
   };
 
-  const isDefaultPhoto = !fotoMostrada || fotoMostrada === FOTO_DEFAULT_URL;
+  const coverPhotoUrl =
+    fotoMostrada && fotoMostrada !== FOTO_DEFAULT_URL ? fotoMostrada : null;
   const countryCode = data?.paisCodigo || data?.code || viajeBase?.paisCodigo || viajeBase?.code || null;
   const localizedCountryName = getLocalizedCountryName(countryCode, i18n.language, t);
   const legacyCountryName = data?.nombreEspanol || data?.nameSpanish || viajeBase?.nombreEspanol || viajeBase?.nameSpanish;
-  const fallbackTitle = localizedCountryName || legacyCountryName || t('untitledTrip', { ns: 'visor', defaultValue: 'Travesía Sin Nombre' });
+  const fallbackTitle =
+    localizedCountryName ||
+    legacyCountryName ||
+    t('untitledTrip', { ns: 'visor', defaultValue: 'Travesía Sin Nombre' });
   const heroTitle = data?.titulo || fallbackTitle;
 
   return (
-    <div className={cn(
-      "relative w-full flex flex-col justify-end overflow-hidden",
-      isMobile ? "min-h-[45vh]" : "min-h-[65vh]"
-    )}>
-      {/* Background Layer */}
-      <div className="absolute inset-0 h-full overflow-hidden z-[1] bg-charcoalBlue">
-        {!isDefaultPhoto ? (
-          <div className={cn(
-            "w-full relative flex flex-col justify-end overflow-hidden rounded-b-[2rem]",
-            isMobile ? "h-[45vh] min-h-[240px]" : "h-[60vh] min-h-[320px]"
-          )}>
-            <img
-              src={fotoMostrada}
-              alt={heroTitle}
-              fetchPriority="high"
-              className="absolute inset-0 w-full h-full object-cover z-[1]"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/85 pointer-events-none z-[5]" />
-          </div>
-        ) : (
-          <DocumentaryFlagHero banderas={data.banderas} className="w-full h-full bg-charcoalBlue" />
-        )}
-        
-        {/* Film Grain & Noise Overlay */}
-        <div className="absolute inset-0 opacity-15 pointer-events-none z-[4] bg-[url('data:image/svg+xml,%3Csvg_viewBox=%220_0_400_400%22_xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter_id=%22noiseFilter%22%3E%3CfeTurbulence_type=%22fractalNoise%22_baseFrequency=%220.65%22_numOctaves=%223%22_stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect_width=%22100%25%22_height=%22100%25%22_filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')]" />
-        <div className="absolute inset-0 z-[3] bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)] pointer-events-none" />
-      </div>
+    <div className="relative w-full min-h-[420px] md:min-h-[460px] overflow-hidden bg-slate-950 flex flex-col justify-between">
+      {/* Full-bleed cover: direct child of the root, never inside a max-w row. */}
+      {coverPhotoUrl ? (
+        <img
+          src={coverPhotoUrl}
+          alt={data?.titulo || 'Portada del viaje'}
+          className="absolute inset-0 w-full h-full object-cover object-center block"
+          loading="eager"
+          decoding="async"
+        />
+      ) : (
+        <div className="absolute inset-0 w-full h-full">
+          <DocumentaryFlagHero
+            banderas={data?.banderas}
+            paises={countryCodes}
+            className="w-full h-full"
+          />
+        </div>
+      )}
 
-      {/* Navigation UI */}
-      <div className="absolute top-[max(16px,env(safe-area-inset-top,16px))] left-4 right-4 flex justify-between items-center z-[20]">
+      {/* Protective full-bleed gradient */}
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/50 to-slate-950/60 pointer-events-none" />
+
+      {/* Top Bar: dedicated in-flow header row (never overlaps bottom content) */}
+      <div className="relative z-20 w-full flex items-center justify-between p-4 md:p-6 shrink-0">
         <button
+          type="button"
           onClick={handleBack}
           data-testid="documentary-hero-back"
-          className={cn(
-            "backdrop-blur-md bg-black/40 border border-white/20 rounded-full w-11 h-11 flex items-center justify-center text-white shadow-md transition-all cursor-pointer",
-            isBusy && "opacity-50 cursor-not-allowed"
-          )}
           disabled={isBusy}
+          className={ACTION_BUTTON_CLASS}
+          title={t('hero.back', { ns: 'visor', defaultValue: 'Volver' })}
+          aria-label={t('hero.back', { ns: 'visor', defaultValue: 'Volver' })}
         >
-          <ArrowLeft size={22} />
+          <ArrowLeft size={20} />
         </button>
 
-        <div className="flex gap-2 items-center">
+        <div className="flex items-center gap-2">
           <ShareStoryButton data={storyData} />
           {!isSharedTrip && (
-            <button 
-              onClick={onDelete} 
+            <button
+              type="button"
+              onClick={onDelete}
               data-testid="documentary-hero-delete"
-              className={cn(
-                "backdrop-blur-md bg-black/40 border border-white/20 rounded-full w-11 h-11 flex items-center justify-center text-white shadow-md transition-all cursor-pointer",
-                isBusy && "opacity-50 cursor-not-allowed"
-              )}
-              disabled={isBusy} 
-              title="Eliminar viaje"
+              disabled={isBusy}
+              className={ACTION_BUTTON_CLASS}
+              title={t('hero.delete', { ns: 'visor', defaultValue: 'Eliminar viaje' })}
             >
               {isDeleting ? <LoaderCircle size={16} className="animate-spin" /> : <Trash2 size={16} className="text-danger" />}
             </button>
           )}
           {!isSharedTrip && (
-            <button 
-              onClick={onOpenEdit} 
+            <button
+              type="button"
+              onClick={onOpenEdit}
               data-testid="documentary-hero-open-edit"
-              className={cn(
-                "backdrop-blur-md bg-black/40 text-white border border-white/20 rounded-full px-[22px] py-[10px] font-bold text-[0.85rem] flex gap-2 items-center shadow-md transition-all cursor-pointer",
-                isBusy && "opacity-50 cursor-not-allowed"
-              )}
               disabled={isBusy}
+              className={ACTION_BUTTON_CLASS}
+              title={t('hero.edit', { ns: 'visor', defaultValue: 'Editar' })}
+              aria-label={t('hero.edit', { ns: 'visor', defaultValue: 'Editar' })}
             >
-              <Edit3 size={15} /> {t('hero.edit', { ns: 'visor', defaultValue: 'Editar' })}
+              <Edit3 size={16} />
             </button>
           )}
         </div>
       </div>
 
-      {/* Content Layer (Editorial Typography) */}
-      <div className={cn(
-        "relative z-[10] px-4 md:px-8 pb-5 md:pb-8 max-w-[1100px] mx-auto w-full flex flex-col gap-2.5",
-        isMobile ? "pt-[100px]" : "pt-[150px]"
-      )}>
-        <Motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+      {/* Bottom: trip details */}
+      <Motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: 'easeOut' }}
+        className="relative z-10 mt-auto w-full max-w-5xl mx-auto px-4 md:px-10 pb-6 md:pb-8 flex flex-col gap-3 md:gap-4"
+      >
+        {countryCodes.length > 0 && (
+          <div className="flex gap-2 items-center">
+            {countryCodes.slice(0, 5).map((code) => (
+              <CountryFlag key={code} code={code} size="xl" className="shadow-sm border border-white/20" />
+            ))}
+          </div>
+        )}
+
+        <h1
+          data-testid="visor-title"
+          className={`text-white font-black leading-[0.95] tracking-tighter [text-shadow:0_10px_40px_rgba(0,0,0,0.6)] max-w-[900px] font-heading ${isMobile ? 'text-[2rem]' : 'text-[3.6rem]'}`}
         >
-          {countryCodes.length > 0 && (
-            <div className="flex gap-2 items-center">
-              {countryCodes.slice(0, 5).map((code) => (
-                <CountryFlag key={code} code={code} size="xl" className="shadow-sm border border-white/20" />
-              ))}
-            </div>
-          )}
+          {heroTitle}
+        </h1>
 
-          <h1 
-            data-testid="visor-title" 
-            className={cn(
-              "text-white font-black my-2 leading-[0.95] tracking-tighter [text-shadow:0_10px_40px_rgba(0,0,0,0.6)] max-w-[900px] font-heading",
-              isMobile ? "text-[2.8rem]" : "text-[4.5rem]"
-            )}
-          >
-            {heroTitle}
-          </h1>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <span className="inline-flex items-center gap-1.5 backdrop-blur-md bg-black/40 px-3.5 py-[7px] rounded-full text-white text-[0.82rem] font-semibold border border-white/20">
+            <Calendar size={13} strokeWidth={2.5} /> {formatDateRange(data.fechaInicio, data.fechaFin)}
+          </span>
 
-          <div className="flex items-center gap-2.5 flex-wrap mt-0.5">
-            <span className="inline-flex items-center gap-1.5 backdrop-blur-md bg-black/40 px-3.5 py-[7px] rounded-full text-white text-[0.82rem] font-semibold border border-white/20">
-              <Calendar size={13} strokeWidth={2.5} /> {formatDateRange(data.fechaInicio, data.fechaFin)}
+          {isSharedTrip && (
+            <span data-testid="visor-shared-badge" className="inline-flex items-center gap-1.5 backdrop-blur-md bg-black/40 px-3.5 py-[7px] rounded-full text-[#e0e7ff] text-[0.82rem] font-semibold border border-white/10">
+              🤝 {t('hero.sharedBy', { ns: 'visor', name: ownerDisplayName || '...', defaultValue: 'Compartido por {{name}}' })}
             </span>
+          )}
+        </div>
 
-            {isSharedTrip && (
-              <span data-testid="visor-shared-badge" className="inline-flex items-center gap-1.5 backdrop-blur-md bg-black/40 px-3.5 py-[7px] rounded-full text-[#e0e7ff] text-[0.82rem] font-semibold border border-white/10">
-                🤝 {t('hero.sharedBy', { ns: 'visor', name: ownerDisplayName || '...', defaultValue: 'Compartido por {{name}}' })}
+        {(telemetry || homeStatus) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {telemetry && telemetry.totalDays > 0 && (
+              <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-mono border border-white/15">
+                {t('hero.days', { ns: 'visor', count: telemetry.totalDays, defaultValue: '{{count}} días' })}
+              </span>
+            )}
+            {telemetry && telemetry.totalStops > 0 && (
+              <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-mono border border-white/15">
+                {t('hero.stops', { ns: 'visor', count: telemetry.totalStops, defaultValue: '{{count}} paradas' })}
+              </span>
+            )}
+            {telemetry && telemetry.totalKm > 0 && (
+              <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-mono border border-white/15">
+                {formatKmLabel(telemetry.totalKm)}
+              </span>
+            )}
+            {homeStatus?.type === 'local' && (
+              <span data-testid="visor-home-local" className="backdrop-blur-md bg-mutedTeal/25 px-3 py-[6px] rounded-full text-[#9de4de] text-[0.78rem] font-semibold border border-mutedTeal/40">
+                🏡 {t('hero.localBadge', { ns: 'visor', defaultValue: 'Aventura Local' })}
+              </span>
+            )}
+            {homeStatus?.type === 'distance' && (
+              <span data-testid="visor-home-distance" className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-semibold border border-white/15">
+                ✈️ {t('hero.distanceBadge', { ns: 'visor', distance: formatKmLabel(homeStatus.distanceKm), city: homeStatus.baseCityName || '', defaultValue: 'A {{distance}} km de {{city}}' })}
               </span>
             )}
           </div>
+        )}
 
-          {(telemetry || homeStatus) && (
-            <div className="flex items-center gap-2 flex-wrap mt-1">
-              {telemetry && telemetry.totalDays > 0 && (
-                <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-mono border border-white/15">
-                  {t('hero.days', { ns: 'visor', count: telemetry.totalDays, defaultValue: '{{count}} días' })}
-                </span>
-              )}
-              {telemetry && telemetry.totalStops > 0 && (
-                <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-mono border border-white/15">
-                  {t('hero.stops', { ns: 'visor', count: telemetry.totalStops, defaultValue: '{{count}} paradas' })}
-                </span>
-              )}
-              {telemetry && telemetry.totalKm > 0 && (
-                <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-mono border border-white/15">
-                  {formatKmLabel(telemetry.totalKm)}
-                </span>
-              )}
-              {homeStatus?.type === 'local' && (
-                <span data-testid="visor-home-local" className="backdrop-blur-md bg-mutedTeal/25 px-3 py-[6px] rounded-full text-[#9de4de] text-[0.78rem] font-semibold border border-mutedTeal/40">
-                  🏡 {t('hero.localBadge', { ns: 'visor', defaultValue: 'Aventura Local' })}
-                </span>
-              )}
-              {homeStatus?.type === 'distance' && (
-                <span data-testid="visor-home-distance" className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-semibold border border-white/15">
-                  ✈️ {t('hero.distanceBadge', { ns: 'visor', distance: formatKmLabel(homeStatus.distanceKm), city: homeStatus.baseCityName || '', defaultValue: 'A {{distance}} km de {{city}}' })}
-                </span>
-              )}
-            </div>
-          )}
+        {onOpenStories && (
+          <button
+            type="button"
+            onClick={onOpenStories}
+            data-testid="documentary-hero-stories"
+            className="inline-flex items-center justify-center gap-2 self-start bg-[#FF6B35] hover:bg-[#e85d2a] text-white font-bold px-6 py-3 rounded-full transition-all shadow-md min-w-[240px]"
+          >
+            <Play size={16} fill="currentColor" /> {t('hero.storiesCta', { ns: 'visor', defaultValue: 'Revivir en Stories' })}
+          </button>
+        )}
 
-          {onOpenStories && (
-            <button
-              type="button"
-              onClick={onOpenStories}
-              data-testid="documentary-hero-stories"
-              className="inline-flex items-center justify-center gap-2 self-start mt-3 bg-[#FF6B35] hover:bg-[#e85d2a] text-white font-bold px-6 py-3 rounded-full transition-all shadow-md min-w-[240px]"
-            >
-              <Play size={16} fill="currentColor" /> {t('hero.storiesCta', { ns: 'visor', defaultValue: 'Revivir en Stories' })}
-            </button>
-          )}
+        {isRouteMode && (
+          <div data-testid="visor-storytelling" className="flex flex-col gap-2">
+            <div className="flex gap-2 items-center flex-wrap">
+              {data.presupuesto && (
+                <span className="px-2.5 py-[5px] rounded-full backdrop-blur-md bg-black/40 text-white/90 text-[0.78rem] font-semibold border border-white/10">💰 {data.presupuesto}</span>
+              )}
+              {(data.vibe || []).map((vibe, index) => (
+                <span key={index} className="px-2.5 py-[5px] rounded-full bg-atomicTangerine/20 text-[#ffd4b8] text-[0.78rem] font-semibold border border-atomicTangerine/25">{vibe}</span>
+              ))}
 
-          {isRouteMode && (
-            <div data-testid="visor-storytelling" className="mt-5">
-              <div className="flex gap-2 items-center flex-wrap mt-1">
-                {data.presupuesto && (
-                  <span className="px-2.5 py-[5px] rounded-full backdrop-blur-md bg-black/40 text-white/90 text-[0.78rem] font-semibold border border-white/10">💰 {data.presupuesto}</span>
-                )}
-                {(data.vibe || []).map((v, i) => (
-                  <span key={i} className="px-2.5 py-[5px] rounded-full bg-atomicTangerine/20 text-[#ffd4b8] text-[0.78rem] font-semibold border border-atomicTangerine/25">{v}</span>
+              <div className="flex -space-x-2">
+                {(data.companions || []).slice(0, 4).map((companion, index) => (
+                  <div key={index} title={companion.name || companion.email} className="w-[26px] h-[26px] rounded-full backdrop-blur-md bg-black/40 flex items-center justify-center text-[0.65rem] font-bold text-white/90 border border-white/15">
+                    {getInitials(companion.name || companion.email)}
+                  </div>
                 ))}
-                
-                <div className="flex -space-x-2">
-                  {(data.companions || []).slice(0, 4).map((c, idx) => (
-                    <div key={idx} title={c.name || c.email} className="w-[26px] h-[26px] rounded-full backdrop-blur-md bg-black/40 flex items-center justify-center text-[0.65rem] font-bold text-white/90 border border-white/15">
-                      {getInitials(c.name || c.email)}
-                    </div>
-                  ))}
-                  {(data.companions || []).length > 4 && (
-                    <span className="flex items-center text-[0.7rem] text-white font-black pl-3">+{(data.companions || []).length - 4}</span>
-                  )}
-                </div>
+                {(data.companions || []).length > 4 && (
+                  <span className="flex items-center text-[0.7rem] text-white font-black pl-3">+{(data.companions || []).length - 4}</span>
+                )}
               </div>
-
-              {(data.highlights?.topFood || data.highlights?.topView || data.highlights?.topTip) && (
-                <div className="flex gap-2 items-center flex-wrap mt-2.5">
-                  {data.highlights?.topFood && <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-semibold border border-white/10">🍽️ {data.highlights.topFood}</span>}
-                  {data.highlights?.topView && <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-semibold border border-white/10">👀 {data.highlights.topView}</span>}
-                  {data.highlights?.topTip && <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-semibold border border-white/10">💡 {data.highlights.topTip}</span>}
-                </div>
-              )}
             </div>
-          )}
-        </Motion.div>
-      </div>
+
+            {(data.highlights?.topFood || data.highlights?.topView || data.highlights?.topTip) && (
+              <div className="flex gap-2 items-center flex-wrap">
+                {data.highlights?.topFood && <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-semibold border border-white/10">🍽️ {data.highlights.topFood}</span>}
+                {data.highlights?.topView && <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-semibold border border-white/10">👀 {data.highlights.topView}</span>}
+                {data.highlights?.topTip && <span className="backdrop-blur-md bg-black/40 px-3 py-[6px] rounded-full text-white/90 text-[0.78rem] font-semibold border border-white/10">💡 {data.highlights.topTip}</span>}
+              </div>
+            )}
+          </div>
+        )}
+      </Motion.div>
     </div>
   );
 };

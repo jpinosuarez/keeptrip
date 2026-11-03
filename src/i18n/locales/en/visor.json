@@ -60,7 +60,8 @@
     "nextTrip": "Next trip"
   },
   "map": {
-    "interact": "Interact with the map"
+    "interact": "Interact with the map",
+    "routeSummary": "Trip route"
   },
   "stories": {
     "aria": "Trip stories",

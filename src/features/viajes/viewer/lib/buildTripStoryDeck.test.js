@@ -55,6 +55,25 @@ describe('buildTripStoryDeck', () => {
     expect(deck.some((slide) => slide.type === 'context')).toBe(false);
   });
 
+  it('STOP-FIRST: cover/route slides ignore stale root country (HU/CZ vs DE)', () => {
+    const deck = buildTripStoryDeck({
+      viaje: { ...baseViaje, paisCodigo: 'DE' },
+      paradasOrdenadas: [
+        { id: 'budapest', nombre: 'Budapest', paisCodigo: 'HU' },
+        { id: 'praga', nombre: 'Praga', countryCode: 'CZ' },
+      ],
+      photos: [],
+    });
+
+    const cover = deck.find((slide) => slide.type === 'cover');
+    const route = deck.find((slide) => slide.type === 'route');
+
+    expect(cover.countryCode).toBe('HU');
+    expect(route.countryCode).toBe('HU');
+    expect(cover.countryCode).not.toBe('DE');
+    expect(route.countryCode).not.toBe('DE');
+  });
+
   it('adds the day-trip badge for a nested excursion inside the base stay', () => {
     const base = {
       id: 'madrid',

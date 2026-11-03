@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useAuth, useUpload, useToast } from '@app/providers';
 import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
@@ -14,7 +14,6 @@ import { useVisorViajeData } from './hooks/useVisorViajeData';
 import { useVisorViajeUI } from './hooks/useVisorViajeUI';
 import { useVisorViajeGallery } from './hooks/useVisorViajeGallery';
 import { useVisorViajeStory } from './hooks/useVisorViajeStory';
-import { useDocumentaryState } from './hooks/useDocumentaryState';
 import { buildTripStoryDeck, getHomeConnectionStatus } from './lib/buildTripStoryDeck';
 
 import DocumentaryHero from './components/DocumentaryHero';
@@ -53,19 +52,7 @@ const VisorViaje = ({
     ownerDisplayName,
   } = useVisorViajeData({ viajeId, bitacoraData: tripData, bitacoraLista: tripList, usuario });
 
-  const {
-    hoveredIndex,
-    hoveredStopId,
-    activeParadaIndex,
-    setParadaRef,
-    showStories,
-    setShowStories,
-    handleMarkerHover,
-    handleMarkerHoverEnd,
-    handleStopHover,
-    handleStopHoverEnd,
-    handleMarkerClick,
-  } = useVisorViajeUI({ isRouteMode: paradas.length > 1, isMobile });
+  const { showStories, setShowStories, carouselRef, activeCarouselDot, handleCarouselScroll } = useVisorViajeUI();
 
   const {
     galeria,
@@ -87,7 +74,10 @@ const VisorViaje = ({
   });
 
   const { fotoMostrada, storyData } = useVisorViajeStory({ data, viajeBase, paradas });
-  const { mapSyncIndex } = useDocumentaryState({ enabled: true });
+
+  // Single hover state: the ONLY source of stop/map highlighting (no scroll).
+  const [hoveredStopId, setHoveredStopId] = useState(null);
+  const handleStopHover = useCallback((stopId) => setHoveredStopId(stopId ?? null), []);
 
   useDocumentTitle(storyData?.titulo || 'Keeptrip');
 
@@ -102,9 +92,18 @@ const VisorViaje = ({
       const iso2 = normalizeCountryCode(value);
       if (iso2) codes.add(iso2);
     };
+
+    // STOP-FIRST: when stops exist they own the trip geography. Root trip
+    // metadata can be stale and must never add intruder countries.
+    if (paradasOrdenadas.length > 0) {
+      paradasOrdenadas.forEach((parada) =>
+        push(parada?.paisCodigo || parada?.countryCode || parada?.codigoPais)
+      );
+      return [...codes];
+    }
+
     push(data?.paisCodigo);
     push(data?.code);
-    paradasOrdenadas.forEach((parada) => push(parada?.paisCodigo));
     return [...codes];
   }, [data?.paisCodigo, data?.code, paradasOrdenadas]);
 
@@ -157,21 +156,17 @@ const VisorViaje = ({
       <VisorContextSection
         data={data}
         isMobile={isMobile}
+        carouselRef={carouselRef}
+        activeCarouselDot={activeCarouselDot}
+        onCarouselScroll={handleCarouselScroll}
       />
     ),
     timeline: (
       <VisorTimelineSection
         paradas={paradasOrdenadas}
         isMobile={isMobile}
-        activeParadaIndex={activeParadaIndex}
-        setParadaRef={setParadaRef}
-        hoveredIndex={hoveredIndex}
         hoveredStopId={hoveredStopId}
-        onMarkerHover={handleMarkerHover}
-        onMarkerHoverEnd={handleMarkerHoverEnd}
         onHoverStop={handleStopHover}
-        onHoverStopEnd={handleStopHoverEnd}
-        onMarkerClick={handleMarkerClick}
       />
     ),
     bitacora: (
@@ -233,19 +228,13 @@ const VisorViaje = ({
             countryCodes={countryCodes}
             paisCodigo={data?.paisCodigo || data?.code || null}
             sections={sections}
-            activeParadaIndex={activeParadaIndex}
-            mapSyncIndex={mapSyncIndex}
-            hoveredIndex={hoveredIndex}
             hoveredStopId={hoveredStopId}
-            onMarkerHover={handleMarkerHover}
-            onMarkerHoverEnd={handleMarkerHoverEnd}
             onHoverStop={handleStopHover}
-            onHoverStopEnd={handleStopHoverEnd}
-            onMarkerClick={handleMarkerClick}
+            telemetry={telemetry}
             MapRoutePreview={MapRoutePreview}
           />
 
-          <div className="max-w-[960px] mx-auto w-full px-4 md:px-6 pb-10">
+          <div className="max-w-[960px] mx-auto w-full px-4 md:px-6 pb-28 md:pb-12">
             <VisorFooterSection
               tripList={tripList}
               viajeId={viajeId}

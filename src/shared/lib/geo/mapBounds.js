@@ -7,30 +7,69 @@ const isValidCoordinate = (coords) =>
   Number.isFinite(coords[1]);
 
 /**
- * Collects the unique ISO-2 country codes visited by a trip
- * (trip-level code + every stop's country).
+ * Extracts an ISO-2 code from a flag URL (flagcdn) or a raw country code.
+ */
+const extractFlagCode = (value) => {
+  if (typeof value !== 'string') return value;
+  const match = value.match(/flagcdn\.com\/(?:w\d+\/)?([a-z]{2})\.(?:svg|png)/i);
+  return match ? match[1].toUpperCase() : value;
+};
+
+const STOP_COUNTRY_FIELDS = ['paisCodigo', 'countryCode', 'codigoPais', 'pais', 'country'];
+
+/**
+ * Collects the unique ISO-2 country codes visited by a trip.
  *
- * @param {Array<Object>} paradas
- * @param {Object|string} viaje - Trip data (or a raw country code)
+ * STOP-FIRST RULE: when the trip has stops, their country fields are the ONLY
+ * source of truth. Stale/default country metadata on the root trip document
+ * (paisCodigo, paises, countries, banderas) is ignored so "intruder" countries
+ * (e.g. DE on a HU-CZ trip) never pollute the viewer map.
+ *
+ * Accepts either `collectCountryCodes({ viaje, paradas })` or the legacy
+ * positional form `collectCountryCodes(paradas, viaje)`.
+ *
+ * @param {Array<Object>|{ paradas?: Array<Object>, viaje?: Object }} paradasOrInput
+ * @param {Object|string} [viajeInput]
  * @returns {string[]} unique ISO-2 codes
  */
-export const collectCountryCodes = (paradas = [], viaje = {}) => {
+export const collectCountryCodes = (paradasOrInput = [], viajeInput = {}) => {
+  const isObjectInput =
+    paradasOrInput &&
+    !Array.isArray(paradasOrInput) &&
+    typeof paradasOrInput === 'object' &&
+    ('paradas' in paradasOrInput || 'viaje' in paradasOrInput);
+
+  const paradas = isObjectInput
+    ? (Array.isArray(paradasOrInput.paradas) ? paradasOrInput.paradas : [])
+    : (Array.isArray(paradasOrInput) ? paradasOrInput : []);
+
+  const viaje = isObjectInput
+    ? (paradasOrInput.viaje || {})
+    : (typeof viajeInput === 'string' ? { paisCodigo: viajeInput } : (viajeInput || {}));
+
   const codes = new Set();
 
   const push = (value) => {
-    const iso2 = normalizeCountryCode(value);
+    if (value == null || value === '') return;
+    const iso2 = normalizeCountryCode(extractFlagCode(value));
     if (iso2) codes.add(iso2);
   };
 
-  if (typeof viaje === 'string') {
-    push(viaje);
-  } else {
-    push(viaje?.paisCodigo);
-    push(viaje?.code);
-    push(viaje?.countryCode);
+  // STOP-FIRST: stops own the trip geography. Never mix root metadata here.
+  if (paradas.length > 0) {
+    paradas.forEach((parada) => {
+      STOP_COUNTRY_FIELDS.forEach((field) => push(parada?.[field]));
+    });
+    return [...codes];
   }
 
-  (Array.isArray(paradas) ? paradas : []).forEach((parada) => push(parada?.paisCodigo));
+  // Fallback: only when there are no stops yet (initial load / empty trip).
+  push(viaje?.paisCodigo);
+  push(viaje?.code);
+  push(viaje?.countryCode);
+  (Array.isArray(viaje?.paises) ? viaje.paises : []).forEach(push);
+  (Array.isArray(viaje?.countries) ? viaje.countries : []).forEach(push);
+  (Array.isArray(viaje?.banderas) ? viaje.banderas : []).forEach(push);
 
   return [...codes];
 };

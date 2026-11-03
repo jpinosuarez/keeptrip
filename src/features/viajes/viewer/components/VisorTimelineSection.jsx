@@ -41,15 +41,8 @@ const collectThumbnails = (parada) =>
 
 const VisorTimelineSection = ({
   paradas = [],
-  isMobile = false,
-  activeParadaIndex,
-  hoveredIndex,
   hoveredStopId = null,
-  setParadaRef,
-  onMarkerHover,
-  onMarkerHoverEnd,
   onHoverStop,
-  onHoverStopEnd,
 }) => {
   const { t } = useTranslation('visor');
   const orderedStops = useMemo(() => ordenarParadasCronologicamente(paradas), [paradas]);
@@ -64,10 +57,7 @@ const VisorTimelineSection = ({
           const previousStop = i > 0 ? orderedStops[i - 1] : null;
           const dayTripFrom =
             previousStop && esParadaEscapada(p, previousStop) ? previousStop.nombre : null;
-          const isActive = activeParadaIndex === i && !isMobile;
-          const isHovered =
-            !isMobile && (hoveredIndex === i || Boolean(hoveredStopId && p.id === hoveredStopId));
-          const highlighted = isActive || isHovered;
+          const highlighted = Boolean(hoveredStopId && p.id === hoveredStopId);
           const hasContent = hasNarrativeContent(p);
           const days = calculateTripDays(p.fechaLlegada || p.fecha, p.fechaSalida);
           const dateLabel = formatDateRange(p.fechaLlegada || p.fecha, p.fechaSalida);
@@ -75,14 +65,8 @@ const VisorTimelineSection = ({
           const storyText = p.relato || p.nota || p.descripcion || p.comentarios || '';
 
           const stopHoverEvents = {
-            onMouseEnter: () => {
-              onMarkerHover?.(i);
-              onHoverStop?.(p.id);
-            },
-            onMouseLeave: () => {
-              onMarkerHoverEnd?.();
-              onHoverStopEnd?.();
-            },
+            onMouseEnter: () => onHoverStop?.(p.id),
+            onMouseLeave: () => onHoverStop?.(null),
           };
 
           const cardVariants = {
@@ -121,12 +105,10 @@ const VisorTimelineSection = ({
 
               {hasContent ? (
                 <div
-                  ref={(node) => setParadaRef(i, node)}
                   data-testid={`visor-stop-expanded-${p.id || i}`}
                   className={cn(
-                    'bg-surface p-6 rounded-2xl border border-border shadow-md flex flex-col gap-3 transition-all relative overflow-hidden mb-6 w-full',
-                    highlighted &&
-                      'border-atomicTangerine shadow-[0_8px_30px_rgba(0,0,0,0.12)] scale-[1.02] z-10'
+                    'w-full rounded-2xl border transition-all duration-200 px-5 py-3.5 bg-white border-slate-200/90 shadow-2xs mb-6 flex flex-col gap-3 relative overflow-hidden',
+                    highlighted && 'border-[#FF6B35]/70 bg-[#FF6B35]/[0.04] shadow-xs'
                   )}
                   {...stopHoverEvents}
                 >
@@ -217,13 +199,10 @@ const VisorTimelineSection = ({
                 </div>
               ) : (
                 <div
-                  ref={(node) => setParadaRef(i, node)}
                   data-testid={`visor-stop-compact-${p.id || i}`}
                   className={cn(
-                    'flex items-center gap-3 min-h-[48px] mb-4 w-full rounded-xl px-3 py-2 transition-colors',
-                    highlighted
-                      ? 'bg-atomicTangerine/5 ring-1 ring-atomicTangerine/20'
-                      : 'hover:bg-slate-50'
+                    'w-full rounded-2xl border transition-all duration-200 px-5 py-3.5 bg-white border-slate-200/90 shadow-2xs mb-4 flex items-center gap-3 min-h-[48px]',
+                    highlighted && 'border-[#FF6B35]/70 bg-[#FF6B35]/[0.04] shadow-xs'
                   )}
                   {...stopHoverEvents}
                 >

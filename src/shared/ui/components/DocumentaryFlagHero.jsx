@@ -1,18 +1,31 @@
 import React from 'react';
 import { COLORS } from '@shared/config';
+import { getFlagUrl } from '@shared/lib/utils/countryUtils';
 
-// Reusable DocumentaryFlagHero for both cards and top viewer
-const DocumentaryFlagHero = ({ banderas = [], className, style = {} }) => {
-  const flags = banderas.filter(Boolean); // Clean any nulls
-  
-  const containerStyle = {
-    position: 'relative',
-    width: '100%',
-    height: '100%',
-    backgroundColor: COLORS.charcoalBlue,
-    overflow: 'hidden',
-    ...style,
-  };
+const resolveFlags = ({ banderas = [], paises = [] }) => {
+  const direct = (Array.isArray(banderas) ? banderas : []).filter(Boolean);
+  if (direct.length > 0) return direct;
+  return (Array.isArray(paises) ? paises : [])
+    .map((code) => getFlagUrl(code))
+    .filter(Boolean);
+};
+
+const FLAG_STYLE = {
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  objectPosition: 'center',
+  display: 'block',
+  opacity: 0.85,
+};
+
+/**
+ * Reusable full-bleed flag collage. The root and every flag layer fill 100%
+ * of the container (no negative margins, no letterboxing, no side gaps).
+ * Accepts `banderas` (flag URLs) or `paises` (ISO country codes).
+ */
+const DocumentaryFlagHero = ({ banderas = [], paises = [], className, style = {} }) => {
+  const flags = resolveFlags({ banderas, paises });
 
   const overlayStyle = {
     position: 'absolute',
@@ -32,54 +45,51 @@ const DocumentaryFlagHero = ({ banderas = [], className, style = {} }) => {
   };
 
   const renderFlags = () => {
-    if (flags.length === 0) {
-      return null;
-    }
-    
+    if (flags.length === 0) return null;
+
     if (flags.length === 1) {
-      return (
-        <img 
-          src={flags[0]} 
-          alt="Flag" 
-          style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }} 
-        />
-      );
+      return <img src={flags[0]} alt="" style={FLAG_STYLE} />;
     }
-    
-    if (flags.length === 2) {
+
+    if (flags.length <= 3) {
       return (
         <div style={{ display: 'flex', width: '100%', height: '100%' }}>
-          <img src={flags[0]} style={{ width: '50%', height: '100%', objectFit: 'cover', opacity: 0.8, clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0% 100%)' }} />
-          <img src={flags[1]} style={{ width: '50%', height: '100%', objectFit: 'cover', opacity: 0.8, clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0% 100%)', marginLeft: '-20%' }} />
+          {flags.map((flag, index) => (
+            <img
+              key={`${flag}-${index}`}
+              src={flag}
+              alt=""
+              style={{ ...FLAG_STYLE, flex: '1 1 0', minWidth: 0 }}
+            />
+          ))}
         </div>
       );
     }
-    
-    if (flags.length === 3) {
-      return (
-        <div style={{ display: 'flex', width: '100%', height: '100%' }}>
-          <img src={flags[0]} style={{ width: '33.33%', height: '100%', objectFit: 'cover', opacity: 0.8, clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0% 100%)' }} />
-          <img src={flags[1]} style={{ width: '33.33%', height: '100%', objectFit: 'cover', opacity: 0.8, clipPath: 'polygon(20% 0, 100% 0, 80% 100%, 0% 100%)', marginLeft: '-6.66%' }} />
-          <img src={flags[2]} style={{ width: '33.33%', height: '100%', objectFit: 'cover', opacity: 0.8, clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0% 100%)', marginLeft: '-6.66%' }} />
-        </div>
-      );
-    }
-    
-    // 4+ countries (Bento Grid)
+
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', width: '100%', height: '100%' }}>
-        {flags.slice(0, 4).map((f, i) => (
-          <img key={i} src={f} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }} />
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gridTemplateRows: '1fr 1fr',
+          width: '100%',
+          height: '100%',
+        }}
+      >
+        {flags.slice(0, 4).map((flag, index) => (
+          <img key={`${flag}-${index}`} src={flag} alt="" style={FLAG_STYLE} />
         ))}
       </div>
     );
   };
 
   return (
-    <div className={className} style={containerStyle}>
-      <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-        {renderFlags()}
-      </div>
+    <div
+      className={['relative w-full h-full overflow-hidden block', className].filter(Boolean).join(' ')}
+      style={{ backgroundColor: COLORS.charcoalBlue, ...style }}
+      aria-hidden="true"
+    >
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>{renderFlags()}</div>
       <div style={overlayStyle} />
       <div style={noiseStyle} />
     </div>

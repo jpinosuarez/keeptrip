@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '@shared/firebase';
 
 export function useVisorViajeData({ viajeId, bitacoraData, bitacoraLista, usuario }) {
@@ -14,30 +14,40 @@ export function useVisorViajeData({ viajeId, bitacoraData, bitacoraLista, usuari
   const [fallbackTrip, setFallbackTrip] = useState(null);
   const [fallbackOwnerId, setFallbackOwnerId] = useState(null);
   const [fallbackAttempts, setFallbackAttempts] = useState(0);
+  // Live Firestore snapshots (trip document + stops) for 0ms reactivity.
+  const [viajeData, setViajeData] = useState(null);
 
   const hasViajeData = Boolean(
-    viajeId && (bitacoraData[viajeId] || tripBase || fallbackTrip)
+    viajeId && (viajeData || bitacoraData[viajeId] || tripBase || fallbackTrip)
   );
 
-  const data = bitacoraData[viajeId] || tripBase || fallbackTrip || {};
-  const ownerUid = data.ownerId || fallbackOwnerId || usuario?.uid || null;
+  // Live snapshot data takes STRICT precedence over cached bitacora data.
+  const resolvedViaje = useMemo(() => {
+    if (viajeData) {
+      return {
+        ...tripBase,
+        ...viajeData,
+        ownerId:
+          viajeData.ownerId ||
+          tripBase?.ownerId ||
+          fallbackTrip?.ownerId ||
+          fallbackOwnerId ||
+          usuario?.uid ||
+          null,
+      };
+    }
+    if (bitacoraData && bitacoraData[viajeId]) {
+      return { ...tripBase, ...bitacoraData[viajeId] };
+    }
+    return tripBase || fallbackTrip || {};
+  }, [viajeData, bitacoraData, viajeId, tripBase, fallbackTrip, fallbackOwnerId, usuario?.uid]);
+
+  const data = resolvedViaje;
+  const ownerUid = resolvedViaje?.ownerId || fallbackOwnerId || usuario?.uid || null;
 
   const [paradas, setParadas] = useState([]);
   const [ownerDisplayName, setOwnerDisplayName] = useState(null);
   const isSharedTrip = Boolean(data.ownerId && usuario && data.ownerId !== usuario.uid);
-
-  // Dirty-check stamp: when the EditorFocusPanel saves (via ?editing=TRIP_ID)
-  // the trip document updates, which must refetch the stops afterwards.
-  const tripUpdatedStamp = useMemo(() => {
-    const raw = data?.updatedAt || data?.fechaActualizacion || data?.timestamp || null;
-    if (!raw) return null;
-    if (typeof raw?.toMillis === 'function') return raw.toMillis();
-    if (raw instanceof Date) return raw.getTime();
-    if (typeof raw === 'object' && typeof raw.seconds === 'number') {
-      return raw.seconds * 1000 + Math.floor((raw.nanoseconds || 0) / 1e6);
-    }
-    return raw;
-  }, [data?.updatedAt, data?.fechaActualizacion, data?.timestamp]);
 
   // If the trip isn't part of the user's local bitacora yet, try to resolve it using
   // the accepted invitation record (this allows direct deep links to shared trips).
@@ -210,35 +220,50 @@ export function useVisorViajeData({ viajeId, bitacoraData, bitacoraLista, usuari
     }
   }, [viajeId, ownerUid]);
 
+  // ── Real-time trip document + stops (0ms reactivity after editor saves) ──
   useEffect(() => {
     if (!viajeId || !ownerUid) return undefined;
 
-    let mounted = true;
-
-    const fetchParadas = async () => {
-      try {
-        const ref = collection(db, `usuarios/${ownerUid}/viajes/${viajeId}/paradas`);
-        const snap = await getDocs(ref);
-        if (!mounted) return;
-        const loaded = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
-        setParadas(loaded.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)));
-      } catch (err) {
-        if (!mounted) return;
-        console.warn('Error loading paradas:', err);
+    const tripDocRef = doc(db, 'usuarios', ownerUid, 'viajes', viajeId);
+    const unsubTrip = onSnapshot(
+      tripDocRef,
+      (snap) => {
+        if (!snap.exists()) return;
+        const tripData = snap.data() || {};
+        setViajeData({
+          id: snap.id,
+          ...tripData,
+          ownerId: tripData.ownerId || ownerUid,
+        });
+      },
+      (err) => {
+        console.warn('Trip snapshot error:', err);
       }
-    };
+    );
 
-    fetchParadas();
+    const paradasColRef = collection(db, `usuarios/${ownerUid}/viajes/${viajeId}/paradas`);
+    const unsubParadas = onSnapshot(
+      paradasColRef,
+      (snap) => {
+        const loaded = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setParadas(loaded.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)));
+      },
+      (err) => {
+        console.warn('Stops snapshot error:', err);
+      }
+    );
 
     return () => {
-      mounted = false;
+      unsubTrip();
+      unsubParadas();
     };
-  }, [viajeId, ownerUid, tripUpdatedStamp]);
+  }, [viajeId, ownerUid]);
 
   return {
     viajeBase: tripBase,
+    viaje: resolvedViaje,
     hasViajeData,
-    data,
+    data: resolvedViaje,
     ownerUid,
     paradas,
     isSharedTrip,
