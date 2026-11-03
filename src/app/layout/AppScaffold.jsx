@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Sidebar } from '@widgets/sidebar';
 import { Header } from '@widgets/header';
@@ -10,6 +10,19 @@ function AppScaffold({ sidebarCollapsed: propSidebarCollapsed, invitationsCount,
   const isCollapsed = propSidebarCollapsed !== undefined ? propSidebarCollapsed : uiSidebarCollapsed;
   const location = useLocation();
   const isMapRoute = location.pathname === '/map' || location.pathname === '/mapa';
+  // Trip Viewer (/trips/:id) owns the whole editorial experience: the generic
+  // "Mis Viajes" header must never render concurrently with it.
+  const isTripViewer =
+    location.pathname.startsWith('/trips/') && location.pathname !== '/trips';
+  const sidebarWidth = isCollapsed ? '80px' : '256px';
+
+  // Expose the live sidebar width as a CSS variable so overlays/portals
+  // (Trip Viewer + loading skeleton) can offset themselves responsively.
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    document.documentElement.style.setProperty('--sidebar-width', sidebarWidth);
+    return undefined;
+  }, [sidebarWidth]);
 
   const handleTransitionEnd = useCallback((e) => {
     // Only dispatch on main's margin transition end to avoid noise from children
@@ -19,7 +32,10 @@ function AppScaffold({ sidebarCollapsed: propSidebarCollapsed, invitationsCount,
   }, []);
 
   return (
-    <div className="flex w-full h-[100dvh] min-h-[100dvh] overflow-hidden bg-slate-50 pb-safe">
+    <div
+      className="flex w-full h-[100dvh] min-h-[100dvh] overflow-hidden bg-slate-50 pb-safe"
+      style={{ '--sidebar-width': sidebarWidth }}
+    >
       
       {/* Sidebar - Fixed rail outside main flow */}
       <Sidebar />
@@ -32,7 +48,7 @@ function AppScaffold({ sidebarCollapsed: propSidebarCollapsed, invitationsCount,
           isCollapsed ? "ml-0 md:ml-20" : "ml-0 md:ml-64"
         )}
       >
-        <Header invitationsCount={invitationsCount} />
+        {!isTripViewer && <Header invitationsCount={invitationsCount} />}
 
         <section className={cn(
           "flex flex-col flex-1 min-w-0 min-h-0 w-full max-w-full overflow-hidden",

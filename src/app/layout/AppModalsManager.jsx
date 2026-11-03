@@ -37,7 +37,7 @@ function VisorViajeFallback() {
   return createPortal(
     <div
       data-testid="visor-fallback"
-      className="fixed inset-y-0 right-0 left-0 md:left-64 z-[9999] flex items-center justify-center bg-slate-900/85"
+      className="fixed inset-0 md:left-[var(--sidebar-width,256px)] z-[9999] flex items-center justify-center bg-slate-900/85"
     >
       <LoaderCircle className="animate-spin" size={32} color={COLORS.atomicTangerine} />
     </div>,

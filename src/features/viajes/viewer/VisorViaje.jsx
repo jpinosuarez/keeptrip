@@ -55,12 +55,15 @@ const VisorViaje = ({
 
   const {
     hoveredIndex,
+    hoveredStopId,
     activeParadaIndex,
     setParadaRef,
     showStories,
     setShowStories,
     handleMarkerHover,
     handleMarkerHoverEnd,
+    handleStopHover,
+    handleStopHoverEnd,
     handleMarkerClick,
   } = useVisorViajeUI({ isRouteMode: paradas.length > 1, isMobile });
 
@@ -163,8 +166,11 @@ const VisorViaje = ({
         activeParadaIndex={activeParadaIndex}
         setParadaRef={setParadaRef}
         hoveredIndex={hoveredIndex}
+        hoveredStopId={hoveredStopId}
         onMarkerHover={handleMarkerHover}
         onMarkerHoverEnd={handleMarkerHoverEnd}
+        onHoverStop={handleStopHover}
+        onHoverStopEnd={handleStopHoverEnd}
         onMarkerClick={handleMarkerClick}
       />
     ),
@@ -199,7 +205,7 @@ const VisorViaje = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-y-0 right-0 left-0 md:left-64 z-30 bg-background flex flex-col overflow-hidden"
+        className="fixed inset-0 md:left-[var(--sidebar-width,256px)] z-30 bg-[#F8FAFC] flex flex-col overflow-hidden transition-[left] duration-300"
       >
         <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth">
           <DocumentaryHero
@@ -230,8 +236,11 @@ const VisorViaje = ({
             activeParadaIndex={activeParadaIndex}
             mapSyncIndex={mapSyncIndex}
             hoveredIndex={hoveredIndex}
+            hoveredStopId={hoveredStopId}
             onMarkerHover={handleMarkerHover}
             onMarkerHoverEnd={handleMarkerHoverEnd}
+            onHoverStop={handleStopHover}
+            onHoverStopEnd={handleStopHoverEnd}
             onMarkerClick={handleMarkerClick}
             MapRoutePreview={MapRoutePreview}
           />

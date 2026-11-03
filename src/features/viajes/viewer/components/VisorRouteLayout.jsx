@@ -13,6 +13,7 @@ const VisorRouteLayout = ({
   activeParadaIndex,
   mapSyncIndex,
   hoveredIndex,
+  hoveredStopId = null,
   onMarkerHover,
   onMarkerHoverEnd,
   onMarkerClick,
@@ -28,6 +29,7 @@ const VisorRouteLayout = ({
         paisCodigo={paisCodigo}
         activeIndex={mapSyncIndex !== undefined ? mapSyncIndex : activeParadaIndex}
         hoveredIndex={hoveredIndex}
+        hoveredStopId={hoveredStopId}
         onMarkerHover={onMarkerHover}
         onMarkerHoverEnd={onMarkerHoverEnd}
         onMarkerClick={onMarkerClick}

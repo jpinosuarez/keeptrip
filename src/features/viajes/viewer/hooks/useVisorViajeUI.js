@@ -5,6 +5,7 @@ export function useVisorViajeUI({ isRouteMode, isMobile }) {
   const [showMapModal, setShowMapModal] = useState(false);
   const [showStories, setShowStories] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [hoveredStopId, setHoveredStopId] = useState(null);
 
   const { activeIndex: activeParadaIndex, setParadaRef, getParadaNode } = useActiveParada(
     isRouteMode && !isMobile
@@ -23,6 +24,8 @@ export function useVisorViajeUI({ isRouteMode, isMobile }) {
 
   const handleMarkerHover = useCallback((i) => setHoveredIndex(i), []);
   const handleMarkerHoverEnd = useCallback(() => setHoveredIndex(null), []);
+  const handleStopHover = useCallback((stopId) => setHoveredStopId(stopId ?? null), []);
+  const handleStopHoverEnd = useCallback(() => setHoveredStopId(null), []);
 
   const handleMarkerClick = useCallback(
     (i) => {
@@ -42,6 +45,7 @@ export function useVisorViajeUI({ isRouteMode, isMobile }) {
     setShowStories,
     hoveredIndex,
     setHoveredIndex,
+    hoveredStopId,
     activeParadaIndex,
     setParadaRef,
     carouselRef,
@@ -49,6 +53,8 @@ export function useVisorViajeUI({ isRouteMode, isMobile }) {
     handleCarouselScroll,
     handleMarkerHover,
     handleMarkerHoverEnd,
+    handleStopHover,
+    handleStopHoverEnd,
     handleMarkerClick,
   };
 }

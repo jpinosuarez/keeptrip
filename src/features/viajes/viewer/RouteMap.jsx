@@ -1,26 +1,23 @@
 import { cn } from '@shared/lib/utils/cn';
 import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import Map, { Source, Layer, NavigationControl, Marker } from 'react-map-gl';
+import Map, { Source, Layer, Marker } from 'react-map-gl';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { setMapLanguage, generateCurvedRoute } from '@shared/lib/geo';
 import { getTripMapBounds, collectCountryCodes } from '@shared/lib/geo/mapBounds';
 import { getCountryISO3, normalizeCountryCode } from '@shared/lib/utils/countryUtils';
-import { useWindowSize } from '@shared/lib/hooks/useWindowSize';
 import { OperationalMapFallback } from '@shared/ui/components';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 /**
- * Mapa interactivo de ruta para el VisorViaje — Modo Ruta.
- * Se centra con fitBounds al cargar; el feedback de parada activa
- * se da únicamente con el highlight del Marker (sin flyTo).
+ * Static infographic route map for the Trip Viewer.
+ * No pan/zoom/rotate: it frames the trip once and never moves (no flyTo).
  */
-const RouteMap = ({ paradas = [], countryCodes = [], paisCodigo = null, activeIndex = 0, hoveredIndex = null, onMarkerHover, onMarkerHoverEnd, onMarkerClick, isModal = false }) => {
+const RouteMap = ({ paradas = [], countryCodes = [], paisCodigo = null, activeIndex = 0, hoveredIndex = null, hoveredStopId = null, onMarkerHover, onMarkerHoverEnd, onMarkerClick, isModal = false }) => {
   const { i18n, t } = useTranslation(['dashboard', 'visor']);
-  const { isMobile } = useWindowSize();
   const {
     flags: { level: operationalLevel },
   } = useOperationalFlags();
@@ -31,8 +28,6 @@ const RouteMap = ({ paradas = [], countryCodes = [], paisCodigo = null, activeIn
   );
   const mapRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [gesturesEnabled, setGesturesEnabled] = useState(false);
-  const effectiveInteractive = !isMobile || gesturesEnabled;
 
   const resolvedCountryCodes = useMemo(() => {
     const provided = (Array.isArray(countryCodes) ? countryCodes : [])
@@ -116,11 +111,14 @@ const RouteMap = ({ paradas = [], countryCodes = [], paisCodigo = null, activeIn
           mapboxAccessToken={MAPBOX_TOKEN}
           projection="mercator"
           onLoad={handleMapLoad}
-          scrollZoom={effectiveInteractive}
-          dragPan={effectiveInteractive}
-          touchZoomRotate={effectiveInteractive}
-          doubleClickZoom={effectiveInteractive}
+          interactive={false}
+          dragPan={false}
+          scrollZoom={false}
+          boxZoom={false}
           dragRotate={false}
+          keyboard={false}
+          doubleClickZoom={false}
+          touchZoomRotate={false}
           touchPitch={false}
           pitchWithRotate={false}
           renderWorldCopies={false}
@@ -164,61 +162,40 @@ const RouteMap = ({ paradas = [], countryCodes = [], paisCodigo = null, activeIn
             </Source>
           )}
 
-          {/* Pin Markers con número de orden */}
+          {/* Pines numerados — siempre visibles (infografía estática) */}
           {paradas.map((p, i) => {
             if (!Array.isArray(p?.coordenadas) || p.coordenadas.length < 2) return null;
             const isActive = i === activeIndex;
-            const isHovered = i === hoveredIndex;
-            const highlighted = isActive || isHovered;
+            const isIndexHovered = i === hoveredIndex;
+            const isIdHovered = Boolean(hoveredStopId && p.id === hoveredStopId);
+            const highlighted = isActive || isIndexHovered || isIdHovered;
             return (
               <Marker
                 key={p.id || i}
                 longitude={p.coordenadas[0]}
                 latitude={p.coordenadas[1]}
-                anchor="bottom"
-                style={{ zIndex: highlighted ? 10 : 1 }}
+                anchor="center"
+                style={{ zIndex: highlighted ? 20 : 1 }}
               >
                 <div
+                  data-testid={`route-map-stop-${p.id || i}`}
                   className={cn(
-                    "flex flex-col items-center transition-all duration-300 cursor-pointer",
-                    highlighted ? "scale-[1.4] opacity-100" : "scale-100 opacity-60"
+                    "flex items-center justify-center w-7 h-7 rounded-full opacity-100",
+                    "bg-atomicTangerine border-2 border-white shadow-md transition-transform duration-200",
+                    highlighted && "scale-125 z-20 ring-4 ring-[#FF6B35]/30"
                   )}
                   onMouseEnter={() => onMarkerHover?.(i)}
                   onMouseLeave={() => onMarkerHoverEnd?.()}
                   onClick={() => onMarkerClick?.(i)}
                 >
-                  {/* Pin */}
-                  <div className={cn(
-                    "rounded-[50%_50%_50%_0] rotate-[-45deg] flex items-center justify-center transition-all duration-300",
-                    highlighted 
-                      ? "w-[30px] h-[30px] bg-atomicTangerine border-[3px] border-white shadow-[0_0_15px_rgba(255,107,53,0.5)]" 
-                      : "w-[22px] h-[22px] bg-textSecondary border-2 border-white/60 shadow-none"
-                  )}>
-                    <span className={cn(
-                      "rotate-45 text-white font-black leading-none",
-                      highlighted ? "text-[0.7rem]" : "text-[0.6rem]"
-                    )}>
-                      {i + 1}
-                    </span>
-                  </div>
+                  <span className="text-white text-[0.72rem] font-black leading-none">
+                    {i + 1}
+                  </span>
                 </div>
               </Marker>
             );
           })}
-
-          <NavigationControl position="top-right" />
         </Map>
-      )}
-
-      {/* Mobile scroll-trap guard: gestures only after explicit opt-in */}
-      {!isWebGLDisabled && isMobile && !gesturesEnabled && (
-        <button
-          type="button"
-          onClick={() => setGesturesEnabled(true)}
-          className="absolute top-3 left-3 z-[5] inline-flex items-center gap-1.5 min-h-[44px] rounded-full bg-white/95 text-charcoalBlue text-[0.78rem] font-bold px-4 shadow-md border border-slate-200"
-        >
-          {t('visor:map.interact', { defaultValue: 'Interactuar con el mapa' })}
-        </button>
       )}
 
       {/* Label de parada activa */}

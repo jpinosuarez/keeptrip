@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion as Motion } from 'framer-motion';
 import { Calendar, ArrowLeft, Trash2, LoaderCircle, Edit3, Play } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +34,17 @@ const DocumentaryHero = ({
   onOpenStories,
 }) => {
   const { t, i18n } = useTranslation(['countries', 'visor']);
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (onClose) {
+      onClose();
+    } else if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/trips');
+    }
+  };
 
   const isDefaultPhoto = !fotoMostrada || fotoMostrada === FOTO_DEFAULT_URL;
   const countryCode = data?.paisCodigo || data?.code || viajeBase?.paisCodigo || viajeBase?.code || null;
@@ -72,8 +84,9 @@ const DocumentaryHero = ({
 
       {/* Navigation UI */}
       <div className="absolute top-[max(16px,env(safe-area-inset-top,16px))] left-4 right-4 flex justify-between items-center z-[20]">
-        <button 
-          onClick={onClose} 
+        <button
+          onClick={handleBack}
+          data-testid="documentary-hero-back"
           className={cn(
             "backdrop-blur-md bg-black/40 border border-white/20 rounded-full w-11 h-11 flex items-center justify-center text-white shadow-md transition-all cursor-pointer",
             isBusy && "opacity-50 cursor-not-allowed"

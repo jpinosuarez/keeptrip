@@ -259,7 +259,7 @@ const TripStoriesPlayerModal = ({ isOpen = false, slides = [], onClose, shareDat
 
   return (
     <div
-      className="fixed inset-0 z-[60] bg-slate-950/95 flex items-center justify-center p-0 md:p-6"
+      className="fixed inset-0 z-[100] w-screen h-[100dvh] bg-black flex flex-col justify-between overflow-hidden md:items-center md:justify-center md:bg-slate-950/95 md:p-6"
       data-testid="trip-stories-player"
       role="dialog"
       aria-modal="true"
