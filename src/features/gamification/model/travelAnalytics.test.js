@@ -61,7 +61,10 @@ describe('travelAnalytics', () => {
     expect(poles.east.cityName).toBe('Sydney'); // 151.2
     expect(poles.west.cityName).toBe('Lisboa'); // -9.14
     expect(poles.north.tripId).toBe('t1');
-    expect(poles.north.formattedCoord).toContain('40.42');
+    expect(poles.north.formattedCoord).toBe('40.42° N, 3.70° O');
+    expect(poles.south.formattedCoord).toContain('° S');
+    expect(poles.east.formattedCoord).toContain('° E');
+    expect(poles.west.formattedCoord).toContain('° O');
   });
 
   it('computes the farthest point from a configured home base', () => {
@@ -71,6 +74,9 @@ describe('travelAnalytics', () => {
     expect(farthest.cityName).toBe('Sydney');
     expect(farthest.distanceKm).toBeGreaterThan(8000);
     expect(farthest.homeCityName).toBe('Madrid');
+    expect(farthest.latitude).toBeCloseTo(-33.8688, 3);
+    expect(farthest.longitude).toBeCloseTo(151.2093, 3);
+    expect(farthest.formattedCoord).toBe('33.87° S, 151.21° E');
 
     expect(computeFarthestFromHome(baseTrips, baseTripData, null)).toBeNull();
   });
@@ -118,6 +124,7 @@ describe('travelAnalytics', () => {
     expect(result.pace.medium).toBe(1); // 5 days
     expect(result.pace.long).toBe(1); // 15 days
     expect(result.pace.short).toBe(0);
+    expect(result.avgKmPerTrip).toBeGreaterThan(0);
   });
 
   it('returns a graceful zero-slop payload when there are no trips', () => {

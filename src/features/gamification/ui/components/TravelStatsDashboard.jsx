@@ -5,7 +5,7 @@
  */
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Globe2,
   Route as RouteIcon,
@@ -15,24 +15,21 @@ import {
   TrendingUp,
   MapPin,
   ArrowRight,
-  ChevronRight,
+  ArrowUpRight,
 } from 'lucide-react';
 import { CountryFlag } from '@shared/ui/components/CountryFlag';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { cn } from '@shared/lib/utils/cn';
+import { formatLocalizedNumber, formatKmValue } from '@shared/lib/utils/numberUtils';
+import { formatCardinalCoord } from '@features/gamification/model/travelAnalytics';
 import { useTravelAnalytics } from '@features/gamification/model/hooks/useTravelAnalytics';
 
 const CONTINENT_LABELS = { EU: 'Europa', AM: 'América', AS: 'Asia', AF: 'África', OC: 'Oceanía' };
 const POLE_LABELS = { north: 'Norte', south: 'Sur', east: 'Este', west: 'Oeste' };
 const POLE_KEYS = ['north', 'south', 'east', 'west'];
 
-const formatKm = (value, language) => {
-  if (typeof value !== 'number' || Number.isNaN(value)) return '0';
-  const locale = typeof language === 'string' && language.toLowerCase().startsWith('en')
-    ? 'en-US'
-    : 'es-ES';
-  return new Intl.NumberFormat(locale).format(Math.round(value));
-};
+const isEnglishLanguage = (language) =>
+  typeof language === 'string' && language.toLowerCase().startsWith('en');
 
 const Card = ({ className, children }) => (
   <div className={cn('rounded-3xl bg-white border border-slate-200/80 shadow-sm p-5 min-w-0', className)}>
@@ -99,6 +96,7 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
     availableYears,
     yearBanner,
     totalKm,
+    avgKmPerTrip,
     earthLaps,
     earthPercentage,
     continents,
@@ -175,29 +173,91 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Odometer */}
-        <Card>
-          <SectionTitle icon={RouteIcon}>{t('statsDashboard.odometerTitle', 'Odómetro Global')}</SectionTitle>
-          <div className="flex items-end gap-2">
-            <span className="font-mono text-3xl font-extrabold text-slate-900 leading-none">
-              {formatKm(totalKm, language)}
-            </span>
-            <span className="text-sm font-bold text-slate-500 mb-0.5">km</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl mx-auto">
+        {/* ROW 1 — Left column: stacked Odometer + Farthest */}
+        <div className="flex flex-col gap-4">
+          {/* Odometer */}
+          <div className="flex-1 flex flex-col justify-between p-6 bg-white rounded-2xl border border-slate-200/90 shadow-sm">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <RouteIcon size={16} className="text-atomicTangerine" aria-hidden="true" />
+                <h3 className="m-0 text-[0.78rem] font-extrabold uppercase tracking-widest text-charcoalBlue font-heading">
+                  {t('statsDashboard.odometerTitle', 'Odómetro Global')}
+                </h3>
+              </div>
+              <div className="flex items-end gap-2">
+                <span className="font-mono text-3xl md:text-4xl font-extrabold text-slate-900 leading-none">
+                  {formatKmValue(totalKm, language)}
+                </span>
+                <span className="text-sm font-bold text-slate-500 mb-0.5">km</span>
+              </div>
+              <p className="mt-2 mb-0 text-xs font-semibold text-slate-500">
+                {t('statsDashboard.earthLaps', 'Equivale a {{laps}} vueltas a la Tierra', { laps: earthLaps })}
+              </p>
+              <div className="mt-3 h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-atomicTangerine transition-all duration-500"
+                  style={{ width: `${earthPercentage}%` }}
+                />
+              </div>
+              <p className="mt-1 mb-0 text-[0.7rem] font-bold text-slate-400">
+                {earthPercentage}% {t('statsDashboard.earthPercentageLabel', 'de una vuelta al planeta')}
+              </p>
+            </div>
+            <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span>{t('statsDashboard.avgKmPerTrip', 'Promedio por viaje')}:</span>
+              <span className="font-mono font-bold text-slate-700">{formatKmValue(avgKmPerTrip, language)} km</span>
+            </div>
           </div>
-          <p className="mt-2 mb-0 text-xs font-semibold text-slate-500">
-            {t('statsDashboard.earthLaps', 'Equivale a {{laps}} vueltas a la Tierra', { laps: earthLaps })}
-          </p>
-          <div className="mt-3 h-2 rounded-full bg-slate-100 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-atomicTangerine transition-all duration-500"
-              style={{ width: `${earthPercentage}%` }}
-            />
-          </div>
-          <p className="mt-1 mb-0 text-[0.7rem] font-bold text-slate-400">
-            {earthPercentage}% {t('statsDashboard.earthPercentageLabel', 'de una vuelta al planeta')}
-          </p>
-        </Card>
+
+          {/* Farthest point from home base — clickable card */}
+          {farthestFromHome && (
+            <Link
+              to={`/trips/${farthestFromHome.tripId}`}
+              className="flex-1 flex flex-col justify-between p-6 bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:border-[#FF6B35]/40 transition-colors cursor-pointer group"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <TrendingUp size={16} className="text-[#FF6B35] shrink-0" aria-hidden="true" />
+                    <h3 className="m-0 text-[0.78rem] font-extrabold uppercase tracking-widest text-charcoalBlue font-heading truncate">
+                      {t('statsDashboard.farthestTitle', 'Punto más lejano de tu base')}
+                    </h3>
+                  </div>
+                  <ArrowUpRight size={16} className="text-slate-400 group-hover:text-[#FF6B35] transition-colors shrink-0" />
+                </div>
+                <div className="flex items-end gap-2">
+                  <span className="font-mono text-2xl md:text-3xl font-extrabold text-slate-900 leading-none">
+                    {formatKmValue(farthestFromHome.distanceKm, language)}
+                  </span>
+                  <span className="text-sm font-bold text-slate-500 mb-0.5">km</span>
+                </div>
+                <div className="mt-2 flex items-center flex-wrap gap-1">
+                  {farthestFromHome.countryCode && <CountryFlag code={farthestFromHome.countryCode} size="sm" />}
+                  <span className="font-bold text-slate-800 text-sm ml-1.5">
+                    {farthestFromHome.cityName || countryName(farthestFromHome.countryCode)}
+                  </span>
+                  <span className="text-[11px] font-mono text-slate-400 ml-2">
+                    ({formatCardinalCoord(
+                      farthestFromHome.latitude,
+                      farthestFromHome.longitude,
+                      isEnglishLanguage(language) ? 'W' : 'O'
+                    )})
+                  </span>
+                </div>
+              </div>
+              <div className="pt-2.5 mt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 gap-2">
+                <span className="truncate">
+                  {t('statsDashboard.straightLineFrom', 'En línea recta desde')}{' '}
+                  <strong className="text-slate-700">{farthestFromHome.homeCityName}</strong>
+                </span>
+                <span className="text-[11px] text-[#FF6B35] font-semibold flex items-center gap-0.5 group-hover:underline truncate max-w-[45%]">
+                  {farthestFromHome.tripTitle}
+                </span>
+              </div>
+            </Link>
+          )}
+        </div>
 
         {/* Continents */}
         <Card>
@@ -260,7 +320,9 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
                         {point.cityName || countryName(point.countryCode)}
                       </span>
                     </span>
-                    <span className="font-mono text-[0.62rem] text-slate-400">{point.formattedCoord}</span>
+                    <span className="font-mono text-[0.62rem] text-slate-400">
+                      {formatCardinalCoord(point.latitude, point.longitude, isEnglishLanguage(language) ? 'W' : 'O')}
+                    </span>
                   </button>
                 );
               })}
@@ -268,48 +330,20 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
           </Card>
         )}
 
-        {/* Farthest point from home base */}
-        {farthestFromHome && (
-          <Card>
-            <SectionTitle icon={TrendingUp}>{t('statsDashboard.farthestTitle', 'Punto más lejano de tu base')}</SectionTitle>
-            <div className="flex items-end gap-2">
-              <span className="font-mono text-2xl font-extrabold text-slate-900">
-                {formatKm(farthestFromHome.distanceKm, language)}
-              </span>
-              <span className="text-sm font-bold text-slate-500 mb-0.5">km</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => openTrip(farthestFromHome.tripId)}
-              disabled={!farthestFromHome.tripId}
-              className="mt-2 flex items-center gap-1.5 w-full min-h-[44px] rounded-xl hover:bg-slate-50 transition-colors disabled:cursor-default"
-            >
-              {farthestFromHome.countryCode && <CountryFlag code={farthestFromHome.countryCode} size="sm" />}
-              <span className="truncate text-sm font-bold text-charcoalBlue flex-1 text-left">
-                {farthestFromHome.cityName || countryName(farthestFromHome.countryCode)}
-              </span>
-              <ChevronRight size={14} className="text-slate-400 shrink-0" />
-            </button>
-            {farthestFromHome.homeCityName && (
-              <p className="mt-1 mb-0 text-[0.7rem] text-slate-400">
-                {t('statsDashboard.farthestFrom', 'desde {{city}}', { city: farthestFromHome.homeCityName })}
-              </p>
-            )}
-          </Card>
-        )}
-
         {/* Time & pace */}
-        <Card>
+        <Card className={!hasPoles ? 'md:col-span-2' : undefined}>
           <SectionTitle icon={Clock}>{t('statsDashboard.timeTitle', 'Tiempo y Ritmo de Viaje')}</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <div className="font-mono text-xl font-extrabold text-slate-900">{totalDays}</div>
+              <div className="font-mono text-xl font-extrabold text-slate-900">{formatLocalizedNumber(totalDays, language)}</div>
               <div className="text-[0.68rem] font-bold uppercase tracking-wider text-slate-400">
                 {t('statsDashboard.totalDays', 'Días de viaje')}
               </div>
             </div>
             <div>
-              <div className="font-mono text-xl font-extrabold text-slate-900">{averageDaysPerTrip}</div>
+              <div className="font-mono text-xl font-extrabold text-slate-900">
+                {formatLocalizedNumber(averageDaysPerTrip, language, { decimals: Number.isInteger(averageDaysPerTrip) ? 0 : 1 })}
+              </div>
               <div className="text-[0.68rem] font-bold uppercase tracking-wider text-slate-400">
                 {t('statsDashboard.avgDays', 'Días prom./viaje')}
               </div>
@@ -349,43 +383,10 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
           </div>
         </Card>
 
-        {/* Seasonality */}
-        {seasonality.hasData && (
-          <Card className="md:col-span-2">
-            <SectionTitle icon={Calendar}>{t('statsDashboard.seasonalityTitle', 'Estacionalidad Anual')}</SectionTitle>
-            <div className="flex items-end gap-1.5 h-28">
-              {seasonality.months.map((month) => {
-                const heightPct = Math.round((month.days / maxMonthDays) * 100);
-                const isPeak = peakMonth === month.month;
-                return (
-                  <div key={month.month} className="flex-1 flex flex-col items-center justify-end gap-1 min-w-0">
-                    <div
-                      className="w-full rounded-t-md transition-all"
-                      style={{
-                        height: `${Math.max(heightPct, month.days > 0 ? 6 : 0)}%`,
-                        backgroundColor: isPeak ? '#FF6B35' : '#CBD5E1',
-                      }}
-                      title={`${month.days}d`}
-                    />
-                    <span className={cn('text-[0.58rem] font-bold', isPeak ? 'text-atomicTangerine' : 'text-slate-400')}>
-                      {monthLabels[month.month]}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-            {peakMonth !== null && (
-              <p className="mt-2 mb-0 text-xs font-semibold text-slate-500">
-                {t('statsDashboard.peakMonth', 'Tu mes más viajero: {{month}}', { month: monthLabels[peakMonth] })}
-              </p>
-            )}
-          </Card>
-        )}
-
-        {/* Frequent destinations & scope */}
+        {/* Frequent destinations & scope — full width */}
         <Card className="md:col-span-2">
           <SectionTitle icon={MapPin}>{t('statsDashboard.topDestinationsTitle', 'Destinos Frecuentes')}</SectionTitle>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <div className="text-[0.62rem] font-black uppercase tracking-widest text-slate-400 mb-2">
                 {t('statsDashboard.topCountries', 'Países más visitados')}
@@ -404,6 +405,7 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
                 ))}
               </div>
             </div>
+
             <div>
               <div className="text-[0.62rem] font-black uppercase tracking-widest text-slate-400 mb-2">
                 {t('statsDashboard.topCities', 'Ciudades más visitadas')}
@@ -420,35 +422,83 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
                 ))}
               </div>
             </div>
-          </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-bold">
-            <span className="rounded-full bg-atomicTangerine/10 text-atomicTangerine px-2.5 py-1">
-              {t('statsDashboard.localTrips', '{{count}} locales', { count: localTripsCount })}
-            </span>
-            <span className="rounded-full bg-mutedTeal/10 text-mutedTeal px-2.5 py-1">
-              {t('statsDashboard.internationalTrips', '{{count}} internacionales', { count: internationalTripsCount })}
-            </span>
-          </div>
-
-          {topCompanions.length > 0 && (
-            <div className="mt-3">
-              <div className="text-[0.62rem] font-black uppercase tracking-widest text-slate-400 mb-1">
-                {t('statsDashboard.topCompanions', 'Compañeros de viaje')}
+            <div>
+              <div className="text-[0.62rem] font-black uppercase tracking-widest text-slate-400 mb-2">
+                {t('statsDashboard.scopeTitle', 'Alcance de tus viajes')}
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {topCompanions.map((companion) => (
-                  <span
-                    key={companion.name}
-                    className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-bold text-slate-600"
-                  >
-                    {companion.name} · {companion.count}
-                  </span>
-                ))}
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full bg-atomicTangerine/10 text-atomicTangerine px-2.5 py-1 text-xs font-bold">
+                  {t('statsDashboard.localTrips', '{{count}} locales', { count: localTripsCount })}
+                </span>
+                <span className="rounded-full bg-mutedTeal/10 text-mutedTeal px-2.5 py-1 text-xs font-bold">
+                  {t('statsDashboard.internationalTrips', '{{count}} internacionales', { count: internationalTripsCount })}
+                </span>
               </div>
+              {topCompanions.length > 0 && (
+                <div className="mt-3">
+                  <div className="text-[0.62rem] font-black uppercase tracking-widest text-slate-400 mb-1">
+                    {t('statsDashboard.topCompanions', 'Compañeros de viaje')}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {topCompanions.map((companion) => (
+                      <span
+                        key={companion.name}
+                        className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-bold text-slate-600"
+                      >
+                        {companion.name} · {companion.count}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </Card>
+
+        {/* Seasonality — full width, final row */}
+        {seasonality.hasData && (
+          <Card className="md:col-span-2">
+            <SectionTitle icon={Calendar}>{t('statsDashboard.seasonalityTitle', 'Estacionalidad Anual')}</SectionTitle>
+            <div className="flex items-end gap-1.5 h-40 mt-4">
+              {seasonality.months.map((month) => {
+                const isPeak = peakMonth === month.month;
+                const barHeight = Math.max(6, Math.round((month.days / maxMonthDays) * 100));
+                const tooltipLabel = t('statsDashboard.monthTooltip', '{{month}}: {{days}} días · {{trips}} viajes', {
+                  month: monthLabels[month.month],
+                  days: month.days,
+                  trips: month.trips,
+                });
+                return (
+                  <div key={month.month} className="flex-1 h-full min-w-0 flex flex-col items-center justify-end gap-1">
+                    <div className="group relative w-full flex-1 min-h-0 flex items-end justify-center rounded-lg bg-slate-100 p-0.5">
+                      <div
+                        className="w-full rounded-t-md transition-[height] duration-500"
+                        style={{
+                          height: `${barHeight}%`,
+                          backgroundColor: isPeak ? '#FF6B35' : '#CBD5E1',
+                          boxShadow: isPeak ? '0 0 12px rgba(255,107,53,0.45)' : undefined,
+                        }}
+                        title={tooltipLabel}
+                      />
+                      <span className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#2C3E50] px-2 py-0.5 text-[10px] font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity z-20 shadow-sm">
+                        {tooltipLabel}
+                      </span>
+                    </div>
+                    <span className={cn('text-[0.58rem] font-bold', isPeak ? 'text-atomicTangerine' : 'text-slate-400')}>
+                      {monthLabels[month.month]}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            {peakMonth !== null && (
+              <p className="mt-2 mb-0 text-xs font-semibold text-slate-500">
+                {t('statsDashboard.peakMonth', 'Tu mes más viajero: {{month}}', { month: monthLabels[peakMonth] })}
+              </p>
+            )}
+          </Card>
+        )}
       </div>
     </div>
   );

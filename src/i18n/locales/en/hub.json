@@ -71,6 +71,9 @@
     "odometerTitle": "Global Odometer",
     "earthLaps": "That's {{laps}} laps around the Earth",
     "earthPercentageLabel": "of one lap around the planet",
+    "avgKmPerTrip": "Average per trip",
+    "straightLineFrom": "Straight-line from",
+    "scopeTitle": "Trip scope",
     "continentsTitle": "The 5 Classical Continents",
     "continents": {
       "EU": "Europe",
@@ -98,6 +101,7 @@
     "paceLong": "Grand expedition (15+d)",
     "seasonalityTitle": "Yearly Seasonality",
     "peakMonth": "Your busiest month: {{month}}",
+    "monthTooltip": "{{month}}: {{days}} days · {{trips}} trips",
     "topDestinationsTitle": "Frequent Destinations",
     "topCountries": "Most visited countries",
     "topCities": "Most visited cities",

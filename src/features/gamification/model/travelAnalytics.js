@@ -175,6 +175,17 @@ export const computeContinentStats = (trips = [], tripData = {}) => {
   return { continents, uniqueCountries: allCountries.size };
 };
 
+/** Formats a latitude into navigational notation, e.g. `40.42° N`. */
+export const formatLatitude = (lat) => `${Math.abs(lat).toFixed(2)}° ${lat >= 0 ? 'N' : 'S'}`;
+
+/** Formats a longitude into navigational notation, e.g. `3.70° O` (west label is localizable). */
+export const formatLongitude = (lng, westLabel = 'O') =>
+  `${Math.abs(lng).toFixed(2)}° ${lng >= 0 ? 'E' : westLabel}`;
+
+/** Formats a full coordinate pair, e.g. `40.42° N, 3.70° O`. */
+export const formatCardinalCoord = (lat, lng, westLabel = 'O') =>
+  `${formatLatitude(lat)}, ${formatLongitude(lng, westLabel)}`;
+
 const buildStopRecord = (stop, merged) => {
   const coords = stop?.coordenadas;
   if (!Array.isArray(coords) || coords.length < 2) return null;
@@ -187,7 +198,7 @@ const buildStopRecord = (stop, merged) => {
     countryCode: normalizeCountryCode(countryRaw) || null,
     latitude: lat,
     longitude: lng,
-    formattedCoord: `${lat.toFixed(2)}°, ${lng.toFixed(2)}°`,
+    formattedCoord: formatCardinalCoord(lat, lng),
     tripId: merged.id ?? null,
     tripTitle: getTripTitle(merged),
   };
@@ -247,6 +258,9 @@ export const computeFarthestFromHome = (trips = [], tripData = {}, userProfile =
           homeCityName: city?.name || '',
           tripId: merged.id ?? null,
           tripTitle: getTripTitle(merged),
+          latitude: lat,
+          longitude: lng,
+          formattedCoord: formatCardinalCoord(lat, lng),
         };
       }
     });
@@ -388,6 +402,7 @@ export const computeTravelAnalytics = ({
 
   // Dimension 2 — Geodesic odometer, poles & farthest point
   const totalKm = computeTotalKm(filteredTrips, safeTripData);
+  const avgKmPerTrip = totalTrips > 0 ? Math.round(totalKm / totalTrips) : 0;
   const { earthLaps, earthPercentage } = getEarthLaps(totalKm);
   const poles = computeCardinalPoles(filteredTrips, safeTripData);
   const farthestFromHome = computeFarthestFromHome(filteredTrips, safeTripData, userProfile);
@@ -442,6 +457,7 @@ export const computeTravelAnalytics = ({
     selectedYear: normalizedYear,
     totalTrips,
     totalKm,
+    avgKmPerTrip,
     earthLaps,
     earthPercentage,
     continents,

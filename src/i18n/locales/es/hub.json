@@ -101,6 +101,9 @@
     "odometerTitle": "Odómetro Global",
     "earthLaps": "Equivale a {{laps}} vueltas a la Tierra",
     "earthPercentageLabel": "de una vuelta al planeta",
+    "avgKmPerTrip": "Promedio por viaje",
+    "straightLineFrom": "En línea recta desde",
+    "scopeTitle": "Alcance de tus viajes",
     "continentsTitle": "Los 5 Continentes Clásicos",
     "continents": {
       "EU": "Europa",
@@ -128,6 +131,7 @@
     "paceLong": "Gran expedición (15+d)",
     "seasonalityTitle": "Estacionalidad Anual",
     "peakMonth": "Tu mes más viajero: {{month}}",
+    "monthTooltip": "{{month}}: {{days}} días · {{trips}} viajes",
     "topDestinationsTitle": "Destinos Frecuentes",
     "topCountries": "Países más visitados",
     "topCities": "Ciudades más visitadas",

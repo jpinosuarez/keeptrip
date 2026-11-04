@@ -11,19 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { Globe, Compass, Calendar, MapPin, Route, ArrowRight } from 'lucide-react';
 import { ENABLE_TRAVEL_STATS } from '@shared/config';
 import { cn } from '@shared/lib/utils/cn';
-
-const formatNumber = (value) => {
-  if (typeof value !== 'number' || Number.isNaN(value)) return '—';
-  return new Intl.NumberFormat('en-US').format(Math.round(value));
-};
-
-const formatKm = (value, language) => {
-  if (typeof value !== 'number' || Number.isNaN(value)) return '0';
-  const locale = typeof language === 'string' && language.toLowerCase().startsWith('en')
-    ? 'en-US'
-    : 'es-ES';
-  return new Intl.NumberFormat(locale).format(Math.round(value));
-};
+import { formatLocalizedNumber, formatKmValue } from '@shared/lib/utils/numberUtils';
 
 const TravelStatsWidget = ({ logStats = null, ariaLabel, containerClassName = 'w-full' }) => {
   const { t, i18n } = useTranslation('dashboard');
@@ -61,31 +49,31 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, containerClassName = 'w
     {
       key: 'uniqueCountries',
       Icon: Globe,
-      value: formatNumber(safeValue(logStats.uniqueCountries)),
+      value: formatLocalizedNumber(safeValue(logStats.uniqueCountries), i18n?.language),
       label: t('stats.uniqueCountries'),
     },
     {
       key: 'completedTrips',
       Icon: Compass,
-      value: formatNumber(safeValue(logStats.completedTrips)),
+      value: formatLocalizedNumber(safeValue(logStats.completedTrips), i18n?.language),
       label: t('stats.completedTrips'),
     },
     {
       key: 'totalDays',
       Icon: Calendar,
-      value: formatNumber(safeValue(logStats.totalDays)),
+      value: formatLocalizedNumber(safeValue(logStats.totalDays), i18n?.language),
       label: t('stats.totalDays'),
     },
     {
       key: 'totalStops',
       Icon: MapPin,
-      value: formatNumber(safeValue(logStats.totalStops)),
+      value: formatLocalizedNumber(safeValue(logStats.totalStops), i18n?.language),
       label: t('stats.totalStops'),
     },
     {
       key: 'totalKm',
       Icon: Route,
-      value: `${formatKm(safeValue(logStats.totalKm), i18n?.language)} km`,
+      value: `${formatKmValue(safeValue(logStats.totalKm), i18n?.language)} km`,
       label: t('stats.totalKm'),
       mono: true,
     },
