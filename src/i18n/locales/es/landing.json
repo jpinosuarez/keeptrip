@@ -43,5 +43,18 @@
     "contact": "Contacto",
     "copyright": "Todos los derechos reservados.",
     "language": "Idioma"
+  },
+  "devDock": {
+    "title": "Datos de prueba",
+    "seeding": "Sembrando...",
+    "scenarios": {
+      "mateo": "Demo Mateo",
+      "rich": "Demo Trotamundos",
+      "empty": "Demo Vacía (Onboarding)"
+    },
+    "toast": {
+      "success": "Escenario «{{scenario}}» cargado con {{count}} viajes.",
+      "error": "No se pudo cargar el escenario. Revisa la consola."
+    }
   }
 }

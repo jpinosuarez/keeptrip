@@ -43,5 +43,18 @@
     "contact": "Contact",
     "copyright": "All rights reserved.",
     "language": "Language"
+  },
+  "devDock": {
+    "title": "Mock data",
+    "seeding": "Seeding...",
+    "scenarios": {
+      "mateo": "Mateo demo",
+      "rich": "Globetrotter demo",
+      "empty": "Empty demo (Onboarding)"
+    },
+    "toast": {
+      "success": "Scenario \"{{scenario}}\" loaded with {{count}} trips.",
+      "error": "Could not load the scenario. Check the console."
+    }
   }
 }
