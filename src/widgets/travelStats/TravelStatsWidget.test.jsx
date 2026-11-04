@@ -2,6 +2,7 @@
 import React from 'react';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import TravelStatsWidget from './ui/TravelStatsWidget';
 
 vi.mock('react-i18next', async () => {
@@ -21,6 +22,8 @@ vi.mock('react-i18next', async () => {
           'stats.totalDaysHint': 'Days across all trips',
           'stats.totalStops': 'Stops',
           'stats.totalStopsHint': 'Stops recorded',
+          'stats.totalKm': 'Kilometers',
+          'stats.viewMoreStats': 'View more statistics',
           'stats.emptyStateHint': 'Your next journey awaits',
           'stats.emptyStateMessage': 'Start your first adventure to see your travel story unfold',
         };
@@ -39,10 +42,18 @@ describe('TravelStatsWidget', () => {
     completedTrips: 3,
     totalDays: 9,
     totalStops: 12,
+    totalKm: 980,
   };
 
+  const renderWidget = (stats) =>
+    render(
+      <MemoryRouter>
+        <TravelStatsWidget logStats={stats} ariaLabel="test" />
+      </MemoryRouter>
+    );
+
   it('renders the five storytelling metrics in bento layout', () => {
-    render(<TravelStatsWidget logStats={mockLogStats} ariaLabel="test" />);
+    renderWidget(mockLogStats);
 
     expect(screen.getByRole('region', { name: 'test' })).toBeInTheDocument();
     expect(screen.getByText('World explored')).toBeInTheDocument();
@@ -50,10 +61,11 @@ describe('TravelStatsWidget', () => {
     expect(screen.getByText('Trips')).toBeInTheDocument();
     expect(screen.getByText('Days')).toBeInTheDocument();
     expect(screen.getByText('Stops')).toBeInTheDocument();
+    expect(screen.getByText('Kilometers')).toBeInTheDocument();
   });
 
   it('renders empty state when there are no completed trips', () => {
-    render(<TravelStatsWidget logStats={{ ...mockLogStats, completedTrips: 0 }} ariaLabel="test" />);
+    renderWidget({ ...mockLogStats, completedTrips: 0 });
 
     expect(screen.getByText('Your next journey awaits')).toBeInTheDocument();
   });

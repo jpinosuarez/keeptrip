@@ -34,6 +34,7 @@ const PAGE_TITLES = {
   '/map':         'pageTitle.worldMap',
   '/mapa':        'pageTitle.worldMap',
   '/explorer':    'pageTitle.hub',
+  '/hub':         'pageTitle.stats',
   '/invitations': 'pageTitle.invitations',
   '/settings':    'pageTitle.settings',
 };

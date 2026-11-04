@@ -2,49 +2,47 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { Globe } from 'lucide-react';
 
-// mock toast so that useToast works in tests
+// deterministic i18n — return the provided fallback string (or the key)
+vi.mock('react-i18next', async () => {
+  const actual = await vi.importActual('react-i18next');
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key, fallback) => (typeof fallback === 'string' ? fallback : key),
+      i18n: { language: 'es' },
+    }),
+  };
+});
+
+// mock toast so that useToast is available inside TravelerHub
 const mockPushToast = vi.fn();
 vi.mock('@app/providers/ToastContext', () => ({ useToast: () => ({ pushToast: mockPushToast }) }));
 
-// stub out heavy subcomponents to avoid rendering logic in unit test
+// stub heavy subcomponents to keep this a pure unit test
 vi.mock('../AchievementsGrid', () => ({ default: () => <div data-testid="achievements" /> }));
-
-// stub window size hook
-vi.mock('@shared/lib/hooks/useWindowSize', () => ({ useWindowSize: () => ({ isMobile: false }) }));
+vi.mock('../components/TravelStatsDashboard', () => ({
+  default: () => <div data-testid="travel-stats-dashboard" />,
+}));
 
 import TravelerHub from '../TravelerHub';
 
-
 describe('TravelerHub', () => {
-  const baseStats = [
-    { value: 2, label: 'Countries', icon: <Globe /> },
-  ];
-
   const defaultProps = {
     paisesVisitados: [],
     bitacora: [],
+    bitacoraData: {},
     achievementsWithProgress: [],
-    stats: baseStats,
   };
 
-  it('renders without crashing and shows share button', () => {
+  it('renders the deep travel statistics header and dashboard', () => {
     render(<TravelerHub {...defaultProps} />);
-    // the share button should be present (label is key because of mocked i18n)
-    expect(screen.getByRole('button', { name: /share/i })).toBeInTheDocument();
+    expect(screen.getByText(/Estadísticas de Viaje/i)).toBeInTheDocument();
+    expect(screen.getByTestId('travel-stats-dashboard')).toBeInTheDocument();
   });
 
-  it('copy link to clipboard when share clicked and navigator.share not available', async () => {
-    Object.defineProperty(navigator, 'share', { value: undefined, configurable: true });
-    Object.defineProperty(navigator, 'clipboard', {
-      value: { writeText: vi.fn().mockResolvedValue() },
-      configurable: true,
-    });
-
+  it('keeps the gamification sections gated behind ENABLE_GAMIFICATION', () => {
     render(<TravelerHub {...defaultProps} />);
-    const btn = screen.getAllByRole('button', { name: /share/i })[0];
-    await btn.click();
-    expect(navigator.clipboard.writeText).toHaveBeenCalled();
+    expect(screen.queryByTestId('achievements')).not.toBeInTheDocument();
   });
 });

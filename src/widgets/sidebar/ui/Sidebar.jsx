@@ -17,13 +17,14 @@ import {
   Settings,
   LogOut,
   Trophy,
+  BarChart3,
   Plus,
   PanelLeftClose,
   PanelLeft,
 } from 'lucide-react';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUI } from '@app/providers/UIContext';
-import { ENABLE_GAMIFICATION } from '@shared/config';
+import { ENABLE_GAMIFICATION, ENABLE_TRAVEL_STATS } from '@shared/config';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@shared/lib/utils/cn';
 import { BrandLogo, BrandIsotype } from '@shared/ui/brand';
@@ -32,17 +33,26 @@ const URL_MAP = {
   home:     '/dashboard',
   mapa:     '/map',
   bitacora: '/trips',
-  hub:      '/explorer',
+  hub:      '/hub',
   config:   '/settings',
 };
 
-const MENU_ITEMS = (t) => [
-  { id: 'home',     icon: LayoutGrid, label: t('home') },
-  { id: 'mapa',     icon: Map,        label: t('map')  },
-  { id: 'bitacora', icon: BookOpen,   label: t('journal') },
-  ...(ENABLE_GAMIFICATION ? [{ id: 'hub', icon: Trophy, label: t('hub') }] : []),
-  { id: 'config',   icon: Settings,   label: t('adjust') },
-];
+const MENU_ITEMS = (t) => {
+  // Block 2.3: the /hub destination is "Estadísticas" when the deep-stats
+  // experience is enabled, falling back to the gamification "Hub" label.
+  const hubItem = ENABLE_TRAVEL_STATS
+    ? { id: 'hub', icon: BarChart3, label: t('stats') }
+    : { id: 'hub', icon: Trophy, label: t('hub') };
+  const showHub = ENABLE_TRAVEL_STATS || ENABLE_GAMIFICATION;
+
+  return [
+    { id: 'home',     icon: LayoutGrid, label: t('home') },
+    { id: 'mapa',     icon: Map,        label: t('map')  },
+    { id: 'bitacora', icon: BookOpen,   label: t('journal') },
+    ...(showHub ? [hubItem] : []),
+    { id: 'config',   icon: Settings,   label: t('adjust') },
+  ];
+};
 
 // ─────────────────────────────────────────────
 // Glassmorphic Tooltip (Refinement #1)
@@ -300,7 +310,10 @@ const Sidebar = () => {
   // MOBILE: Dynamic Island Tab Bar
   // Center + FAB replaces the MobileCreateFab
   // ─────────────────────────────────────────────
-  const PRIMARY_TABS = menuItems.filter(item => item.id !== 'config');
+  // Mobile bottom bar is strictly protected: only the 3 core destinations.
+  // This guarantees the Dynamic Island never overflows on 360px screens
+  // alongside the "+" FAB.
+  const PRIMARY_TABS = menuItems.filter(item => ['home', 'mapa', 'bitacora'].includes(item.id));
 
   const TabBar = (
     <nav

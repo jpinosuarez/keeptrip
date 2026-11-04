@@ -5,11 +5,12 @@
  */
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, LogOut } from 'lucide-react';
+import { Settings, LogOut, BarChart3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import BottomSheet from '@shared/ui/components/BottomSheet';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUI } from '@app/providers/UIContext';
+import { ENABLE_TRAVEL_STATS } from '@shared/config';
 import { cn } from '@shared/lib/utils/cn';
 
 const UserMenuBottomSheet = () => {
@@ -28,9 +29,29 @@ const UserMenuBottomSheet = () => {
     navigate('/settings');
   };
 
+  const handleStats = () => {
+    closeUserMenu();
+    navigate('/hub');
+  };
+
   return (
     <BottomSheet isOpen={userMenuOpen} onClose={closeUserMenu} ariaLabel="User menu"> 
       <div className="flex flex-col gap-3 p-5">
+        {ENABLE_TRAVEL_STATS && (
+          <button
+            type="button"
+            onClick={handleStats}
+            className={cn(
+              "flex items-center gap-3 w-full min-h-[44px] px-4 py-3.5 rounded-xl",
+              "border border-black/5 bg-white cursor-pointer text-base font-bold text-slate-800",
+              "text-left hover:bg-black/5 transition-all duration-200 font-heading"
+            )}
+          >
+            <BarChart3 size={18} className="text-atomicTangerine" />
+            <span className="flex-1">{t('nav:stats', 'Estadísticas')}</span>
+          </button>
+        )}
+
         <button
           type="button"
           onClick={handleSettings}

@@ -13,6 +13,7 @@ describe('useLogStats', () => {
       completedTrips: 0,
       totalDays: 0,
       totalStops: 0,
+      totalKm: 0,
       localTripsCount: 0,
       internationalTripsCount: 0,
       localStopsCount: 0,
@@ -121,5 +122,25 @@ describe('useLogStats', () => {
     expect(result.current.hasCompletedOnboarding).toBe(true);
     expect(result.current.birthCountry).toBe('AR');
     expect(result.current.residenceCountry).toBe('DE');
+  });
+
+  it('computes total route kilometres from stop coordinates', () => {
+    const trips = [{ id: 'trip-km' }];
+    const tripData = {
+      'trip-km': {
+        fechaInicio: '2026-01-01',
+        fechaFin: '2026-01-02',
+        paradas: [
+          { paisCodigo: 'ES', coordenadas: [-3.7038, 40.4168] }, // Madrid
+          { paisCodigo: 'ES', coordenadas: [-0.3763, 39.4699] }, // Valencia
+        ],
+      },
+    };
+
+    const { result } = renderHook(() => useLogStats(trips, tripData));
+
+    // Madrid → Valencia is roughly 300 km as the crow flies.
+    expect(result.current.totalKm).toBeGreaterThan(250);
+    expect(result.current.totalKm).toBeLessThan(400);
   });
 });

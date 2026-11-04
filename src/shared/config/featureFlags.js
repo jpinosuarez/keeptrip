@@ -11,6 +11,8 @@ export const ENABLE_WEATHER_API = false;
 export const ENABLE_ONBOARDING = true;
 // Block 2.2: Dual-view Digital Travel Archive (Grid + List) with 5D filters.
 export const ENABLE_TRIPS_LIST_VIEW = true;
+// Block 2.3: Deep Travel Statistics Page ("Estadísticas de Viaje") at /hub.
+export const ENABLE_TRAVEL_STATS = true;
 
 export const FEATURE_FLAGS = {
   ENABLE_IMMERSIVE_VIEWER,
@@ -20,5 +22,6 @@ export const FEATURE_FLAGS = {
   ENABLE_WEATHER_API,
   ENABLE_ONBOARDING,
   ENABLE_TRIPS_LIST_VIEW,
+  ENABLE_TRAVEL_STATS,
 };
 
