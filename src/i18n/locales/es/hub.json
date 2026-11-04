@@ -88,5 +88,54 @@
     "viewAll": "Ver todos los niveles",
     "requirement": "Necesitas {{count}} países visitados"
   },
-  "para-desbloquear": "para desbloquear"
+  "para-desbloquear": "para desbloquear",
+  "statsDashboard": {
+    "title": "Estadísticas de Viaje",
+    "subtitle": "Resumen de tus destinos, distancias y días de viaje",
+    "filterLabel": "Filtrar por año",
+    "filterAllYears": "Todos los años",
+    "yearBanner": "En {{year}} pasaste {{days}} días explorando el mundo ({{percentage}}% del año)",
+    "emptyTitle": "Tu historia aún no tiene estadísticas",
+    "emptyMessage": "Registra tu primera aventura y descubre tus continentes, distancias y días de viaje.",
+    "emptyCta": "Registrar primera aventura",
+    "odometerTitle": "Odómetro Global",
+    "earthLaps": "Equivale a {{laps}} vueltas a la Tierra",
+    "earthPercentageLabel": "de una vuelta al planeta",
+    "avgKmPerTrip": "Promedio por viaje",
+    "straightLineFrom": "En línea recta desde",
+    "scopeTitle": "Alcance de tus viajes",
+    "continentsTitle": "Los 5 Continentes Clásicos",
+    "continents": {
+      "EU": "Europa",
+      "AM": "América",
+      "AS": "Asia",
+      "AF": "África",
+      "OC": "Oceanía"
+    },
+    "polesTitle": "Brújula de Puntos Extremos",
+    "poles": {
+      "north": "Norte",
+      "south": "Sur",
+      "east": "Este",
+      "west": "Oeste"
+    },
+    "farthestTitle": "Punto más lejano de tu base",
+    "timeTitle": "Tiempo y Ritmo de Viaje",
+    "totalDays": "Días de viaje",
+    "avgDays": "Días prom./viaje",
+    "longestTrip": "Mayor viaje",
+    "untitledTrip": "Viaje sin título",
+    "paceShort": "Escapadas (<4d)",
+    "paceMedium": "Viaje medio (5–14d)",
+    "paceLong": "Gran expedición (15+d)",
+    "seasonalityTitle": "Estacionalidad Anual",
+    "peakMonth": "Tu mes más viajero: {{month}}",
+    "monthTooltip": "{{month}}: {{days}} días · {{trips}} viajes",
+    "topDestinationsTitle": "Destinos Frecuentes",
+    "topCountries": "Países más visitados",
+    "topCities": "Ciudades más visitadas",
+    "localTrips": "{{count}} locales",
+    "internationalTrips": "{{count}} internacionales",
+    "topCompanions": "Compañeros de viaje"
+  }
 }

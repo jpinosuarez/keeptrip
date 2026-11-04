@@ -58,5 +58,54 @@
     "viewAll": "View all levels",
     "requirement": "Requires {{count}} countries visited"
   },
-  "para-desbloquear": "to unlock"
+  "para-desbloquear": "to unlock",
+  "statsDashboard": {
+    "title": "Travel Statistics",
+    "subtitle": "A summary of your destinations, distances and days of travel",
+    "filterLabel": "Filter by year",
+    "filterAllYears": "All years",
+    "yearBanner": "In {{year}} you spent {{days}} days exploring the world ({{percentage}}% of the year)",
+    "emptyTitle": "Your story has no statistics yet",
+    "emptyMessage": "Log your first adventure and discover your continents, distances and travel days.",
+    "emptyCta": "Log first adventure",
+    "odometerTitle": "Global Odometer",
+    "earthLaps": "That's {{laps}} laps around the Earth",
+    "earthPercentageLabel": "of one lap around the planet",
+    "avgKmPerTrip": "Average per trip",
+    "straightLineFrom": "Straight-line from",
+    "scopeTitle": "Trip scope",
+    "continentsTitle": "The 5 Classical Continents",
+    "continents": {
+      "EU": "Europe",
+      "AM": "Americas",
+      "AS": "Asia",
+      "AF": "Africa",
+      "OC": "Oceania"
+    },
+    "polesTitle": "Extreme Points Compass",
+    "poles": {
+      "north": "North",
+      "south": "South",
+      "east": "East",
+      "west": "West"
+    },
+    "farthestTitle": "Farthest point from your base",
+    "timeTitle": "Time & Travel Pace",
+    "totalDays": "Travel days",
+    "avgDays": "Avg. days/trip",
+    "longestTrip": "Longest trip",
+    "untitledTrip": "Untitled trip",
+    "paceShort": "Getaways (<4d)",
+    "paceMedium": "Medium trip (5–14d)",
+    "paceLong": "Grand expedition (15+d)",
+    "seasonalityTitle": "Yearly Seasonality",
+    "peakMonth": "Your busiest month: {{month}}",
+    "monthTooltip": "{{month}}: {{days}} days · {{trips}} trips",
+    "topDestinationsTitle": "Frequent Destinations",
+    "topCountries": "Most visited countries",
+    "topCities": "Most visited cities",
+    "localTrips": "{{count}} local",
+    "internationalTrips": "{{count}} international",
+    "topCompanions": "Travel companions"
+  }
 }

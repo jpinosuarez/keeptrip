@@ -21,7 +21,7 @@ import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useOutletContext, useLocation } from 'react-router-dom';
 import PageLoader from '@shared/ui/components/PageLoader';
 import MaintenanceScreen from '@shared/ui/components/MaintenanceScreen';
-import { ENABLE_DOCUMENTARY_VIEWER, ENABLE_INVITATIONS, ENABLE_GAMIFICATION } from '@shared/config';
+import { ENABLE_DOCUMENTARY_VIEWER, ENABLE_INVITATIONS, ENABLE_GAMIFICATION, ENABLE_TRAVEL_STATS } from '@shared/config';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 
 import AuthGuard from './AuthGuard';
@@ -127,11 +127,14 @@ function MapRoute() {
 
 function ExplorerRoute() {
   const { data, gamification } = useOutletContext();
+  const { userProfile } = useAuth();
   return (
     <Suspense fallback={suspenseFallback}>
       <TravelerHub
         paisesVisitados={data.paisesVisitados}
         bitacora={data.bitacora}
+        bitacoraData={data.bitacoraData}
+        userProfile={userProfile}
         achievementsWithProgress={gamification.achievementsWithProgress}
         stats={gamification.achievementStats}
       />
@@ -168,6 +171,8 @@ function AppRouter() {
     return <MaintenanceScreen />;
   }
 
+  const isHubEnabled = ENABLE_TRAVEL_STATS || ENABLE_GAMIFICATION;
+
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
@@ -199,9 +204,15 @@ function AppRouter() {
 
             <Route path="map"        element={<MapRoute />} />
             <Route path="mapa"       element={<MapRoute />} />
+            {/* Canonical Statistics / Traveler Hub route (Block 2.3) */}
+            <Route
+              path="hub"
+              element={isHubEnabled ? <ExplorerRoute /> : <Navigate to="/dashboard" replace />}
+            />
+            {/* Legacy alias — keep bookmarks working with a clean redirect */}
             <Route
               path="explorer"
-              element={ENABLE_GAMIFICATION ? <ExplorerRoute /> : <Navigate to="/dashboard" replace />}
+              element={<Navigate to={isHubEnabled ? '/hub' : '/dashboard'} replace />}
             />
             <Route
               path="invitations"

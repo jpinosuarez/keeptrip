@@ -104,5 +104,23 @@
         "description": "Modo mantenimiento global para contingencias críticas."
       }
     }
+  },
+  "devTools": {
+    "title": "Herramientas de Desarrollo (DEV)",
+    "description": "Gestiona datos simulados en emuladores locales sin alterar cuentas reales.",
+    "scenariosLabel": "Escenario",
+    "scenarios": {
+      "mateo": "Mateo (3 viajes)",
+      "rich": "Trotamundos (10 viajes)",
+      "empty": "Vacía (Onboarding)"
+    },
+    "seedSuccess": "Escenario «{{scenario}}» cargado con {{count}} viajes.",
+    "seedError": "No se pudo cargar el escenario. Revisa la consola.",
+    "clear": "Vaciar todos mis viajes",
+    "clearSuccess": "Se eliminaron {{count}} viajes.",
+    "clearError": "No se pudieron eliminar los viajes.",
+    "clearConfirmTitle": "Vaciar todos mis viajes",
+    "clearConfirmMessage": "Se eliminarán todos los viajes y paradas de esta cuenta y volverás al estado inicial de onboarding.",
+    "clearConfirmAction": "Vaciar viajes"
   }
 }

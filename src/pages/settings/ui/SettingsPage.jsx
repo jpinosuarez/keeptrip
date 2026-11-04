@@ -34,6 +34,15 @@ import { deriveResidenceMode, normalizeCity } from '@shared/lib/geo';
 const DEBOUNCE_MS = 800;
 const FOUNDER_UID_FALLBACK = 'FOUNDER_UID_HERE';
 
+/**
+ * DEV-only quick reset card (persona seeder + archive wiper).
+ * `import.meta.env.DEV` is statically replaced with `false` in production, so
+ * the dynamic import is dead-code-eliminated and no seeder code ships to prod.
+ */
+const DevSeedControls = import.meta.env.DEV
+  ? React.lazy(() => import('@shared/dev/ui/DevSeedControls'))
+  : null;
+
 /* ── Reusable iOS-style Settings Row ─────────────────────────────────── */
 const SettingsRow = ({
   icon: RowIcon,
@@ -609,6 +618,23 @@ const SettingsPage = () => {
         onClose={() => setShowDeleteConfirm(false)}
         isLoading={isDeletingAccount}
       />
+
+        {/* ── Developer Tools card (DEV only) ─────────────────────────────
+            Persona seeder + archive wiper. The component is lazy-loaded behind
+            `import.meta.env.DEV` (see DevSeedControls const above), so nothing
+            from `@shared/dev` reaches production builds. */}
+        {DevSeedControls && (
+          <Motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 120 }}
+            className="mt-8"
+          >
+            <React.Suspense fallback={null}>
+              <DevSeedControls />
+            </React.Suspense>
+          </Motion.div>
+        )}
 
       {/* ── App Version Footer ── */}
       <div className="pt-8 mt-6 border-t border-black/5 flex justify-center items-center">

@@ -9,6 +9,7 @@
   "curation": "Curación",
   "exit": "Salir",
   "hub": "Hub",
+  "stats": "Estadísticas",
   "adjust": "Ajustes",
   "addTrip": "Añadir Viaje",
   "collapseSidebar": "Contraer menú",
@@ -25,6 +26,7 @@
     "journal": "Mis Viajes",
     "worldMap": "Mapa Mundial",
     "hub": "Traveler Hub",
+    "stats": "Estadísticas",
     "invitations": "Invitaciones",
     "settings": "Ajustes",
     "curation": "Curación de fotos"

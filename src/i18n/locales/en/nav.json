@@ -9,6 +9,7 @@
   "curation": "Curation",
   "exit": "Exit",
   "hub": "Hub",
+  "stats": "Statistics",
   "adjust": "Settings",
   "addTrip": "Add Trip",
   "collapseSidebar": "Collapse sidebar",
@@ -25,6 +26,7 @@
     "journal": "Logbook",
     "worldMap": "World map",
     "hub": "Traveler Hub",
+    "stats": "Statistics",
     "invitations": "Invitations",
     "settings": "Settings",
     "curation": "Photo curation"

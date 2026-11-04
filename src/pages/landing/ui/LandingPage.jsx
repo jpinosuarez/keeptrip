@@ -7,10 +7,14 @@ import HeroSection from './components/Hero/HeroSection';
 const BentoFeatures = React.lazy(() => import('./components/BentoFeatures/BentoFeatures'));
 const Footer = React.lazy(() => import('./components/Footer'));
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
-};
+/**
+ * DEV-only persona dock (1-click mock data, no login required).
+ * `import.meta.env.DEV` is statically replaced with `false` in production, so
+ * the dynamic import is dead-code-eliminated (zero bytes shipped to prod).
+ */
+const DevLaunchDock = import.meta.env.DEV
+  ? React.lazy(() => import('@shared/dev/ui/DevLaunchDock'))
+  : null;
 
 const LandingPage = () => {
   // Synchronous splash dismissal on mount to unblock immediate LCP paint
@@ -36,6 +40,12 @@ const LandingPage = () => {
         <BentoFeatures />
         <Footer />
       </React.Suspense>
+
+      {DevLaunchDock && (
+        <React.Suspense fallback={null}>
+          <DevLaunchDock />
+        </React.Suspense>
+      )}
     </div>
   );
 };

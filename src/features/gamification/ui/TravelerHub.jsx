@@ -8,6 +8,8 @@ import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
 import { Share } from 'lucide-react';
 import { useToast } from '@app/providers';
 import { BottomSheet, BottomSheetHeader, BottomSheetContent } from '@shared/ui/components';
+import { ENABLE_GAMIFICATION, ENABLE_TRAVEL_STATS } from '@shared/config';
+import TravelStatsDashboard from './components/TravelStatsDashboard';
 
 // Inject shimmer keyframes once
 const injectShimmerCSS = () => {
@@ -31,10 +33,18 @@ const injectShimmerCSS = () => {
  * - canvas-confetti unlock celebration on new achievement detection
  * - AchievementsGrid with 3D Prestige Tokens
  */
-const TravelerHub = ({ paisesVisitados, achievementsWithProgress }) => {
+const TravelerHub = ({
+  paisesVisitados = [],
+  bitacora = [],
+  bitacoraData = {},
+  userProfile = null,
+  achievementsWithProgress = [],
+}) => {
   const { t } = useTranslation('hub');
   const { t: tNav } = useTranslation('nav');
-  useDocumentTitle(tNav('hub'));
+  useDocumentTitle(
+    ENABLE_TRAVEL_STATS ? t('statsDashboard.title', 'Estadísticas de Viaje') : tNav('hub')
+  );
   injectShimmerCSS();
 
   const [showLevels, setShowLevels] = useState(false);
@@ -97,6 +107,27 @@ const TravelerHub = ({ paisesVisitados, achievementsWithProgress }) => {
     <div className="w-full h-full flex flex-col md:pr-5 md:pb-5 overflow-hidden box-border">
       <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1.5 pb-10 custom-scroll">
 
+        {/* ── Page Header (Deep Travel Statistics) ── */}
+        <div className="mb-4">
+          <h1 className="m-0 text-2xl md:text-3xl font-black text-charcoalBlue leading-tight font-heading">
+            {t('statsDashboard.title', 'Estadísticas de Viaje')}
+          </h1>
+          <p className="m-0 mt-1 text-sm font-semibold text-text-secondary font-body">
+            {t('statsDashboard.subtitle', 'Resumen de tus destinos, distancias y días de viaje')}
+          </p>
+        </div>
+
+        {ENABLE_TRAVEL_STATS && (
+          <TravelStatsDashboard
+            trips={bitacora}
+            tripData={bitacoraData}
+            userProfile={userProfile}
+          />
+        )}
+
+        {/* ── Gamification experience (Block 3.1-ready, gated) ── */}
+        {ENABLE_GAMIFICATION && (
+          <>
         {/* ── Glassmorphic Hero Card ── */}
         <Motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -199,7 +230,10 @@ const TravelerHub = ({ paisesVisitados, achievementsWithProgress }) => {
 
         {/* ── Achievement Grid ── */}
         <AchievementsGrid achievementsWithProgress={achievementsWithProgress} />
+          </>
+        )}
 
+        {ENABLE_GAMIFICATION && (
         <BottomSheet isOpen={showLevels} onClose={() => setShowLevels(false)} ariaLabel={t('levels.title')}>
           <BottomSheetHeader />
           <BottomSheetContent>
@@ -241,6 +275,7 @@ const TravelerHub = ({ paisesVisitados, achievementsWithProgress }) => {
             </div>
           </BottomSheetContent>
         </BottomSheet>
+        )}
       </div>
     </div>
   );

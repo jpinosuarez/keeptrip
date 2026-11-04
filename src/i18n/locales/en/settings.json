@@ -104,5 +104,23 @@
         "description": "Global maintenance mode for critical contingencies."
       }
     }
+  },
+  "devTools": {
+    "title": "Developer Tools (DEV)",
+    "description": "Manage mock data on local emulators without touching real accounts.",
+    "scenariosLabel": "Scenario",
+    "scenarios": {
+      "mateo": "Mateo (3 trips)",
+      "rich": "Globetrotter (10 trips)",
+      "empty": "Empty (Onboarding)"
+    },
+    "seedSuccess": "Scenario \"{{scenario}}\" loaded with {{count}} trips.",
+    "seedError": "Could not load the scenario. Check the console.",
+    "clear": "Wipe all my trips",
+    "clearSuccess": "{{count}} trips deleted.",
+    "clearError": "Could not delete the trips.",
+    "clearConfirmTitle": "Wipe all my trips",
+    "clearConfirmMessage": "Every trip and stop in this account will be deleted and you will return to the initial onboarding state.",
+    "clearConfirmAction": "Wipe trips"
   }
 }

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { calculateTripDays } from '@shared/lib/utils/viajeUtils';
 import { normalizeCountryCode } from '@shared/lib/utils/countryUtils';
 import { useAuth } from '@app/providers/AuthContext';
+import { computeTotalKm, WORLD_TOTAL_COUNTRIES } from '../travelAnalytics';
 
 const EMPTY_TRIPS = [];
 const EMPTY_TRIP_DATA = {};
@@ -33,6 +34,7 @@ export const useLogStats = (trips = [], tripData = {}, customProfile = null) => 
         completedTrips: 0,
         totalDays: 0,
         totalStops: 0,
+        totalKm: 0,
         localTripsCount: 0,
         internationalTripsCount: 0,
         localStopsCount: 0,
@@ -96,7 +98,7 @@ export const useLogStats = (trips = [], tripData = {}, customProfile = null) => 
     });
 
     const uniqueCountries = countryCodes.size;
-    const worldExploredPercentage = ((uniqueCountries / 195) * 100).toFixed(1);
+    const worldExploredPercentage = ((uniqueCountries / WORLD_TOTAL_COUNTRIES) * 100).toFixed(1);
     const completedTrips = safeTrips.length;
     const internationalTripsCount = Math.max(0, completedTrips - localTripsCount);
 
@@ -106,6 +108,7 @@ export const useLogStats = (trips = [], tripData = {}, customProfile = null) => 
       completedTrips,
       totalDays,
       totalStops,
+      totalKm: computeTotalKm(safeTrips, safeTripData),
       localTripsCount,
       internationalTripsCount,
       localStopsCount,

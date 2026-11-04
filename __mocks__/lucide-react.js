@@ -76,3 +76,5 @@ export const MoreVertical = createIconComponent('MoreVertical');
 export const Play = createIconComponent('Play');
 export const Pause = createIconComponent('Pause');
 export const Edit2 = createIconComponent('Edit2');
+export const BarChart3 = createIconComponent('BarChart3');
+export const Route = createIconComponent('Route');
