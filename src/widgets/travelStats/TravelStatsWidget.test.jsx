@@ -62,6 +62,9 @@ describe('TravelStatsWidget', () => {
     expect(screen.getByText('Days')).toBeInTheDocument();
     expect(screen.getByText('Stops')).toBeInTheDocument();
     expect(screen.getByText('Kilometers')).toBeInTheDocument();
+
+    const kmValue = screen.getByText(/980 km/);
+    expect(kmValue).toHaveClass('font-mono', 'text-slate-900');
   });
 
   it('renders empty state when there are no completed trips', () => {

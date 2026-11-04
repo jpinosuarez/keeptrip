@@ -1,16 +1,15 @@
 /**
- * TravelStatsWidget — Consolidated Interactive Bar (Block 2.3)
- * - Circular "World explored" progress ring (unclipped, viewBox 0 0 36 36).
- * - JetBrains Mono total-kilometre pill.
- * - Fully interactive: any metric (or the trailing action pill) opens /hub.
- * - Mobile-first: wraps gracefully down to 360px, no horizontal scroll.
+ * TravelStatsWidget — Consolidated Interactive Summary Bar (Block 2.3)
+ * - Circular "World explored" progress ring (viewBox 0 0 36 36, never clipped).
+ * - Uniform JetBrains Mono metrics with dark slate values.
+ * - Fully interactive: any metric (or the trailing pill) opens /hub.
+ * - Mobile-first: flex-wrap down to 360px, no horizontal scroll.
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Globe, Compass, Calendar, MapPin, Route, ArrowRight } from 'lucide-react';
 import { ENABLE_TRAVEL_STATS } from '@shared/config';
-import { cn } from '@shared/lib/utils/cn';
 import { formatLocalizedNumber, formatKmValue } from '@shared/lib/utils/numberUtils';
 
 const TravelStatsWidget = ({ logStats = null, ariaLabel, containerClassName = 'w-full' }) => {
@@ -75,88 +74,78 @@ const TravelStatsWidget = ({ logStats = null, ariaLabel, containerClassName = 'w
       Icon: Route,
       value: `${formatKmValue(safeValue(logStats.totalKm), i18n?.language)} km`,
       label: t('stats.totalKm'),
-      mono: true,
     },
   ];
 
   return (
     <section role="region" aria-label={ariaLabel} className={containerClassName}>
-      <div className="w-full bg-white/90 shadow-sm border border-slate-200/80 rounded-2xl px-3 py-3 md:p-4">
-        <div className="grid grid-cols-2 sm:flex sm:flex-row sm:flex-wrap md:flex-nowrap items-center justify-between gap-2 w-full">
-          {/* World explored — circular progress ring (never clipped) */}
+      <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-3 md:px-5 md:py-3.5 flex flex-wrap lg:flex-nowrap items-center justify-between gap-4 md:gap-6">
+        {/* World explored — circular progress ring (always vertically centered) */}
+        <button
+          {...interactiveProps}
+          aria-label={t('stats.worldExploredPercentage')}
+          className="flex items-center gap-2.5 flex-shrink-0 min-h-[44px] bg-transparent border-none p-0 text-left cursor-pointer disabled:cursor-default"
+        >
+          <span className="relative w-10 h-10 shrink-0">
+            <svg
+              viewBox="0 0 36 36"
+              className="w-10 h-10 -rotate-90 overflow-visible"
+              aria-hidden="true"
+            >
+              <circle r="15.9155" cx="18" cy="18" fill="transparent" stroke="#E2E8F0" strokeWidth="3" />
+              <circle
+                r="15.9155"
+                cx="18"
+                cy="18"
+                fill="transparent"
+                stroke="#FF6B35"
+                strokeWidth="3"
+                strokeDasharray="100"
+                strokeDashoffset={ringOffset}
+                strokeLinecap="round"
+              />
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-[#FF6B35]">
+              {Math.round(worldPct)}%
+            </span>
+          </span>
+          <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400 leading-tight">
+            {t('stats.worldExploredPercentage')}
+          </span>
+        </button>
+
+        {/* Metric cells — uniform typography */}
+        {items.map(({ key, Icon, value, label }) => (
           <button
+            key={key}
             {...interactiveProps}
-            aria-label={t('stats.worldExploredPercentage')}
-            className="flex items-center gap-2 flex-shrink-0 min-w-[120px] min-h-[44px] bg-transparent border-none p-0 text-left cursor-pointer disabled:cursor-default"
+            aria-label={label}
+            className="flex flex-col items-start justify-center flex-1 min-w-[72px] min-h-[44px] bg-transparent border-none p-0 text-left cursor-pointer transition-opacity hover:opacity-80 disabled:cursor-default"
           >
-            <span className="relative w-10 h-10 shrink-0">
-              <svg
-                viewBox="0 0 36 36"
-                className="w-10 h-10 -rotate-90 overflow-visible"
-                aria-hidden="true"
-              >
-                <circle r="15.9155" cx="18" cy="18" fill="transparent" stroke="#E2E8F0" strokeWidth="3" />
-                <circle
-                  r="15.9155"
-                  cx="18"
-                  cy="18"
-                  fill="transparent"
-                  stroke="#FF6B35"
-                  strokeWidth="3"
-                  strokeDasharray="100"
-                  strokeDashoffset={ringOffset}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-atomicTangerine">
-                {Math.round(worldPct)}%
+            <span className="flex items-center gap-1 mb-1 min-w-0">
+              <Icon size={16} className="text-atomicTangerine shrink-0" />
+              <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400 leading-tight truncate">
+                {label}
               </span>
             </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-text-secondary leading-tight">
-              {t('stats.worldExploredPercentage')}
+            <span className="text-sm md:text-base font-bold font-mono text-slate-900 leading-none">
+              {value}
             </span>
           </button>
+        ))}
 
-          {/* Metric pills */}
-          {items.map(({ key, Icon, value, label, mono }) => (
-            <button
-              key={key}
-              {...interactiveProps}
-              aria-label={label}
-              className="flex flex-col items-start justify-center flex-1 min-w-[80px] min-h-[44px] bg-transparent border-none p-1 rounded-lg text-left cursor-pointer transition-colors hover:bg-atomicTangerine/5 disabled:cursor-default disabled:hover:bg-transparent"
-            >
-              <span className="flex items-center gap-1 min-w-0">
-                <Icon size={16} className="text-atomicTangerine shrink-0" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-text-secondary truncate">
-                  {label}
-                </span>
-              </span>
-              <span
-                className={cn(
-                  'mt-0.5',
-                  mono
-                    ? 'font-mono text-sm font-bold text-slate-800'
-                    : 'text-xs font-black text-atomicTangerine drop-shadow-lg'
-                )}
-              >
-                {value}
-              </span>
-            </button>
-          ))}
-
-          {/* Trailing action pill */}
-          {isInteractive && (
-            <button
-              type="button"
-              onClick={openStats}
-              aria-label={t('stats.viewMoreStats')}
-              className="flex items-center gap-1 min-h-[44px] px-3 rounded-full bg-atomicTangerine/10 border border-atomicTangerine/20 text-[0.72rem] font-extrabold text-atomicTangerine whitespace-nowrap cursor-pointer hover:bg-atomicTangerine/15 transition-colors"
-            >
-              {t('stats.viewMoreStats')}
-              <ArrowRight size={14} />
-            </button>
-          )}
-        </div>
+        {/* Trailing action pill */}
+        {isInteractive && (
+          <button
+            type="button"
+            onClick={openStats}
+            aria-label={t('stats.viewMoreStats')}
+            className="shrink-0 ml-auto px-4 py-2 rounded-xl bg-[#FF6B35]/10 hover:bg-[#FF6B35]/20 text-[#FF6B35] border border-[#FF6B35]/20 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            {t('stats.viewMoreStats')}
+            <ArrowRight size={14} />
+          </button>
+        )}
       </div>
     </section>
   );

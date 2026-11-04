@@ -103,7 +103,18 @@ const TripsPage = () => {
 
   return (
     <div className="flex flex-col h-full relative overflow-y-auto overflow-x-hidden">
-      {/* 1. Single search authority + 5D filters + view switcher */}
+      {/* 1. Global Travel Stats Summary Widget (above the filter controls) */}
+      {trips.length > 0 && (
+        <div className="w-full mb-6">
+          <TravelStatsWidget
+            logStats={tripsLogStats}
+            ariaLabel={t('stats.tripSummary')}
+            containerClassName="w-full"
+          />
+        </div>
+      )}
+
+      {/* 2. Single search authority + 5D filters + view switcher */}
       <div className="mb-3">
         <TripCommandBar
           filters={filters}
@@ -113,16 +124,6 @@ const TripsPage = () => {
           resultCount={filteredTrips.length}
           totalCount={trips.length}
           onClearFilters={handleClearFilters}
-        />
-      </div>
-
-      {/* 2. Stats Bar */}
-      <div className="mb-4">
-        <TravelStatsWidget
-          logStats={tripsLogStats}
-          ariaLabel={t('stats.tripSummary')}
-          variant="compact"
-          containerClassName="w-full md:w-fit md:mx-auto md:justify-center max-w-4xl"
         />
       </div>
 

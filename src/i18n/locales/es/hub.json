@@ -120,7 +120,6 @@
       "west": "Oeste"
     },
     "farthestTitle": "Punto más lejano de tu base",
-    "farthestFrom": "desde {{city}}",
     "timeTitle": "Tiempo y Ritmo de Viaje",
     "totalDays": "Días de viaje",
     "avgDays": "Días prom./viaje",

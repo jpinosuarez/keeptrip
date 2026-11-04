@@ -90,7 +90,6 @@
       "west": "West"
     },
     "farthestTitle": "Farthest point from your base",
-    "farthestFrom": "from {{city}}",
     "timeTitle": "Time & Travel Pace",
     "totalDays": "Travel days",
     "avgDays": "Avg. days/trip",

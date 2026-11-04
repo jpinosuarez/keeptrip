@@ -118,6 +118,10 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
   const peakMonth = seasonality.peakMonth;
   const maxMonthDays = Math.max(1, ...seasonality.months.map((month) => month.days));
 
+  // Guard: the Farthest card only becomes a navigable Link when a tripId exists.
+  const farthestTripId = farthestFromHome?.tripId || null;
+  const FarthestWrapper = farthestTripId ? Link : 'div';
+
   const pillClass = (active) => cn(
     'min-h-[36px] px-4 rounded-full text-xs font-extrabold border transition-colors cursor-pointer',
     active
@@ -212,8 +216,8 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
 
           {/* Farthest point from home base — clickable card */}
           {farthestFromHome && (
-            <Link
-              to={`/trips/${farthestFromHome.tripId}`}
+            <FarthestWrapper
+              {...(farthestTripId ? { to: `/trips/${farthestTripId}` } : {})}
               className="flex-1 flex flex-col justify-between p-6 bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:border-[#FF6B35]/40 transition-colors cursor-pointer group"
             >
               <div>
@@ -255,7 +259,7 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
                   {farthestFromHome.tripTitle}
                 </span>
               </div>
-            </Link>
+            </FarthestWrapper>
           )}
         </div>
 
@@ -471,9 +475,9 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
                 });
                 return (
                   <div key={month.month} className="flex-1 h-full min-w-0 flex flex-col items-center justify-end gap-1">
-                    <div className="group relative w-full flex-1 min-h-0 flex items-end justify-center rounded-lg bg-slate-100 p-0.5">
+                    <div className="group relative w-full flex-1 min-h-0 rounded-lg bg-slate-100">
                       <div
-                        className="w-full rounded-t-md transition-[height] duration-500"
+                        className="absolute inset-x-0.5 bottom-0 rounded-t-md transition-[height] duration-500"
                         style={{
                           height: `${barHeight}%`,
                           backgroundColor: isPeak ? '#FF6B35' : '#CBD5E1',
