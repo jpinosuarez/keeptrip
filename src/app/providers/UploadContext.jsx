@@ -54,7 +54,7 @@ export function UploadProvider({ children }) {
    * @param {number} portadaIndex - Índice de la foto que será portada
    * @returns {Promise<void>}
    */
-  const iniciarSubida = useCallback(async (viajeId, files, portadaIndex = 0) => {
+  const iniciarSubida = useCallback(async (viajeId, files, portadaIndex = 0, options = {}) => {
     console.log('-> UPLOAD CONTEXT INVOCADO', { viajeId, filesLength: files?.length, usuarioUid: usuario?.uid });
 
     if (!viajeId) throw new Error('Abortado: viajeId es undefined o nulo');
@@ -78,6 +78,7 @@ export function UploadProvider({ children }) {
           url: null,
           error: null,
           esPortada: index === portadaIndex,
+          paradaId: options?.draftTags?.[index]?.paradaId ?? null,
           orden: index
         };
       })
@@ -127,7 +128,7 @@ export function UploadProvider({ children }) {
             userId: usuario.uid,
             viajeId,
             file: foto.file,
-            metadata: { orden: foto.orden },
+            metadata: { orden: foto.orden, paradaId: foto.paradaId ?? null },
             esPortada: foto.esPortada
           });
         } catch (uploadError) {
@@ -228,7 +229,7 @@ export function UploadProvider({ children }) {
         userId: usuario.uid,
         viajeId,
         file: foto.file,
-        metadata: { orden: foto.orden },
+        metadata: { orden: foto.orden, paradaId: foto.paradaId ?? null },
         esPortada: foto.esPortada
       });
 

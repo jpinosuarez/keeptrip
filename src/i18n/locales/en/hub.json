@@ -106,6 +106,15 @@
     "topCities": "Most visited cities",
     "localTrips": "{{count}} local",
     "internationalTrips": "{{count}} international",
-    "topCompanions": "Travel companions"
+    "topCompanions": "Travel companions",
+    "placesCount": "Logged places",
+    "transport": {
+      "plane": "Plane",
+      "train": "Train",
+      "car": "Car",
+      "ship": "Ship",
+      "bus": "Bus",
+      "walk": "On foot"
+    }
   }
 }

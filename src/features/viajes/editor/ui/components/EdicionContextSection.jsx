@@ -50,6 +50,43 @@ const EdicionContextSection = ({
 
       <div className="mb-3">
         <label className="text-xs text-textSecondary block">
+          {t('labels.companionType', 'Tipo de compañía')}
+        </label>
+        <div className="flex gap-2 flex-wrap mt-1.5">
+          {[
+            ['solo', '👤'],
+            ['couple', '👫'],
+            ['family', '👨‍👩‍👧'],
+            ['friends', '👯'],
+          ].map(([value, emoji]) => {
+            const selected = (formData.companionType || '') === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    companionType: prev.companionType === value ? null : value,
+                  }))
+                }
+                aria-pressed={selected}
+                className={cn(
+                  "min-h-[44px] px-2.5 py-1.5 rounded-md border text-[0.875rem] transition-all duration-200 cursor-pointer",
+                  selected
+                    ? "border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine font-bold"
+                    : "border-border bg-surface text-textPrimary font-normal"
+                )}
+              >
+                {emoji} {t(`companionType.${value}`, value)}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mb-3">
+        <label className="text-xs text-textSecondary block">
           {t('labels.vibe')} <InfoTooltip textKey="editor:tooltip.vibe" size={13} />
         </label>
         <div className="flex gap-2 flex-wrap mt-1.5">
@@ -139,27 +176,30 @@ const EdicionContextSection = ({
           )}
 
           <div className="flex gap-2 mt-2 flex-wrap">
-            {(formData.companions || []).map((c, idx) => (
-              <div
-                key={idx}
-                className="px-2.5 py-1.5 rounded-md bg-background border border-border flex gap-1.5 items-center max-w-[200px]"
-              >
-                <span className="text-[0.875rem] overflow-hidden text-ellipsis whitespace-nowrap min-w-0">{c.name}</span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      companions: prev.companions.filter((_, i) => i !== idx),
-                    }))
-                  }
-                  aria-label={t('labels.removeCompanion', { name: c.name })}
-                  className="bg-transparent border-none text-textSecondary cursor-pointer flex items-center p-0.5 shrink-0 hover:text-danger transition-colors"
+            {(formData.companions || []).map((c, idx) => {
+              const companionName = typeof c === 'string' ? c : (c?.name || c?.email || '');
+              return (
+                <div
+                  key={idx}
+                  className="px-2.5 py-1.5 rounded-md bg-background border border-border flex gap-1.5 items-center max-w-[200px]"
                 >
-                  <X size={13} />
-                </button>
-              </div>
-            ))}
+                  <span className="text-[0.875rem] overflow-hidden text-ellipsis whitespace-nowrap min-w-0">{companionName}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        companions: prev.companions.filter((_, i) => i !== idx),
+                      }))
+                    }
+                    aria-label={t('labels.removeCompanion', { name: companionName })}
+                    className="bg-transparent border-none text-textSecondary cursor-pointer flex items-center p-0.5 shrink-0 hover:text-danger transition-colors"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

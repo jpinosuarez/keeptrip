@@ -191,11 +191,17 @@ export const buildTripStoryDeck = ({
   const stopSlideBudget = hasContext ? Math.min(MAX_STOP_SLIDES, 3) : MAX_STOP_SLIDES;
   pickEvenly(stops, stopSlideBudget).forEach(({ item: parada, index }) => {
     const previousStop = index > 0 ? stops[index - 1] : null;
-    const linkedPhoto = photoList.find(
+    // All gallery photos tagged to this stop (dual-entry photo flow).
+    const stopPhotos = photoList.filter(
+      (photo) => photo?.paradaId === parada?.id || photo?.stopId === parada?.id
+    );
+    const linkedPhoto = stopPhotos[0] || photoList.find(
       (photo) => photo?.stopId === parada?.id || photo?.paradaId === parada?.id
     );
     const note =
+      (typeof parada?.titular === 'string' && parada.titular.trim()) ||
       (typeof parada?.notaCorta === 'string' && parada.notaCorta.trim()) ||
+      (typeof parada?.nota === 'string' && parada.nota.trim().slice(0, 180)) ||
       (typeof parada?.relato === 'string' && parada.relato.trim().slice(0, 180)) ||
       '';
 
@@ -207,6 +213,10 @@ export const buildTripStoryDeck = ({
       subtitle: formatDateRange(parada?.fechaLlegada || parada?.fecha, parada?.fechaSalida),
       note,
       image: (typeof parada?.foto === 'string' && parada.foto) || linkedPhoto?.url || null,
+      photos: stopPhotos.map((photo) => photo.url).filter(Boolean),
+      favorite: Boolean(parada?.esFavorita),
+      vibes: Array.isArray(parada?.vibes) ? parada.vibes.filter(Boolean) : [],
+      lugares: Array.isArray(parada?.lugares) ? parada.lugares.filter(Boolean) : [],
       dayTripFrom:
         previousStop && esParadaEscapada(parada, previousStop) ? previousStop?.nombre || null : null,
       countryCode:

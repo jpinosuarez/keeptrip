@@ -1,27 +1,46 @@
 import { cn } from '@shared/lib/utils/cn';
-import React from 'react';
-import { Star, Trash2 } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { Star, Trash2, MapPin } from 'lucide-react';
 import { GalleryUploader } from '@shared/ui/components/GalleryUploader';
 
-import { useEffect, useRef } from 'react';
+const ParadaSelect = ({ t, value, paradas = [], onChange, disabled }) => (
+  <label className="flex items-center gap-1 text-[0.72rem] font-bold text-textSecondary">
+    <MapPin size={13} />
+    <select
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value || null)}
+      disabled={disabled}
+      className="min-h-[40px] rounded-md border border-border bg-background px-1.5 py-1 text-[0.72rem] font-semibold text-textPrimary outline-none focus:border-atomicTangerine max-w-full"
+    >
+      <option value="">{t('gallery.paradaUnassigned', 'Sin asignar')}</option>
+      {paradas.map((p) => (
+        <option key={p.id} value={p.id}>{p.nombre}</option>
+      ))}
+    </select>
+  </label>
+);
 
 const EdicionGallerySection = ({
   t,
-  files,
+  files = [],
   onFilesChange,
-  portadaIndex,
+  portadaIndex = 0,
   onPortadaChange,
   isBusy,
-  galeria,
-  captionDrafts,
+  galeria = { fotos: [], uploading: false },
+  captionDrafts = {},
   onCaptionChange,
   onCaptionSave,
   onSetPortadaExistente,
   onEliminarFoto,
-  portadaUrl, // NUEVO: url actual de portada
+  onAssignParada,
+  paradas = [],
+  draftTags = {},
+  onDraftTagChange,
+  portadaUrl,
   isReadOnlyMode = false,
+  maxFiles = 15,
 }) => {
-  // Auto-cover: si no hay portada y se sube la primera foto, asignarla automáticamente
   const prevFotosCount = useRef(galeria.fotos.length);
   useEffect(() => {
     if (
@@ -30,81 +49,112 @@ const EdicionGallerySection = ({
       galeria.fotos[0]?.url &&
       !portadaUrl
     ) {
-      onPortadaChange(galeria.fotos[0].url);
+      onPortadaChange?.(galeria.fotos[0].url);
     }
     prevFotosCount.current = galeria.fotos.length;
   }, [galeria.fotos.length, galeria.fotos, portadaUrl, onPortadaChange]);
 
   return (
-    <div className="flex flex-col gap-2 bg-background p-4 rounded-lg border border-border">
-      <label className="text-[0.78rem] font-extrabold text-textSecondary uppercase tracking-[0.5px] flex items-center gap-1.5">{t('labels.gallery')}</label>
+    <div className="flex flex-col gap-3 bg-background p-4 rounded-lg border border-border">
+      <label className="text-[0.78rem] font-extrabold text-textSecondary uppercase tracking-[0.5px] flex items-center gap-1.5">
+        {t('labels.gallery')}
+      </label>
 
-      {/* Fotos guardadas — PRIMERO, para que el usuario vea su galería antes de añadir más */}
+      {/* Saved / network photos with dual-entry assignment */}
       {galeria.fotos.length > 0 && (
-        <div className="mt-2 flex flex-col gap-2">
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
-            {galeria.fotos.map((f) => (
-              <div 
-                key={f.id} 
-                className={cn(
-                  "border rounded-sm overflow-hidden bg-surface flex flex-col gap-2 p-2 transition-all",
-                  f.esPortada ? "border-atomicTangerine shadow-md" : "border-border shadow-sm"
-                )}
-              >
-                <img src={f.url} alt={f.caption || t('labels.gallery')} className="w-full h-[140px] object-cover rounded-sm" />
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
+          {galeria.fotos.map((f) => (
+            <div
+              key={f.id}
+              className={cn(
+                'border rounded-sm overflow-hidden bg-surface flex flex-col gap-2 p-2 transition-all',
+                f.esPortada ? 'border-atomicTangerine shadow-md' : 'border-border shadow-sm'
+              )}
+            >
+              <img src={f.url} alt={f.caption || t('labels.gallery')} loading="lazy" className="w-full h-[120px] object-cover rounded-sm" />
+              {onCaptionChange && (
                 <input
                   type="text"
                   value={captionDrafts[f.id] ?? (f.caption || '')}
                   onChange={(e) => onCaptionChange(f.id, e.target.value)}
-                  onBlur={() => !isReadOnlyMode && onCaptionSave(f)}
+                  onBlur={() => !isReadOnlyMode && onCaptionSave?.(f)}
                   onKeyDown={(e) => e.key === 'Enter' && !isReadOnlyMode && e.currentTarget.blur()}
                   placeholder={t('labels.captionPlaceholder')}
-                  className="w-full border border-border rounded-sm px-2.5 py-2 text-[0.875rem] text-textPrimary outline-none bg-background transition-all focus:border-atomicTangerine"
-                  aria-label={t('labels.captionPlaceholder')}
+                  className="w-full border border-border rounded-sm px-2.5 py-2 text-[0.85rem] text-textPrimary outline-none bg-background transition-all focus:border-atomicTangerine"
                   maxLength={200}
                   disabled={isReadOnlyMode}
                 />
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    type="button"
-                    className={cn(
-                      "border rounded-full px-2.5 py-1.5 text-[0.75rem] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all",
-                      f.esPortada ? "border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine" : "border-border bg-surface text-textPrimary"
-                    )}
-                    onClick={() => onSetPortadaExistente(f.id)}
-                    disabled={isBusy || isReadOnlyMode}
-                    aria-label={f.esPortada ? t('gallery.currentCover') : t('gallery.setCover')}
-                  >
-                    {/* fill sólido cuando es portada, outline cuando no — único indicador necesario */}
-                    <Star size={14} fill={f.esPortada ? 'currentColor' : 'none'} />
-                  </button>
-                  <button
-                    type="button"
-                    className="border border-border bg-surface text-danger rounded-full px-2.5 py-1.5 text-[0.75rem] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all"
-                    onClick={() => onEliminarFoto(f.id)}
-                    disabled={isBusy || isReadOnlyMode}
-                    aria-label={t('gallery.deletePhoto')}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
+              )}
+              <ParadaSelect
+                t={t}
+                value={f.paradaId}
+                paradas={paradas}
+                disabled={isBusy || isReadOnlyMode}
+                onChange={(paradaId) => onAssignParada?.(f, paradaId)}
+              />
+              <div className="flex gap-1.5 flex-wrap">
+                <button
+                  type="button"
+                  className={cn(
+                    'border rounded-full px-2.5 py-1.5 text-[0.72rem] font-bold inline-flex items-center gap-1 cursor-pointer transition-all',
+                    f.esPortada ? 'border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine' : 'border-border bg-surface text-textPrimary'
+                  )}
+                  onClick={() => onSetPortadaExistente?.(f.id)}
+                  disabled={isBusy || isReadOnlyMode}
+                  aria-label={t('gallery.setAsCover', 'Set as cover')}
+                >
+                  <Star size={13} fill={f.esPortada ? 'currentColor' : 'none'} />
+                </button>
+                <button
+                  type="button"
+                  className="border border-border bg-surface text-danger rounded-full px-2.5 py-1.5 text-[0.72rem] font-bold inline-flex items-center gap-1 cursor-pointer transition-all"
+                  onClick={() => onEliminarFoto?.(f.id)}
+                  disabled={isBusy || isReadOnlyMode}
+                  aria-label={t('gallery.deletePhoto')}
+                >
+                  <Trash2 size={13} />
+                </button>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Zona de subida de fotos nuevas — siempre disponible para agregar más */}
+      {/* Draft uploader: works before the trip exists (?new=true) */}
       <GalleryUploader
         files={files}
         onChange={onFilesChange}
         portadaIndex={portadaIndex}
         onPortadaChange={onPortadaChange}
-        maxFiles={1}
+        maxFiles={maxFiles}
         disabled={isBusy || galeria.uploading || isReadOnlyMode}
       />
+
+      {/* Per-draft stop tagging */}
+      {files.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {files.map((file, index) => (
+            <div key={`${file.name}-${index}`} className="flex items-center justify-between gap-2 border border-border rounded-md px-2.5 py-2">
+              <span className="text-[0.78rem] font-semibold text-textPrimary truncate">{file.name}</span>
+              <div className="flex items-center gap-2 shrink-0">
+                {index === portadaIndex && (
+                  <span className="inline-flex items-center gap-1 text-[0.68rem] font-bold text-atomicTangerine"><Star size={12} fill="currentColor" /> {t('labels.portada')}</span>
+                )}
+                <ParadaSelect
+                  t={t}
+                  value={draftTags[index]?.paradaId}
+                  paradas={paradas}
+                  disabled={isReadOnlyMode}
+                  onChange={(paradaId) => onDraftTagChange?.(index, paradaId)}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       <span className="text-[0.8rem] font-semibold text-mutedTeal">
-        {t('gallery.coverOnlyNotice', 'Esta imagen será la foto de portada del viaje.')}
+        {t('gallery.draftNotice', 'Tus fotos se subirán al guardar el viaje.')}
       </span>
       {galeria.uploading && (
         <span className="text-[0.8rem] font-semibold text-mutedTeal">{t('toast.uploadingPhotos')}</span>

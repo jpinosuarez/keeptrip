@@ -27,6 +27,15 @@ import { useTravelAnalytics } from '@features/gamification/model/hooks/useTravel
 const CONTINENT_LABELS = { EU: 'Europa', AM: 'América', AS: 'Asia', AF: 'África', OC: 'Oceanía' };
 const POLE_LABELS = { north: 'Norte', south: 'Sur', east: 'Este', west: 'Oeste' };
 const POLE_KEYS = ['north', 'south', 'east', 'west'];
+const TRANSPORT_MODES = ['plane', 'train', 'car', 'ship', 'bus', 'walk'];
+const TRANSPORT_EMOJI = {
+  plane: '✈️',
+  train: '🚆',
+  car: '🚗',
+  ship: '⛴️',
+  bus: '🚌',
+  walk: '🚶',
+};
 
 const isEnglishLanguage = (language) =>
   typeof language === 'string' && language.toLowerCase().startsWith('en');
@@ -112,6 +121,9 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
     topCompanions,
     localTripsCount,
     internationalTripsCount,
+    transportByMode = {},
+    transportTotalLegs = 0,
+    placesCount = 0,
   } = analytics;
 
   const hasPoles = POLE_KEYS.some((key) => Boolean(poles[key]));
@@ -385,6 +397,27 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
               </div>
             ))}
           </div>
+
+          {(transportTotalLegs > 0 || placesCount > 0) && (
+            <div className="mt-3 border-t border-slate-200/70 pt-3">
+              <div className="flex flex-wrap gap-1.5">
+                {TRANSPORT_MODES.filter((mode) => transportByMode[mode]?.legs > 0).map((mode) => (
+                  <span
+                    key={mode}
+                    className="inline-flex items-center gap-1 rounded-full bg-atomicTangerine/10 text-atomicTangerine border border-atomicTangerine/25 px-2 py-0.5 text-[0.68rem] font-bold"
+                  >
+                    {TRANSPORT_EMOJI[mode]} {t(`statsDashboard.transport.${mode}`, mode)} · {transportByMode[mode].legs}
+                    {transportByMode[mode].km > 0 ? ` · ${transportByMode[mode].km} km` : ''}
+                  </span>
+                ))}
+                {placesCount > 0 && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-mutedTeal/10 text-mutedTeal border border-mutedTeal/25 px-2 py-0.5 text-[0.68rem] font-bold">
+                    📍 {t('statsDashboard.placesCount', 'Lugares')} · {placesCount}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </Card>
 
         {/* Frequent destinations & scope — full width */}

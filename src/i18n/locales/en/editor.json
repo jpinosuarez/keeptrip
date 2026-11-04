@@ -107,6 +107,7 @@
       "plane": "✈️ Plane",
       "train": "🚆 Train",
       "car": "🚗 Car",
+      "ship": "⛴️ Ship",
       "bus": "🚌 Bus",
       "other": "🔁 Other"
     },
@@ -147,7 +148,10 @@
   },
   "gallery": {
     "changeCover": "Change cover",
-    "removeCover": "Remove photo"
+    "removeCover": "Remove photo",
+    "setAsCover": "Set as cover",
+    "paradaUnassigned": "Unassigned",
+    "draftNotice": "Your photos will upload when you save the trip."
   },
   "coverPicker": {
     "title": "Select Cover Photo",
@@ -168,5 +172,51 @@
     "editTitleHint": "Tap to edit title"
   },
   "tripTitleAriaLabel": "Trip title",
-  "coverPreviewAlt": "Cover preview"
+  "coverPreviewAlt": "Cover preview",
+  "tabs": {
+    "route": "Route & Stops",
+    "essence": "Essence & Highlights",
+    "gallery": "Photos & Gallery",
+    "ariaLabel": "Editor sections"
+  },
+  "stopDrawer": {
+    "toggle": "Details & Photos",
+    "favorite": "Favorite stop",
+    "headline": "💬 Headline or key memory...",
+    "addLongNote": "+ Add extended note",
+    "notePlaceholder": "Tell what you experienced in this city...",
+    "customVibe": "+ Create",
+    "removeVibe": "Remove vibe",
+    "removePlace": "Remove place",
+    "placePlaceholder": {
+      "monumento": "Add a landmark...",
+      "gastronomia": "Add a restaurant...",
+      "mirador": "Add a viewpoint...",
+      "cultura": "Add a cultural plan...",
+      "hotel": "Add your hotel..."
+    },
+    "uploadStopPhotos": "Upload photos of {{city}}",
+    "vibes": {
+      "caminable": "Walkable",
+      "gastronomia": "Great food",
+      "historia": "History",
+      "naturaleza": "Nature",
+      "joya": "Hidden gem",
+      "fotogenica": "Photogenic",
+      "ambiente": "Ambience"
+    },
+    "places": {
+      "monumento": "Landmark",
+      "gastronomia": "Dining",
+      "mirador": "Viewpoint",
+      "cultura": "Culture",
+      "hotel": "Hotel"
+    }
+  },
+  "companionType": {
+    "solo": "Solo",
+    "couple": "Couple",
+    "family": "Family",
+    "friends": "Friends"
+  }
 }

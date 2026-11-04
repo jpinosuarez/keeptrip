@@ -227,15 +227,14 @@ function AppModalsManager({
     }, { replace: true });
   }, [setSearchParams, setViajeBorrador, setCiudadInicialBorrador]);
 
-  // Block 2.1: guarantee the editor closes after a successful save. The crud
-  // handler returns the saved trip id (string) on success and null on failure.
+  // Block 2.4: `handleSaveTrip` must NOT close the editor. It only performs the
+  // Firestore save and returns the result. Editor closing is delegated
+  // exclusively to `EditorFocusPanel.handleSaveWithLoading` via `onAfterSave`
+  // AFTER the gallery upload queue has finished, so there is a single owner of
+  // the close and no premature close-before-upload race.
   const handleSaveTrip = useCallback(async (id, payload, existingStops) => {
-    const result = await handleSaveModal(id, payload, existingStops);
-    if (result !== false) {
-      handleCloseEditor();
-    }
-    return result;
-  }, [handleSaveModal, handleCloseEditor]);
+    return handleSaveModal(id, payload, existingStops);
+  }, [handleSaveModal]);
 
   // ── ConfirmModal ──────────────────────────────────────────────────────────────
   const viajeAEliminar = confirmarEliminacion

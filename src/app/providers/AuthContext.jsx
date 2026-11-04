@@ -136,10 +136,12 @@ export const AuthProvider = ({ children }) => {
       setCargando(false);
       try {
         if (typeof window !== 'undefined') {
+          // Persist the session hint ONLY when a real user resolves. It is
+          // intentionally NOT cleared on a transient `null` callback (Firebase
+          // can emit a momentary null while rehydrating the persisted token on
+          // a cold F5). Removal happens exclusively inside the explicit logout().
           if (currentUser) {
             localStorage.setItem('keeptrip_has_session', 'true');
-          } else {
-            localStorage.removeItem('keeptrip_has_session');
           }
         }
       } catch {

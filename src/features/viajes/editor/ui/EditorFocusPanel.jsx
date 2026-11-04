@@ -3,12 +3,16 @@ import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
+import { useGaleriaViaje } from '@shared/lib/hooks/useGaleriaViaje';
 import { normalizeToIsoDate, resolveCoverPhotoUrl } from '@shared/lib/utils/viajeUtils';
 import { useEdicionModalLifecycle } from '../model/hooks/useEdicionModalLifecycle';
 import { useEdicionModalSave } from '../model/hooks/useEdicionModalSave';
+import { useEdicionGalleryManager } from '../model/hooks/useEdicionGalleryManager';
+import { useEdicionCompanions } from '../model/hooks/useEdicionCompanions';
 import { useVirtualKeyboard } from '../model/hooks/useVirtualKeyboard';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUpload } from '@app/providers/UploadContext';
+import { useToast } from '@app/providers/ToastContext';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import { cn } from '@shared/lib/utils/cn';
 import { Z_INDEX } from '@shared/config/theme';
@@ -16,6 +20,11 @@ import { Z_INDEX } from '@shared/config/theme';
 // Import editor sections
 import EditableTripHeader from './components/EditableTripHeader';
 import EdicionParadasSection from './components/EdicionParadasSection';
+import EdicionContextSection from './components/EdicionContextSection';
+import EdicionHighlightsSection from './components/EdicionHighlightsSection';
+import EdicionNotesSection from './components/EdicionNotesSection';
+import EdicionGallerySection from './components/EdicionGallerySection';
+import EditorTabBar from './components/EditorTabBar';
 
 /**
  * EditorFocusPanel: Desktop slide-over + Mobile full-screen sheet
@@ -38,7 +47,7 @@ const EditorFocusPanel = ({
   galleryPortada,
   setGalleryPortada,
   setCaptionDrafts,
-  galeria = { fotos: [], uploading: false },
+  galeria: galeriaProp = null,
   onAfterSave = null,
 }) => {
   const { t, i18n } = useTranslation(['editor', 'countries']);
@@ -47,11 +56,16 @@ const EditorFocusPanel = ({
   } = useOperationalFlags();
   const isReadOnlyMode = Boolean(appReadonlyMode) || operationalLevel >= 3;
   const { usuario } = useAuth();
+  const { pushToast: pushToastFromContext } = useToast();
+  const pushToast = pushToastFromContext || (() => {});
   const uploadCtx = useUpload();
   const usuarioUid = usuario?.uid || null;
   const [isSavingManual, setIsSavingManual] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isClosingAfterSave, setIsClosingAfterSave] = useState(false);
+  const [activeTab, setActiveTab] = useState('route');
+  const [captionDraftsState, setCaptionDraftsState] = useState({});
+  const [draftTags, setDraftTags] = useState({});
 
   const { keyboardOffset, isKeyboardOpen } = useVirtualKeyboard();
 
@@ -67,7 +81,7 @@ const EditorFocusPanel = ({
   const [localParadas, setLocalParadas] = useState([]);
   const [localGalleryFiles, setLocalGalleryFiles] = useState([]);
   const [localGalleryPortada, setLocalGalleryPortada] = useState(0);
-  const [, setLocalCaptionDrafts] = useState({});
+  const [localCaptionDrafts, setLocalCaptionDrafts] = useState({});
 
   const effectiveFormData = formData ?? localFormData;
   const formDataWithFallback = {
@@ -86,6 +100,11 @@ const EditorFocusPanel = ({
   const effectiveGalleryPortada = galleryPortada ?? localGalleryPortada;
   const effectiveSetGalleryPortada = setGalleryPortada ?? setLocalGalleryPortada;
   const effectiveSetCaptionDrafts = setCaptionDrafts ?? setLocalCaptionDrafts;
+
+  // Gallery subscription for EXISTING trips (drafts have no Firestore viajeId yet).
+  const isPersistedTrip = Boolean(viaje?.id && viaje.id !== 'new');
+  const serverGallery = useGaleriaViaje(isPersistedTrip ? viaje.id : null);
+  const galeria = galeriaProp || serverGallery;
 
   // Initialize tracking refs on mount (snapshots for change detection)
   useEffect(() => {
@@ -162,15 +181,43 @@ const EditorFocusPanel = ({
     onSave,
     galleryFiles: effectiveGalleryFiles,
     galleryPortada: effectiveGalleryPortada,
+    draftTags,
     hasUploadContext,
     iniciarSubida,
-    pushToast: () => {},
+    pushToast,
     t,
     limpiarEstado,
     onClose,
     resetDirty: limpiarEstado,
     autoFinalize: false,
   });
+
+  // Gallery manager (network photo cover/delete/caption/stop assignment)
+  const galleryManager = useEdicionGalleryManager({
+    galeria,
+    captionDrafts: captionDraftsState,
+    setCaptionDrafts: setCaptionDraftsState,
+    pushToast,
+    t,
+    viajeId: isPersistedTrip ? viaje.id : null,
+    ownerUid: usuarioUid,
+  });
+
+  // Companion autocomplete (Level 1 companions)
+  const companions = useEdicionCompanions({
+    formData: effectiveFormData,
+    setFormData: effectiveSetFormData,
+    viaje,
+    usuario,
+    pushToast,
+    t,
+  });
+
+  const handleDraftTagChange = useCallback((index, paradaId) => {
+    setDraftTags((prev) => ({ ...prev, [index]: { paradaId: paradaId || null } }));
+  }, []);
+
+  const stopPhotos = galeria?.fotos || [];
 
   const hasValidStops = Array.isArray(effectiveParadas) && effectiveParadas.length > 0;
   const hasValidTitle = Boolean((formDataWithFallback?.titulo || '').trim());
@@ -185,22 +232,30 @@ const EditorFocusPanel = ({
     try {
       const savedId = await handleSaveManual();
       if (!savedId) {
-        // Save failed; keep the editor open so user can retry.
+        // Save genuinely failed; keep the editor open so the user can retry.
         return;
       }
 
+      // Save succeeded → guarantee a single atomic close.
+      const effectiveTripId = savedId || (viaje?.id && viaje.id !== 'new' ? viaje.id : null);
       initialFormDataRef.current = structuredClone(effectiveFormData || {});
       initialParadasRef.current = structuredClone(effectiveParadas || []);
       setIsClosingAfterSave(true);
       isClosingRef.current = true;
       limpiarEstado();
-      onAfterSave ? onAfterSave(savedId) : onClose();
+      // `onAfterSave` (handleCloseEditor) strips `?editing` / `?new` with
+      // { replace: true } and unmounts the editor. It is the SOLE closer.
+      if (onAfterSave) {
+        onAfterSave(effectiveTripId);
+      } else {
+        onClose?.();
+      }
     } catch (error) {
       console.error('Save error:', error);
     } finally {
       setIsSavingManual(false);
     }
-  }, [canSave, handleSaveManual, onAfterSave, limpiarEstado, onClose, effectiveFormData, effectiveParadas]);
+  }, [canSave, handleSaveManual, onAfterSave, onClose, limpiarEstado, effectiveFormData, effectiveParadas, viaje?.id]);
 
   const handleConfirmClose = () => {
     setShowConfirmModal(false);
@@ -342,19 +397,87 @@ const EditorFocusPanel = ({
               onRegenerateTitle={() => setAutoTitleMode(true)}
             />
 
-            {/* Itinerary / Stops */}
-            {effectiveParadas !== undefined && (
-              <EdicionParadasSection
-                t={t}
-                paradas={effectiveParadas}
-                setParadas={effectiveSetParadas}
-                fechaRangoDisplay={`${formDataWithFallback.fechaInicio || '--'} - ${formDataWithFallback.fechaFin || '--'}`}
-                tripStartDate={formDataWithFallback.fechaInicio}
-                tripEndDate={formDataWithFallback.fechaFin}
-                sinParadas={effectiveParadas.length === 0}
-                isReadOnlyMode={isReadOnlyMode}
-              />
-            )}
+            <EditorTabBar
+              t={t}
+              activeTab={activeTab}
+              onChange={setActiveTab}
+              stopsCount={effectiveParadas?.length || 0}
+              photosCount={(galeria?.fotos?.length || 0) + effectiveGalleryFiles.length}
+            />
+
+            <div className="p-4">
+              {activeTab === 'route' && effectiveParadas !== undefined && (
+                <EdicionParadasSection
+                  t={t}
+                  paradas={effectiveParadas}
+                  setParadas={effectiveSetParadas}
+                  fechaRangoDisplay={`${formDataWithFallback.fechaInicio || '--'} - ${formDataWithFallback.fechaFin || '--'}`}
+                  tripStartDate={formDataWithFallback.fechaInicio}
+                  tripEndDate={formDataWithFallback.fechaFin}
+                  sinParadas={effectiveParadas.length === 0}
+                  isReadOnlyMode={isReadOnlyMode}
+                  fotos={stopPhotos}
+                  onRequestPhotos={() => setActiveTab('gallery')}
+                />
+              )}
+
+              {activeTab === 'essence' && (
+                <div className="flex flex-col gap-3">
+                  <EdicionContextSection
+                    t={t}
+                    formData={formDataWithFallback}
+                    setFormData={effectiveSetFormData}
+                    showCompanions
+                    companionDraft={companions.companionDraft}
+                    companionResults={companions.companionResults}
+                    onCompanionSearch={companions.handleCompanionSearch}
+                    onAddCompanionFreeform={companions.handleAddCompanionFreeform}
+                    onAddCompanionFromResult={companions.handleAddCompanionFromResult}
+                  />
+                  <EdicionHighlightsSection
+                    t={t}
+                    formData={formDataWithFallback}
+                    setFormData={effectiveSetFormData}
+                  />
+                  <EdicionNotesSection
+                    t={t}
+                    texto={effectiveFormData?.texto || ''}
+                    onChange={(value) => effectiveSetFormData((prev) => ({ ...prev, texto: value }))}
+                    isBusy={isSavingManual}
+                  />
+                </div>
+              )}
+
+              {activeTab === 'gallery' && (
+                <EdicionGallerySection
+                  t={t}
+                  files={effectiveGalleryFiles}
+                  onFilesChange={effectiveSetGalleryFiles}
+                  portadaIndex={effectiveGalleryPortada}
+                  onPortadaChange={(urlOrIndex) => {
+                    if (typeof urlOrIndex === 'number') {
+                      effectiveSetGalleryPortada(urlOrIndex);
+                    } else if (typeof urlOrIndex === 'string') {
+                      effectiveSetFormData((prev) => ({ ...prev, portadaUrl: urlOrIndex }));
+                    }
+                  }}
+                  isBusy={isSavingManual || isImageBusy}
+                  galeria={galeria}
+                  captionDrafts={captionDraftsState}
+                  onCaptionChange={galleryManager.handleCaptionChange}
+                  onCaptionSave={galleryManager.handleCaptionSave}
+                  onSetPortadaExistente={galleryManager.handleSetPortadaExistente}
+                  onEliminarFoto={galleryManager.handleEliminarFoto}
+                  onAssignParada={galleryManager.handleAssignParada}
+                  paradas={effectiveParadas}
+                  draftTags={draftTags}
+                  onDraftTagChange={handleDraftTagChange}
+                  portadaUrl={formDataWithFallback.portadaUrl}
+                  isReadOnlyMode={isReadOnlyMode}
+                  maxFiles={15}
+                />
+              )}
+            </div>
           </div>
 
           <div

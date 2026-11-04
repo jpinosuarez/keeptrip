@@ -40,6 +40,7 @@
     "title": "La Crónica del Viaje",
     "climate": "Clima",
     "transport": "Transporte",
+    "favorite": "Parada favorita",
     "highlight": "Destacado",
     "dayTripFrom": "Escapada de día desde {{city}}"
   },

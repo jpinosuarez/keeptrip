@@ -1,7 +1,18 @@
 import { useCallback } from 'react';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
+import { db as firestoreDb } from '@shared/firebase';
+import { actualizarParadaFoto } from '@shared/api/services/viajes/galeriaService';
 
-export function useEdicionGalleryManager({ galeria, captionDrafts, setCaptionDrafts, pushToast, t }) {
+export function useEdicionGalleryManager({
+  galeria,
+  captionDrafts,
+  setCaptionDrafts,
+  pushToast,
+  t,
+  viajeId = null,
+  ownerUid = null,
+  db = firestoreDb,
+}) {
   const {
     flags: { level: operationalLevel, appReadonlyMode },
   } = useOperationalFlags();
@@ -94,10 +105,42 @@ export function useEdicionGalleryManager({ galeria, captionDrafts, setCaptionDra
     [captionDrafts, galeria, isReadOnlyMode, pushToast, t]
   );
 
+  const handleAssignParada = useCallback(
+    async (foto, paradaId) => {
+      if (isReadOnlyMode) {
+        pushToast(
+          t(
+            'common:operational.readOnlyBlockedAction',
+            'Keeptrip is in Read-Only mode. Your data is safe, but edits are paused.'
+          ),
+          'info'
+        );
+        return;
+      }
+
+      if (!foto?.id || !viajeId || !ownerUid) return;
+
+      try {
+        const ok = await actualizarParadaFoto({
+          db,
+          userId: ownerUid,
+          viajeId,
+          fotoId: foto.id,
+          paradaId: paradaId || null,
+        });
+        if (!ok) pushToast(t('error.photoAssignFailed', 'No se pudo asignar la parada.'), 'error');
+      } catch {
+        pushToast(t('error.photoAssignFailed', 'No se pudo asignar la parada.'), 'error');
+      }
+    },
+    [db, isReadOnlyMode, ownerUid, pushToast, t, viajeId]
+  );
+
   return {
     handleSetPortadaExistente,
     handleEliminarFoto,
     handleCaptionChange,
     handleCaptionSave,
+    handleAssignParada,
   };
 }

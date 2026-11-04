@@ -161,3 +161,73 @@ describe('ParadaSchema & validarParadasEnViaje - superposición y límites maest
     expect(resultado.mensaje).toContain('no puede finalizar después');
   });
 });
+
+describe('Block 2.4 — Micro-stop chronicles & companions schema', () => {
+  it('ParadaSchema acepta transporte canónico, esFavorita, titular, nota, vibes y lugares', () => {
+    const parada = {
+      nombre: 'Budapest',
+      coordenadas: [19.0402, 47.4979],
+      fechaLlegada: '2026-09-26',
+      fechaSalida: '2026-09-28',
+      transporte: 'plane',
+      esFavorita: true,
+      titular: 'El Parlamento al atardecer',
+      nota: 'Cruzamos el Danubio caminando y terminamos cenando junto al río.',
+      vibes: ['caminable', 'gastronomia', 'fotogenica'],
+      lugares: [
+        { id: 'poi-1', nombre: 'Parlamento', categoria: 'monumento' },
+        { id: 'poi-2', nombre: 'Mercado Central', categoria: 'gastronomia' }
+      ]
+    };
+
+    const parsed = ParadaSchema.parse(parada);
+    expect(parsed.transporte).toBe('plane');
+    expect(parsed.esFavorita).toBe(true);
+    expect(parsed.titular).toBe('El Parlamento al atardecer');
+    expect(parsed.vibes).toEqual(['caminable', 'gastronomia', 'fotogenica']);
+    expect(parsed.lugares).toHaveLength(2);
+    expect(parsed.lugares[1].categoria).toBe('gastronomia');
+  });
+
+  it('ParadaSchema rechaza un lugar con categoría inválida', () => {
+    const parada = {
+      nombre: 'Roma',
+      coordenadas: [12.4964, 41.9028],
+      lugares: [{ id: 'poi-x', nombre: 'Coliseo', categoria: 'inventada' }]
+    };
+
+    expect(() => ParadaSchema.parse(parada)).toThrow();
+  });
+
+  it('ViajeSchemaBase acepta companionType y companions nominales (strings) y objetos', () => {
+    const viaje = {
+      code: 'HU',
+      nombreEspanol: 'Hungría',
+      titulo: 'Escapada a Budapest',
+      fechaInicio: '2026-09-26',
+      fechaFin: '2026-09-28',
+      companionType: 'couple',
+      companions: ['Ana', { name: 'Luis', email: 'luis@example.com' }],
+      fotoCredito: null
+    };
+
+    const parsed = ViajeSchemaBase.parse(viaje);
+    expect(parsed.companionType).toBe('couple');
+    expect(parsed.companions).toHaveLength(2);
+    expect(parsed.companions[0]).toBe('Ana');
+    expect(parsed.companions[1].name).toBe('Luis');
+  });
+
+  it('ViajeSchemaBase rechaza un companionType desconocido', () => {
+    const viaje = {
+      code: 'HU',
+      nombreEspanol: 'Hungría',
+      titulo: 'Escapada a Budapest',
+      fechaInicio: '2026-09-26',
+      fechaFin: '2026-09-28',
+      companionType: 'crowd'
+    };
+
+    expect(() => ViajeSchemaBase.parse(viaje)).toThrow();
+  });
+});

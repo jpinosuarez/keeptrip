@@ -136,6 +136,15 @@
     "topCities": "Ciudades más visitadas",
     "localTrips": "{{count}} locales",
     "internationalTrips": "{{count}} internacionales",
-    "topCompanions": "Compañeros de viaje"
+    "topCompanions": "Compañeros de viaje",
+    "placesCount": "Lugares registrados",
+    "transport": {
+      "plane": "Avión",
+      "train": "Tren",
+      "car": "Auto",
+      "ship": "Barco",
+      "bus": "Bus",
+      "walk": "A pie"
+    }
   }
 }

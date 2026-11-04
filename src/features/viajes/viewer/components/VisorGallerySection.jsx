@@ -1,4 +1,5 @@
 import { cn } from '@shared/lib/utils/cn';
+import React, { useMemo } from 'react';
 import { Star, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { GalleryGrid } from '@shared/ui/components/GalleryGrid';
@@ -18,9 +19,32 @@ const VisorGallerySection = ({
   onEliminarFoto,
   isBusy,
   onAddPhotos,
+  paradas = [],
 }) => {
   const { t } = useTranslation('visor');
-  const fotos = galeria?.fotos || [];
+  const rawFotos = galeria?.fotos || [];
+
+  // Consolidated, deduplicated album: cover + stop-tagged + unassigned photos.
+  const fotos = useMemo(() => {
+    const seen = new Set();
+    return rawFotos.filter((foto) => {
+      const key = foto?.url;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [rawFotos]);
+
+  const stopNameById = useMemo(() => {
+    const map = {};
+    (Array.isArray(paradas) ? paradas : []).forEach((p) => {
+      if (p?.id) map[p.id] = p.nombre;
+    });
+    return map;
+  }, [paradas]);
+
+  const locationFor = (foto) =>
+    foto?.paradaId && stopNameById[foto.paradaId] ? stopNameById[foto.paradaId] : null;
 
   // Zero-slop: a shared trip without photos hides the whole section.
   if (fotos.length === 0 && !isOwner) return null;
@@ -54,6 +78,7 @@ const VisorGallerySection = ({
               fotosSubiendo={fotosSubiendo}
               onReintentarFoto={onReintentarFoto}
               isMobile={isMobile}
+              locationFor={locationFor}
             />
           </div>
         </>
@@ -77,6 +102,11 @@ const VisorGallerySection = ({
               f.esPortada ? "border-atomicTangerine shadow-md" : "border-border shadow-sm"
             )}>
               <img src={f.url} alt={f.caption || 'foto'} loading="lazy" className="w-full h-[120px] object-cover rounded-sm" />
+              {locationFor(f) && (
+                <span className="inline-flex items-center gap-1 self-start rounded-full bg-charcoalBlue/85 text-white text-[0.62rem] font-bold px-2 py-0.5">
+                  📍 {locationFor(f)}
+                </span>
+              )}
               <input
                 type="text"
                 value={captionDrafts[f.id] ?? (f.caption || '')}

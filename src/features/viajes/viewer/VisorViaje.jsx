@@ -164,6 +164,7 @@ const VisorViaje = ({
     timeline: (
       <VisorTimelineSection
         paradas={paradasOrdenadas}
+        fotos={galeria?.fotos || []}
         isMobile={isMobile}
         hoveredStopId={hoveredStopId}
         onHoverStop={handleStopHover}
@@ -189,6 +190,7 @@ const VisorViaje = ({
         onEliminarFoto={handleEliminarFoto}
         isOwner={isOwner}
         isMobile={isMobile}
+        paradas={paradasOrdenadas}
         onAddPhotos={handleOpenEditor}
       />
     ),

@@ -1,10 +1,15 @@
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { normalizeToIsoDate, resolveCoverPhotoUrl } from '@shared/lib/utils/viajeUtils';
 
-function resolveSavedTripId(saveResult, tripId) {
+function resolveSavedTripId(saveResult, tripId, fallbackTripId = null) {
   if (typeof saveResult === 'string' && saveResult.trim()) return saveResult;
   if (saveResult && typeof saveResult === 'object' && typeof saveResult.id === 'string') return saveResult.id;
-  if (saveResult === true && tripId && tripId !== 'new') return tripId;
+  // `true` is a success signal from legacy CRUD handlers. Prefer the freshly
+  // generated id (newly created trip) and fall back to the known persisted id.
+  if (saveResult === true) {
+    if (fallbackTripId && fallbackTripId !== 'new') return fallbackTripId;
+    if (tripId && tripId !== 'new') return tripId;
+  }
   return null;
 }
 
@@ -19,6 +24,7 @@ export function useEdicionModalSave({
   onSave,
   galleryFiles,
   galleryPortada,
+  draftTags = {},
   hasUploadContext,
   iniciarSubida,
   pushToast,
@@ -149,7 +155,7 @@ export function useEdicionModalSave({
         if (hasUploadContext) {
           try {
             pushToast(t('toast.uploadingPhotos'), 'info');
-            await iniciarSubida(savedTripId, galleryFiles, galleryPortada);
+            await iniciarSubida(savedTripId, galleryFiles, galleryPortada, { draftTags });
             pushToast(t('toast.uploadingPhotosDone'), 'success');
           } catch (uploadError) {
             console.error('Upload error:', uploadError);
@@ -162,21 +168,23 @@ export function useEdicionModalSave({
         }
       }
 
-      // A completed save must always release the editor. Flush any dirty guard
-      // BEFORE closing so a successful save can never be blocked by isDirty.
+      // A completed save must always flush any dirty guard BEFORE closing so a
+      // successful save can never be blocked by isDirty.
       resetDirty?.();
 
+      // SINGLE-OWNER CLOSE CONTRACT (Block 2.4):
+      // - autoFinalize === true (legacy EdicionModal): the hook owns closing.
+      // - autoFinalize === false (EditorFocusPanel): the panel owns closing via
+      //   onAfterSave, so we must NOT invoke onClose here (avoids a race where
+      //   the manager closes before the gallery uploads finish).
       if (autoFinalize) {
         limpiarEstado();
         if (onAfterSave) {
           onAfterSave(savedTripId);
+        } else {
+          onClose?.();
         }
       }
-
-      // Explicit close guarantee (Block 2.1): the editor must never stay open
-      // after a successful save, even when the caller disables autoFinalize
-      // (EditorFocusPanel manages its own loading state).
-      onClose?.();
 
       return savedTripId;
     } catch (error) {

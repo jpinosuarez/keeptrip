@@ -112,8 +112,32 @@ export const ParadaSchemaBase = z.object({
     max: z.number().optional()
   }).optional().nullable(),
   tipo: z.enum(['place', 'city', 'landmark', 'other']).default('place'),
-  // Nuevo: transporte entre puntos (ayuda logística / storytelling)
-  transporte: z.enum(['avion','tren','auto','bus','otro']).optional(),
+  // Transport connector between stops. Canonical values are the new
+  // English tokens; legacy Spanish tokens are kept for backward compatibility
+  // with already-persisted documents.
+  transporte: z
+    .enum(['plane', 'train', 'car', 'ship', 'bus', 'avion', 'tren', 'auto', 'otro'])
+    .nullable()
+    .optional(),
+  // Favorite stop heart toggle.
+  esFavorita: z.boolean().default(false).optional(),
+  // Short headline / key memory (micro-chronicle).
+  titular: z.string().max(160).optional().default(''),
+  // Extended long-form note (revealed on demand).
+  nota: z.string().max(5000).optional().default(''),
+  // 1-tap city vibe chips (multi-select).
+  vibes: z.array(z.string().max(40)).default([]).optional(),
+  // Categorized places & POIs (cost-free, local only).
+  lugares: z
+    .array(
+      z.object({
+        id: z.string(),
+        nombre: z.string().min(1).max(120),
+        categoria: z.enum(['monumento', 'gastronomia', 'mirador', 'cultura', 'hotel'])
+      })
+    )
+    .default([])
+    .optional(),
   // Nota corta vinculada a la parada (micro‑momento)
   notaCorta: z.string().max(200).optional().nullable(),
   // Relato por parada (historia fragmentada)
@@ -182,12 +206,21 @@ export const ViajeSchemaBase = z.object({
     topTip: z.string().max(240).optional().nullable()
   }).optional().nullable(),
   // Companions + sharing
-  companions: z.array(z.object({
-    name: z.string(),
-    email: z.string().optional().nullable(),
-    userId: z.string().optional().nullable(),
-    status: z.enum(['pending','accepted']).default('pending')
-  })).default([]),
+  // Level-1 companion taxonomy driving Analytics & the Traveler Hub ranking.
+  companionType: z.enum(['solo', 'couple', 'family', 'friends']).nullable().optional(),
+  // Accepts both the rich invitation object and plain nominal names (chips).
+  companions: z.array(
+    z.union([
+      z.string().max(120),
+      z.object({
+        id: z.string().optional(),
+        name: z.string().optional(),
+        email: z.string().optional().nullable(),
+        userId: z.string().optional().nullable(),
+        status: z.enum(['pending', 'accepted']).optional().default('pending')
+      })
+    ])
+  ).default([]),
   sharedWith: z.array(z.string()).default([]), // uids que aceptaron ver el viaje
   // Metadata de ubicación
   banderas: z.array(z.string().url()).default([]),

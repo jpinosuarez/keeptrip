@@ -9,7 +9,18 @@ import {
   calculateTripDays,
 } from '@shared/lib/utils/viajeUtils';
 
-const transporteEmoji = { avion: '\u2708\ufe0f', tren: '\ud83d\ude86', auto: '\ud83d\ude97', bus: '\ud83d\ude8c', otro: '\ud83d\udeb6' };
+const transporteEmoji = {
+  plane: '\u2708\ufe0f',
+  train: '\ud83d\ude86',
+  car: '\ud83d\ude97',
+  ship: '\u26f4\ufe0f',
+  bus: '\ud83d\ude8c',
+  avion: '\u2708\ufe0f',
+  tren: '\ud83d\ude86',
+  auto: '\ud83d\ude97',
+  otro: '\ud83d\udeb6',
+  walk: '\ud83d\udeb6',
+};
 
 const climaEmoji = (desc) => {
   if (!desc) return '\ud83c\udf21\ufe0f';
@@ -26,21 +37,48 @@ const climaEmoji = (desc) => {
 const hasNarrativeContent = (parada) =>
   Boolean(
     (parada?.nota && String(parada.nota).trim()) ||
+      (parada?.titular && String(parada.titular).trim()) ||
       (parada?.notaCorta && String(parada.notaCorta).trim()) ||
       (parada?.descripcion && String(parada.descripcion).trim()) ||
       (parada?.comentarios && String(parada.comentarios).trim()) ||
       (parada?.relato && String(parada.relato).trim()) ||
+      (Array.isArray(parada?.lugares) && parada.lugares.length > 0) ||
+      (Array.isArray(parada?.vibes) && parada.vibes.length > 0) ||
+      Boolean(parada?.esFavorita) ||
       (Array.isArray(parada?.fotos) && parada.fotos.length > 0)
   );
 
-const collectThumbnails = (parada) =>
-  (Array.isArray(parada?.fotos) ? parada.fotos : [])
+const collectThumbnails = (parada, stopPhotos = []) => {
+  const fromStop = (Array.isArray(parada?.fotos) ? parada.fotos : [])
     .map((foto) => (typeof foto === 'string' ? foto : foto?.url))
-    .filter(Boolean)
-    .slice(0, 4);
+    .filter(Boolean);
+  const fromGallery = (Array.isArray(stopPhotos) ? stopPhotos : [])
+    .filter((foto) => foto?.paradaId && foto.paradaId === parada?.id && foto?.url)
+    .map((foto) => foto.url);
+  return [...new Set([...fromStop, ...fromGallery])].slice(0, 4);
+};
+
+const VIBE_LABELS = {
+  caminable: '\ud83d\udeb6\u200d\u2642\ufe0f',
+  gastronomia: '\ud83c\udf5c',
+  historia: '\ud83c\udfdb\ufe0f',
+  naturaleza: '\ud83c\udf3f',
+  joya: '\ud83d\udc8e',
+  fotogenica: '\ud83d\udcf8',
+  ambiente: '\ud83c\udf89',
+};
+
+const PLACE_EMOJI = {
+  monumento: '\ud83c\udfdb\ufe0f',
+  gastronomia: '\ud83c\udf7d\ufe0f',
+  mirador: '\ud83c\udf05',
+  cultura: '\ud83c\udfad',
+  hotel: '\ud83c\udfe8',
+};
 
 const VisorTimelineSection = ({
   paradas = [],
+  fotos = [],
   hoveredStopId = null,
   onHoverStop,
 }) => {
@@ -61,8 +99,8 @@ const VisorTimelineSection = ({
           const hasContent = hasNarrativeContent(p);
           const days = calculateTripDays(p.fechaLlegada || p.fecha, p.fechaSalida);
           const dateLabel = formatDateRange(p.fechaLlegada || p.fecha, p.fechaSalida);
-          const thumbnails = collectThumbnails(p);
-          const storyText = p.relato || p.nota || p.descripcion || p.comentarios || '';
+          const thumbnails = collectThumbnails(p, fotos);
+          const storyText = p.nota || p.relato || p.descripcion || p.comentarios || '';
 
           const stopHoverEvents = {
             onMouseEnter: () => onHoverStop?.(p.id),
@@ -115,14 +153,23 @@ const VisorTimelineSection = ({
                   <div className="flex justify-between items-baseline gap-2">
                     <span
                       data-testid={`visor-stop-name-${p.id || i}`}
-                      className="text-base font-bold text-charcoalBlue"
+                      className="inline-flex items-center gap-1 text-base font-bold text-charcoalBlue"
                     >
+                      {p.esFavorita && (
+                        <span aria-label={t('timeline.favorite', 'Favorite stop')}>❤️</span>
+                      )}
                       {p.nombre}
                     </span>
                     <span className="text-[0.75rem] text-textSecondary whitespace-nowrap">
                       {dateLabel}
                     </span>
                   </div>
+
+                  {p.titular && String(p.titular).trim() && (
+                    <p className="m-0 text-[0.82rem] font-semibold italic text-charcoalBlue">
+                      {p.titular}
+                    </p>
+                  )}
 
                   {dayTripFrom && (
                     <span
@@ -142,6 +189,32 @@ const VisorTimelineSection = ({
                       <p className="text-[0.88rem] leading-[1.6] text-textPrimary whitespace-pre-wrap m-0">
                         {storyText}
                       </p>
+                    </div>
+                  )}
+
+                  {Array.isArray(p.vibes) && p.vibes.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {p.vibes.map((vibe) => (
+                        <span
+                          key={vibe}
+                          className="inline-flex items-center gap-1 rounded-full bg-atomicTangerine/10 text-atomicTangerine text-[0.68rem] font-bold border border-atomicTangerine/25 px-2 py-0.5"
+                        >
+                          {VIBE_LABELS[vibe] || '✨'} {vibe}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {Array.isArray(p.lugares) && p.lugares.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {p.lugares.map((lugar) => (
+                        <span
+                          key={lugar.id || lugar.nombre}
+                          className="inline-flex items-center gap-1 rounded-full bg-mutedTeal/10 text-mutedTeal text-[0.68rem] font-bold border border-mutedTeal/25 px-2 py-0.5"
+                        >
+                          {PLACE_EMOJI[lugar.categoria] || '📍'} {lugar.nombre}
+                        </span>
+                      ))}
                     </div>
                   )}
 

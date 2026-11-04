@@ -40,6 +40,7 @@
     "title": "The Trip Chronicle",
     "climate": "Weather",
     "transport": "Transport",
+    "favorite": "Favorite stop",
     "highlight": "Highlight",
     "dayTripFrom": "Day trip from {{city}}"
   },

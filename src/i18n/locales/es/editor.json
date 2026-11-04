@@ -107,6 +107,7 @@
       "plane": "✈️ Avión",
       "train": "🚆 Tren",
       "car": "🚗 Auto",
+      "ship": "⛴️ Barco",
       "bus": "🚌 Bus",
       "other": "🔁 Otro"
     },
@@ -147,7 +148,10 @@
   },
   "gallery": {
     "changeCover": "Cambiar portada",
-    "removeCover": "Quitar foto"
+    "removeCover": "Quitar foto",
+    "setAsCover": "Marcar como portada",
+    "paradaUnassigned": "Sin asignar",
+    "draftNotice": "Tus fotos se subirán al guardar el viaje."
   },
   "coverPicker": {
     "title": "Seleccionar foto de portada",
@@ -168,5 +172,51 @@
     "editTitleHint": "Toca para editar el título"
   },
   "tripTitleAriaLabel": "Título del viaje",
-  "coverPreviewAlt": "Vista previa de la portada"
+  "coverPreviewAlt": "Vista previa de la portada",
+  "tabs": {
+    "route": "Ruta y Paradas",
+    "essence": "Esencia y Destacados",
+    "gallery": "Fotos y Galería",
+    "ariaLabel": "Secciones del editor"
+  },
+  "stopDrawer": {
+    "toggle": "Detalles y Fotos",
+    "favorite": "Parada favorita",
+    "headline": "💬 Titular o recuerdo clave...",
+    "addLongNote": "+ Añadir nota extendida",
+    "notePlaceholder": "Cuenta lo que viviste en esta ciudad...",
+    "customVibe": "+ Crear",
+    "removeVibe": "Quitar vibe",
+    "removePlace": "Quitar lugar",
+    "placePlaceholder": {
+      "monumento": "Añade un monumento...",
+      "gastronomia": "Añade un restaurante...",
+      "mirador": "Añade un mirador...",
+      "cultura": "Añade un plan cultural...",
+      "hotel": "Añade tu hotel..."
+    },
+    "uploadStopPhotos": "Subir fotos de {{city}}",
+    "vibes": {
+      "caminable": "Caminable",
+      "gastronomia": "Gran comida",
+      "historia": "Historia",
+      "naturaleza": "Naturaleza",
+      "joya": "Joya oculta",
+      "fotogenica": "Fotogénica",
+      "ambiente": "Ambiente"
+    },
+    "places": {
+      "monumento": "Monumento",
+      "gastronomia": "Gastronomía",
+      "mirador": "Mirador",
+      "cultura": "Cultura",
+      "hotel": "Hotel"
+    }
+  },
+  "companionType": {
+    "solo": "Solo",
+    "couple": "Pareja",
+    "family": "Familia",
+    "friends": "Amigos"
+  }
 }
