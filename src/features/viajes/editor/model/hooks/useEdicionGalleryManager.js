@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { db as firestoreDb } from '@shared/firebase';
 import { actualizarParadaFoto } from '@shared/api/services/viajes/galeriaService';
@@ -12,11 +12,23 @@ export function useEdicionGalleryManager({
   viajeId = null,
   ownerUid = null,
   db = firestoreDb,
+  activeTab = 'route',
 }) {
   const {
     flags: { level: operationalLevel, appReadonlyMode },
   } = useOperationalFlags();
   const isReadOnlyMode = Boolean(appReadonlyMode) || operationalLevel >= 3;
+
+  // Immediate gallery hydration when the editor is deep-linked straight to the
+  // gallery tab (?editing=ID&tab=galeria): force a reload as soon as viajeId is
+  // resolved, instead of waiting for a manual tab re-click.
+  useEffect(() => {
+    if (viajeId && activeTab === 'gallery' && typeof galeria?.recargar === 'function') {
+      galeria.recargar();
+    }
+    // Keyed on viajeId + activeTab only to avoid re-running on galeria identity churn.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viajeId, activeTab]);
 
   const handleSetPortadaExistente = useCallback(
     async (fotoId) => {

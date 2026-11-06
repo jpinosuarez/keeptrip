@@ -72,6 +72,7 @@ const EdicionGallerySection = ({
   paradas = [],
   draftTags = {},
   onDraftTagChange,
+  defaultParadaId = null,
   portadaUrl,
   isReadOnlyMode = false,
   maxFiles = 15,
@@ -149,7 +150,7 @@ const EdicionGallerySection = ({
         renderFileOverlay={(index) => (
           <StopTagPopover
             t={t}
-            value={draftTags[index]?.paradaId}
+            value={draftTags[index]?.paradaId || defaultParadaId || null}
             paradas={paradas}
             disabled={isReadOnlyMode}
             onChange={(paradaId) => onDraftTagChange?.(index, paradaId)}

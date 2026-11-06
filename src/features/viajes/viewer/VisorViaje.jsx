@@ -144,6 +144,10 @@ const VisorViaje = ({
     if (typeof openEditor === 'function') openEditor(viajeId);
   };
 
+  const handleManagePhotos = () => {
+    if (typeof openEditor === 'function') openEditor(viajeId, 'galeria');
+  };
+
   if (!hasViajeData) return null;
 
   const isOwner = !isSharedTrip;
@@ -185,18 +189,11 @@ const VisorViaje = ({
       <VisorGallerySection
         galeria={galeria}
         fotosSubiendo={fotosSubiendo}
-        captionDrafts={captionDrafts}
-        showGalleryTools={showGalleryTools}
-        toggleGalleryTools={toggleGalleryTools}
         onReintentarFoto={onReintentarFoto}
-        onCaptionChange={handleCaptionChange}
-        onCaptionSave={handleCaptionSave}
-        onSetPortadaExistente={handleSetPortadaExistente}
-        onEliminarFoto={handleEliminarFoto}
         isOwner={isOwner}
         isMobile={isMobile}
         paradas={paradasOrdenadas}
-        onAddPhotos={handleOpenEditor}
+        onManagePhotos={handleManagePhotos}
       />
     ),
   };

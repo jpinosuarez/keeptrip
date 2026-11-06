@@ -1,225 +1,263 @@
-import React from 'react';
-import InfoTooltip from '@shared/ui/components/InfoTooltip';
-import { X, Users, Wallet, Heart, User, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, X, Plus, Sparkles } from 'lucide-react';
 import { cn } from '@shared/lib/utils/cn';
 
-const VIBES = ['Gastronómico', 'Aventura', 'Relax', 'Roadtrip', 'Cultural'];
-const VIBE_KEY_MAP = {
-  'Gastronómico': 'gastronomico',
-  Aventura: 'aventura',
-  Relax: 'relax',
-  Roadtrip: 'roadtrip',
-  Cultural: 'cultural',
-};
+const COMPANION_TYPES = [
+  ['solo', '🎒', 'Solo'],
+  ['couple', '💑', 'Pareja'],
+  ['family', '👨‍👩‍👧‍👦', 'Familia'],
+  ['friends', '🍻', 'Amigos'],
+];
+
+const STYLE_OPTIONS = [
+  { label: '🎒 Mochilero', legacy: ['Mochilero', 'mochilero'] },
+  { label: '🏖️ Relax y Playa', legacy: ['Relax', 'relax'] },
+  { label: '🥾 Naturaleza', legacy: ['Naturaleza', 'naturaleza', 'Aventura', 'aventura'] },
+  { label: '🏛️ Cultural', legacy: ['Cultural', 'cultural'] },
+  { label: '🍷 Gastronómico', legacy: ['Gastronómico', 'gastronomico'] },
+  { label: '🚗 Roadtrip', legacy: ['Roadtrip', 'roadtrip'] },
+  { label: '📸 Fotográfico', legacy: ['Fotográfico', 'fotografico'] },
+  { label: '❄️ Invierno', legacy: ['Invierno', 'invierno'] },
+];
 
 const EdicionContextSection = ({
   t,
   formData,
   setFormData,
   showCompanions = true,
+  frequentCompanions = [],
   companionDraft,
   companionResults,
   onCompanionSearch,
   onAddCompanionFreeform,
   onAddCompanionFromResult,
 }) => {
+  const [showCustomStyle, setShowCustomStyle] = useState(false);
+  const [customText, setCustomText] = useState('');
+
+  const vibe = Array.isArray(formData.vibe) ? formData.vibe : [];
+  const companions = Array.isArray(formData.companions) ? formData.companions : [];
+  const isSolo = formData.companionType === 'solo';
+
+  const isStyleActive = (opt) =>
+    vibe.includes(opt.label) || opt.legacy.some((l) => vibe.includes(l));
+
+  const toggleStyle = (opt) => {
+    setFormData((prev) => {
+      const current = Array.isArray(prev.vibe) ? prev.vibe : [];
+      const active = current.includes(opt.label) || opt.legacy.some((l) => current.includes(l));
+      if (active) {
+        return { ...prev, vibe: current.filter((v) => v !== opt.label && !opt.legacy.includes(v)) };
+      }
+      return { ...prev, vibe: [...current, opt.label] };
+    });
+  };
+
+  const addCustomStyle = () => {
+    const text = customText.trim();
+    if (!text) return;
+    setFormData((prev) => ({ ...prev, vibe: [...(prev.vibe || []), text] }));
+    setCustomText('');
+    setShowCustomStyle(false);
+  };
+
+  const extraVibes = vibe.filter(
+    (v) => !STYLE_OPTIONS.some((o) => o.label === v || o.legacy.includes(v))
+  );
+
+  const companionNames = new Set(
+    companions.map((c) => (typeof c === 'string' ? c : c?.name || c?.email || '')).filter(Boolean)
+  );
+  const suggestions = (frequentCompanions || []).filter(
+    (name) => name && !companionNames.has(name)
+  );
+
+  const addFrequentCompanion = (name) => {
+    setFormData((prev) => ({ ...prev, companions: [...(prev.companions || []), name] }));
+  };
+
+  const addCompanion = (text) => {
+    const trimmed = String(text || '').trim();
+    if (!trimmed) return;
+    setFormData((prev) => ({ ...prev, companions: [...(prev.companions || []), trimmed] }));
+  };
+
   return (
     <div className="flex flex-col gap-2 bg-background p-4 rounded-lg border border-border">
-      <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
-        <Users size={15} className="text-[#FF6B35]" /> {t('labels.contexto', 'Contexto del viaje')}
+      <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+        <Users size={15} className="text-[#FF6B35]" /> {t('details.withWhom', '¿Con quién viajaste?')}
       </h3>
 
-      <div className="mb-4">
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-          <Wallet size={15} className="text-[#FF6B35]" /> {t('labels.presupuesto', 'Presupuesto')}
-          <InfoTooltip textKey="editor:tooltip.presupuesto" size={13} />
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {[
-            ['Mochilero', 'budget.mochilero', 'Mochilero'],
-            ['Económico', 'budget.economico', 'Económico'],
-            ['Confort', 'budget.confort', 'Confort'],
-            ['Lujo', 'budget.lujo', 'Lujo'],
-          ].map(([value, key, fallback]) => {
-            const selected = (formData.presupuesto || '') === value;
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() =>
-                  setFormData((prev) => ({ ...prev, presupuesto: prev.presupuesto === value ? '' : value }))
-                }
-                aria-pressed={selected}
-                className={cn(
-                  'min-h-[44px] px-3 py-1.5 rounded-full border text-[0.875rem] transition-all duration-200 cursor-pointer',
-                  selected
-                    ? 'border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine font-bold'
-                    : 'border-border bg-surface text-textPrimary font-normal'
-                )}
-              >
-                {t(key, fallback)}
-              </button>
-            );
-          })}
-        </div>
+      {/* Companion type pills */}
+      <div className="flex gap-2 flex-wrap mb-2">
+        {COMPANION_TYPES.map(([value, emoji, fallback]) => {
+          const selected = (formData.companionType || '') === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() =>
+                setFormData((prev) => {
+                  const next = prev.companionType === value ? null : value;
+                  return { ...prev, companionType: next, companions: next === 'solo' ? [] : (prev.companions || []) };
+                })
+              }
+              aria-pressed={selected}
+              className={cn(
+                'min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[0.875rem] transition-all duration-200 cursor-pointer',
+                selected
+                  ? 'border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine font-bold'
+                  : 'border-border bg-surface text-textPrimary font-normal'
+              )}
+            >
+              <span aria-hidden="true">{emoji}</span>
+              {t(`companionType.${value}`, fallback)}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="mb-3">
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-          <Heart size={15} className="text-[#FF6B35]" /> {t('labels.companionType', 'Tipo de compañía')}
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {[
-            ['solo', User, 'Solo'],
-            ['couple', Heart, 'Pareja'],
-            ['family', Users, 'Familia'],
-            ['friends', Users, 'Amigos'],
-          ].map(([value, Icon, fallback]) => {
-            const selected = (formData.companionType || '') === value;
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    companionType: prev.companionType === value ? null : value,
-                  }))
-                }
-                aria-pressed={selected}
-                className={cn(
-                  'min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[0.875rem] transition-all duration-200 cursor-pointer',
-                  selected
-                    ? 'border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine font-bold'
-                    : 'border-border bg-surface text-textPrimary font-normal'
-                )}
-              >
-                <Icon size={14} />
-                {t(`companionType.${value}`, fallback)}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="mb-3">
-        <label className="text-xs text-textSecondary block">
-          {t('labels.vibe')} <InfoTooltip textKey="editor:tooltip.vibe" size={13} />
-        </label>
-        <div className="flex gap-2 flex-wrap mt-1.5">
-          {VIBES.map((v) => {
-            const selected = (formData.vibe || []).includes(v);
-            return (
-              <button
-                key={v}
-                type="button"
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    vibe: (prev.vibe || []).includes(v) ? (prev.vibe || []).filter((x) => x !== v) : [...(prev.vibe || []), v],
-                  }))
-                }
-                className={cn(
-                  "px-2.5 py-1.5 rounded-md border text-[0.875rem] transition-all duration-200 cursor-pointer",
-                  selected 
-                    ? "border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine font-bold" 
-                    : "border-border bg-surface text-textPrimary font-normal"
-                )}
-              >
-                {t(`vibes.${VIBE_KEY_MAP[v]}`)}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {showCompanions && (
-        <div className="mt-3">
-          <label className="text-xs text-textSecondary">{t('labels.companions')}</label>
-          <div className="flex gap-2 items-center mt-2">
+      {/* Companion names — progressive disclosure (hidden for solo) */}
+      {showCompanions && !isSolo && (
+        <div className="mb-3">
+          <div className="flex gap-2 items-center">
             <input
-              placeholder={t('labels.nameOrEmail')}
+              placeholder={t('labels.nameOrEmail', 'Nombre o email')}
               value={companionDraft || ''}
-              onChange={(e) => onCompanionSearch(e.target.value)}
+              onChange={(e) => onCompanionSearch?.(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addCompanion(e.currentTarget.value);
+                  e.currentTarget.value = '';
+                }
+              }}
               maxLength={100}
-              className="flex-1 min-w-0 px-2.5 py-2 rounded-sm border border-border text-[0.875rem] outline-none box-border bg-background"
+              className="flex-1 min-w-0 px-2.5 py-2 rounded-lg border border-border text-[0.875rem] outline-none bg-background focus:border-atomicTangerine"
             />
             <button
               type="button"
-              onClick={() => companionDraft && companionDraft.trim() && onAddCompanionFreeform(companionDraft)}
+              onClick={() => addCompanion(companionDraft)}
               disabled={!companionDraft?.trim()}
-              className="bg-surface border border-border rounded-sm px-3.5 py-2 text-[0.875rem] font-bold text-textPrimary cursor-pointer transition-all hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
+              className="min-h-[44px] bg-surface border border-border rounded-lg px-3.5 py-2 text-[0.875rem] font-bold text-textPrimary cursor-pointer transition-all hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('labels.addCompanion')}
+              {t('labels.addCompanion', 'Agregar')}
             </button>
           </div>
 
-          {companionResults.length > 0 && (
-            <div className="border border-border rounded-sm mt-2 max-h-[160px] overflow-y-auto bg-surface">
+          {companionResults?.length > 0 && (
+            <div className="border border-border rounded-lg mt-2 max-h-[160px] overflow-y-auto bg-surface">
               {companionResults.map((u) => (
                 <div
                   key={u.uid}
                   className="p-2 px-3 flex justify-between items-center cursor-pointer gap-2 hover:bg-background transition-colors"
-                  onClick={() => onAddCompanionFromResult(u)}
+                  onClick={() => onAddCompanionFromResult?.(u)}
                 >
                   <div className="min-w-0 flex-1 overflow-hidden">
-                    <strong className="block overflow-hidden text-ellipsis whitespace-nowrap text-[0.875rem]">{u.displayName || u.email}</strong>
-                    <div className="text-xs text-textSecondary overflow-hidden text-ellipsis whitespace-nowrap">{u.email}</div>
+                    <strong className="block text-[0.875rem] truncate">{u.displayName || u.email}</strong>
+                    <div className="text-xs text-textSecondary truncate">{u.email}</div>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onAddCompanionFromResult(u);
-                    }}
-                    className="bg-surface border border-border rounded-sm px-2.5 py-1.5 text-[0.75rem] font-bold text-textPrimary cursor-pointer transition-all hover:bg-background"
-                  >
-                    {t('labels.addCompanion')}
-                  </button>
                 </div>
               ))}
             </div>
           )}
 
-          {companionResults.length === 0 && companionDraft && companionDraft.includes('@') && (
+          {suggestions.length > 0 && (
             <div className="mt-2">
-              <button
-                type="button"
-                className="bg-surface border border-border rounded-sm px-2.5 py-1.5 text-[0.75rem] font-bold text-textPrimary cursor-pointer transition-all hover:bg-background"
-                onClick={() => onAddCompanionFreeform(companionDraft)}
-              >
-                {t('labels.inviteByEmail', { email: companionDraft })}
-              </button>
+              <span className="text-[0.68rem] font-bold uppercase tracking-wider text-slate-400">
+                {t('details.frequentCompanionsTitle', 'Compañeros frecuentes')}
+              </span>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {suggestions.slice(0, 8).map((name) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => addFrequentCompanion(name)}
+                    className="min-h-[36px] inline-flex items-center gap-1 rounded-full bg-[#45B0A8]/10 text-[#2C3E50] border border-[#45B0A8]/30 px-2.5 py-1 text-[0.75rem] font-bold hover:bg-[#45B0A8]/20"
+                  >
+                    <Plus size={12} /> {name}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
-          <div className="flex gap-2 mt-2 flex-wrap">
-            {(formData.companions || []).map((c, idx) => {
-              const companionName = typeof c === 'string' ? c : (c?.name || c?.email || '');
-              return (
-                <div
-                  key={idx}
-                  className="px-2.5 py-1.5 rounded-md bg-background border border-border flex gap-1.5 items-center max-w-[200px]"
-                >
-                  <span className="text-[0.875rem] overflow-hidden text-ellipsis whitespace-nowrap min-w-0">{companionName}</span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        companions: prev.companions.filter((_, i) => i !== idx),
-                      }))
-                    }
-                    aria-label={t('labels.removeCompanion', { name: companionName })}
-                    className="bg-transparent border-none text-textSecondary cursor-pointer flex items-center p-0.5 shrink-0 hover:text-danger transition-colors"
-                  >
-                    <X size={13} />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+          {companions.length > 0 && (
+            <div className="flex gap-2 mt-2 flex-wrap">
+              {companions.map((c, idx) => {
+                const name = typeof c === 'string' ? c : c?.name || c?.email || '';
+                return (
+                  <span key={idx} className="px-2.5 py-1.5 rounded-full bg-background border border-border flex gap-1.5 items-center max-w-[200px]">
+                    <span className="text-[0.85rem] truncate min-w-0">{name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, companions: prev.companions.filter((_, i) => i !== idx) }))}
+                      aria-label={t('labels.removeCompanion', { name })}
+                      className="bg-transparent border-none text-textSecondary cursor-pointer flex items-center p-0.5 hover:text-danger"
+                    >
+                      <X size={13} />
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
+
+      {/* Trip style */}
+      <div className="pt-2 border-t border-border">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+          <Sparkles size={15} className="text-[#FF6B35]" /> {t('details.travelStyleTitle', 'Estilo del Viaje')}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {STYLE_OPTIONS.map((opt) => {
+            const active = isStyleActive(opt);
+            return (
+              <button
+                key={opt.label}
+                type="button"
+                onClick={() => toggleStyle(opt)}
+                aria-pressed={active}
+                className={cn(
+                  'min-h-[44px] rounded-full border px-2.5 py-1.5 text-[0.78rem] font-semibold transition-all',
+                  active ? 'border-[#FF6B35] bg-[#FF6B35]/10 text-[#FF6B35]' : 'border-slate-200 bg-white text-slate-600'
+                )}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setShowCustomStyle((v) => !v)}
+            className="min-h-[44px] rounded-full border border-dashed border-slate-300 bg-white px-2.5 py-1.5 text-[0.78rem] font-bold text-slate-600"
+          >
+            + {t('details.addCustomStyle', 'Personalizado')}
+          </button>
+          {extraVibes.map((tag) => (
+            <span key={tag} className="min-h-[44px] inline-flex items-center gap-1 rounded-full border border-[#FF6B35] bg-[#FF6B35]/10 px-2.5 py-1.5 text-[0.78rem] font-bold text-[#FF6B35]">
+              {tag}
+              <button type="button" onClick={() => setFormData((prev) => ({ ...prev, vibe: prev.vibe.filter((v) => v !== tag) }))} className="bg-transparent border-none p-0 cursor-pointer text-[#FF6B35] flex"><X size={12} /></button>
+            </span>
+          ))}
+        </div>
+
+        {showCustomStyle && (
+          <div className="mt-2 flex gap-1.5">
+            <input
+              type="text"
+              value={customText}
+              onChange={(e) => setCustomText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomStyle(); } }}
+              maxLength={40}
+              placeholder={t('details.customStylePlaceholder', 'Ej: Surf y atardeceres')}
+              className="flex-1 min-h-[44px] border border-slate-200 rounded-xl px-3 py-2 text-[0.85rem] text-charcoalBlue bg-background outline-none focus:border-[#FF6B35]"
+            />
+            <button type="button" onClick={addCustomStyle} className="min-h-[44px] px-4 rounded-xl bg-[#FF6B35] text-white font-bold text-[0.8rem]">{t('button.add', 'Añadir')}</button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

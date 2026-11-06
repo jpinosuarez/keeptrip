@@ -166,7 +166,8 @@ export const ParadaSchemaBase = z.object({
         z.object({
           id: z.string(),
           nombre: z.string().trim().min(1, 'El nombre del lugar es obligatorio').max(120),
-          categoria: z.enum(['monumento', 'gastronomia', 'mirador', 'cultura', 'hotel'])
+          categoria: z.enum(['monumento', 'gastronomia', 'mirador', 'cultura', 'hotel']),
+          emoji: optionalCleanString(10)
         })
       )
       .default([])
@@ -211,6 +212,8 @@ export const ViajeSchemaBase = z.object({
   titulo: z.string().trim().min(1, 'El título del viaje es obligatorio').max(200, 'El título no puede exceder 200 caracteres'),
   // Optional destination label (never required; empty strings tolerated).
   destino: optionalCleanString(200),
+  // Evocative 1-line trip headline ("Frase o Titular del Viaje").
+  titular: optionalCleanString(200),
   // General reflection / story.
   texto: optionalCleanString(5000),
   // Optional cover image URL produced by the media flow.

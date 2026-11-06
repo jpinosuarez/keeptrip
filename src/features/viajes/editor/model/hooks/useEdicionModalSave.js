@@ -145,6 +145,7 @@ export function useEdicionModalSave({
         // Borrador: defensa final para no perder destino por orden de renders.
         code: formData.code || viaje?.code || ciudadInicial?.paisCodigo || '',
         nombreEspanol: formData.nombreEspanol || viaje?.nombreEspanol || '',
+        titular: formData.titular ?? viaje?.titular ?? '',
         coordenadas: formData.coordenadas || viaje?.coordenadas || ciudadInicial?.coordenadas || null,
         latlng:
           formData.latlng ||

@@ -71,11 +71,14 @@
     }
   },
   "context": {
-    "highlights": "Highlights",
+    "highlights": "La Trilogía del Viaje",
     "budget": "Presupuesto",
-    "vibe": "Vibe",
+    "vibe": "Estilo del Viaje",
     "companions": "Compañeros",
     "weather": "Clima histórico",
+    "topFood": "El Mejor Sabor",
+    "topView": "La Mejor Postal",
+    "topTip": "El Momento Inolvidable",
     "companionType": {
       "solo": "En solitario",
       "couple": "En pareja",
@@ -85,7 +88,8 @@
   },
   "gallery": {
     "title": "Recuerdos Consolidados",
-    "addPhotos": "Añadir fotos a este viaje"
+    "addPhotos": "Añadir fotos a este viaje",
+    "managePhotos": "Gestionar fotos"
   },
   "footer": {
     "xpEarned": "+{{xp}} XP",

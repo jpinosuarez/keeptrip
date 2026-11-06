@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { useGaleriaViaje } from '@shared/lib/hooks/useGaleriaViaje';
 import { normalizeToIsoDate, resolveCoverPhotoUrl } from '@shared/lib/utils/viajeUtils';
@@ -48,6 +49,7 @@ const EditorFocusPanel = ({
   setGalleryPortada,
   setCaptionDrafts,
   galeria: galeriaProp = null,
+  frequentCompanions = [],
   onAfterSave = null,
 }) => {
   const { t, i18n } = useTranslation(['editor', 'countries']);
@@ -63,9 +65,15 @@ const EditorFocusPanel = ({
   const [isSavingManual, setIsSavingManual] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isClosingAfterSave, setIsClosingAfterSave] = useState(false);
-  const [activeTab, setActiveTab] = useState('route');
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabParam = searchParams.get('tab');
+    // Deep-link uses the Spanish token `galeria`; internal tab id is `gallery`.
+    return tabParam === 'galeria' || tabParam === 'gallery' ? 'gallery' : 'route';
+  });
   const [captionDraftsState, setCaptionDraftsState] = useState({});
   const [draftTags, setDraftTags] = useState({});
+  const [defaultParadaId, setDefaultParadaId] = useState(null);
 
   const { keyboardOffset, isKeyboardOpen } = useVirtualKeyboard();
 
@@ -201,6 +209,7 @@ const EditorFocusPanel = ({
     t,
     viajeId: isPersistedTrip ? viaje.id : null,
     ownerUid: usuarioUid,
+    activeTab,
   });
 
   // Companion autocomplete (Level 1 companions)
@@ -216,6 +225,20 @@ const EditorFocusPanel = ({
   const handleDraftTagChange = useCallback((index, paradaId) => {
     setDraftTags((prev) => ({ ...prev, [index]: { paradaId: paradaId || null } }));
   }, []);
+
+  // Pre-tag newly selected gallery drafts with the stop that launched "Upload photos".
+  const handleGalleryFilesChange = useCallback((nextFiles) => {
+    effectiveSetGalleryFiles(nextFiles);
+    if (defaultParadaId) {
+      setDraftTags((prev) => {
+        const updated = { ...prev };
+        (Array.isArray(nextFiles) ? nextFiles : []).forEach((_, i) => {
+          if (!prev[i]?.paradaId) updated[i] = { paradaId: defaultParadaId };
+        });
+        return updated;
+      });
+    }
+  }, [effectiveSetGalleryFiles, defaultParadaId]);
 
   const stopPhotos = galeria?.fotos || [];
 
@@ -424,7 +447,7 @@ const EditorFocusPanel = ({
                   sinParadas={effectiveParadas.length === 0}
                   isReadOnlyMode={isReadOnlyMode}
                   fotos={stopPhotos}
-                  onRequestPhotos={() => setActiveTab('gallery')}
+                  onRequestPhotos={(parada) => { setDefaultParadaId(parada?.id || null); setActiveTab('gallery'); }}
                 />
               )}
 
@@ -435,6 +458,7 @@ const EditorFocusPanel = ({
                     formData={formDataWithFallback}
                     setFormData={effectiveSetFormData}
                     showCompanions
+                    frequentCompanions={frequentCompanions}
                     companionDraft={companions.companionDraft}
                     companionResults={companions.companionResults}
                     onCompanionSearch={companions.handleCompanionSearch}
@@ -445,11 +469,12 @@ const EditorFocusPanel = ({
                     t={t}
                     formData={formDataWithFallback}
                     setFormData={effectiveSetFormData}
+                    paradas={effectiveParadas}
                   />
                   <EdicionNotesSection
                     t={t}
-                    texto={effectiveFormData?.texto || ''}
-                    onChange={(value) => effectiveSetFormData((prev) => ({ ...prev, texto: value }))}
+                    formData={formDataWithFallback}
+                    setFormData={effectiveSetFormData}
                     isBusy={isSavingManual}
                   />
                 </div>
@@ -459,7 +484,8 @@ const EditorFocusPanel = ({
                 <EdicionGallerySection
                   t={t}
                   files={effectiveGalleryFiles}
-                  onFilesChange={effectiveSetGalleryFiles}
+                  onFilesChange={handleGalleryFilesChange}
+                  defaultParadaId={defaultParadaId}
                   portadaIndex={effectiveGalleryPortada}
                   onPortadaChange={(urlOrIndex) => {
                     if (typeof urlOrIndex === 'number') {

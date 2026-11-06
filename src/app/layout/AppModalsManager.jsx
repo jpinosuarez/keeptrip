@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate, useMatch, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
@@ -146,6 +146,24 @@ function AppModalsManager({
   } = modalController;
 
   const { bitacora, bitacoraData } = data;
+
+  // Unique companion names previously used across the traveler's trips, for the
+  // editor's 1-tap "Compañeros Frecuentes" suggestions.
+  const frequentCompanions = useMemo(() => {
+    const names = new Set();
+    const collect = (trip) => {
+      const comps = trip?.companions;
+      if (!Array.isArray(comps)) return;
+      comps.forEach((c) => {
+        const name = typeof c === 'string' ? c : c?.name || c?.email || '';
+        const trimmed = String(name || '').trim();
+        if (trimmed) names.add(trimmed);
+      });
+    };
+    (Array.isArray(bitacora) ? bitacora : []).forEach((t) => collect(bitacoraData?.[t.id] || t));
+    Object.values(bitacoraData || {}).forEach(collect);
+    return [...names];
+  }, [bitacora, bitacoraData]);
   const {
     isSavingModal,
     isSavingViewer,
@@ -221,6 +239,10 @@ function AppModalsManager({
       }
       if (next.has('editing')) {
         next.delete('editing');
+        changed = true;
+      }
+      if (next.has('tab')) {
+        next.delete('tab');
         changed = true;
       }
       return changed ? next : prev;
@@ -348,6 +370,7 @@ function AppModalsManager({
             <EditorFocusPanel
               viaje={viajeParaEditar}
               bitacoraData={bitacoraData}
+              frequentCompanions={frequentCompanions}
               onClose={handleCloseEditor}
               onSave={handleSaveTrip}
               isSaving={isSavingModal}
@@ -374,7 +397,7 @@ function AppModalsManager({
                 tripData={bitacoraData}
                 MapRoutePreview={MiniMapaRuta}
                 onClose={() => navigate('/trips')}
-                openEditor={(id) => setSearchParams({ editing: id }, { replace: true })}
+                openEditor={(id, tab) => setSearchParams({ editing: id, ...(tab ? { tab } : {}) }, { replace: true })}
                 onNavigateTrip={(id) => navigate(`/trips/${id}`)}
                 onSave={handleSaveFromViewer}
                 onDelete={requestTripDelete}

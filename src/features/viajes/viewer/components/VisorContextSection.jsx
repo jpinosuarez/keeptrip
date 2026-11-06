@@ -30,9 +30,9 @@ const VisorContextSection = ({ data, isMobile, carouselRef, activeCarouselDot, o
   const mobileClass = isMobile ? 'min-w-[240px] max-w-[300px] shrink-0 snap-start' : undefined;
 
   const highlightItems = [
-    data.highlights?.topFood && { Icon: Utensils, text: data.highlights.topFood },
-    data.highlights?.topView && { Icon: Eye, text: data.highlights.topView },
-    data.highlights?.topTip && { Icon: Lightbulb, text: data.highlights.topTip },
+    data.highlights?.topFood && { Icon: Utensils, text: data.highlights.topFood, label: t('context.topFood', 'El Mejor Sabor') },
+    data.highlights?.topView && { Icon: Eye, text: data.highlights.topView, label: t('context.topView', 'La Mejor Postal') },
+    data.highlights?.topTip && { Icon: Lightbulb, text: data.highlights.topTip, label: t('context.topTip', 'El Momento Inolvidable') },
   ].filter(Boolean);
 
   const cards = [];
@@ -46,7 +46,10 @@ const VisorContextSection = ({ data, isMobile, carouselRef, activeCarouselDot, o
               <span className="w-7 h-7 rounded-lg bg-[#FF6B35]/10 text-[#FF6B35] flex items-center justify-center shrink-0">
                 <h.Icon size={15} />
               </span>
-              <span className="text-[0.9rem] text-textPrimary">{h.text}</span>
+              <span className="flex flex-col min-w-0">
+                <span className="text-[0.62rem] font-bold uppercase tracking-wider text-slate-400">{h.label}</span>
+                <span className="text-[0.9rem] text-textPrimary">{h.text}</span>
+              </span>
             </div>
           ))}
         </div>

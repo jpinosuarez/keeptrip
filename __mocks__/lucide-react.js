@@ -84,6 +84,7 @@ export const Car = createIconComponent('Car');
 export const Ship = createIconComponent('Ship');
 export const Bus = createIconComponent('Bus');
 export const GripVertical = createIconComponent('GripVertical');
+export const MessageSquare = createIconComponent('MessageSquare');
 export const ArrowUpRight = createIconComponent('ArrowUpRight');
 export const Landmark = createIconComponent('Landmark');
 export const Utensils = createIconComponent('Utensils');

@@ -146,10 +146,16 @@ const DocumentaryHero = ({
 
         <h1
           data-testid="visor-title"
-          className={`text-white font-black leading-[0.95] tracking-tighter [text-shadow:0_10px_40px_rgba(0,0,0,0.6)] max-w-[900px] font-heading ${isMobile ? 'text-[2rem]' : 'text-[3.6rem]'}`}
+          className={`text-white font-black leading-[0.95] tracking-tighter [text-shadow:0_10px_40px_rgba(0,0,0,0.6)] [text-wrap:balance] max-w-[900px] font-heading ${isMobile ? 'text-[2rem]' : 'text-[3.6rem]'}`}
         >
           {heroTitle}
         </h1>
+
+        {data?.titular && String(data.titular).trim() ? (
+          <p className="w-full text-slate-200/90 text-sm md:text-base font-normal italic leading-relaxed mt-1.5 whitespace-normal break-words [text-wrap:pretty]">
+            {data.titular}
+          </p>
+        ) : null}
 
         <div className="flex items-center gap-2.5 flex-wrap">
           <span className="inline-flex items-center gap-1.5 backdrop-blur-md bg-black/40 px-3.5 py-[7px] rounded-full text-white text-[0.82rem] font-semibold border border-white/20">

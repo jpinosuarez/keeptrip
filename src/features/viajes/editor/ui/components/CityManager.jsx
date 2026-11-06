@@ -1,5 +1,5 @@
 import { cn } from '@shared/lib/utils/cn';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   MapPin,
   ArrowUp,
@@ -16,7 +16,7 @@ import {
   Sparkles,
   ChevronDown,
   X,
-  GripVertical,
+  MessageSquare,
   Camera,
   Landmark,
   Utensils,
@@ -32,6 +32,7 @@ import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { normalizeToIsoDate } from '@shared/lib/utils/viajeUtils';
 import { fetchGeocoding } from '@shared/api/services/mapboxGeocoding';
 import CountryFlag from '@shared/ui/components/CountryFlag';
+import EmojiInput from '@shared/ui/components/EmojiInput';
 
 const TRANSPORT_OPTIONS = [
   { value: 'plane', Icon: Plane, fallback: 'Avión' },
@@ -58,6 +59,8 @@ const PLACE_CATEGORIES = [
   { value: 'cultura', Icon: Palette, fallback: 'Cultura' },
   { value: 'hotel', Icon: Bed, fallback: 'Hotel' },
 ];
+
+const PLACE_CATEGORY_EMOJI = { monumento: '🏛️', gastronomia: '🍽️', mirador: '🌅', cultura: '🎭', hotel: '🏨' };
 
 const makeId = () =>
   typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -94,6 +97,9 @@ const CityManager = ({
   const [openNotaIds, setOpenNotaIds] = useState({});
   const [lugarDrafts, setLugarDrafts] = useState({});
   const [customVibeDrafts, setCustomVibeDrafts] = useState({});
+  const [customVibeEmojis, setCustomVibeEmojis] = useState({});
+  const [lugarEmojis, setLugarEmojis] = useState({});
+  const searchInputRef = useRef(null);
 
   const visibleSearchResults = shouldBlockSearchResults ? [] : searchResults;
 
@@ -127,13 +133,20 @@ const CityManager = ({
     const countryCode = contextCountry?.short_code?.toUpperCase();
 
     setParadas((prevParadas) => {
+      // Smart date inheritance: first stop → trip start; subsequent → previous stop's departure.
+      const previousStop = prevParadas.length > 0 ? prevParadas[prevParadas.length - 1] : null;
+      const inheritedArrival =
+        prevParadas.length === 0
+          ? (tripStartDate || '')
+          : (previousStop?.fechaSalida || previousStop?.fechaLlegada || previousStop?.fecha || '');
+
       const nuevaParada = {
         id: createStopInstanceId(feature),
         nombre: feature.text,
         coordenadas: feature.center,
-        fechaLlegada: '',
+        fechaLlegada: inheritedArrival,
         fechaSalida: '',
-        fecha: '',
+        fecha: inheritedArrival,
         paisCodigo: countryCode,
         flag: getFlagUrl(countryCode),
         transporte: null,
@@ -148,6 +161,8 @@ const CityManager = ({
 
     setSearchQuery('');
     setSearchResults([]);
+    // Refocus the search so entering multiple cities in sequence is seamless.
+    requestAnimationFrame(() => searchInputRef.current?.focus());
   };
 
   const moverParada = (index, direccion) => {
@@ -198,8 +213,10 @@ const CityManager = ({
   const addCustomVibe = (index) => {
     const draft = (customVibeDrafts[index] || '').trim();
     if (!draft) return;
+    const emoji = customVibeEmojis[index] || '✨';
+    const value = `${emoji} ${draft}`;
     const current = Array.isArray(paradas[index]?.vibes) ? paradas[index].vibes : [];
-    if (!current.includes(draft)) actualizarDato(index, 'vibes', [...current, draft]);
+    if (!current.includes(value)) actualizarDato(index, 'vibes', [...current, value]);
     setCustomVibeDrafts((prev) => ({ ...prev, [index]: '' }));
   };
 
@@ -215,8 +232,9 @@ const CityManager = ({
     const nombre = (draft?.nombre || '').trim();
     if (!nombre) return;
     const categoria = draft?.categoria || 'monumento';
+    const emoji = lugarEmojis[index] || PLACE_CATEGORY_EMOJI[categoria] || undefined;
     const current = Array.isArray(paradas[index]?.lugares) ? paradas[index].lugares : [];
-    actualizarDato(index, 'lugares', [...current, { id: makeId(), nombre, categoria }]);
+    actualizarDato(index, 'lugares', [...current, { id: makeId(), nombre, categoria, ...(emoji ? { emoji } : {}) }]);
     setLugarDraft(index, { nombre: '' });
   };
 
@@ -231,12 +249,19 @@ const CityManager = ({
         <div className="flex-1 flex items-center gap-2 min-h-[44px] bg-background border border-border rounded-xl px-3">
           <Search size={16} className="text-slate-400" />
           <input
+            ref={searchInputRef}
             value={searchQuery}
             onFocus={handleFieldFocus}
             onChange={(e) => {
               const value = e.target.value;
               setSearchQuery(value);
               if (value.length < 3) setSearchResults([]);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && visibleSearchResults.length > 0) {
+                e.preventDefault();
+                agregarCiudad(visibleSearchResults[0]);
+              }
             }}
             placeholder={t('citymanager.searchPlaceholder', 'Añade una nueva parada a tu ruta')}
             className="border-none bg-transparent py-3 w-full outline-none text-base"
@@ -324,17 +349,18 @@ const CityManager = ({
 
               <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm" data-testid="editor-stop-item">
                 <div className="flex items-center gap-2">
-                  <GripVertical size={16} className="text-slate-300 shrink-0" aria-hidden="true" />
-                  <span className="w-6 h-6 rounded-full bg-charcoalBlue/10 text-charcoalBlue text-[0.72rem] font-extrabold flex items-center justify-center shrink-0">{index + 1}</span>
+                  <span className="w-6 h-6 rounded-full bg-slate-100 text-xs font-bold text-slate-600 flex items-center justify-center shrink-0">{index + 1}</span>
                   {p.paisCodigo ? <CountryFlag code={p.paisCodigo} size="sm" /> : null}
-                  <span className="font-bold text-base text-slate-900 truncate flex-1 min-w-0">{p.nombre}</span>
+                  <span className="font-display font-bold text-base text-slate-900 truncate flex-1 min-w-0">{p.nombre}</span>
                   <div className="flex items-center gap-1 shrink-0">
-                    <button type="button" onClick={() => toggleFavorite(index)} disabled={isReadOnlyActive} aria-label={t('stopDrawer.favorite', 'Parada favorita')} aria-pressed={isFav} className={cn('w-8 h-8 rounded-lg flex items-center justify-center transition-colors', isFav ? 'text-[#FF6B35] bg-[#FF6B35]/10' : 'text-slate-400 hover:bg-slate-100')}>
+                    <button type="button" onClick={() => toggleFavorite(index)} disabled={isReadOnlyActive} aria-label={t('stopDrawer.favorite', 'Parada favorita')} aria-pressed={isFav} className={cn('w-7 h-7 rounded-lg flex items-center justify-center transition-colors', isFav ? 'text-[#FF6B35] bg-[#FF6B35]/10' : 'text-slate-400 hover:bg-slate-100')}>
                       <Heart size={16} className={isFav ? 'fill-[#FF6B35]' : ''} />
                     </button>
-                    <button type="button" data-testid="editor-stop-move-up" aria-label={t('citymanager.moveStopUp', 'Mover arriba')} disabled={index === 0 || isReadOnlyActive} onClick={() => moverParada(index, -1)} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed"><ArrowUp size={15} /></button>
-                    <button type="button" data-testid="editor-stop-move-down" aria-label={t('citymanager.moveStopDown', 'Mover abajo')} disabled={index === paradas.length - 1 || isReadOnlyActive} onClick={() => moverParada(index, 1)} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed"><ArrowDown size={15} /></button>
-                    <button type="button" data-testid="editor-stop-delete" aria-label={t('citymanager.deleteStop', 'Eliminar destino')} disabled={isReadOnlyActive} onClick={() => eliminarParada(index)} className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-50 disabled:opacity-30 disabled:cursor-not-allowed"><Trash2 size={15} /></button>
+                    <button type="button" data-testid="editor-stop-move-up" aria-label={t('citymanager.moveStopUp', 'Mover arriba')} disabled={index === 0 || isReadOnlyActive} onClick={() => moverParada(index, -1)} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed"><ArrowUp size={16} /></button>
+                    <button type="button" data-testid="editor-stop-move-down" aria-label={t('citymanager.moveStopDown', 'Mover abajo')} disabled={index === paradas.length - 1 || isReadOnlyActive} onClick={() => moverParada(index, 1)} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed"><ArrowDown size={16} /></button>
+                    <button type="button" data-testid="editor-stop-delete" disabled={isReadOnlyActive} onClick={() => eliminarParada(index)} className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed" aria-label={t('citymanager.deleteStop', 'Eliminar destino')}>
+                      <Trash2 size={16} className="text-slate-400 hover:text-rose-600" />
+                    </button>
                   </div>
                 </div>
 
@@ -404,6 +430,9 @@ const CityManager = ({
 
                 {isOpen && (
                   <div className="mt-3 flex flex-col gap-3" data-testid="editor-stop-drawer">
+                    <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
+                      <MessageSquare size={14} className="text-[#FF6B35]" /> {t('stopDrawer.chronicleTitle', 'Crónica / Recuerdo clave')}
+                    </h3>
                     <input
                       type="text"
                       value={p.titular || ''}
@@ -429,6 +458,9 @@ const CityManager = ({
                       />
                     )}
 
+                    <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">
+                      <Sparkles size={14} className="text-[#FF6B35]" /> {t('stopDrawer.atmosphereTitle', 'Ambiente del lugar')}
+                    </h3>
                     <div className="flex flex-wrap gap-1.5">
                       {VIBE_OPTIONS.map(({ value, fallback }) => {
                         const activeVibe = stopVibes.includes(value);
@@ -445,43 +477,40 @@ const CityManager = ({
                         </span>
                       ))}
                     </div>
-                    <div className="flex gap-1.5">
-                      <input
-                        type="text"
-                        value={customVibeDrafts[index] || ''}
-                        onChange={(e) => setCustomVibeDrafts((prev) => ({ ...prev, [index]: e.target.value }))}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomVibe(index); } }}
-                        disabled={isReadOnlyActive}
-                        maxLength={40}
-                        placeholder={t('stopDrawer.customVibe', 'Crear vibe')}
-                        className="flex-1 min-h-[44px] border border-slate-200 rounded-xl px-3 py-2 text-[0.82rem] text-charcoalBlue bg-background outline-none focus:border-[#FF6B35]"
-                      />
-                      <button type="button" onClick={() => addCustomVibe(index)} disabled={isReadOnlyActive} className="min-h-[44px] px-3 rounded-xl border border-slate-200 bg-white text-[0.78rem] font-bold text-slate-700 cursor-pointer">{t('button.add', 'Agregar')}</button>
-                    </div>
-
+                    <EmojiInput
+                      value={customVibeDrafts[index] || ''}
+                      onChange={(v) => setCustomVibeDrafts((prev) => ({ ...prev, [index]: v }))}
+                      emoji={customVibeEmojis[index] || '✨'}
+                      onEmojiChange={(e) => setCustomVibeEmojis((prev) => ({ ...prev, [index]: e }))}
+                      onSubmit={() => addCustomVibe(index)}
+                      disabled={isReadOnlyActive}
+                      maxLength={40}
+                      placeholder={t('stopDrawer.customVibe', 'Crear ambiente')}
+                    />
+                    <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">
+                      <MapPin size={14} className="text-[#FF6B35]" /> {t('stopDrawer.placesTitle', 'Lugares y Rincones')}
+                    </h3>
                     <div className="flex flex-wrap gap-1.5">
                       {PLACE_CATEGORIES.map(({ value, Icon, fallback }) => {
                         const activeCat = lugarDraft.categoria === value;
                         return (
-                          <button key={value} type="button" onClick={() => setLugarDraft(index, { categoria: value })} disabled={isReadOnlyActive} aria-pressed={activeCat} className={cn('min-h-[44px] inline-flex items-center gap-1 rounded-full border px-2.5 py-1.5 text-[0.72rem] font-bold transition-all', activeCat ? 'border-mutedTeal bg-mutedTeal/10 text-mutedTeal' : 'border-slate-200 bg-white text-slate-600')}>
+                          <button key={value} type="button" onClick={() => { setLugarDraft(index, { categoria: value }); setLugarEmojis((prev) => ({ ...prev, [index]: PLACE_CATEGORY_EMOJI[value] })); }} disabled={isReadOnlyActive} aria-pressed={activeCat} className={cn('min-h-[44px] inline-flex items-center gap-1 rounded-full border px-2.5 py-1.5 text-[0.72rem] font-bold transition-all', activeCat ? 'border-mutedTeal bg-mutedTeal/10 text-mutedTeal' : 'border-slate-200 bg-white text-slate-600')}>
                             <Icon size={13} /> {t(`stopDrawer.places.${value}`, fallback)}
                           </button>
                         );
                       })}
                     </div>
-                    <div className="flex gap-1.5">
-                      <input
-                        type="text"
-                        value={lugarDraft.nombre}
-                        onChange={(e) => setLugarDraft(index, { nombre: e.target.value })}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addLugar(index); } }}
-                        disabled={isReadOnlyActive}
-                        maxLength={120}
-                        placeholder={t(`stopDrawer.placePlaceholder.${lugarDraft.categoria}`, 'Añade un lugar...')}
-                        className="flex-1 min-h-[44px] border border-slate-200 rounded-xl px-3 py-2 text-[0.82rem] text-charcoalBlue bg-background outline-none focus:border-[#FF6B35]"
-                      />
-                      <button type="button" onClick={() => addLugar(index)} disabled={isReadOnlyActive} className="min-h-[44px] px-3 rounded-xl bg-[#FF6B35] text-white font-bold cursor-pointer"><Plus size={14} /></button>
-                    </div>
+                    <EmojiInput
+                      value={lugarDraft.nombre}
+                      onChange={(v) => setLugarDraft(index, { nombre: v })}
+                      emoji={lugarEmojis[index] || PLACE_CATEGORY_EMOJI[lugarDraft.categoria] || '📍'}
+                      onEmojiChange={(e) => setLugarEmojis((prev) => ({ ...prev, [index]: e }))}
+                      onSubmit={() => addLugar(index)}
+                      disabled={isReadOnlyActive}
+                      maxLength={120}
+                      placeholder={t(`stopDrawer.placePlaceholder.${lugarDraft.categoria}`, 'Añade un lugar...')}
+                      accent="teal"
+                    />
                     {stopLugares.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
                         {stopLugares.map((lugar) => {
@@ -489,7 +518,7 @@ const CityManager = ({
                           const Icon = cat?.Icon || MapPin;
                           return (
                             <span key={lugar.id} className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1.5 text-[0.72rem] font-semibold text-slate-700">
-                              <Icon size={12} className="text-mutedTeal" />
+                              {lugar.emoji ? <span aria-hidden="true">{lugar.emoji}</span> : <Icon size={12} className="text-mutedTeal" />}
                               {lugar.nombre}
                               <button type="button" onClick={() => removeLugar(index, lugar.id)} aria-label={t('stopDrawer.removePlace', 'Quitar lugar')} className="bg-transparent border-none p-0 cursor-pointer text-slate-400 flex"><X size={12} /></button>
                             </span>
@@ -498,6 +527,9 @@ const CityManager = ({
                       </div>
                     )}
 
+                    <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">
+                      <Camera size={14} className="text-[#FF6B35]" /> {t('stopDrawer.photosTitle', 'Fotos de la parada')}
+                    </h3>
                     <div className="flex items-center gap-2 flex-wrap">
                       {stopPhotos.map((foto) => (
                         <img key={foto.id} src={foto.url} alt={foto.caption || p.nombre} loading="lazy" className="w-14 h-14 rounded-xl object-cover border border-slate-200" />

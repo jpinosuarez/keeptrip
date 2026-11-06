@@ -177,7 +177,7 @@
   "coverPreviewAlt": "Cover preview",
   "tabs": {
     "route": "Route & Stops",
-    "essence": "Essence & Highlights",
+    "essence": "Details & Favorites",
     "gallery": "Photos & Gallery",
     "ariaLabel": "Editor sections"
   },
@@ -185,14 +185,18 @@
     "toggle": "Details & Photos",
     "hideDetails": "Hide stop details",
     "customizeStop": "Customize stop (story, places & photos)",
+    "chronicleTitle": "Chronicle / Key memory",
+    "atmosphereTitle": "Local atmosphere",
+    "placesTitle": "Places & Spots",
+    "photosTitle": "Stop photos",
     "placesCount": "places",
     "photosCount": "photos",
     "favorite": "Favorite stop",
     "headline": "💬 Headline or key memory...",
     "addLongNote": "+ Add extended note",
     "notePlaceholder": "Tell what you experienced in this city...",
-    "customVibe": "+ Create",
-    "removeVibe": "Remove vibe",
+    "customVibe": "Create atmosphere",
+    "removeVibe": "Remove from atmosphere",
     "removePlace": "Remove place",
     "placePlaceholder": {
       "monumento": "Add a landmark...",
@@ -224,5 +228,24 @@
     "couple": "Couple",
     "family": "Family",
     "friends": "Friends"
+  },
+  "details": {
+    "withWhom": "Who did you travel with?",
+    "frequentCompanionsTitle": "Frequent companions",
+    "travelStyleTitle": "Trip Style",
+    "customStylePlaceholder": "E.g. Surf & sunsets",
+    "addCustomStyle": "Custom",
+    "trilogyTitle": "Trip Trilogy — Your Top 3",
+    "topFoodLabel": "The Best Flavor",
+    "topFoodPlaceholder": "Unforgettable dish, coffee or restaurant",
+    "topViewLabel": "The Best Postcard",
+    "topViewPlaceholder": "Viewpoint, monument or breathtaking landscape",
+    "topTipLabel": "The Unforgettable Moment",
+    "topTipPlaceholder": "The anecdote, experience or star tip",
+    "fromYourStops": "From your stops",
+    "tripHeadlineLabel": "Trip Headline",
+    "tripHeadlinePlaceholder": "In one line: how will you remember this adventure? (E.g. Ten magical days among castles)",
+    "extendedStoryToggle": "Write an extended story or prologue",
+    "addEmoji": "Add emoji"
   }
 }

@@ -71,11 +71,14 @@
     }
   },
   "context": {
-    "highlights": "Highlights",
+    "highlights": "Trip Trilogy",
     "budget": "Budget",
-    "vibe": "Vibe",
+    "vibe": "Trip Style",
     "companions": "Companions",
     "weather": "Historic weather",
+    "topFood": "The Best Flavor",
+    "topView": "The Best Postcard",
+    "topTip": "The Unforgettable Moment",
     "companionType": {
       "solo": "Solo",
       "couple": "As a couple",
@@ -85,7 +88,8 @@
   },
   "gallery": {
     "title": "Consolidated Memories",
-    "addPhotos": "Add photos to this trip"
+    "addPhotos": "Add photos to this trip",
+    "managePhotos": "Manage photos"
   },
   "footer": {
     "xpEarned": "+{{xp}} XP",

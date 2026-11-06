@@ -406,3 +406,40 @@ describe('Block 2.4 — coordinates are [longitude, latitude]', () => {
     expect(validarCoordenadas([0, 91]).esValido).toBe(false);
   });
 });
+
+describe('Block 2.4 — trip titular & POI emoji', () => {
+  it('ViajeSchemaBase accepts an optional titular headline', () => {
+    const parsed = ViajeSchemaBase.parse({
+      code: 'IS',
+      nombreEspanol: 'Islandia',
+      titulo: 'Anillo de Fuego y Hielo',
+      fechaInicio: '2026-03-01',
+      fechaFin: '2026-03-08',
+      fotoCredito: null,
+      titular: 'Diez días de hielo y fuego',
+    });
+    expect(parsed.titular).toBe('Diez días de hielo y fuego');
+  });
+
+  it('ViajeSchemaBase tolerates an empty titular', () => {
+    const parsed = ViajeSchemaBase.parse({
+      code: 'IS',
+      nombreEspanol: 'Islandia',
+      titulo: 'Anillo de Fuego y Hielo',
+      fechaInicio: '2026-03-01',
+      fechaFin: '2026-03-02',
+      fotoCredito: null,
+      titular: '',
+    });
+    expect(parsed.titular).toBeUndefined();
+  });
+
+  it('ParadaSchema accepts lugares with an optional emoji', () => {
+    const parsed = ParadaSchema.parse({
+      nombre: 'Reykjavik',
+      coordenadas: [-21.94, 64.15],
+      lugares: [{ id: 'l1', nombre: 'Café', categoria: 'gastronomia', emoji: '☕' }],
+    });
+    expect(parsed.lugares[0].emoji).toBe('☕');
+  });
+});

@@ -12,7 +12,7 @@ import { cn } from '@shared/lib/utils/cn';
 const EditorTabBar = ({ t, activeTab, onChange, stopsCount = 0, photosCount = 0 }) => {
   const tabs = [
     { id: 'route', Icon: MapPin, label: t('tabs.route', 'Ruta y Paradas'), count: stopsCount },
-    { id: 'essence', Icon: Sparkles, label: t('tabs.essence', 'Esencia y Destacados') },
+    { id: 'essence', Icon: Sparkles, label: t('tabs.essence', 'Detalles y Favoritos') },
     { id: 'gallery', Icon: Camera, label: t('tabs.gallery', 'Fotos y Galería'), count: photosCount },
   ];
 

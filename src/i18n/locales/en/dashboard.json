@@ -183,5 +183,15 @@
     "menu": "Open trip options",
     "edit": "Edit trip",
     "delete": "Delete"
+  },
+  "companionPrefix": "Companions",
+  "filters": {
+    "allCompanions": "All companions"
+  },
+  "companionType": {
+    "solo": "Solo",
+    "couple": "As a couple",
+    "family": "With family",
+    "friends": "With friends"
   }
 }
