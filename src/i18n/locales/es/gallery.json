@@ -58,5 +58,15 @@
     "toastUpdated": "Curado actualizado.",
     "errorSaveFailed": "No se pudo guardar el curado.",
     "errorDeleteFailed": "No se pudo eliminar la foto."
-  }
+  },
+  "dragOrClick": "Arrastra tus fotos aquí o haz clic para seleccionar",
+  "dropHere": "Suelta tus fotos aquí",
+  "specs": "JPG, PNG o WebP · Comprimimos automáticamente sin perder calidad",
+  "photosSelected": "{{count}} / {{max}} fotos seleccionadas",
+  "optimizing": "Optimizando...",
+  "setCover": "Marcar como portada",
+  "deletePhoto": "Eliminar foto",
+  "invalidFormat": "{{count}} archivo(s) no son imágenes válidas.",
+  "tooLarge": "{{count}} fotos superan el tamaño máximo",
+  "limitReached": "Alcanzaste el límite de {{max}} fotos"
 }

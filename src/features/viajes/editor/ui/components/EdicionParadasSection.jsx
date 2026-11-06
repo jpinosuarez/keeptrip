@@ -12,6 +12,8 @@ const EdicionParadasSection = ({
   tripEndDate,
   sinParadas,
   isReadOnlyMode = false,
+  fotos = [],
+  onRequestPhotos,
 }) => {
   return (
     <div className="flex flex-col gap-2 bg-background p-4 rounded-lg border border-border">
@@ -30,6 +32,8 @@ const EdicionParadasSection = ({
         tripStartDate={tripStartDate}
         tripEndDate={tripEndDate}
         isReadOnlyMode={isReadOnlyMode}
+        fotos={fotos}
+        onRequestPhotos={onRequestPhotos}
       />
       {sinParadas && (
         <div

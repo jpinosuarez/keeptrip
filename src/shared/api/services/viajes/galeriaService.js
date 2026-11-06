@@ -85,6 +85,7 @@ export const subirFotoGaleria = async ({
         esPortada: esPortada || false,
         caption: metadata.caption || null,
         fechaCaptura: metadata.fechaCaptura || null,
+        paradaId: metadata.paradaId ?? null,
         size: fileToUpload.size
       });
 
@@ -357,6 +358,30 @@ export const actualizarCaptionFoto = async ({ db, userId, viajeId, fotoId, capti
  * @param {Array<{id: string, orden: number}>} params.ordenamiento - Array con nuevos órdenes
  * @returns {Promise<boolean>}
  */
+/**
+ * Assigns (or clears) the stop a gallery photo belongs to.
+ * Powers the dual-entry `📍 Parada` dropdown in the editor gallery.
+ * @returns {Promise<boolean>}
+ */
+export const actualizarParadaFoto = async ({ db, userId, viajeId, fotoId, paradaId = null }) => {
+  assertOperationalWritesEnabled();
+
+  try {
+    const fotoRef = doc(db, `usuarios/${userId}/viajes/${viajeId}/fotos/${fotoId}`);
+    await updateDoc(fotoRef, { paradaId: paradaId || null });
+    logger.debug('Parada de foto actualizada', { viajeId, fotoId, paradaId });
+    return true;
+  } catch (error) {
+    logger.error('Error actualizando parada de foto', {
+      error: error.message,
+      viajeId,
+      fotoId,
+      paradaId
+    });
+    return false;
+  }
+};
+
 export const reordenarFotos = async ({ db, userId, viajeId, ordenamiento }) => {
   assertOperationalWritesEnabled();
 

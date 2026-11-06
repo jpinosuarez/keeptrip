@@ -107,6 +107,7 @@
       "plane": "✈️ Avión",
       "train": "🚆 Tren",
       "car": "🚗 Auto",
+      "ship": "⛴️ Barco",
       "bus": "🚌 Bus",
       "other": "🔁 Otro"
     },
@@ -147,7 +148,12 @@
   },
   "gallery": {
     "changeCover": "Cambiar portada",
-    "removeCover": "Quitar foto"
+    "removeCover": "Quitar foto",
+    "setAsCover": "Marcar como portada",
+    "cover": "Portada",
+    "unassigned": "Sin parada asignada",
+    "paradaUnassigned": "Sin asignar",
+    "draftNotice": "Tus fotos se subirán al guardar el viaje."
   },
   "coverPicker": {
     "title": "Seleccionar foto de portada",
@@ -168,5 +174,78 @@
     "editTitleHint": "Toca para editar el título"
   },
   "tripTitleAriaLabel": "Título del viaje",
-  "coverPreviewAlt": "Vista previa de la portada"
+  "coverPreviewAlt": "Vista previa de la portada",
+  "tabs": {
+    "route": "Ruta y Paradas",
+    "essence": "Detalles y Favoritos",
+    "gallery": "Fotos y Galería",
+    "ariaLabel": "Secciones del editor"
+  },
+  "stopDrawer": {
+    "toggle": "Detalles y Fotos",
+    "hideDetails": "Ocultar detalles de la parada",
+    "customizeStop": "Personalizar parada (relato, lugares y fotos)",
+    "chronicleTitle": "Crónica / Recuerdo clave",
+    "atmosphereTitle": "Ambiente del lugar",
+    "placesTitle": "Lugares y Rincones",
+    "photosTitle": "Fotos de la parada",
+    "placesCount": "lugares",
+    "photosCount": "fotos",
+    "favorite": "Parada favorita",
+    "headline": "💬 Titular o recuerdo clave...",
+    "addLongNote": "+ Añadir nota extendida",
+    "notePlaceholder": "Cuenta lo que viviste en esta ciudad...",
+    "customVibe": "Crear ambiente",
+    "removeVibe": "Quitar del ambiente",
+    "removePlace": "Quitar lugar",
+    "placePlaceholder": {
+      "monumento": "Añade un monumento...",
+      "gastronomia": "Añade un restaurante...",
+      "mirador": "Añade un mirador...",
+      "cultura": "Añade un plan cultural...",
+      "hotel": "Añade tu hotel..."
+    },
+    "uploadStopPhotos": "Subir fotos de {{city}}",
+    "vibes": {
+      "caminable": "Caminable",
+      "gastronomia": "Gran comida",
+      "historia": "Historia",
+      "naturaleza": "Naturaleza",
+      "joya": "Joya oculta",
+      "fotogenica": "Fotogénica",
+      "ambiente": "Ambiente"
+    },
+    "places": {
+      "monumento": "Monumento",
+      "gastronomia": "Gastronomía",
+      "mirador": "Mirador",
+      "cultura": "Cultura",
+      "hotel": "Hotel"
+    }
+  },
+  "companionType": {
+    "solo": "Solo",
+    "couple": "Pareja",
+    "family": "Familia",
+    "friends": "Amigos"
+  },
+  "details": {
+    "withWhom": "¿Con quién viajaste?",
+    "frequentCompanionsTitle": "Compañeros frecuentes",
+    "travelStyleTitle": "Estilo del Viaje",
+    "customStylePlaceholder": "Ej: Surf y atardeceres",
+    "addCustomStyle": "Personalizado",
+    "trilogyTitle": "La Trilogía del Viaje",
+    "topFoodLabel": "El Mejor Sabor",
+    "topFoodPlaceholder": "Plato, café o restaurante inolvidable",
+    "topViewLabel": "La Mejor Postal",
+    "topViewPlaceholder": "Mirador, monumento o paisaje que te dejó sin aliento",
+    "topTipLabel": "El Momento Inolvidable",
+    "topTipPlaceholder": "La anécdota, experiencia o consejo estrella",
+    "fromYourStops": "De tus paradas",
+    "tripHeadlineLabel": "Frase o Titular del Viaje",
+    "tripHeadlinePlaceholder": "En una frase: ¿cómo recordarás esta aventura? (Ej: Diez días mágicos recorriendo castillos)",
+    "extendedStoryToggle": "Escribir relato o prólogo extendido",
+    "addEmoji": "Añadir emoji"
+  }
 }

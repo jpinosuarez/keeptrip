@@ -238,7 +238,14 @@ const buildSearchHaystack = (trip, i18nLang) => {
       source.titulo,
       source.nombreEspanol,
       source.nameSpanish,
+      source.titular,
+      source.highlights?.topFood,
+      source.highlights?.topView,
+      source.highlights?.topTip,
       ...stops,
+      ...getTripParadas(source).flatMap((stop) =>
+        Array.isArray(stop?.lugares) ? stop.lugares.map((l) => l?.nombre) : []
+      ),
       typeof source.ciudades === 'string' ? source.ciudades : '',
       ...countryWords,
       source.texto,
@@ -247,6 +254,31 @@ const buildSearchHaystack = (trip, i18nLang) => {
       .filter(Boolean)
       .join(' ')
   );
+};
+
+/**
+ * Companion filter: matches by `companionType` (solo/couple/family/friends) or by
+ * a companion name. `'all'`/empty is a no-op.
+ * @param {object} trip
+ * @param {string|string[]} filterValue
+ * @returns {boolean}
+ */
+export const matchesCompanionFilter = (trip, filterValue) => {
+  if (!filterValue || filterValue === 'all') return true;
+  const source = asObject(trip);
+
+  if (Array.isArray(filterValue)) {
+    if (filterValue.includes(source.companionType)) return true;
+  } else if (source.companionType === filterValue) {
+    return true;
+  }
+
+  const companions = Array.isArray(source.companions) ? source.companions : [];
+  const target = Array.isArray(filterValue) ? null : String(filterValue).toLowerCase();
+  return companions.some((c) => {
+    const name = typeof c === 'string' ? c : c?.name || c?.email || '';
+    return target !== null && String(name).toLowerCase() === target;
+  });
 };
 
 /**
@@ -276,6 +308,7 @@ export const applyTripFilters = ({
   scope = 'all',
   duration = 'all',
   curation = 'all',
+  companion = 'all',
   sort = 'recent',
   userProfile = null,
   i18nLang = 'es',
@@ -321,6 +354,8 @@ export const applyTripFilters = ({
       if (curation === 'complete' && !complete) continue;
       if (curation === 'incomplete' && complete) continue;
     }
+
+    if (companion !== 'all' && !matchesCompanionFilter(data, companion)) continue;
 
     const startIso = getTripStartDate(data);
     decorated.push({

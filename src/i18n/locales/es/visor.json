@@ -40,19 +40,56 @@
     "title": "La Crónica del Viaje",
     "climate": "Clima",
     "transport": "Transporte",
+    "favorite": "Parada favorita",
     "highlight": "Destacado",
-    "dayTripFrom": "Escapada de día desde {{city}}"
+    "dayTripFrom": "Escapada de día desde {{city}}",
+    "transportMode": {
+      "plane": "En avión",
+      "train": "En tren",
+      "car": "En auto",
+      "ship": "En barco",
+      "bus": "En bus",
+      "other": "Otro medio",
+      "walk": "A pie"
+    },
+    "vibes": {
+      "caminable": "Ideal para caminar",
+      "gastronomia": "Gran gastronomía",
+      "historia": "Historia viva",
+      "naturaleza": "Naturaleza",
+      "joya": "Joya oculta",
+      "fotogenica": "Súper fotogénica",
+      "ambiente": "Gran ambiente",
+      "custom": "Vibe"
+    },
+    "places": {
+      "monumento": "Monumento",
+      "gastronomia": "Gastronomía",
+      "mirador": "Mirador",
+      "cultura": "Cultura",
+      "hotel": "Hotel"
+    }
   },
   "context": {
-    "highlights": "Highlights",
+    "highlights": "La Trilogía del Viaje",
     "budget": "Presupuesto",
-    "vibe": "Vibe",
+    "vibe": "Estilo del Viaje",
     "companions": "Compañeros",
-    "weather": "Clima histórico"
+    "weather": "Clima histórico",
+    "topFood": "El Mejor Sabor",
+    "topView": "La Mejor Postal",
+    "topTip": "El Momento Inolvidable",
+    "companionType": {
+      "solo": "En solitario",
+      "couple": "En pareja",
+      "family": "En familia",
+      "friends": "Con amigos"
+    }
   },
   "gallery": {
     "title": "Recuerdos Consolidados",
-    "addPhotos": "Añadir fotos a este viaje"
+    "addPhotos": "Añadir fotos a este viaje",
+    "managePhotos": "Gestionar fotos"
   },
   "footer": {
     "xpEarned": "+{{xp}} XP",

@@ -169,6 +169,7 @@ export function useEdicionModalLifecycle({
       foto: normalizedCover,
       portadaUrl: normalizedCover,
       texto: viaje.texto || '',
+      titular: viaje.titular || '',
       flag: viaje.flag,
       code: viaje.code,
       nombreEspanol: viaje.nombreEspanol,

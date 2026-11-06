@@ -8,6 +8,8 @@ import {
   computeFarthestFromHome,
   computeSeasonality,
   computeFidelityStats,
+  computeTransportBreakdown,
+  computePlacesCount,
 } from './travelAnalytics';
 
 const baseTrips = [{ id: 't1' }, { id: 't2' }];
@@ -136,5 +138,74 @@ describe('travelAnalytics', () => {
     expect(empty.seasonality.hasData).toBe(false);
     expect(empty.longestTrip).toBeNull();
     expect(empty.yearBanner).toBeNull();
+    expect(empty.transportTotalLegs).toBe(0);
+    expect(empty.placesCount).toBe(0);
+  });
+});
+
+describe('travelAnalytics — Block 2.4 transport & places', () => {
+  const transportTripData = {
+    t1: {
+      titulo: 'Connectors',
+      fechaInicio: '2026-01-01',
+      fechaFin: '2026-01-03',
+      paradas: [
+        { id: 'a', nombre: 'A', coordenadas: [0, 0], fecha: '2026-01-01' },
+        { id: 'b', nombre: 'B', coordenadas: [0, 1], fecha: '2026-01-02', transporte: 'plane' },
+        { id: 'c', nombre: 'C', coordenadas: [0, 2], fecha: '2026-01-03', transporte: 'train' },
+      ],
+    },
+  };
+
+  it('counts legs and km per transport mode via Haversine', () => {
+    const { byMode, totalLegs, totalKm } = computeTransportBreakdown(
+      [{ id: 't1' }],
+      transportTripData
+    );
+    expect(totalLegs).toBe(2);
+    expect(byMode.plane.legs).toBe(1);
+    expect(byMode.train.legs).toBe(1);
+    expect(byMode.plane.km).toBeGreaterThan(100);
+    expect(byMode.train.km).toBeGreaterThan(100);
+    expect(totalKm).toBe(byMode.plane.km + byMode.train.km);
+  });
+
+  it('maps legacy Spanish transport tokens and defaults to walk', () => {
+    const tripData = {
+      t1: {
+        paradas: [
+          { id: 'a', nombre: 'A', coordenadas: [0, 0], fecha: '2026-02-01' },
+          { id: 'b', nombre: 'B', coordenadas: [0, 1], fecha: '2026-02-02', transporte: 'avion' },
+          { id: 'c', nombre: 'C', coordenadas: [0, 2], fecha: '2026-02-03' },
+        ],
+      },
+    };
+    const { byMode } = computeTransportBreakdown([{ id: 't1' }], tripData);
+    expect(byMode.plane.legs).toBe(1);
+    expect(byMode.walk.legs).toBe(1);
+  });
+
+  it('sums places by category across stops', () => {
+    const tripData = {
+      t1: {
+        paradas: [
+          {
+            id: 'a',
+            nombre: 'A',
+            coordenadas: [0, 0],
+            lugares: [
+              { id: '1', nombre: 'Museo', categoria: 'cultura' },
+              { id: '2', nombre: 'Plaza', categoria: 'monumento' },
+            ],
+          },
+          { id: 'b', nombre: 'B', coordenadas: [0, 1], lugares: [{ id: '3', nombre: 'Mirador', categoria: 'mirador' }] },
+        ],
+      },
+    };
+    const { total, byCategory } = computePlacesCount([{ id: 't1' }], tripData);
+    expect(total).toBe(3);
+    expect(byCategory.cultura).toBe(1);
+    expect(byCategory.monumento).toBe(1);
+    expect(byCategory.mirador).toBe(1);
   });
 });

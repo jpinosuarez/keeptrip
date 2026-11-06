@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate, useMatch, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
@@ -146,6 +146,24 @@ function AppModalsManager({
   } = modalController;
 
   const { bitacora, bitacoraData } = data;
+
+  // Unique companion names previously used across the traveler's trips, for the
+  // editor's 1-tap "Compañeros Frecuentes" suggestions.
+  const frequentCompanions = useMemo(() => {
+    const names = new Set();
+    const collect = (trip) => {
+      const comps = trip?.companions;
+      if (!Array.isArray(comps)) return;
+      comps.forEach((c) => {
+        const name = typeof c === 'string' ? c : c?.name || c?.email || '';
+        const trimmed = String(name || '').trim();
+        if (trimmed) names.add(trimmed);
+      });
+    };
+    (Array.isArray(bitacora) ? bitacora : []).forEach((t) => collect(bitacoraData?.[t.id] || t));
+    Object.values(bitacoraData || {}).forEach(collect);
+    return [...names];
+  }, [bitacora, bitacoraData]);
   const {
     isSavingModal,
     isSavingViewer,
@@ -223,19 +241,35 @@ function AppModalsManager({
         next.delete('editing');
         changed = true;
       }
+      if (next.has('tab')) {
+        next.delete('tab');
+        changed = true;
+      }
       return changed ? next : prev;
     }, { replace: true });
   }, [setSearchParams, setViajeBorrador, setCiudadInicialBorrador]);
 
-  // Block 2.1: guarantee the editor closes after a successful save. The crud
-  // handler returns the saved trip id (string) on success and null on failure.
-  const handleSaveTrip = useCallback(async (id, payload, existingStops) => {
-    const result = await handleSaveModal(id, payload, existingStops);
-    if (result !== false) {
-      handleCloseEditor();
+  // Block 2.4: `handleSaveTrip` must NOT close the editor. It only performs the
+  // Firestore save and returns the result. Editor closing is delegated
+  // exclusively to `EditorFocusPanel.handleSaveWithLoading` via `onAfterSave`
+  // AFTER the gallery upload queue has finished, so there is a single owner of
+  // the close and no premature close-before-upload race.
+  // Defensive: accepts BOTH the standard `(id, payload, stops)` invocation and a
+  // single unified `dataToSave` object, always extracting the stops so the
+  // `paradas` subcollection is persisted.
+  const handleSaveTrip = useCallback(async (idOrData, maybePayload, maybeStops) => {
+    if (idOrData && typeof idOrData === 'object') {
+      const resolvedTripId = idOrData.id || editingId || tripId;
+      const paradas = Array.isArray(idOrData.paradas)
+        ? idOrData.paradas
+        : Array.isArray(maybeStops)
+          ? maybeStops
+          : maybePayload?.paradas || [];
+      const payload = idOrData.payload || idOrData;
+      return handleSaveModal(resolvedTripId, payload, paradas);
     }
-    return result;
-  }, [handleSaveModal, handleCloseEditor]);
+    return handleSaveModal(idOrData, maybePayload, maybeStops);
+  }, [handleSaveModal, editingId, tripId]);
 
   // ── ConfirmModal ──────────────────────────────────────────────────────────────
   const viajeAEliminar = confirmarEliminacion
@@ -336,6 +370,7 @@ function AppModalsManager({
             <EditorFocusPanel
               viaje={viajeParaEditar}
               bitacoraData={bitacoraData}
+              frequentCompanions={frequentCompanions}
               onClose={handleCloseEditor}
               onSave={handleSaveTrip}
               isSaving={isSavingModal}
@@ -362,7 +397,7 @@ function AppModalsManager({
                 tripData={bitacoraData}
                 MapRoutePreview={MiniMapaRuta}
                 onClose={() => navigate('/trips')}
-                openEditor={(id) => setSearchParams({ editing: id }, { replace: true })}
+                openEditor={(id, tab) => setSearchParams({ editing: id, ...(tab ? { tab } : {}) }, { replace: true })}
                 onNavigateTrip={(id) => navigate(`/trips/${id}`)}
                 onSave={handleSaveFromViewer}
                 onDelete={requestTripDelete}

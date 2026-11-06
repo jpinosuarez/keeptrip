@@ -1,20 +1,75 @@
 import { cn } from '@shared/lib/utils/cn';
-import React, { useState, useEffect } from 'react';
-import { MapPin, ArrowUp, ArrowDown, Plus, Search, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  MapPin,
+  ArrowUp,
+  ArrowDown,
+  Plus,
+  Search,
+  Trash2,
+  Plane,
+  Train,
+  Car,
+  Ship,
+  Bus,
+  Heart,
+  Sparkles,
+  ChevronDown,
+  X,
+  MessageSquare,
+  Camera,
+  Landmark,
+  Utensils,
+  Eye,
+  Palette,
+  Bed,
+  Mountain,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { getFlagUrl } from '@shared/lib/utils/countryUtils';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
-import { normalizeToIsoDate, parseFlexibleDate } from '@shared/lib/utils/viajeUtils';
+import { normalizeToIsoDate } from '@shared/lib/utils/viajeUtils';
 import { fetchGeocoding } from '@shared/api/services/mapboxGeocoding';
+import CountryFlag from '@shared/ui/components/CountryFlag';
+import EmojiInput from '@shared/ui/components/EmojiInput';
 
-const createStopInstanceId = (feature) => {
-  const baseId = feature.id || `${feature.text}-${feature.center?.[0]}-${feature.center?.[1]}`;
-  const uuid = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+const TRANSPORT_OPTIONS = [
+  { value: 'plane', Icon: Plane, fallback: 'Avión' },
+  { value: 'train', Icon: Train, fallback: 'Tren' },
+  { value: 'car', Icon: Car, fallback: 'Auto' },
+  { value: 'ship', Icon: Ship, fallback: 'Barco' },
+  { value: 'bus', Icon: Bus, fallback: 'Bus' },
+];
+
+const VIBE_OPTIONS = [
+  { value: 'caminable', fallback: 'Caminable' },
+  { value: 'gastronomia', fallback: 'Gran comida' },
+  { value: 'historia', fallback: 'Historia' },
+  { value: 'naturaleza', fallback: 'Naturaleza' },
+  { value: 'joya', fallback: 'Joya oculta' },
+  { value: 'fotogenica', fallback: 'Fotogénica' },
+  { value: 'ambiente', fallback: 'Ambiente' },
+];
+
+const PLACE_CATEGORIES = [
+  { value: 'monumento', Icon: Landmark, fallback: 'Monumento' },
+  { value: 'gastronomia', Icon: Utensils, fallback: 'Gastronomía' },
+  { value: 'mirador', Icon: Mountain, fallback: 'Mirador' },
+  { value: 'cultura', Icon: Palette, fallback: 'Cultura' },
+  { value: 'hotel', Icon: Bed, fallback: 'Hotel' },
+];
+
+const PLACE_CATEGORY_EMOJI = { monumento: '🏛️', gastronomia: '🍽️', mirador: '🌅', cultura: '🎭', hotel: '🏨' };
+
+const makeId = () =>
+  typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-  return `temp-${baseId}-${uuid}`;
+const createStopInstanceId = (feature) => {
+  const baseId = feature.id || `${feature.text}-${feature.center?.[0]}-${feature.center?.[1]}`;
+  return `temp-${baseId}-${makeId()}`;
 };
 
 const CityManager = ({
@@ -24,6 +79,8 @@ const CityManager = ({
   tripStartDate = '',
   tripEndDate = '',
   isReadOnlyMode = false,
+  fotos = [],
+  onRequestPhotos,
 }) => {
   const { i18n, t: searchT } = useTranslation(['search', 'common']);
   const {
@@ -32,11 +89,18 @@ const CityManager = ({
   const isReadOnlyActive = isReadOnlyMode || Boolean(appReadonlyMode) || operationalLevel >= 3;
   const isSearchPaused = operationalLevel >= 1;
   const shouldBlockSearchResults = isSearchPaused || isReadOnlyActive;
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  
-  // Local state for dates to prevent focus loss/cursor jumping during manual entry
   const [tempDates, setTempDates] = useState({});
+  const [openStopId, setOpenStopId] = useState(null);
+  const [openNotaIds, setOpenNotaIds] = useState({});
+  const [lugarDrafts, setLugarDrafts] = useState({});
+  const [customVibeDrafts, setCustomVibeDrafts] = useState({});
+  const [customVibeEmojis, setCustomVibeEmojis] = useState({});
+  const [lugarEmojis, setLugarEmojis] = useState({});
+  const searchInputRef = useRef(null);
+
   const visibleSearchResults = shouldBlockSearchResults ? [] : searchResults;
 
   const handleFieldFocus = (e) => {
@@ -47,103 +111,145 @@ const CityManager = ({
       }
     }, 280);
   };
-  
-  // Búsqueda reactiva (3 chars)
+
   useEffect(() => {
     if (isSearchPaused) return;
-
-    if (searchQuery.length < 3) {
-        return;
-    }
+    if (searchQuery.length < 3) return;
     const timer = setTimeout(async () => {
-        try {
-            const lang = (i18n.resolvedLanguage || i18n.language || 'es').split('-')[0];
-            const data = await fetchGeocoding({
-              query: searchQuery,
-              language: lang,
-              types: 'place',
-            });
-            setSearchResults(data.features || []);
-        } catch (e) { console.error(e); }
+      try {
+        const lang = (i18n.resolvedLanguage || i18n.language || 'es').split('-')[0];
+        const data = await fetchGeocoding({ query: searchQuery, language: lang, types: 'place' });
+        setSearchResults(data.features || []);
+      } catch (e) {
+        console.error(e);
+      }
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery, i18n.language, i18n.resolvedLanguage, isSearchPaused]);
 
   const agregarCiudad = (feature) => {
     if (isReadOnlyActive) return;
-
-    const contextCountry = feature.context?.find(c => c.id.startsWith('country'));
+    const contextCountry = feature.context?.find((c) => c.id.startsWith('country'));
     const countryCode = contextCountry?.short_code?.toUpperCase();
 
     setParadas((prevParadas) => {
-      const generatedId = createStopInstanceId(feature);
+      // Smart date inheritance: first stop → trip start; subsequent → previous stop's departure.
+      const previousStop = prevParadas.length > 0 ? prevParadas[prevParadas.length - 1] : null;
+      const inheritedArrival =
+        prevParadas.length === 0
+          ? (tripStartDate || '')
+          : (previousStop?.fechaSalida || previousStop?.fechaLlegada || previousStop?.fecha || '');
 
       const nuevaParada = {
-        id: generatedId,
+        id: createStopInstanceId(feature),
         nombre: feature.text,
         coordenadas: feature.center,
-        fechaLlegada: '',
+        fechaLlegada: inheritedArrival,
         fechaSalida: '',
-        fecha: '',
+        fecha: inheritedArrival,
         paisCodigo: countryCode,
-        flag: getFlagUrl(countryCode), // Guardar URL SVG
+        flag: getFlagUrl(countryCode),
         transporte: null,
-        notaCorta: '',
+        esFavorita: false,
+        titular: '',
+        nota: '',
+        vibes: [],
+        lugares: [],
       };
-
       return [...prevParadas, nuevaParada];
     });
 
     setSearchQuery('');
     setSearchResults([]);
+    // Refocus the search so entering multiple cities in sequence is seamless.
+    requestAnimationFrame(() => searchInputRef.current?.focus());
   };
 
   const moverParada = (index, direccion) => {
     if (isReadOnlyActive) return;
-
     const nuevas = [...paradas];
     const item = nuevas.splice(index, 1)[0];
     nuevas.splice(index + direccion, 0, item);
     setParadas(nuevas);
   };
 
-  const actualizarDato = (index, campo, valor) => {
+  const actualizarDato = useCallback((index, campo, valor) => {
     if (isReadOnlyActive) return;
-
     setParadas((prevParadas) => {
       const nuevas = [...prevParadas];
       const target = { ...nuevas[index] };
-
       if (campo === 'fechaLlegada' || campo === 'fechaSalida') {
         const isoValue = normalizeToIsoDate(valor) || valor || '';
         target[campo] = isoValue;
-
-        if (campo === 'fechaLlegada') {
-          target.fecha = isoValue;
-        }
+        if (campo === 'fechaLlegada') target.fecha = isoValue;
       } else {
         target[campo] = valor;
       }
-
       nuevas[index] = target;
       return nuevas;
     });
-  };
+  }, [isReadOnlyActive, setParadas]);
 
   const eliminarParada = (index) => {
     if (isReadOnlyActive) return;
-
     const nuevas = [...paradas];
     nuevas.splice(index, 1);
     setParadas(nuevas);
   };
 
+  const toggleFavorite = (index) => {
+    if (isReadOnlyActive) return;
+    const current = Boolean(paradas[index]?.esFavorita);
+    actualizarDato(index, 'esFavorita', !current);
+  };
+
+  const toggleVibe = (index, vibe) => {
+    if (isReadOnlyActive) return;
+    const current = Array.isArray(paradas[index]?.vibes) ? paradas[index].vibes : [];
+    const next = current.includes(vibe) ? current.filter((v) => v !== vibe) : [...current, vibe];
+    actualizarDato(index, 'vibes', next);
+  };
+
+  const addCustomVibe = (index) => {
+    const draft = (customVibeDrafts[index] || '').trim();
+    if (!draft) return;
+    const emoji = customVibeEmojis[index] || '✨';
+    const value = `${emoji} ${draft}`;
+    const current = Array.isArray(paradas[index]?.vibes) ? paradas[index].vibes : [];
+    if (!current.includes(value)) actualizarDato(index, 'vibes', [...current, value]);
+    setCustomVibeDrafts((prev) => ({ ...prev, [index]: '' }));
+  };
+
+  const setLugarDraft = (index, partial) => {
+    setLugarDrafts((prev) => ({
+      ...prev,
+      [index]: { categoria: prev[index]?.categoria || 'monumento', nombre: prev[index]?.nombre || '', ...partial },
+    }));
+  };
+
+  const addLugar = (index) => {
+    const draft = lugarDrafts[index];
+    const nombre = (draft?.nombre || '').trim();
+    if (!nombre) return;
+    const categoria = draft?.categoria || 'monumento';
+    const emoji = lugarEmojis[index] || PLACE_CATEGORY_EMOJI[categoria] || undefined;
+    const current = Array.isArray(paradas[index]?.lugares) ? paradas[index].lugares : [];
+    actualizarDato(index, 'lugares', [...current, { id: makeId(), nombre, categoria, ...(emoji ? { emoji } : {}) }]);
+    setLugarDraft(index, { nombre: '' });
+  };
+
+  const removeLugar = (index, lugarId) => {
+    const current = Array.isArray(paradas[index]?.lugares) ? paradas[index].lugares : [];
+    actualizarDato(index, 'lugares', current.filter((l) => l.id !== lugarId));
+  };
+
   return (
     <div className="flex flex-col gap-3.5">
       <div className="flex gap-2.5">
-        <div className="flex-1 flex items-center gap-2 min-h-[44px] bg-background border border-border rounded-md px-3">
-          <Search size={16} className="text-textSecondary" />
+        <div className="flex-1 flex items-center gap-2 min-h-[44px] bg-background border border-border rounded-xl px-3">
+          <Search size={16} className="text-slate-400" />
           <input
+            ref={searchInputRef}
             value={searchQuery}
             onFocus={handleFieldFocus}
             onChange={(e) => {
@@ -151,7 +257,13 @@ const CityManager = ({
               setSearchQuery(value);
               if (value.length < 3) setSearchResults([]);
             }}
-            placeholder={t('citymanager.searchPlaceholder', '🔍 Add new stop to your route')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && visibleSearchResults.length > 0) {
+                e.preventDefault();
+                agregarCiudad(visibleSearchResults[0]);
+              }
+            }}
+            placeholder={t('citymanager.searchPlaceholder', 'Añade una nueva parada a tu ruta')}
             className="border-none bg-transparent py-3 w-full outline-none text-base"
             disabled={isSearchPaused || isReadOnlyActive}
           />
@@ -159,62 +271,37 @@ const CityManager = ({
       </div>
 
       {isSearchPaused && (
-        <div className="border border-border rounded-md px-3.5 py-3 bg-atomicTangerine/10 text-charcoalBlue font-semibold text-[0.88rem] text-center">
-          {searchT(
-            'search:pausedMessage',
-            'Search temporarily paused while we stabilize map services. Your saved trips remain available.'
-          )}
+        <div className="border border-border rounded-xl px-3.5 py-3 bg-atomicTangerine/10 text-charcoalBlue font-semibold text-[0.88rem] text-center">
+          {searchT('search:pausedMessage', 'Búsqueda en pausa temporalmente mientras estabilizamos el mapa. Tus viajes guardados siguen disponibles.')}
         </div>
       )}
 
       {isReadOnlyActive && (
-        <div className="border border-border rounded-md px-3.5 py-3 bg-[#2C3E50]/10 text-charcoalBlue font-semibold text-[0.88rem] text-center">
-          {searchT(
-            'common:operational.readOnlyBanner',
-            'Keeptrip is in Read-Only mode. Your data is safe, but edits are paused.'
-          )}
+        <div className="border border-border rounded-xl px-3.5 py-3 bg-[#2C3E50]/10 text-charcoalBlue font-semibold text-[0.88rem] text-center">
+          {searchT('common:operational.readOnlyBanner', 'Keeptrip está en modo Solo lectura. Tus datos están a salvo, pero las ediciones están pausadas.')}
         </div>
       )}
 
       {visibleSearchResults.length > 0 && (
-        <div className="bg-surface border border-border rounded-md overflow-hidden max-h-[180px] overflow-y-auto shadow-md">
+        <div className="bg-surface border border-border rounded-xl overflow-hidden max-h-[180px] overflow-y-auto shadow-md">
           {visibleSearchResults.map((res, resIdx) => {
-            // Extraer país para el icono en resultados
-            const contextCountry = res.context?.find(c => c.id.startsWith('country'));
+            const contextCountry = res.context?.find((c) => c.id.startsWith('country'));
             const code = contextCountry?.short_code?.toUpperCase();
-            const flag = getFlagUrl(code);
             const countryLabel = getLocalizedCountryName(code, i18n.language, t) || contextCountry?.text || '';
-
             return (
-                <div key={res.id || `result-${resIdx}`} className="p-3.5 border-b border-background cursor-pointer text-[0.9rem] flex justify-between items-center hover:bg-background">
-                <div className="flex items-center gap-2.5">
-                    {flag ? (
-                      <img
-                        src={flag}
-                        alt="flag"
-                        className="w-7 h-7 rounded-full object-cover shadow-sm border border-border-light drop-shadow-sm"
-                      />
-                    ) : (
-                      <MapPin size={16} className="text-textSecondary" />
-                    )}
-                    <span className="flex-1 min-w-0">
-                      {res.text},{' '}
-                      <span className="text-textSecondary text-[0.8rem]">
-                        {countryLabel}
-                      </span>
-                    </span>
+              <div key={res.id || `result-${resIdx}`} className="flex items-center gap-2.5 px-3 py-2.5 border-b border-border last:border-b-0">
+                {code ? <CountryFlag code={code} size="sm" /> : <MapPin size={16} className="text-slate-400" />}
+                <div className="min-w-0 flex-1">
+                  <div className="text-[0.9rem] font-semibold text-charcoalBlue truncate">{res.text}</div>
+                  <div className="text-[0.72rem] text-textSecondary truncate">{countryLabel}</div>
                 </div>
                 <button
                   type="button"
                   onClick={() => agregarCiudad(res)}
-                  className={cn(
-                    "bg-transparent border-[1.5px] border-atomicTangerine rounded-full min-h-[44px] min-w-[44px] px-3.5 py-2.5 text-atomicTangerine text-[0.75rem] font-bold cursor-pointer transition-all outline-none flex items-center gap-1.5 hover:bg-atomicTangerine/5 active:translate-y-[1px]",
-                    isReadOnlyActive && "opacity-55 cursor-not-allowed"
-                  )}
-                  aria-label={t('button.add') || '+ Add destination'}
                   disabled={isReadOnlyActive}
+                  className="min-h-[44px] inline-flex items-center gap-1 rounded-full border border-atomicTangerine px-3 py-2 text-atomicTangerine text-[0.75rem] font-bold hover:bg-atomicTangerine/5"
                 >
-                  <Plus size={14} /> {t('button.add', '+ Add destination')}
+                  <Plus size={14} /> {t('button.add', 'Agregar')}
                 </button>
               </div>
             );
@@ -227,51 +314,59 @@ const CityManager = ({
           const llegadaVal = tempDates[`${index}-arrival`] ?? (normalizeToIsoDate(p.fechaLlegada || p.fecha) || '');
           const salidaVal = tempDates[`${index}-departure`] ?? (normalizeToIsoDate(p.fechaSalida) || '');
           const hasDateInverted = Boolean(llegadaVal && salidaVal && salidaVal < llegadaVal);
+          const isOpen = openStopId === p.id;
+          const isFav = Boolean(p.esFavorita);
+          const stopVibes = Array.isArray(p.vibes) ? p.vibes : [];
+          const stopLugares = Array.isArray(p.lugares) ? p.lugares : [];
+          const stopPhotos = (Array.isArray(fotos) ? fotos : []).filter((f) => f?.paradaId && f.paradaId === p.id);
+          const lugarDraft = lugarDrafts[index] || { categoria: 'monumento', nombre: '' };
 
           return (
-            <div key={p.id ?? `parada-${index}-${p.nombre}`} className="bg-surface border border-border p-3.5 rounded-md shadow-sm" data-testid="editor-stop-item">
-            <div className="flex justify-between items-center mb-3">
-               <div className="flex items-center gap-2">
-                   {p.flag && <img src={p.flag} alt="flag" className="w-6 rounded-sm border border-border-light drop-shadow-sm" />}
-                   <span className="font-bold text-[0.95rem] text-charcoalBlue">{p.nombre}</span>
-               </div>
-               <div className="flex gap-1.5">
-                  <button
-                    type="button"
-                    data-testid="editor-stop-move-up"
-                    aria-label={t('citymanager.moveStopUp', 'Move stop up')}
-                    disabled={index === 0 || isReadOnlyActive}
-                    onClick={() => moverParada(index, -1)}
-                    className="bg-background border-none min-h-[44px] min-w-[44px] p-3 rounded-sm cursor-pointer text-textSecondary flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <ArrowUp size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="editor-stop-move-down"
-                    aria-label={t('citymanager.moveStopDown', 'Move stop down')}
-                    disabled={index === paradas.length - 1 || isReadOnlyActive}
-                    onClick={() => moverParada(index, 1)}
-                    className="bg-background border-none min-h-[44px] min-w-[44px] p-3 rounded-sm cursor-pointer text-textSecondary flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <ArrowDown size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="editor-stop-delete"
-                    aria-label={t('citymanager.deleteStop', 'Delete stop')}
-                    onClick={() => eliminarParada(index)}
-                    className="bg-danger/10 border-none min-h-[44px] min-w-[44px] p-3 rounded-sm cursor-pointer text-danger flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
-                    disabled={isReadOnlyActive}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-               </div>
-            </div>
-            
-            <div className="flex gap-3.5 flex-wrap">
-                <div className="flex-[1_1_120px] min-w-0 flex flex-col gap-1">
-                    <label className="text-[0.7rem] uppercase text-textSecondary font-bold">{t('citymanager.arrival') || 'Arrival'}</label>
+            <div key={p.id ?? `parada-${index}-${p.nombre}`} className="flex flex-col">
+              {index > 0 && (
+                <div className="flex items-center justify-center gap-1.5 py-2">
+                  {TRANSPORT_OPTIONS.map(({ value, Icon, fallback }) => {
+                    const active = p.transporte === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => actualizarDato(index, 'transporte', active ? null : value)}
+                        disabled={isReadOnlyActive}
+                        aria-pressed={active}
+                        title={t(`citymanager.transport.${value}`, fallback)}
+                        className={cn(
+                          'w-9 h-9 rounded-full border flex items-center justify-center transition-all',
+                          active ? 'border-[#FF6B35] bg-[#FF6B35]/10 text-[#FF6B35]' : 'border-slate-200 bg-white text-slate-500 hover:border-[#FF6B35]/50'
+                        )}
+                      >
+                        <Icon size={15} />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm" data-testid="editor-stop-item">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-slate-100 text-xs font-bold text-slate-600 flex items-center justify-center shrink-0">{index + 1}</span>
+                  {p.paisCodigo ? <CountryFlag code={p.paisCodigo} size="sm" /> : null}
+                  <span className="font-display font-bold text-base text-slate-900 truncate flex-1 min-w-0">{p.nombre}</span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button type="button" onClick={() => toggleFavorite(index)} disabled={isReadOnlyActive} aria-label={t('stopDrawer.favorite', 'Parada favorita')} aria-pressed={isFav} className={cn('w-7 h-7 rounded-lg flex items-center justify-center transition-colors', isFav ? 'text-[#FF6B35] bg-[#FF6B35]/10' : 'text-slate-400 hover:bg-slate-100')}>
+                      <Heart size={16} className={isFav ? 'fill-[#FF6B35]' : ''} />
+                    </button>
+                    <button type="button" data-testid="editor-stop-move-up" aria-label={t('citymanager.moveStopUp', 'Mover arriba')} disabled={index === 0 || isReadOnlyActive} onClick={() => moverParada(index, -1)} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed"><ArrowUp size={16} /></button>
+                    <button type="button" data-testid="editor-stop-move-down" aria-label={t('citymanager.moveStopDown', 'Mover abajo')} disabled={index === paradas.length - 1 || isReadOnlyActive} onClick={() => moverParada(index, 1)} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed"><ArrowDown size={16} /></button>
+                    <button type="button" data-testid="editor-stop-delete" disabled={isReadOnlyActive} onClick={() => eliminarParada(index)} className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed" aria-label={t('citymanager.deleteStop', 'Eliminar destino')}>
+                      <Trash2 size={16} className="text-slate-400 hover:text-rose-600" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[0.65rem] uppercase text-slate-400 font-bold">{t('citymanager.arrival', 'Llegada')}</label>
                     <input
                       type="date"
                       value={llegadaVal}
@@ -279,24 +374,18 @@ const CityManager = ({
                       onChange={(e) => {
                         const val = e.target.value;
                         setTempDates((prev) => ({ ...prev, [`${index}-arrival`]: val }));
-                        if (!val || /^\d{4}-\d{2}-\d{2}$/.test(val)) {
-                          actualizarDato(index, 'fechaLlegada', val);
-                        }
+                        if (!val || /^\d{4}-\d{2}-\d{2}$/.test(val)) actualizarDato(index, 'fechaLlegada', val);
                       }}
                       onBlur={(e) => {
                         actualizarDato(index, 'fechaLlegada', e.target.value);
-                        setTempDates((prev) => {
-                          const next = { ...prev };
-                          delete next[`${index}-arrival`];
-                          return next;
-                        });
+                        setTempDates((prev) => { const next = { ...prev }; delete next[`${index}-arrival`]; return next; });
                       }}
-                      className="w-full box-sizing-border-box min-h-[48px] border border-border rounded-md px-3.5 py-3 text-base font-inherit text-charcoalBlue bg-background outline-none cursor-pointer transition-all shadow-sm"
+                      className="w-full min-h-[46px] border border-slate-200 rounded-xl px-3 py-2.5 text-base text-charcoalBlue bg-background outline-none focus:border-[#FF6B35]"
                       disabled={isReadOnlyActive}
                     />
-                </div>
-                <div className="flex-[1_1_120px] min-w-0 flex flex-col gap-1">
-                    <label className="text-[0.7rem] uppercase text-textSecondary font-bold">{t('citymanager.departure') || 'Departure'}</label>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[0.65rem] uppercase text-slate-400 font-bold">{t('citymanager.departure', 'Salida')}</label>
                     <input
                       type="date"
                       value={salidaVal}
@@ -304,37 +393,161 @@ const CityManager = ({
                       onChange={(e) => {
                         const val = e.target.value;
                         setTempDates((prev) => ({ ...prev, [`${index}-departure`]: val }));
-                        if (!val || /^\d{4}-\d{2}-\d{2}$/.test(val)) {
-                          actualizarDato(index, 'fechaSalida', val);
-                        }
+                        if (!val || /^\d{4}-\d{2}-\d{2}$/.test(val)) actualizarDato(index, 'fechaSalida', val);
                       }}
                       onBlur={(e) => {
                         actualizarDato(index, 'fechaSalida', e.target.value);
-                        setTempDates((prev) => {
-                          const next = { ...prev };
-                          delete next[`${index}-departure`];
-                          return next;
-                        });
+                        setTempDates((prev) => { const next = { ...prev }; delete next[`${index}-departure`]; return next; });
                       }}
-                      className={cn(
-                        "w-full box-sizing-border-box min-h-[48px] border rounded-md px-3.5 py-3 text-base font-inherit text-charcoalBlue bg-background outline-none cursor-pointer transition-all shadow-sm",
-                        hasDateInverted ? "border-danger text-danger focus:border-danger ring-1 ring-danger/30" : "border-border"
-                      )}
+                      className={cn('w-full min-h-[46px] border rounded-xl px-3 py-2.5 text-base text-charcoalBlue bg-background outline-none focus:border-[#FF6B35]', hasDateInverted ? 'border-danger text-danger ring-1 ring-danger/30' : 'border-slate-200')}
                       disabled={isReadOnlyActive}
                     />
+                  </div>
                 </div>
-            </div>
 
-            {hasDateInverted && (
-              <div className="w-full text-[0.78rem] text-danger font-semibold flex items-center gap-1.5 mt-2" role="alert">
-                <span>⚠️</span>
-                <span>{t('editor.errors.dateInverted', 'La fecha de salida no puede ser anterior a la de llegada')}</span>
+                {hasDateInverted && (
+                  <div role="alert" className="w-full text-[0.78rem] text-danger font-semibold flex items-center gap-1.5 mt-2">
+                    {t('editor.errors.dateInverted', 'La fecha de salida no puede ser anterior a la de llegada')}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setOpenStopId(isOpen ? null : p.id)}
+                  aria-expanded={isOpen}
+                  className="w-full mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-600 hover:text-[#FF6B35] transition-colors cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5 text-left">
+                    <Sparkles size={14} className="text-[#FF6B35] shrink-0" />
+                    {isOpen ? t('stopDrawer.hideDetails', 'Ocultar detalles de la parada') : t('stopDrawer.customizeStop', 'Personalizar parada (relato, lugares y fotos)')}
+                  </span>
+                  <span className="flex items-center gap-1.5 shrink-0">
+                    {!isOpen && stopLugares.length > 0 && <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px]">{stopLugares.length} {t('stopDrawer.placesCount', 'lugares')}</span>}
+                    {!isOpen && stopPhotos.length > 0 && <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px]">{stopPhotos.length} {t('stopDrawer.photosCount', 'fotos')}</span>}
+                    <ChevronDown size={16} className={cn('transition-transform duration-200', isOpen ? 'rotate-180 text-[#FF6B35]' : '')} />
+                  </span>
+                </button>
+
+                {isOpen && (
+                  <div className="mt-3 flex flex-col gap-3" data-testid="editor-stop-drawer">
+                    <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
+                      <MessageSquare size={14} className="text-[#FF6B35]" /> {t('stopDrawer.chronicleTitle', 'Crónica / Recuerdo clave')}
+                    </h3>
+                    <input
+                      type="text"
+                      value={p.titular || ''}
+                      onChange={(e) => actualizarDato(index, 'titular', e.target.value)}
+                      disabled={isReadOnlyActive}
+                      maxLength={160}
+                      placeholder={t('stopDrawer.headline', 'Titular o recuerdo clave...')}
+                      className="w-full min-h-[46px] border border-slate-200 rounded-xl px-3 py-2.5 text-[0.9rem] text-charcoalBlue bg-background outline-none focus:border-[#FF6B35]"
+                    />
+
+                    <button type="button" onClick={() => setOpenNotaIds((prev) => ({ ...prev, [index]: !prev[index] }))} className="self-start text-[0.78rem] font-bold text-mutedTeal bg-transparent border-none cursor-pointer inline-flex items-center gap-1">
+                      <Plus size={13} /> {t('stopDrawer.addLongNote', 'Añadir nota extendida')}
+                    </button>
+                    {(openNotaIds[index] || (p.nota && p.nota.length > 0)) && (
+                      <textarea
+                        value={p.nota || ''}
+                        onChange={(e) => actualizarDato(index, 'nota', e.target.value)}
+                        disabled={isReadOnlyActive}
+                        rows={3}
+                        maxLength={5000}
+                        placeholder={t('stopDrawer.notePlaceholder', 'Cuenta lo que viviste en esta ciudad...')}
+                        className="w-full border border-slate-200 rounded-xl p-3 text-[0.9rem] text-charcoalBlue bg-background outline-none focus:border-[#FF6B35] resize-y"
+                      />
+                    )}
+
+                    <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">
+                      <Sparkles size={14} className="text-[#FF6B35]" /> {t('stopDrawer.atmosphereTitle', 'Ambiente del lugar')}
+                    </h3>
+                    <div className="flex flex-wrap gap-1.5">
+                      {VIBE_OPTIONS.map(({ value, fallback }) => {
+                        const activeVibe = stopVibes.includes(value);
+                        return (
+                          <button key={value} type="button" onClick={() => toggleVibe(index, value)} disabled={isReadOnlyActive} aria-pressed={activeVibe} className={cn('min-h-[44px] rounded-full border px-2.5 py-1.5 text-[0.72rem] font-bold transition-all', activeVibe ? 'border-[#FF6B35] bg-[#FF6B35]/10 text-[#FF6B35]' : 'border-slate-200 bg-white text-slate-600')}>
+                            {t(`stopDrawer.vibes.${value}`, fallback)}
+                          </button>
+                        );
+                      })}
+                      {stopVibes.filter((v) => !VIBE_OPTIONS.some((o) => o.value === v)).map((custom) => (
+                        <span key={custom} className="min-h-[44px] inline-flex items-center gap-1 rounded-full border border-[#FF6B35] bg-[#FF6B35]/10 px-2.5 py-1.5 text-[0.72rem] font-bold text-[#FF6B35]">
+                          {custom}
+                          <button type="button" onClick={() => toggleVibe(index, custom)} aria-label={t('stopDrawer.removeVibe', 'Quitar vibe')} className="bg-transparent border-none p-0 cursor-pointer text-[#FF6B35] flex"><X size={12} /></button>
+                        </span>
+                      ))}
+                    </div>
+                    <EmojiInput
+                      value={customVibeDrafts[index] || ''}
+                      onChange={(v) => setCustomVibeDrafts((prev) => ({ ...prev, [index]: v }))}
+                      emoji={customVibeEmojis[index] || '✨'}
+                      onEmojiChange={(e) => setCustomVibeEmojis((prev) => ({ ...prev, [index]: e }))}
+                      onSubmit={() => addCustomVibe(index)}
+                      disabled={isReadOnlyActive}
+                      maxLength={40}
+                      placeholder={t('stopDrawer.customVibe', 'Crear ambiente')}
+                    />
+                    <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">
+                      <MapPin size={14} className="text-[#FF6B35]" /> {t('stopDrawer.placesTitle', 'Lugares y Rincones')}
+                    </h3>
+                    <div className="flex flex-wrap gap-1.5">
+                      {PLACE_CATEGORIES.map(({ value, Icon, fallback }) => {
+                        const activeCat = lugarDraft.categoria === value;
+                        return (
+                          <button key={value} type="button" onClick={() => { setLugarDraft(index, { categoria: value }); setLugarEmojis((prev) => ({ ...prev, [index]: PLACE_CATEGORY_EMOJI[value] })); }} disabled={isReadOnlyActive} aria-pressed={activeCat} className={cn('min-h-[44px] inline-flex items-center gap-1 rounded-full border px-2.5 py-1.5 text-[0.72rem] font-bold transition-all', activeCat ? 'border-mutedTeal bg-mutedTeal/10 text-mutedTeal' : 'border-slate-200 bg-white text-slate-600')}>
+                            <Icon size={13} /> {t(`stopDrawer.places.${value}`, fallback)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <EmojiInput
+                      value={lugarDraft.nombre}
+                      onChange={(v) => setLugarDraft(index, { nombre: v })}
+                      emoji={lugarEmojis[index] || PLACE_CATEGORY_EMOJI[lugarDraft.categoria] || '📍'}
+                      onEmojiChange={(e) => setLugarEmojis((prev) => ({ ...prev, [index]: e }))}
+                      onSubmit={() => addLugar(index)}
+                      disabled={isReadOnlyActive}
+                      maxLength={120}
+                      placeholder={t(`stopDrawer.placePlaceholder.${lugarDraft.categoria}`, 'Añade un lugar...')}
+                      accent="teal"
+                    />
+                    {stopLugares.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {stopLugares.map((lugar) => {
+                          const cat = PLACE_CATEGORIES.find((c) => c.value === lugar.categoria);
+                          const Icon = cat?.Icon || MapPin;
+                          return (
+                            <span key={lugar.id} className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1.5 text-[0.72rem] font-semibold text-slate-700">
+                              {lugar.emoji ? <span aria-hidden="true">{lugar.emoji}</span> : <Icon size={12} className="text-mutedTeal" />}
+                              {lugar.nombre}
+                              <button type="button" onClick={() => removeLugar(index, lugar.id)} aria-label={t('stopDrawer.removePlace', 'Quitar lugar')} className="bg-transparent border-none p-0 cursor-pointer text-slate-400 flex"><X size={12} /></button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">
+                      <Camera size={14} className="text-[#FF6B35]" /> {t('stopDrawer.photosTitle', 'Fotos de la parada')}
+                    </h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {stopPhotos.map((foto) => (
+                        <img key={foto.id} src={foto.url} alt={foto.caption || p.nombre} loading="lazy" className="w-14 h-14 rounded-xl object-cover border border-slate-200" />
+                      ))}
+                      <button type="button" onClick={() => onRequestPhotos?.(p)} className="min-h-[44px] inline-flex items-center gap-1.5 rounded-xl border border-dashed border-slate-300 bg-white text-slate-700 text-[0.78rem] font-semibold px-3 py-2 hover:border-[#FF6B35] hover:text-[#FF6B35] cursor-pointer">
+                        <Camera size={15} className="text-[#FF6B35]" />
+                        {t('stopDrawer.uploadStopPhotos', { city: p.nombre, defaultValue: `Subir fotos de ${p.nombre}` })}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-
-          </div>
-        );
-      })}
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex items-center gap-1.5 text-[0.72rem] text-slate-400 font-semibold">
+        <MapPin size={13} /> {t('labels.emptyStopsHint', 'Necesitas al menos 1 parada para guardar')}
       </div>
     </div>
   );

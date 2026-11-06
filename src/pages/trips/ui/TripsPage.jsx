@@ -41,6 +41,7 @@ const TripsPage = () => {
     scope: 'all',
     duration: 'all',
     curation: 'all',
+    companion: 'all',
     sort: 'recent',
   }));
 
@@ -59,6 +60,7 @@ const TripsPage = () => {
       scope: 'all',
       duration: 'all',
       curation: 'all',
+      companion: 'all',
       sort: 'recent',
     }));
     limpiarBusqueda();
@@ -84,6 +86,7 @@ const TripsPage = () => {
         scope: filters.scope,
         duration: filters.duration,
         curation: filters.curation,
+        companion: filters.companion,
         sort: filters.sort,
         userProfile,
         i18nLang: i18n.language,

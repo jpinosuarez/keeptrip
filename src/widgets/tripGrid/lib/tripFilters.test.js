@@ -10,6 +10,7 @@ import {
   groupTripsByYear,
   isTripComplete,
   normalizeForSearch,
+  matchesCompanionFilter,
 } from './tripFilters';
 
 const currentYear = new Date().getFullYear();
@@ -223,5 +224,35 @@ describe('groupTripsByYear', () => {
   it('sorts year groups ascending when sort is "oldest"', () => {
     const groups = groupTripsByYear(trips, tripData, 'oldest');
     expect(groups.map((group) => group.year)).toEqual([2023, 2024, 2025, currentYear]);
+  });
+});
+
+describe('matchesCompanionFilter & companion dimension', () => {
+  it('matches by companionType', () => {
+    expect(matchesCompanionFilter({ companionType: 'couple' }, 'couple')).toBe(true);
+    expect(matchesCompanionFilter({ companionType: 'solo' }, 'family')).toBe(false);
+  });
+
+  it('matches by companion name (string or object)', () => {
+    expect(matchesCompanionFilter({ companions: ['Valeria', { name: 'Lucas' }] }, 'Lucas')).toBe(true);
+    expect(matchesCompanionFilter({ companions: ['Valeria'] }, 'Pedro')).toBe(false);
+  });
+
+  it('treats "all"/empty as a no-op', () => {
+    expect(matchesCompanionFilter({}, 'all')).toBe(true);
+    expect(matchesCompanionFilter({}, '')).toBe(true);
+  });
+
+  it('applyTripFilters honours the companion dimension', () => {
+    const data = {
+      t1: { ...tripData.t1, companionType: 'couple' },
+      t2: { ...tripData.t2, companionType: 'solo' },
+    };
+    const result = applyTripFilters({
+      trips: [trips[0], trips[1]],
+      tripData: data,
+      companion: 'couple',
+    });
+    expect(result.map((trip) => trip.id)).toEqual(['t1']);
   });
 });

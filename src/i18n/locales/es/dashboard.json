@@ -183,5 +183,15 @@
     "menu": "Abrir opciones de viaje",
     "edit": "Editar viaje",
     "delete": "Eliminar"
+  },
+  "companionPrefix": "Compañía",
+  "filters": {
+    "allCompanions": "Todas las compañías"
+  },
+  "companionType": {
+    "solo": "En solitario",
+    "couple": "En pareja",
+    "family": "En familia",
+    "friends": "Con amigos"
   }
 }

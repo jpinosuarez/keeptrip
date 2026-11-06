@@ -1,26 +1,45 @@
-import { cn } from '@shared/lib/utils/cn';
-import { Star, Trash2 } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Camera } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { GalleryGrid } from '@shared/ui/components/GalleryGrid';
 
+/**
+ * Read-only consolidated trip album (cover + stop-tagged + unassigned photos,
+ * deduplicated) with Lightbox. Editing lives exclusively in the Trip Editor,
+ * reachable via the "Manage photos" deep-link (?editing=ID&tab=galeria).
+ */
 const VisorGallerySection = ({
   isOwner = true,
-  showGalleryTools,
-  toggleGalleryTools,
   galeria,
   fotosSubiendo,
   onReintentarFoto,
   isMobile,
-  captionDrafts,
-  onCaptionChange,
-  onCaptionSave,
-  onSetPortadaExistente,
-  onEliminarFoto,
-  isBusy,
-  onAddPhotos,
+  onManagePhotos,
+  paradas = [],
 }) => {
   const { t } = useTranslation('visor');
-  const fotos = galeria?.fotos || [];
+  const rawFotos = galeria?.fotos || [];
+
+  const fotos = useMemo(() => {
+    const seen = new Set();
+    return rawFotos.filter((foto) => {
+      const key = foto?.url;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [rawFotos]);
+
+  const stopNameById = useMemo(() => {
+    const map = {};
+    (Array.isArray(paradas) ? paradas : []).forEach((p) => {
+      if (p?.id) map[p.id] = p.nombre;
+    });
+    return map;
+  }, [paradas]);
+
+  const locationFor = (foto) =>
+    foto?.paradaId && stopNameById[foto.paradaId] ? stopNameById[foto.paradaId] : null;
 
   // Zero-slop: a shared trip without photos hides the whole section.
   if (fotos.length === 0 && !isOwner) return null;
@@ -28,96 +47,45 @@ const VisorGallerySection = ({
   return (
     <div className="mt-12 pt-8 border-t border-border">
       <div className="flex items-center justify-between gap-3 mb-4">
-        <h3 className="text-[0.85rem] uppercase tracking-widest text-mutedTeal font-extrabold m-0">{t('gallery.title', 'Recuerdos Consolidados')}</h3>
-        {isOwner && fotos.length > 0 && (
+        <h3 className="text-[0.85rem] uppercase tracking-widest text-mutedTeal font-extrabold m-0">
+          {t('gallery.title', 'Recuerdos Consolidados')}
+        </h3>
+        {isOwner && (
           <button
             type="button"
-            className={cn(
-              "border rounded-full px-3 py-1.5 text-[0.75rem] font-bold cursor-pointer transition-all",
-              showGalleryTools 
-                ? "border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine" 
-                : "border-border bg-white text-textPrimary"
-            )}
-            onClick={toggleGalleryTools}
+            onClick={onManagePhotos}
+            className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors"
           >
-            {showGalleryTools ? t('hideEditing', 'Ocultar edición') : t('editGallery', 'Editar galería')}
+            <Camera size={14} className="text-[#FF6B35]" />
+            {t('gallery.managePhotos', 'Gestionar fotos')}
           </button>
         )}
       </div>
-      
+
       {fotos.length > 0 ? (
         <>
-          <p className="mt-[-6px] mb-3 text-textSecondary text-[0.9rem]">{t('gallerySubtitle', 'Tu colección completa de la aventura.')}</p>
+          <p className="mt-[-6px] mb-3 text-textSecondary text-[0.9rem]">
+            {t('gallerySubtitle', 'Tu colección completa de la aventura.')}
+          </p>
           <div className="w-full">
             <GalleryGrid
               fotos={fotos}
               fotosSubiendo={fotosSubiendo}
               onReintentarFoto={onReintentarFoto}
               isMobile={isMobile}
+              locationFor={locationFor}
             />
           </div>
         </>
       ) : (
         <button
           type="button"
-          onClick={onAddPhotos}
+          onClick={onManagePhotos}
           data-testid="gallery-add-photos"
           className="w-full min-h-[44px] rounded-xl border border-dashed border-border bg-white text-textPrimary text-sm font-semibold px-4 py-3 transition-all hover:border-atomicTangerine hover:text-atomicTangerine cursor-pointer"
         >
           + {t('gallery.addPhotos', 'Añadir fotos a este viaje')}
         </button>
-      )}
-
-
-      {showGalleryTools && fotos.length > 0 && (
-        <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3">
-          {fotos.map((f) => (
-            <div key={f.id} className={cn(
-              "border rounded-md overflow-hidden bg-surface flex flex-col gap-2 p-2 transition-all",
-              f.esPortada ? "border-atomicTangerine shadow-md" : "border-border shadow-sm"
-            )}>
-              <img src={f.url} alt={f.caption || 'foto'} loading="lazy" className="w-full h-[120px] object-cover rounded-sm" />
-              <input
-                type="text"
-                value={captionDrafts[f.id] ?? (f.caption || '')}
-                onChange={(e) => onCaptionChange(f.id, e.target.value)}
-                onBlur={() => onCaptionSave(f)}
-                onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-                placeholder="Agregar caption..."
-                className="w-full border border-border rounded-sm px-2 py-1.5 text-[0.85rem] text-textPrimary outline-none bg-background"
-              />
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  type="button"
-                  className={cn(
-                    "border rounded-full px-2.5 py-1.5 text-[0.75rem] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all tap-btn",
-                    f.esPortada 
-                      ? "border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine" 
-                      : "border-border bg-white text-textPrimary"
-                  )}
-                  onClick={() => onSetPortadaExistente(f.id)}
-                  disabled={isBusy}
-                  title={t('aria.currentCover', 'Marcar como portada')}
-                  aria-label={t('aria.currentCover', 'Marcar como portada')}
-                >
-                  <Star size={14} />
-                  {f.esPortada ? t('cover', 'Portada') : t('makeCover', 'Hacer portada')}
-                </button>
-                <button
-                  type="button"
-                  className="border border-border bg-surface text-danger rounded-full px-2.5 py-1.5 text-[0.75rem] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all tap-btn"
-                  onClick={() => onEliminarFoto(f.id)}
-                  disabled={isBusy}
-                  title={t('aria.deletePhoto', 'Eliminar foto')}
-                  aria-label={t('aria.deletePhoto', 'Eliminar foto')}
-                >
-                  <Trash2 size={14} />
-                  {t('aria.deletePhoto', 'Eliminar')}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
       )}
     </div>
   );

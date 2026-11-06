@@ -346,7 +346,10 @@ export const computeFidelityStats = (trips = [], tripData = {}, userProfile = nu
     const companions = merged.acompanantes || merged.companeros || merged.companions;
     if (Array.isArray(companions)) {
       companions.forEach((companion) => {
-        const name = typeof companion === 'string' ? companion.trim() : '';
+        const name = (typeof companion === 'string'
+          ? companion
+          : (companion?.name || companion?.email || '') || ''
+        ).trim();
         if (name) companionCounts.set(name, (companionCounts.get(name) || 0) + 1);
       });
     }
@@ -365,6 +368,104 @@ export const computeFidelityStats = (trips = [], tripData = {}, userProfile = nu
     localTripsCount,
     internationalTripsCount: Math.max(0, safeTrips.length - localTripsCount),
   };
+};
+
+/**
+ * Normalizes a raw transport token to a canonical analytics token.
+ * Legacy Spanish tokens map onto the new English taxonomy.
+ * @param {string|undefined} value
+ * @returns {'plane'|'train'|'car'|'ship'|'bus'|'walk'}
+ */
+const normalizeTransport = (value) => {
+  switch (value) {
+    case 'plane':
+    case 'avion':
+      return 'plane';
+    case 'train':
+    case 'tren':
+      return 'train';
+    case 'car':
+    case 'auto':
+      return 'car';
+    case 'ship':
+    case 'barco':
+      return 'ship';
+    case 'bus':
+      return 'bus';
+    default:
+      return 'walk';
+  }
+};
+
+/**
+ * Transport connector analytics: number of legs and geodesic km per transport mode.
+ * Distances use `haversineKm` between chronologically consecutive stops.
+ * @param {Array<object>} [trips]
+ * @param {object} [tripData]
+ * @returns {{ byMode: Record<string, {legs:number, km:number}>, totalLegs: number, totalKm: number }}
+ */
+export const computeTransportBreakdown = (trips = [], tripData = {}) => {
+  const byMode = {
+    plane: { legs: 0, km: 0 },
+    train: { legs: 0, km: 0 },
+    car: { legs: 0, km: 0 },
+    ship: { legs: 0, km: 0 },
+    bus: { legs: 0, km: 0 },
+    walk: { legs: 0, km: 0 },
+  };
+
+  asArray(trips).forEach((trip) => {
+    const merged = mergeTrip(trip, tripData);
+    const stops = ordenarParadasCronologicamente(getTripStops(merged, tripData));
+    for (let i = 1; i < stops.length; i += 1) {
+      const mode = normalizeTransport(stops[i]?.transporte);
+      const km = haversineKm(stops[i - 1]?.coordenadas, stops[i]?.coordenadas) || 0;
+      byMode[mode].legs += 1;
+      byMode[mode].km += km;
+    }
+  });
+
+  Object.keys(byMode).forEach((mode) => {
+    byMode[mode].km = Math.round(byMode[mode].km);
+  });
+
+  const totalLegs = Object.values(byMode).reduce((acc, entry) => acc + entry.legs, 0);
+  const totalKm = Object.values(byMode).reduce((acc, entry) => acc + entry.km, 0);
+
+  return { byMode, totalLegs, totalKm };
+};
+
+/**
+ * Places & POIs analytics: total logged places grouped by category.
+ * @param {Array<object>} [trips]
+ * @param {object} [tripData]
+ * @returns {{ total: number, byCategory: Record<string, number> }}
+ */
+export const computePlacesCount = (trips = [], tripData = {}) => {
+  const byCategory = {
+    monumento: 0,
+    gastronomia: 0,
+    mirador: 0,
+    cultura: 0,
+    hotel: 0,
+  };
+  let total = 0;
+
+  asArray(trips).forEach((trip) => {
+    const merged = mergeTrip(trip, tripData);
+    getTripStops(merged, tripData).forEach((stop) => {
+      const lugares = Array.isArray(stop?.lugares) ? stop.lugares : [];
+      lugares.forEach((lugar) => {
+        total += 1;
+        const categoria = lugar?.categoria;
+        if (categoria && byCategory[categoria] !== undefined) {
+          byCategory[categoria] += 1;
+        }
+      });
+    });
+  });
+
+  return { total, byCategory };
 };
 
 /**
@@ -439,6 +540,10 @@ export const computeTravelAnalytics = ({
   // Dimension 4 — Fidelity, destinations & scope
   const fidelity = computeFidelityStats(filteredTrips, safeTripData, userProfile);
 
+  // Dimension 4b — Transport connectors & Places/POIs (Block 2.4)
+  const transport = computeTransportBreakdown(filteredTrips, safeTripData);
+  const places = computePlacesCount(filteredTrips, safeTripData);
+
   // Dimension 5 — Year highlight banner
   let yearBanner = null;
   if (normalizedYear !== 'all') {
@@ -475,6 +580,11 @@ export const computeTravelAnalytics = ({
     topCompanions: fidelity.topCompanions,
     localTripsCount: fidelity.localTripsCount,
     internationalTripsCount: fidelity.internationalTripsCount,
+    transportByMode: transport.byMode,
+    transportTotalLegs: transport.totalLegs,
+    transportTotalKm: transport.totalKm,
+    placesCount: places.total,
+    placesByCategory: places.byCategory,
     yearBanner,
   };
 };

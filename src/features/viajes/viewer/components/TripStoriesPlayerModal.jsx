@@ -196,6 +196,24 @@ const TripStoriesPlayerModal = ({ isOpen = false, slides = [], onClose, shareDat
               </span>
             ) : null}
             {slide.note ? <p className="text-sm leading-relaxed text-white/90">{slide.note}</p> : null}
+            {Array.isArray(slide.vibes) && slide.vibes.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {slide.vibes.map((vibe) => (
+                  <span key={vibe} className="rounded-full bg-[#FF6B35]/25 text-[#ffd6c7] border border-[#FF6B35]/40 px-2 py-0.5 text-[0.66rem] font-bold">
+                    {vibe}
+                  </span>
+                ))}
+              </div>
+            )}
+            {Array.isArray(slide.lugares) && slide.lugares.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {slide.lugares.map((lugar) => (
+                  <span key={lugar.id || lugar.nombre} className="rounded-full bg-[#45B0A8]/20 text-[#9de4de] border border-[#45B0A8]/40 px-2 py-0.5 text-[0.66rem] font-bold">
+                    {lugar.nombre}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       );

@@ -34,7 +34,7 @@ function useLazyLoad() {
 /**
  * Componente de imagen con lazy loading
  */
-function LazyImage({ src, alt, onClick, isPortada }) {
+function LazyImage({ src, alt, onClick, isPortada, locationLabel }) {
   const [ref, isVisible] = useLazyLoad();
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -55,6 +55,28 @@ function LazyImage({ src, alt, onClick, isPortada }) {
             <div style={styles.portadaBadge}>
               <Star size={12} fill="white" color="white" />
               <span>Portada</span>
+            </div>
+          )}
+          {locationLabel && (
+            <div
+              style={{
+                position: 'absolute',
+                left: 6,
+                bottom: 6,
+                background: 'rgba(44, 62, 80, 0.85)',
+                color: '#fff',
+                fontSize: '10px',
+                fontWeight: 700,
+                padding: '2px 6px',
+                borderRadius: 9999,
+                display: 'inline-flex',
+                gap: 3,
+                alignItems: 'center',
+                pointerEvents: 'none',
+                maxWidth: 'calc(100% - 12px)',
+              }}
+            >
+              📍 {locationLabel}
             </div>
           )}
         </>
@@ -241,7 +263,7 @@ function Lightbox({ foto, onClose, onPrev, onNext, hasNext, hasPrev, totalFotos,
  * @param {Function} props.onReintentarFoto - Callback para reintentar foto fallida
  * @param {boolean} props.isMobile - Si es vista móvil
  */
-export function GalleryGrid({ fotos = [], fotosSubiendo = [], onReintentarFoto, isMobile = false }) {
+export function GalleryGrid({ fotos = [], fotosSubiendo = [], onReintentarFoto, isMobile = false, locationFor = null }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
 
   // Solo fotos guardadas son clickeables para lightbox
@@ -296,6 +318,7 @@ export function GalleryGrid({ fotos = [], fotosSubiendo = [], onReintentarFoto, 
             src={foto.url}
             alt={foto.caption || `Foto ${index + 1}`}
             isPortada={foto.esPortada}
+            locationLabel={locationFor ? locationFor(foto) : null}
             onClick={() => handleOpenLightbox(index)}
           />
         ))}

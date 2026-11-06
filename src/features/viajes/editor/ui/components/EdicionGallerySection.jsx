@@ -1,114 +1,166 @@
 import { cn } from '@shared/lib/utils/cn';
-import React from 'react';
-import { Star, Trash2 } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Star, Trash2, MapPin, ChevronDown, Camera } from 'lucide-react';
+import CountryFlag from '@shared/ui/components/CountryFlag';
 import { GalleryUploader } from '@shared/ui/components/GalleryUploader';
 
-import { useEffect, useRef } from 'react';
+/** Custom popover pill for assigning a photo to a stop (no native <select>). */
+const StopTagPopover = ({ t, value, paradas = [], onChange, disabled }) => {
+  const [open, setOpen] = useState(false);
+  const selected = (paradas || []).find((p) => p.id === value) || null;
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => !disabled && setOpen((o) => !o)}
+        disabled={disabled}
+        className="w-full flex items-center gap-1 rounded-lg bg-slate-900/60 hover:bg-slate-900/80 text-white px-2 py-1 text-[11px] font-bold transition-colors"
+      >
+        <MapPin size={12} className="text-[#FF6B35] shrink-0" />
+        <span className="truncate">{selected?.nombre || t('editor:gallery.unassigned', 'Sin parada asignada')}</span>
+        <ChevronDown size={12} className="shrink-0 ml-auto" />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 right-0 bottom-full mb-1 z-30 bg-white rounded-xl shadow-lg border border-slate-200 p-1 max-h-48 overflow-y-auto">
+            <button
+              type="button"
+              onClick={() => {
+                onChange?.(null);
+                setOpen(false);
+              }}
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[12px] font-semibold text-slate-600 hover:bg-slate-100"
+            >
+              <span className="w-4 h-4 rounded-full bg-slate-200 shrink-0" />
+              {t('editor:gallery.unassigned', 'Sin asignar')}
+            </button>
+            {paradas.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => {
+                  onChange?.(p.id);
+                  setOpen(false);
+                }}
+                className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[12px] font-semibold text-slate-800 hover:bg-slate-100"
+              >
+                {p.paisCodigo ? <CountryFlag code={p.paisCodigo} size="sm" /> : <MapPin size={12} />}
+                <span className="truncate">{p.nombre}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 const EdicionGallerySection = ({
   t,
-  files,
+  files = [],
   onFilesChange,
-  portadaIndex,
+  portadaIndex = 0,
   onPortadaChange,
   isBusy,
-  galeria,
-  captionDrafts,
-  onCaptionChange,
-  onCaptionSave,
+  galeria = { fotos: [], uploading: false },
   onSetPortadaExistente,
   onEliminarFoto,
-  portadaUrl, // NUEVO: url actual de portada
+  onAssignParada,
+  paradas = [],
+  draftTags = {},
+  onDraftTagChange,
+  defaultParadaId = null,
+  portadaUrl,
   isReadOnlyMode = false,
+  maxFiles = 15,
 }) => {
-  // Auto-cover: si no hay portada y se sube la primera foto, asignarla automáticamente
   const prevFotosCount = useRef(galeria.fotos.length);
   useEffect(() => {
-    if (
-      galeria.fotos.length === 1 &&
-      prevFotosCount.current === 0 &&
-      galeria.fotos[0]?.url &&
-      !portadaUrl
-    ) {
-      onPortadaChange(galeria.fotos[0].url);
+    if (galeria.fotos.length === 1 && prevFotosCount.current === 0 && galeria.fotos[0]?.url && !portadaUrl) {
+      onPortadaChange?.(galeria.fotos[0].url);
     }
     prevFotosCount.current = galeria.fotos.length;
   }, [galeria.fotos.length, galeria.fotos, portadaUrl, onPortadaChange]);
 
-  return (
-    <div className="flex flex-col gap-2 bg-background p-4 rounded-lg border border-border">
-      <label className="text-[0.78rem] font-extrabold text-textSecondary uppercase tracking-[0.5px] flex items-center gap-1.5">{t('labels.gallery')}</label>
+  const networkPhotos = galeria.fotos || [];
+  const disabled = isBusy || galeria.uploading || isReadOnlyMode;
 
-      {/* Fotos guardadas — PRIMERO, para que el usuario vea su galería antes de añadir más */}
-      {galeria.fotos.length > 0 && (
-        <div className="mt-2 flex flex-col gap-2">
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
-            {galeria.fotos.map((f) => (
-              <div 
-                key={f.id} 
-                className={cn(
-                  "border rounded-sm overflow-hidden bg-surface flex flex-col gap-2 p-2 transition-all",
-                  f.esPortada ? "border-atomicTangerine shadow-md" : "border-border shadow-sm"
-                )}
-              >
-                <img src={f.url} alt={f.caption || t('labels.gallery')} className="w-full h-[140px] object-cover rounded-sm" />
-                <input
-                  type="text"
-                  value={captionDrafts[f.id] ?? (f.caption || '')}
-                  onChange={(e) => onCaptionChange(f.id, e.target.value)}
-                  onBlur={() => !isReadOnlyMode && onCaptionSave(f)}
-                  onKeyDown={(e) => e.key === 'Enter' && !isReadOnlyMode && e.currentTarget.blur()}
-                  placeholder={t('labels.captionPlaceholder')}
-                  className="w-full border border-border rounded-sm px-2.5 py-2 text-[0.875rem] text-textPrimary outline-none bg-background transition-all focus:border-atomicTangerine"
-                  aria-label={t('labels.captionPlaceholder')}
-                  maxLength={200}
-                  disabled={isReadOnlyMode}
-                />
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    type="button"
-                    className={cn(
-                      "border rounded-full px-2.5 py-1.5 text-[0.75rem] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all",
-                      f.esPortada ? "border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine" : "border-border bg-surface text-textPrimary"
-                    )}
-                    onClick={() => onSetPortadaExistente(f.id)}
-                    disabled={isBusy || isReadOnlyMode}
-                    aria-label={f.esPortada ? t('gallery.currentCover') : t('gallery.setCover')}
-                  >
-                    {/* fill sólido cuando es portada, outline cuando no — único indicador necesario */}
-                    <Star size={14} fill={f.esPortada ? 'currentColor' : 'none'} />
-                  </button>
-                  <button
-                    type="button"
-                    className="border border-border bg-surface text-danger rounded-full px-2.5 py-1.5 text-[0.75rem] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all"
-                    onClick={() => onEliminarFoto(f.id)}
-                    disabled={isBusy || isReadOnlyMode}
-                    aria-label={t('gallery.deletePhoto')}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+  return (
+    <div className="flex flex-col gap-3 bg-background p-4 rounded-lg border border-border">
+      <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+        <Camera size={15} className="text-[#FF6B35]" /> {t('labels.gallery', 'Galería de fotos')}
+      </h3>
+
+      {networkPhotos.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+          {networkPhotos.map((f, index) => {
+            const isCover = Boolean(f.esPortada) || (portadaUrl && f.url === portadaUrl);
+            return (
+              <div key={f.id || `net-${index}`} className="relative aspect-square rounded-2xl overflow-hidden border border-slate-200 group bg-slate-100">
+                <img src={f.url} alt={f.caption || t('labels.gallery', 'Galería de fotos')} loading="lazy" className="w-full h-full object-cover block" />
+
+                <button
+                  type="button"
+                  onClick={() => onSetPortadaExistente?.(f.id)}
+                  disabled={disabled}
+                  className={cn(
+                    'absolute top-2 left-2 z-10 px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition-all shadow-sm',
+                    isCover ? 'bg-[#FF6B35] text-white' : 'bg-slate-900/65 hover:bg-slate-900/85 text-white'
+                  )}
+                >
+                  <Star size={11} className={isCover ? 'fill-white' : ''} />
+                  {t('editor:gallery.cover', 'Portada')}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onEliminarFoto?.(f.id)}
+                  disabled={disabled}
+                  className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-slate-900/65 hover:bg-rose-600 text-white flex items-center justify-center transition-colors"
+                  aria-label={t('gallery.deletePhoto', 'Eliminar foto')}
+                >
+                  <Trash2 size={13} />
+                </button>
+
+                <div className="absolute inset-x-2 bottom-2 z-10">
+                  <StopTagPopover
+                    t={t}
+                    value={f.paradaId}
+                    paradas={paradas}
+                    disabled={disabled}
+                    onChange={(paradaId) => onAssignParada?.(f, paradaId)}
+                  />
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       )}
 
-      {/* Zona de subida de fotos nuevas — siempre disponible para agregar más */}
       <GalleryUploader
         files={files}
         onChange={onFilesChange}
         portadaIndex={portadaIndex}
         onPortadaChange={onPortadaChange}
-        maxFiles={1}
-        disabled={isBusy || galeria.uploading || isReadOnlyMode}
+        maxFiles={maxFiles}
+        disabled={disabled}
+        renderFileOverlay={(index) => (
+          <StopTagPopover
+            t={t}
+            value={draftTags[index]?.paradaId || defaultParadaId || null}
+            paradas={paradas}
+            disabled={isReadOnlyMode}
+            onChange={(paradaId) => onDraftTagChange?.(index, paradaId)}
+          />
+        )}
       />
+
       <span className="text-[0.8rem] font-semibold text-mutedTeal">
-        {t('gallery.coverOnlyNotice', 'Esta imagen será la foto de portada del viaje.')}
+        {t('gallery.draftNotice', 'Tus fotos se subirán al guardar el viaje.')}
       </span>
-      {galeria.uploading && (
-        <span className="text-[0.8rem] font-semibold text-mutedTeal">{t('toast.uploadingPhotos')}</span>
-      )}
     </div>
   );
 };

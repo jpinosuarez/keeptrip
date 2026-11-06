@@ -103,7 +103,7 @@ const TripCommandBar = ({
   );
 
   const activeFilterCount = useMemo(() => {
-    const keys = ['year', 'country', 'scope', 'duration', 'curation'];
+    const keys = ['year', 'country', 'scope', 'duration', 'curation', 'companion'];
     return keys.reduce(
       (count, key) => (filters[key] && filters[key] !== 'all' ? count + 1 : count),
       0
@@ -162,6 +162,17 @@ const TripCommandBar = ({
     [t]
   );
 
+  const companionOptionsList = useMemo(
+    () => [
+      { value: 'all', label: t('filters.allCompanions', 'Todas las compañías') },
+      { value: 'solo', label: t('companionType.solo', 'En solitario') },
+      { value: 'couple', label: t('companionType.couple', 'En pareja') },
+      { value: 'family', label: t('companionType.family', 'En familia') },
+      { value: 'friends', label: t('companionType.friends', 'Con amigos') },
+    ],
+    [t]
+  );
+
   const sortOptionsList = useMemo(
     () => [
       { value: 'recent', label: t('sortRecent', 'Más recientes') },
@@ -177,6 +188,7 @@ const TripCommandBar = ({
   const scopeValue = filters.scope ?? 'all';
   const durationValue = filters.duration ?? 'all';
   const curationValue = filters.curation ?? 'all';
+  const companionValue = filters.companion ?? 'all';
   const sortValue = filters.sort ?? 'recent';
 
   const yearLabel = `${t('yearPrefix', 'Año')}: ${pickOption(yearOptionsList, yearValue).label}`;
@@ -184,6 +196,7 @@ const TripCommandBar = ({
   const scopeLabel = `${t('scopePrefix', 'Tipo')}: ${pickOption(scopeOptionsList, scopeValue).label}`;
   const durationLabel = `${t('durationPrefix', 'Duración')}: ${pickOption(durationOptionsList, durationValue).label}`;
   const curationLabel = `${t('curationPrefix', 'Estado')}: ${pickOption(curationOptionsList, curationValue).label}`;
+  const companionLabel = `${t('companionPrefix', 'Compañía')}: ${pickOption(companionOptionsList, companionValue).label}`;
   const sortLabel = `${t('sortPrefix', 'Ordenar')}: ${pickOption(sortOptionsList, sortValue).label}`;
 
   const renderFilterDropdowns = () => (
@@ -232,6 +245,15 @@ const TripCommandBar = ({
         onSelect={(next) => handleChange({ curation: next })}
         ariaLabel={t('curationLabel', 'Estado de curación')}
         testId="filter-curation"
+      />
+      <FilterDropdown
+        triggerLabel={companionLabel}
+        active={companionValue !== 'all'}
+        options={companionOptionsList}
+        value={companionValue}
+        onSelect={(next) => handleChange({ companion: next })}
+        ariaLabel={t('companionPrefix', 'Compañía')}
+        testId="filter-companion"
       />
     </>
   );
@@ -393,6 +415,12 @@ const TripCommandBar = ({
             options={curationOptionsList}
             value={curationValue}
             onSelect={(next) => handleChange({ curation: next })}
+          />
+          <SheetOptionGroup
+            title={t('companionPrefix', 'Compañía')}
+            options={companionOptionsList}
+            value={companionValue}
+            onSelect={(next) => handleChange({ companion: next })}
           />
           <button
             type="button"
