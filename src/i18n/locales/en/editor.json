@@ -150,6 +150,8 @@
     "changeCover": "Change cover",
     "removeCover": "Remove photo",
     "setAsCover": "Set as cover",
+    "cover": "Cover",
+    "unassigned": "No stop assigned",
     "paradaUnassigned": "Unassigned",
     "draftNotice": "Your photos will upload when you save the trip."
   },
@@ -181,6 +183,10 @@
   },
   "stopDrawer": {
     "toggle": "Details & Photos",
+    "hideDetails": "Hide stop details",
+    "customizeStop": "Customize stop (story, places & photos)",
+    "placesCount": "places",
+    "photosCount": "photos",
     "favorite": "Favorite stop",
     "headline": "💬 Headline or key memory...",
     "addLongNote": "+ Add extended note",

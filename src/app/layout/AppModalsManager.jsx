@@ -232,9 +232,22 @@ function AppModalsManager({
   // exclusively to `EditorFocusPanel.handleSaveWithLoading` via `onAfterSave`
   // AFTER the gallery upload queue has finished, so there is a single owner of
   // the close and no premature close-before-upload race.
-  const handleSaveTrip = useCallback(async (id, payload, existingStops) => {
-    return handleSaveModal(id, payload, existingStops);
-  }, [handleSaveModal]);
+  // Defensive: accepts BOTH the standard `(id, payload, stops)` invocation and a
+  // single unified `dataToSave` object, always extracting the stops so the
+  // `paradas` subcollection is persisted.
+  const handleSaveTrip = useCallback(async (idOrData, maybePayload, maybeStops) => {
+    if (idOrData && typeof idOrData === 'object') {
+      const resolvedTripId = idOrData.id || editingId || tripId;
+      const paradas = Array.isArray(idOrData.paradas)
+        ? idOrData.paradas
+        : Array.isArray(maybeStops)
+          ? maybeStops
+          : maybePayload?.paradas || [];
+      const payload = idOrData.payload || idOrData;
+      return handleSaveModal(resolvedTripId, payload, paradas);
+    }
+    return handleSaveModal(idOrData, maybePayload, maybeStops);
+  }, [handleSaveModal, editingId, tripId]);
 
   // ── ConfirmModal ──────────────────────────────────────────────────────────────
   const viajeAEliminar = confirmarEliminacion

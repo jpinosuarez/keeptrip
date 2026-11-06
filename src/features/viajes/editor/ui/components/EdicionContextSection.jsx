@@ -1,6 +1,6 @@
 import React from 'react';
 import InfoTooltip from '@shared/ui/components/InfoTooltip';
-import { X } from 'lucide-react';
+import { X, Users, Wallet, Heart, User, Sparkles } from 'lucide-react';
 import { cn } from '@shared/lib/utils/cn';
 
 const VIBES = ['Gastronómico', 'Aventura', 'Relax', 'Roadtrip', 'Cultural'];
@@ -25,40 +25,56 @@ const EdicionContextSection = ({
 }) => {
   return (
     <div className="flex flex-col gap-2 bg-background p-4 rounded-lg border border-border">
-      <label className="text-[0.78rem] font-extrabold text-textSecondary uppercase tracking-[0.5px] flex items-center gap-1.5">
-        {t('labels.contexto')}
-      </label>
+      <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+        <Users size={15} className="text-[#FF6B35]" /> {t('labels.contexto', 'Contexto del viaje')}
+      </h3>
 
-      <div className="flex gap-4 items-end flex-wrap mb-4">
-        <div className="min-w-[160px]">
-          <label className="text-xs text-textSecondary mb-1.5 block">
-            {t('labels.presupuesto')} <InfoTooltip textKey="editor:tooltip.presupuesto" size={13} />
-          </label>
-          <select
-            value={formData.presupuesto || ''}
-            onChange={(e) => setFormData({ ...formData, presupuesto: e.target.value || null })}
-            className="w-full border border-border rounded-sm px-3.5 py-2.5 text-base text-charcoalBlue outline-none bg-background transition-all focus:border-atomicTangerine"
-          >
-            <option value="">-- {t('labels.selectDefault')} --</option>
-            <option value="Mochilero">{t('budget.mochilero')}</option>
-            <option value="Económico">{t('budget.economico')}</option>
-            <option value="Confort">{t('budget.confort')}</option>
-            <option value="Lujo">{t('budget.lujo')}</option>
-          </select>
+      <div className="mb-4">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+          <Wallet size={15} className="text-[#FF6B35]" /> {t('labels.presupuesto', 'Presupuesto')}
+          <InfoTooltip textKey="editor:tooltip.presupuesto" size={13} />
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {[
+            ['Mochilero', 'budget.mochilero', 'Mochilero'],
+            ['Económico', 'budget.economico', 'Económico'],
+            ['Confort', 'budget.confort', 'Confort'],
+            ['Lujo', 'budget.lujo', 'Lujo'],
+          ].map(([value, key, fallback]) => {
+            const selected = (formData.presupuesto || '') === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, presupuesto: prev.presupuesto === value ? '' : value }))
+                }
+                aria-pressed={selected}
+                className={cn(
+                  'min-h-[44px] px-3 py-1.5 rounded-full border text-[0.875rem] transition-all duration-200 cursor-pointer',
+                  selected
+                    ? 'border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine font-bold'
+                    : 'border-border bg-surface text-textPrimary font-normal'
+                )}
+              >
+                {t(key, fallback)}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       <div className="mb-3">
-        <label className="text-xs text-textSecondary block">
-          {t('labels.companionType', 'Tipo de compañía')}
-        </label>
-        <div className="flex gap-2 flex-wrap mt-1.5">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+          <Heart size={15} className="text-[#FF6B35]" /> {t('labels.companionType', 'Tipo de compañía')}
+        </div>
+        <div className="flex gap-2 flex-wrap">
           {[
-            ['solo', '👤'],
-            ['couple', '👫'],
-            ['family', '👨‍👩‍👧'],
-            ['friends', '👯'],
-          ].map(([value, emoji]) => {
+            ['solo', User, 'Solo'],
+            ['couple', Heart, 'Pareja'],
+            ['family', Users, 'Familia'],
+            ['friends', Users, 'Amigos'],
+          ].map(([value, Icon, fallback]) => {
             const selected = (formData.companionType || '') === value;
             return (
               <button
@@ -72,13 +88,14 @@ const EdicionContextSection = ({
                 }
                 aria-pressed={selected}
                 className={cn(
-                  "min-h-[44px] px-2.5 py-1.5 rounded-md border text-[0.875rem] transition-all duration-200 cursor-pointer",
+                  'min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[0.875rem] transition-all duration-200 cursor-pointer',
                   selected
-                    ? "border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine font-bold"
-                    : "border-border bg-surface text-textPrimary font-normal"
+                    ? 'border-atomicTangerine bg-atomicTangerine/10 text-atomicTangerine font-bold'
+                    : 'border-border bg-surface text-textPrimary font-normal'
                 )}
               >
-                {emoji} {t(`companionType.${value}`, value)}
+                <Icon size={14} />
+                {t(`companionType.${value}`, fallback)}
               </button>
             );
           })}

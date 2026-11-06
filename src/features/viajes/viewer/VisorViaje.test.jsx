@@ -100,7 +100,7 @@ vi.mock('./components/DocumentaryHero', () => ({
 }));
 
 vi.mock('./components/VisorRouteLayout', () => ({
-  default: () => <div data-testid="route-layout" />,
+  default: ({ sections }) => <div data-testid="route-layout">{sections?.timeline}</div>,
 }));
 
 vi.mock('./components/VisorDestinoLayout', () => ({
@@ -120,7 +120,13 @@ vi.mock('./components/VisorGallerySection', () => ({
 }));
 
 vi.mock('./components/VisorTimelineSection', () => ({
-  default: () => <div data-testid="timeline-section" />,
+  default: ({ paradas = [] }) => (
+    <div data-testid="timeline-section">
+      {paradas.map((p) => (
+        <span key={p.id}>{p.nombre}</span>
+      ))}
+    </div>
+  ),
 }));
 
 vi.mock('./components/VisorFooterSection', () => ({
@@ -190,8 +196,8 @@ describe('VisorViaje (phase 4 assembler)', () => {
     expect(screen.queryByTestId('destino-layout')).not.toBeInTheDocument();
   });
 
-  test('renderiza layout destino cuando hay una sola parada', () => {
-    mockDataHook.paradas = [{ id: 'solo' }];
+  test('una sola parada renderiza el layout de ruta y la crónica del viaje', () => {
+    mockDataHook.paradas = [{ id: 'solo', nombre: 'Reykjavik', coordenadas: [-21.94, 64.15] }];
 
     render(
       <VisorViaje
@@ -204,8 +210,12 @@ describe('VisorViaje (phase 4 assembler)', () => {
       />
     );
 
-    expect(screen.getByTestId('destino-layout')).toBeInTheDocument();
-    expect(screen.queryByTestId('route-layout')).not.toBeInTheDocument();
+    // Unified: single-stop trips use the canonical route layout (which renders
+    // the timeline), never the legacy destino layout.
+    expect(screen.getByTestId('route-layout')).toBeInTheDocument();
+    expect(screen.queryByTestId('destino-layout')).not.toBeInTheDocument();
+    expect(screen.getByTestId('timeline-section')).toBeInTheDocument();
+    expect(screen.getByText('Reykjavik')).toBeInTheDocument();
   });
 
   test('click en Editar abre el editor en modo edit-in-place (openEditor)', () => {

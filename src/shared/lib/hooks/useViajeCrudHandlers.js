@@ -54,7 +54,13 @@ export function useViajeCrudHandlers({
 
   const saveTripToDb = useCallback(async (id, formPayload, existingStops = []) => {
     const targetTripId = id || 'new';
-    const newStops = formPayload?.newStops || formPayload?.paradasNuevas || [];
+    // Resolve stops from every known shape so the `paradas` subcollection is
+    // always persisted (newStops / legacy paradasNuevas / paradas / passed-in).
+    const newStops =
+      formPayload?.newStops ||
+      formPayload?.paradasNuevas ||
+      formPayload?.paradas ||
+      (Array.isArray(existingStops) ? existingStops : []);
     const { newStops: _newStops, paradasNuevas: _legacyNewStops, ...tripData } = formPayload || {};
 
     try {
@@ -111,12 +117,15 @@ export function useViajeCrudHandlers({
     pushToast,
   ]);
 
-  const handleSaveModal = useCallback(async (id, formPayload, existingStops = []) => {
+  const handleSaveModal = useCallback(async (id, formPayload, paradasParam) => {
     if (isSavingModal) return null;
+
+    const paradasToWrite =
+      paradasParam || formPayload?.paradas || formPayload?.newStops || formPayload?.paradasNuevas || [];
 
     setIsSavingModal(true);
     try {
-      return await saveTripToDb(id, formPayload, existingStops);
+      return await saveTripToDb(id, formPayload, paradasToWrite);
     } finally {
       setIsSavingModal(false);
     }

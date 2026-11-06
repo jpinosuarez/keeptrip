@@ -147,8 +147,13 @@ const VisorViaje = ({
   if (!hasViajeData) return null;
 
   const isOwner = !isSharedTrip;
-  const isRouteMode = paradasOrdenadas.length > 1;
-  const Layout = isRouteMode ? VisorRouteLayout : VisorDestinoLayout;
+  // Single-stop trips are a primary Keeptrip use case. Always use the canonical
+  // route layout whenever there is at least one stop so VisorTimelineSection
+  // ("LA CRÓNICA DEL VIAJE") renders the stop card(s). Only a zero-stop trip
+  // falls back to the legacy destino layout.
+  const hasStops = paradasOrdenadas.length >= 1;
+  const isRouteMode = hasStops;
+  const Layout = hasStops ? VisorRouteLayout : VisorDestinoLayout;
   const tripStoryText = data?.texto || data?.relato || '';
 
   const sections = {

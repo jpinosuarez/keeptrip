@@ -252,10 +252,17 @@ const EditorFocusPanel = ({
       }
     } catch (error) {
       console.error('Save error:', error);
+      // Only a genuine exception (network / Firestore) reaches here — the save
+      // hook already surfaces validation failures as inline warning toasts and
+      // a falsy return exits quietly above without a generic red toast.
+      pushToast(
+        t('error.saveFailed', 'No pudimos guardar tu viaje. Revisa tu conexión e intenta de nuevo.'),
+        'error'
+      );
     } finally {
       setIsSavingManual(false);
     }
-  }, [canSave, handleSaveManual, onAfterSave, onClose, limpiarEstado, effectiveFormData, effectiveParadas, viaje?.id]);
+  }, [canSave, handleSaveManual, onAfterSave, onClose, limpiarEstado, effectiveFormData, effectiveParadas, viaje?.id, pushToast, t]);
 
   const handleConfirmClose = () => {
     setShowConfirmModal(false);
@@ -370,7 +377,7 @@ const EditorFocusPanel = ({
         <Motion.div
           key="panel"
           data-testid="editor-focus-panel"
-          className="fixed bg-background z-modal flex flex-col inset-0 md:inset-y-0 md:right-0 md:left-auto md:w-[420px] md:shadow-2xl md:border-l md:border-border"
+          className="fixed bg-background z-modal flex flex-col inset-0 md:inset-y-0 md:right-0 md:left-auto md:w-full md:max-w-[640px] lg:max-w-[680px] md:shadow-2xl md:border-l md:border-border"
           style={{
             pointerEvents: isClosingAfterSave ? 'none' : 'auto',
             ...(isKeyboardOpen && keyboardOffset > 0 ? { bottom: `${keyboardOffset}px` } : {}),

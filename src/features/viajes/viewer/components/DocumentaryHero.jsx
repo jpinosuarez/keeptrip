@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion as Motion } from 'framer-motion';
 import { Calendar, ArrowLeft, Trash2, LoaderCircle, Edit3, Play } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { formatDateRange, getInitials, FOTO_DEFAULT_URL } from '@shared/lib/utils/viajeUtils';
+import { formatDateRange, FOTO_DEFAULT_URL } from '@shared/lib/utils/viajeUtils';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import ShareStoryButton from '@shared/ui/components/ShareStoryButton';
 import CountryFlag from '@shared/ui/components/CountryFlag';
@@ -214,14 +214,31 @@ const DocumentaryHero = ({
                 <span key={index} className="px-2.5 py-[5px] rounded-full bg-atomicTangerine/20 text-[#ffd4b8] text-[0.78rem] font-semibold border border-atomicTangerine/25">{vibe}</span>
               ))}
 
-              <div className="flex -space-x-2">
-                {(data.companions || []).slice(0, 4).map((companion, index) => (
-                  <div key={index} title={companion.name || companion.email} className="w-[26px] h-[26px] rounded-full backdrop-blur-md bg-black/40 flex items-center justify-center text-[0.65rem] font-bold text-white/90 border border-white/15">
-                    {getInitials(companion.name || companion.email)}
-                  </div>
-                ))}
+              {data.companionType && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-[5px] rounded-full backdrop-blur-md bg-black/40 text-white/90 text-[0.72rem] font-semibold border border-white/15">
+                  {t(`context.companionType.${data.companionType}`, { ns: 'visor', defaultValue: data.companionType })}
+                </span>
+              )}
+
+              <div className="flex flex-wrap items-center gap-1.5">
+                {(data.companions || []).slice(0, 4).map((companion, index) => {
+                  const name = typeof companion === 'string' ? companion : (companion?.name || companion?.email || '');
+                  if (!name) return null;
+                  return (
+                    <span
+                      key={index}
+                      title={name}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full backdrop-blur-md bg-black/40 text-white/90 text-[0.72rem] font-bold border border-white/15"
+                    >
+                      <span className="w-5 h-5 rounded-full bg-[#45B0A8]/25 text-white flex items-center justify-center text-[10px] font-extrabold">
+                        {name.charAt(0).toUpperCase()}
+                      </span>
+                      <span className="max-w-[120px] truncate">{name}</span>
+                    </span>
+                  );
+                })}
                 {(data.companions || []).length > 4 && (
-                  <span className="flex items-center text-[0.7rem] text-white font-black pl-3">+{(data.companions || []).length - 4}</span>
+                  <span className="flex items-center text-[0.7rem] text-white font-black pl-1">+{(data.companions || []).length - 4}</span>
                 )}
               </div>
             </div>

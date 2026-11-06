@@ -29,6 +29,7 @@ const VisorDestinoLayout = ({ isMobile, paradas, sections, MapRoutePreview }) =>
         </div>
       )}
 
+      {paradas.length > 0 && sections.timeline}
       {sections.bitacora}
       {sections.gallery}
     </div>

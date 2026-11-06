@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ViajeSchemaBase, ParadaSchema, validarParada, validarViaje, validarParadasEnViaje } from './viajeSchema';
+import { ViajeSchemaBase, ParadaSchema, validarParada, validarViaje, validarParadasEnViaje, validarCoordenadas } from './viajeSchema';
 
 describe('viajeSchema - nuevos campos de storytelling y sharing', () => {
   it('ViajeSchemaBase acepta campos: presupuesto, vibe, highlights, companions, sharedWith', () => {
@@ -229,5 +229,180 @@ describe('Block 2.4 — Micro-stop chronicles & companions schema', () => {
     };
 
     expect(() => ViajeSchemaBase.parse(viaje)).toThrow();
+  });
+});
+
+describe('Block 2.4 Final — zero-Zod-block save sanitization', () => {
+  const baseTrip = {
+    code: 'ES',
+    nombreEspanol: 'España',
+    titulo: 'Escapada a Toledo',
+    fechaInicio: '2026-05-01',
+    fechaFin: '2026-05-03',
+    fotoCredito: null,
+  };
+
+  it('ViajeSchemaBase tolerates empty strings in optional fields (destino/texto/presupuesto)', () => {
+    const parsed = ViajeSchemaBase.parse({
+      ...baseTrip,
+      destino: '',
+      texto: '',
+      presupuesto: '',
+      portadaUrl: ''
+    });
+
+    expect(parsed.destino ?? undefined).toBeUndefined();
+    expect(parsed.texto ?? undefined).toBeUndefined();
+    expect(parsed.presupuesto ?? undefined).toBeUndefined();
+    expect(parsed.portadaUrl ?? undefined).toBeUndefined();
+  });
+
+  it('ViajeSchemaBase accepts empty highlights without throwing', () => {
+    const viaje = {
+      ...ViajeSchemaBase.parse({
+        code: 'HU',
+        nombreEspanol: 'Hungría',
+        titulo: 'Budapest',
+        fechaInicio: '2026-09-26',
+        fechaFin: '2026-09-28',
+        fotoCredito: null,
+        highlights: { topFood: '', topView: '', topTip: '' },
+      }),
+    };
+    expect(viaje.highlights?.topFood ?? undefined).toBeUndefined();
+    expect(() =>
+      ViajeSchemaBase.parse({
+        code: 'HU',
+        nombreEspanol: 'Hungría',
+        titulo: 'Budapest',
+        fechaInicio: '2026-09-26',
+        fechaFin: '2026-09-28',
+        fotoCredito: null,
+        highlights: {},
+      })
+    ).not.toThrow();
+  });
+
+  it('companions and vibe filter out blank entries', () => {
+    const parsed = ViajeSchemaBase.parse({
+      code: 'AR',
+      nombreEspanol: 'Argentina',
+      titulo: 'Ruta',
+      fechaInicio: '2026-02-01',
+      fechaFin: '2026-02-05',
+      fotoCredito: null,
+      vibe: ['', 'Relax'],
+      companions: ['', '   ', 'Ana', { name: 'Luis' }]
+    });
+
+    expect(parsed.vibe).toEqual(['Relax']);
+    expect(parsed.companions).toHaveLength(2);
+    expect(parsed.companions[0]).toBe('Ana');
+    expect(parsed.companions[1].name).toBe('Luis');
+  });
+
+  it('ParadaSchema accepts empty-string ciudad and stops where ciudad equals nombre', () => {
+    const withEmptyCiudad = ParadaSchema.parse({
+      nombre: 'Santiago',
+      ciudad: '',
+      coordenadas: [-70.6693, -33.4489],
+    });
+    expect(withEmptyCiudad.ciudad).toBeUndefined();
+
+    const withMatchingCiudad = ParadaSchema.parse({
+      nombre: 'Buenos Aires',
+      ciudad: 'Buenos Aires',
+      coordenadas: [-58.3816, -34.6037],
+    });
+    expect(withMatchingCiudad.ciudad).toBe('Buenos Aires');
+    expect(withMatchingCiudad.nombre).toBe('Buenos Aires');
+  });
+});
+
+describe('Block 2.4 — country name optional (paisCodigo-only saves)', () => {
+  it('validarViaje accepts a trip with only paisCodigo/code and no nombreEspanol', () => {
+    const resultado = validarViaje(
+      {
+        code: 'IS',
+        titulo: 'Anillo de Fuego y Hielo',
+        fechaInicio: '2026-03-01',
+        fechaFin: '2026-03-08',
+      },
+      false
+    );
+    expect(resultado.esValido).toBe(true);
+  });
+
+  it('validarViaje tolerates an empty nombreEspanol', () => {
+    const resultado = validarViaje(
+      {
+        code: 'IS',
+        nombreEspanol: '',
+        titulo: 'Anillo de Fuego y Hielo',
+        fechaInicio: '2026-03-01',
+        fechaFin: '2026-03-05',
+      },
+      false
+    );
+    expect(resultado.esValido).toBe(true);
+  });
+
+  it('validarParada accepts a stop with only paisCodigo (no pais)', () => {
+    const resultado = validarParada({
+      nombre: 'Reikiavik',
+      coordenadas: [-21.9426, 64.1466],
+      paisCodigo: 'IS',
+    });
+    expect(resultado.esValido).toBe(true);
+  });
+
+  it('ParadaSchema tolerates an empty pais with a valid paisCodigo', () => {
+    const parsed = ParadaSchema.parse({
+      nombre: 'Reikiavik',
+      coordenadas: [-21.9426, 64.1466],
+      pais: '',
+      paisCodigo: 'IS',
+    });
+    expect(parsed.pais === undefined || parsed.pais === '').toBe(true);
+    expect(parsed.paisCodigo).toBe('IS');
+  });
+
+  it('ViajeSchemaBase accepts a trip without nombreEspanol and tolerates pais', () => {
+    const parsed = ViajeSchemaBase.parse({
+      code: 'IS',
+      pais: '',
+      titulo: 'Anillo de Fuego y Hielo',
+      fechaInicio: '2026-03-01',
+      fechaFin: '2026-03-08',
+      fotoCredito: null,
+    });
+    expect(parsed.nombreEspanol).toBeUndefined();
+    expect(parsed.pais).toBeUndefined();
+  });
+});
+
+describe('Block 2.4 — coordinates are [longitude, latitude]', () => {
+  it('accepts Americas cities with negative longitude below -90', () => {
+    expect(validarParada({ nombre: 'San Francisco', coordenadas: [-122.4, 37.77] }).esValido).toBe(true);
+    expect(validarParada({ nombre: 'San Diego', coordenadas: [-117.16, 32.71] }).esValido).toBe(true);
+  });
+
+  it('still accepts European coordinates (positive longitude)', () => {
+    expect(validarParada({ nombre: 'Budapest', coordenadas: [19.04, 47.5] }).esValido).toBe(true);
+  });
+
+  it('accepts boundary coordinates', () => {
+    expect(validarParada({ nombre: 'Edge East/North', coordenadas: [180, 90] }).esValido).toBe(true);
+    expect(validarParada({ nombre: 'Edge West/South', coordenadas: [-180, -90] }).esValido).toBe(true);
+  });
+
+  it('rejects out-of-range coordinates', () => {
+    expect(validarParada({ nombre: 'Bad lng', coordenadas: [180.1, 0] }).esValido).toBe(false);
+    expect(validarParada({ nombre: 'Bad lat', coordenadas: [0, 90.1] }).esValido).toBe(false);
+  });
+
+  it('validarCoordenadas accepts a negative longitude and rejects a bad latitude', () => {
+    expect(validarCoordenadas([-122.4, 37.77]).esValido).toBe(true);
+    expect(validarCoordenadas([0, 91]).esValido).toBe(false);
   });
 });

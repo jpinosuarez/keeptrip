@@ -150,6 +150,8 @@
     "changeCover": "Cambiar portada",
     "removeCover": "Quitar foto",
     "setAsCover": "Marcar como portada",
+    "cover": "Portada",
+    "unassigned": "Sin parada asignada",
     "paradaUnassigned": "Sin asignar",
     "draftNotice": "Tus fotos se subirán al guardar el viaje."
   },
@@ -181,6 +183,10 @@
   },
   "stopDrawer": {
     "toggle": "Detalles y Fotos",
+    "hideDetails": "Ocultar detalles de la parada",
+    "customizeStop": "Personalizar parada (relato, lugares y fotos)",
+    "placesCount": "lugares",
+    "photosCount": "fotos",
     "favorite": "Parada favorita",
     "headline": "💬 Titular o recuerdo clave...",
     "addLongNote": "+ Añadir nota extendida",

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeCountryCode } from '@shared/lib/utils/countryUtils';
 
 /**
  * Schemas de validación Zod para Keeptrip
@@ -9,29 +10,43 @@ import { z } from 'zod';
 
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
 
+/**
+ * Optional string that treats empty/whitespace/null input as `undefined`, so
+ * `.optional()` safely passes instead of triggering `.min(1)` Zod errors.
+ * (Zod does not skip `.min(1)` for `""` because `"" !== undefined`.)
+ */
+const optionalCleanString = (maxLen = 5000) =>
+  z
+    .string()
+    .max(maxLen)
+    .nullable()
+    .optional()
+    .transform((val) => (typeof val === 'string' && val.trim() === '' ? undefined : val));
+
 const isValidCoordinates = (coords) => {
   if (!Array.isArray(coords) || coords.length !== 2) return false;
-  const [lat, lng] = coords;
+  // Universal GIS/Mapbox/GeoJSON convention: [longitude, latitude].
+  const [lng, lat] = coords;
   return (
-    typeof lat === 'number' &&
     typeof lng === 'number' &&
-    Number.isFinite(lat) &&
+    typeof lat === 'number' &&
     Number.isFinite(lng) &&
-    lat >= -90 &&
-    lat <= 90 &&
+    Number.isFinite(lat) &&
     lng >= -180 &&
-    lng <= 180
+    lng <= 180 &&
+    lat >= -90 &&
+    lat <= 90
   );
 };
 
 // ==================== SCHEMAS BASE ====================
 
 /**
- * Schema para coordenadas geográficas [lat, lng]
+ * Schema para coordenadas geográficas [longitud, latitud]
  */
 export const CoordenadasSchema = z.tuple([
-  z.number().min(-90).max(90), // latitud
-  z.number().min(-180).max(180) // longitud
+  z.number().min(-180, 'Longitud inválida').max(180, 'Longitud inválida'), // longitud
+  z.number().min(-90, 'Latitud inválida').max(90, 'Latitud inválida') // latitud
 ]).refine(isValidCoordinates, {
   message: 'Coordenadas inválidas'
 });
@@ -63,11 +78,18 @@ export const URLImagenSchema = z.string()
   .nullable();
 
 /**
- * Schema para código de país ISO 2
+ * Schema para código de país ISO 2.
+ * Preprocess-tolerant: accepts empty strings, ISO-3 codes and mixed casing by
+ * normalizing to a clean ISO-2 token before validation. This prevents the
+ * "Código de país debe tener 2 caracteres" save-blocking error.
  */
-export const CodigoPaisSchema = z.string()
-  .length(2, 'Código de país debe tener 2 caracteres')
-  .regex(/^[A-Z]{2}$/, 'Código de país debe ser mayúsculas (ej: ES, MX)');
+export const CodigoPaisSchema = z
+  .preprocess((val) => {
+    if (!val || typeof val !== 'string') return '';
+    return normalizeCountryCode(val) || val.trim().slice(0, 2).toUpperCase();
+  }, z.string().max(2).optional().or(z.literal('')))
+  .nullable()
+  .optional();
 
 // ==================== FOTO ====================
 
@@ -99,14 +121,16 @@ export const CreditoFotoSchema = z.object({
  */
 export const ParadaSchemaBase = z.object({
   id: z.string().optional(),
-  nombre: z.string()
-    .min(1, 'Nombre de parada es requerido')
-    .max(100, 'Nombre no puede exceder 100 caracteres'),
+  nombre: z.string().trim().min(1, 'El nombre de la parada es obligatorio').max(100, 'Nombre no puede exceder 100 caracteres'),
+  // Alias opcional: los formularios pueden enviar `ciudad` vacío; nunca debe fallar.
+  ciudad: optionalCleanString(120),
   coordenadas: CoordenadasSchema,
   fecha: FechaISOSchema.optional().nullable(),
   fechaLlegada: FechaISOSchema.optional().nullable(),
   fechaSalida: FechaISOSchema.optional().nullable(),
   paisCodigo: CodigoPaisSchema.optional(), // Puede diferir del país principal
+  // Optional textual country name (legacy passthrough; never required).
+  pais: optionalCleanString(100),
   clima: z.object({
     desc: z.string().optional(),
     max: z.number().optional()
@@ -114,30 +138,40 @@ export const ParadaSchemaBase = z.object({
   tipo: z.enum(['place', 'city', 'landmark', 'other']).default('place'),
   // Transport connector between stops. Canonical values are the new
   // English tokens; legacy Spanish tokens are kept for backward compatibility
-  // with already-persisted documents.
-  transporte: z
-    .enum(['plane', 'train', 'car', 'ship', 'bus', 'avion', 'tren', 'auto', 'otro'])
-    .nullable()
-    .optional(),
+  // with already-persisted documents. Empty strings are coerced to null so the
+  // enum never fails on an unselected transport picker.
+  transporte: z.preprocess(
+    (val) => (!val || val === '' ? null : val),
+    z
+      .enum(['plane', 'train', 'car', 'ship', 'bus', 'avion', 'tren', 'auto', 'barco', 'otro'])
+      .nullable()
+      .optional()
+  ),
   // Favorite stop heart toggle.
   esFavorita: z.boolean().default(false).optional(),
   // Short headline / key memory (micro-chronicle).
-  titular: z.string().max(160).optional().default(''),
+  titular: optionalCleanString(160),
   // Extended long-form note (revealed on demand).
-  nota: z.string().max(5000).optional().default(''),
+  nota: optionalCleanString(5000),
   // 1-tap city vibe chips (multi-select).
-  vibes: z.array(z.string().max(40)).default([]).optional(),
+  vibes: z.array(z.string()).default([]).optional(),
   // Categorized places & POIs (cost-free, local only).
-  lugares: z
-    .array(
-      z.object({
-        id: z.string(),
-        nombre: z.string().min(1).max(120),
-        categoria: z.enum(['monumento', 'gastronomia', 'mirador', 'cultura', 'hotel'])
-      })
-    )
-    .default([])
-    .optional(),
+  lugares: z.preprocess(
+    (val) =>
+      Array.isArray(val)
+        ? val.filter((item) => item && typeof item.nombre === 'string' && item.nombre.trim().length > 0)
+        : [],
+    z
+      .array(
+        z.object({
+          id: z.string(),
+          nombre: z.string().trim().min(1, 'El nombre del lugar es obligatorio').max(120),
+          categoria: z.enum(['monumento', 'gastronomia', 'mirador', 'cultura', 'hotel'])
+        })
+      )
+      .default([])
+      .optional()
+  ),
   // Nota corta vinculada a la parada (micro‑momento)
   notaCorta: z.string().max(200).optional().nullable(),
   // Relato por parada (historia fragmentada)
@@ -169,19 +203,18 @@ export const ViajeSchemaBase = z.object({
   id: z.string().optional(),
   // Datos de país
   code: CodigoPaisSchema,
-  nombreEspanol: z.string()
-    .min(1, 'Nombre del país es requerido')
-    .max(100, 'Nombre del país no puede exceder 100 caracteres'),
+  // Optional textual country name (legacy passthrough; never required —
+  // multi-country/legacy trips legitimately have no single country name).
+  pais: optionalCleanString(100),
+  nombreEspanol: optionalCleanString(100),
   // Título y descripción
-  titulo: z.string()
-    .min(1, 'Título es requerido')
-    .max(200, 'Título no puede exceder 200 caracteres')
-    .refine(isNonEmptyString, { message: 'Título no puede estar vacío' }),
-  texto: z.string()
-    .max(10000, 'El relato no puede exceder 10000 caracteres')
-    .optional()
-    .nullable()
-    .default(''),
+  titulo: z.string().trim().min(1, 'El título del viaje es obligatorio').max(200, 'El título no puede exceder 200 caracteres'),
+  // Optional destination label (never required; empty strings tolerated).
+  destino: optionalCleanString(200),
+  // General reflection / story.
+  texto: optionalCleanString(5000),
+  // Optional cover image URL produced by the media flow.
+  portadaUrl: optionalCleanString(2000),
   // Fechas
   fechaInicio: FechaISOSchema,
   fechaFin: FechaISOSchema,
@@ -198,29 +231,47 @@ export const ViajeSchemaBase = z.object({
   fotoPortada: URLImagenSchema, // URL de la foto principal
   totalFotos: z.number().int().min(0).max(30).default(1), // Límite de 30 fotos
   // Storytelling metadata (nuevo)
-  presupuesto: z.string().optional().nullable(), // p.ej. 'Mochilero', 'Lujo'
-  vibe: z.array(z.string()).default([]), // tags de identidad (Relax, Aventura...)
-  highlights: z.object({
-    topFood: z.string().max(120).optional().nullable(),
-    topView: z.string().max(120).optional().nullable(),
-    topTip: z.string().max(240).optional().nullable()
-  }).optional().nullable(),
+  presupuesto: optionalCleanString(50), // p.ej. 'Mochilero', 'Lujo'
+  vibe: z.preprocess((val) => (Array.isArray(val) ? val.filter(Boolean) : []), z.array(z.string())).default([]),
+  highlights: z
+    .object({
+      topFood: optionalCleanString(200),
+      topView: optionalCleanString(200),
+      topTip: optionalCleanString(200)
+    })
+    .partial()
+    .default({})
+    .optional(),
   // Companions + sharing
   // Level-1 companion taxonomy driving Analytics & the Traveler Hub ranking.
-  companionType: z.enum(['solo', 'couple', 'family', 'friends']).nullable().optional(),
+  // Empty strings are coerced to null so an unselected chip never fails the enum.
+  companionType: z.preprocess(
+    (val) => (!val || val === '' ? null : val),
+    z.enum(['solo', 'couple', 'family', 'friends']).nullable().optional()
+  ),
   // Accepts both the rich invitation object and plain nominal names (chips).
-  companions: z.array(
-    z.union([
-      z.string().max(120),
-      z.object({
-        id: z.string().optional(),
-        name: z.string().optional(),
-        email: z.string().optional().nullable(),
-        userId: z.string().optional().nullable(),
-        status: z.enum(['pending', 'accepted']).optional().default('pending')
-      })
-    ])
-  ).default([]),
+  // Empty/blank entries are filtered out so `.min(1)`-style constraints never fire.
+  companions: z.preprocess(
+    (val) =>
+      Array.isArray(val)
+        ? val.filter((item) => (typeof item === 'string' ? item.trim().length > 0 : Boolean(item)))
+        : [],
+    z
+      .array(
+        z.union([
+          z.string(),
+          z.object({
+            id: z.string().optional(),
+            name: z.string().optional(),
+            email: z.string().optional().nullable(),
+            userId: z.string().optional().nullable(),
+            status: z.enum(['pending', 'accepted']).optional().default('pending')
+          })
+        ])
+      )
+      .default([])
+      .optional()
+  ),
   sharedWith: z.array(z.string()).default([]), // uids que aceptaron ver el viaje
   // Metadata de ubicación
   banderas: z.array(z.string().url()).default([]),
@@ -266,8 +317,8 @@ export const ActualizarViajeSchema = ViajeSchemaBase.partial().required({ id: tr
  */
 export const ViajeMinimalSchema = z.object({
   code: CodigoPaisSchema,
-  nombreEspanol: z.string().min(1),
-  titulo: z.string().min(1),
+  nombreEspanol: optionalCleanString(100),
+  titulo: z.string().trim().min(1, 'El título del viaje es obligatorio'),
   fechaInicio: FechaISOSchema,
   fechaFin: FechaISOSchema
 }).refine(
@@ -419,9 +470,10 @@ export function validarCoordenadas(coordenadas) {
     return { esValido: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const primerError = (error.issues || error.errors)?.[0];
       return {
         esValido: false,
-        mensaje: error.errors[0].message
+        mensaje: primerError ? primerError.message : 'Coordenadas inválidas'
       };
     }
     return { esValido: false, mensaje: 'Coordenadas inválidas' };

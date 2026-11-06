@@ -58,5 +58,15 @@
     "toastUpdated": "Curated photos updated.",
     "errorSaveFailed": "Could not save curated photos.",
     "errorDeleteFailed": "Could not delete the photo."
-  }
+  },
+  "dragOrClick": "Drag your photos here or click to select",
+  "dropHere": "Drop your photos here",
+  "specs": "JPG, PNG or WebP · We compress automatically without losing quality",
+  "photosSelected": "{{count}} / {{max}} photos selected",
+  "optimizing": "Optimizing...",
+  "setCover": "Set as cover",
+  "deletePhoto": "Delete photo",
+  "invalidFormat": "{{count}} file(s) are not valid images.",
+  "tooLarge": "{{count}} photos exceed the max size",
+  "limitReached": "You reached the limit of {{max}} photos"
 }

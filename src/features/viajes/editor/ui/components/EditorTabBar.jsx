@@ -32,17 +32,24 @@ const EditorTabBar = ({ t, activeTab, onChange, stopsCount = 0, photosCount = 0 
             aria-selected={active}
             onClick={() => onChange(id)}
             className={cn(
-              'min-h-[44px] min-w-0 flex items-center justify-center gap-1 rounded-lg px-1.5 py-2 text-[0.72rem] font-bold transition-all',
+              'min-h-[44px] min-w-0 flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-xs sm:text-sm font-bold whitespace-nowrap transition-all',
               active
                 ? 'bg-atomicTangerine/10 text-atomicTangerine'
                 : 'text-textSecondary hover:bg-background'
             )}
           >
-            <Icon size={15} className="shrink-0" />
-            <span className="truncate">
-              {label}
-              {typeof count === 'number' ? ` (${count})` : ''}
-            </span>
+            <Icon size={16} className="shrink-0" />
+            <span>{label}</span>
+            {typeof count === 'number' ? (
+              <span
+                className={cn(
+                  'inline-flex items-center justify-center rounded-full px-1.5 text-[0.68rem] font-extrabold leading-5',
+                  active ? 'bg-atomicTangerine text-white' : 'bg-slate-100 text-slate-600'
+                )}
+              >
+                {count}
+              </span>
+            ) : null}
           </button>
         );
       })}

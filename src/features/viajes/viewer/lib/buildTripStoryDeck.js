@@ -195,9 +195,6 @@ export const buildTripStoryDeck = ({
     const stopPhotos = photoList.filter(
       (photo) => photo?.paradaId === parada?.id || photo?.stopId === parada?.id
     );
-    const linkedPhoto = stopPhotos[0] || photoList.find(
-      (photo) => photo?.stopId === parada?.id || photo?.paradaId === parada?.id
-    );
     const note =
       (typeof parada?.titular === 'string' && parada.titular.trim()) ||
       (typeof parada?.notaCorta === 'string' && parada.notaCorta.trim()) ||
@@ -212,7 +209,7 @@ export const buildTripStoryDeck = ({
       title: parada?.nombre || '',
       subtitle: formatDateRange(parada?.fechaLlegada || parada?.fecha, parada?.fechaSalida),
       note,
-      image: (typeof parada?.foto === 'string' && parada.foto) || linkedPhoto?.url || null,
+      image: stopPhotos[0]?.url || (typeof parada?.foto === 'string' && parada.foto) || coverPhoto || null,
       photos: stopPhotos.map((photo) => photo.url).filter(Boolean),
       favorite: Boolean(parada?.esFavorita),
       vibes: Array.isArray(parada?.vibes) ? parada.vibes.filter(Boolean) : [],

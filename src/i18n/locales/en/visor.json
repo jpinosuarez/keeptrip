@@ -42,14 +42,46 @@
     "transport": "Transport",
     "favorite": "Favorite stop",
     "highlight": "Highlight",
-    "dayTripFrom": "Day trip from {{city}}"
+    "dayTripFrom": "Day trip from {{city}}",
+    "transportMode": {
+      "plane": "By plane",
+      "train": "By train",
+      "car": "By car",
+      "ship": "By ship",
+      "bus": "By bus",
+      "other": "Other",
+      "walk": "On foot"
+    },
+    "vibes": {
+      "caminable": "Great for walking",
+      "gastronomia": "Great food",
+      "historia": "Living history",
+      "naturaleza": "Nature",
+      "joya": "Hidden gem",
+      "fotogenica": "Super photogenic",
+      "ambiente": "Great atmosphere",
+      "custom": "Vibe"
+    },
+    "places": {
+      "monumento": "Landmark",
+      "gastronomia": "Dining",
+      "mirador": "Viewpoint",
+      "cultura": "Culture",
+      "hotel": "Hotel"
+    }
   },
   "context": {
     "highlights": "Highlights",
     "budget": "Budget",
     "vibe": "Vibe",
     "companions": "Companions",
-    "weather": "Historic weather"
+    "weather": "Historic weather",
+    "companionType": {
+      "solo": "Solo",
+      "couple": "As a couple",
+      "family": "With family",
+      "friends": "With friends"
+    }
   },
   "gallery": {
     "title": "Consolidated Memories",

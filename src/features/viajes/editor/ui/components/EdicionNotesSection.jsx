@@ -1,5 +1,6 @@
 import React from 'react';
 import InfoTooltip from '@shared/ui/components/InfoTooltip';
+import { Sparkles } from 'lucide-react';
 
 const EdicionNotesSection = ({ t, texto, onChange, isBusy }) => {
   const handleFieldFocus = (e) => {
@@ -13,9 +14,10 @@ const EdicionNotesSection = ({ t, texto, onChange, isBusy }) => {
 
   return (
     <div className="flex flex-col gap-2 bg-background p-4 rounded-lg border border-border">
-      <label className="text-[0.78rem] font-extrabold text-textSecondary uppercase tracking-[0.5px] flex items-center gap-1.5">
-        {t('labels.notas')} <InfoTooltip textKey="editor:tooltip.relato" size={13} />
-      </label>
+      <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+        <Sparkles size={15} className="text-[#FF6B35]" /> {t('labels.notas', 'Notas')}
+        <InfoTooltip textKey="editor:tooltip.relato" size={13} />
+      </h3>
       <textarea
         value={texto || ''}
         onChange={(e) => onChange(e.target.value)}
