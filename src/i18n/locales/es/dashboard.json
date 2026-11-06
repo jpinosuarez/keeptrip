@@ -193,5 +193,26 @@
     "couple": "En pareja",
     "family": "En familia",
     "friends": "Con amigos"
+  },
+  "wishlist": {
+    "tabTrips": "Viajes Realizados",
+    "tabWishlist": "Mi Wishlist",
+    "searchPlaceholder": "Buscar y añadir a tu Wishlist…",
+    "searchAria": "Buscar en tu Wishlist",
+    "addDestination": "Añadir destino",
+    "createTrip": "Crear viaje",
+    "remove": "Quitar de la Wishlist",
+    "removed": "{{name}} eliminado de tu Wishlist",
+    "cityLabel": "Ciudades guardadas",
+    "continent": "Continente",
+    "layerVisited": "Visitados",
+    "layerWishlist": "Wishlist",
+    "layerAll": "Todo",
+    "noResults": "No hay destinos que coincidan con tu búsqueda.",
+    "empty": {
+      "title": "Tu bucket list te espera",
+      "description": "Guarda países y ciudades que sueñas visitar. Cuando estés listo, conviértelos en tu próxima aventura.",
+      "cta": "Añadir mi primer destino"
+    }
   }
 }

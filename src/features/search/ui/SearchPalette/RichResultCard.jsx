@@ -1,5 +1,5 @@
 import React from 'react';
-import { Globe, MapPin, Calendar, Plus, ArrowRight } from 'lucide-react';
+import { Globe, MapPin, Calendar, Plus, ArrowRight, Bookmark, BookmarkCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { COLORS, RADIUS, SHADOWS, TRANSITIONS } from '@shared/config';
 import { formatDateRange } from '@shared/lib/utils/viajeUtils';
@@ -14,7 +14,11 @@ const RichResultCard = ({
   item, 
   isSelected = false, 
   type = 'place', // 'place' | 'trip'
-  onClick 
+  onClick,
+  showWishlistActions = false,
+  isSaved = false,
+  onAddToWishlist,
+  onCreateTrip,
 }) => {
   const { t } = useTranslation(['search', 'common']);
   const isTrip = type === 'trip';
@@ -43,6 +47,8 @@ const RichResultCard = ({
     container: {
       display: 'flex',
       alignItems: 'center',
+      flexWrap: 'wrap',
+      rowGap: '8px',
       gap: '12px',
       padding: '12px',
       borderRadius: RADIUS.md,
@@ -124,6 +130,62 @@ const RichResultCard = ({
       cursor: 'pointer',
       transition: TRANSITIONS.fast,
     },
+    actionsGroup: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      gap: '8px',
+      flexWrap: 'wrap',
+      flexShrink: 0,
+    },
+    primaryAction: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      minHeight: '44px',
+      padding: '8px 12px',
+      borderRadius: RADIUS.full,
+      border: 'none',
+      backgroundColor: COLORS.atomicTangerine,
+      color: '#fff',
+      fontSize: '0.74rem',
+      fontWeight: '700',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap',
+      transition: TRANSITIONS.fast,
+    },
+    wishlistAction: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      minHeight: '44px',
+      padding: '8px 12px',
+      borderRadius: RADIUS.full,
+      border: `1.5px solid ${COLORS.mutedTeal}`,
+      backgroundColor: 'rgba(69, 176, 168, 0.12)',
+      color: COLORS.mutedTeal,
+      fontSize: '0.74rem',
+      fontWeight: '700',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap',
+      transition: TRANSITIONS.fast,
+    },
+    savedAction: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      minHeight: '44px',
+      padding: '8px 12px',
+      borderRadius: RADIUS.full,
+      border: `1.5px solid ${COLORS.mutedTeal}`,
+      backgroundColor: 'rgba(69, 176, 168, 0.2)',
+      color: COLORS.mutedTeal,
+      fontSize: '0.74rem',
+      fontWeight: '700',
+      cursor: 'default',
+      whiteSpace: 'nowrap',
+      opacity: 0.85,
+    },
   };
 
   return (
@@ -164,14 +226,51 @@ const RichResultCard = ({
         <div style={styles.subtitle}>{subtitle}</div>
       </div>
 
-      {/* Badge */}
-      <div
-        style={styles.badgeContainer}
-        role="button"
-        aria-label={isTrip ? t('common:open') : t('common:add')}
-      >
-        {badgeIcon} {badgeLabel}
-      </div>
+      {/* Actions: trips → single open badge; place results → dual Create / Wishlist */}
+      {showWishlistActions && !isTrip ? (
+        <div style={styles.actionsGroup}>
+          <button
+            type="button"
+            style={styles.primaryAction}
+            onClick={(e) => {
+              e.stopPropagation();
+              (onCreateTrip || onClick)?.();
+            }}
+            aria-label={t('search:createTrip', 'Create trip')}
+            data-testid={`create-trip-${item.id}`}
+          >
+            <Plus size={14} /> {t('search:createTrip', 'Create trip')}
+          </button>
+          <button
+            type="button"
+            style={isSaved ? styles.savedAction : styles.wishlistAction}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isSaved) onAddToWishlist?.();
+            }}
+            disabled={isSaved}
+            aria-label={
+              isSaved
+                ? t('search:savedToWishlist', 'Saved')
+                : t('search:addToWishlist', 'Add to Wishlist')
+            }
+            data-testid={`add-wishlist-${item.id}`}
+          >
+            {isSaved ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
+            {isSaved
+              ? t('search:savedToWishlist', 'Saved')
+              : t('search:addToWishlist', 'Add to Wishlist')}
+          </button>
+        </div>
+      ) : (
+        <div
+          style={styles.badgeContainer}
+          role="button"
+          aria-label={isTrip ? t('common:open') : t('common:add')}
+        >
+          {badgeIcon} {badgeLabel}
+        </div>
+      )}
     </div>
   );
 };

@@ -8,7 +8,7 @@ import { useAuth } from '@app/providers/AuthContext';
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { LoaderCircle } from 'lucide-react';
-import { COLORS, RADIUS, SHADOWS, ENABLE_ONBOARDING } from '@shared/config';
+import { COLORS, RADIUS, SHADOWS, ENABLE_ONBOARDING, ENABLE_WISHLIST } from '@shared/config';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { COUNTRIES_DATA, getCountryCentroid, getFlagUrl } from '@shared/lib/utils/countryUtils';
 
@@ -58,7 +58,7 @@ function AppModalsManager({
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, userProfile, loadingProfile } = useAuth() || {};
+  const { user, userProfile, loadingProfile, agregarAWishlist } = useAuth() || {};
 
   const [isOnboardingDismissed, setIsOnboardingDismissed] = useState(
     () => typeof window !== 'undefined' && sessionStorage.getItem('keeptrip_onboarding_skipped') === 'true'
@@ -355,6 +355,9 @@ function AppModalsManager({
               allTrips={bitacora}
               onSelectPlace={onLugarSeleccionado}
               onSelectTrip={(tripId) => navigate(`/trips/${tripId}`)}
+              onAddToWishlist={agregarAWishlist}
+              wishlist={userProfile?.wishlist || []}
+              wishlistEnabled={ENABLE_WISHLIST}
             />
           </Suspense>
         </ErrorBoundary>

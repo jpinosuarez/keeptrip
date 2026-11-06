@@ -5,6 +5,7 @@ export { generateCurvedRoute } from './mapRoutes';
 export {
   IDENTITY_PIN_COLORS,
   createPinElement,
+  createWishlistPinElement,
   resolveIdentityPins,
   deriveResidenceMode,
   normalizeCity,

@@ -10,6 +10,7 @@ import { useDebounce } from '../../model/useDebounce';
 import { useSearchHistory } from '../../model/useSearchHistory';
 import RichResultCard from './RichResultCard';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
+import { buildWishlistItemFromPlace, wishlistKey } from '@shared/lib/wishlist/wishlistUtils';
 
 import { fetchGeocoding } from '@shared/api/services/mapboxGeocoding';
 
@@ -18,7 +19,10 @@ const SearchPalette = ({
   onClose, 
   onSelectPlace, 
   onSelectTrip, 
-  allTrips = [] 
+  allTrips = [],
+  onAddToWishlist,
+  wishlist = [],
+  wishlistEnabled = false,
 }) => {
   const { t, i18n } = useTranslation(['search', 'common']);
   const { pushToast } = useToast();
@@ -187,6 +191,32 @@ const SearchPalette = ({
       onClose();
     },
     [onSelectPlace, onSelectTrip, onClose]
+  );
+
+  // Block 2.5 — wishlist: track which place keys are already saved so each row
+  // can flip its secondary action to "✓ Guardado" reactively.
+  const savedKeys = useMemo(
+    () => new Set((Array.isArray(wishlist) ? wishlist : []).map(wishlistKey)),
+    [wishlist]
+  );
+
+  const handleAddToWishlist = useCallback(
+    async (result) => {
+      if (!wishlistEnabled || typeof onAddToWishlist !== 'function') return;
+      const item = buildWishlistItemFromPlace(result);
+      if (!item) return;
+      const saved = await onAddToWishlist(item);
+      if (saved !== false && isMountedRef.current) {
+        pushToast({
+          type: 'success',
+          message: t('search:addedToWishlistToast', {
+            name: item.nombre,
+            defaultValue: `🔖 ${item.nombre} añadido a tu Wishlist`,
+          }),
+        });
+      }
+    },
+    [wishlistEnabled, onAddToWishlist, pushToast, t]
   );
 
   // Keyboard navigation
@@ -477,15 +507,23 @@ const SearchPalette = ({
 
             {!loading && allResults.length > 0 && (
               <div style={styles.resultsList}>
-                {allResults.map((result, idx) => (
-                  <RichResultCard
-                    key={result._type === 'trip' ? (result._tripId || `trip-${idx}`) : (result.id || `result-${idx}`)}
-                    item={result}
-                    type={result._type}
-                    isSelected={idx === selectedIndex}
-                    onClick={() => handleSelectResult(result)}
-                  />
-                ))}
+                {allResults.map((result, idx) => {
+                  const isPlace = result._type === 'place';
+                  const resultKey = isPlace ? wishlistKey(buildWishlistItemFromPlace(result)) : null;
+                  return (
+                    <RichResultCard
+                      key={result._type === 'trip' ? (result._tripId || `trip-${idx}`) : (result.id || `result-${idx}`)}
+                      item={result}
+                      type={result._type}
+                      isSelected={idx === selectedIndex}
+                      onClick={() => handleSelectResult(result)}
+                      showWishlistActions={wishlistEnabled && isPlace}
+                      isSaved={Boolean(resultKey && savedKeys.has(resultKey))}
+                      onCreateTrip={() => handleSelectResult(result)}
+                      onAddToWishlist={() => handleAddToWishlist(result)}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>

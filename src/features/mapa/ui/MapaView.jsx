@@ -9,6 +9,7 @@ import {
   isMapStyleLoaded,
   setMapLanguage,
   createPinElement,
+  createWishlistPinElement,
   resolveIdentityPins,
 } from '@shared/lib/geo';
 import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
@@ -16,6 +17,7 @@ import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
 import { OperationalMapFallback } from '@shared/ui/components';
 import { useAuth } from '@app/providers/AuthContext';
 import { getCountryISO3, getCountryCentroid } from '@shared/lib/utils/countryUtils';
+import { normalizeWishlistItem } from '@shared/lib/wishlist/wishlistUtils';
 import { Plus, MapPin } from 'lucide-react';
 
 
@@ -107,6 +109,38 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
 
   const isEmptyMap = paises.length === 0;
 
+  // Block 2.5 — Wishlist map layer: countries (translucent teal fill + dashed
+  // border) and cities (teal teardrop pins). Filter state lifted here so the
+  // TripRoster toggle can drive fills + markers without visual clash.
+  const [wishlistFilter, setWishlistFilter] = useState('todo');
+  const wishlistMarkersRef = useRef([]);
+
+  const wishlistItems = useMemo(() => {
+    const raw = Array.isArray(userProfile?.wishlist) ? userProfile.wishlist : [];
+    return raw.map(normalizeWishlistItem).filter(Boolean);
+  }, [userProfile]);
+
+  const wishlistIso3List = useMemo(
+    () =>
+      [
+        ...new Set(
+          wishlistItems
+            .filter((item) => item.tipo === 'pais')
+            .map((item) => getCountryISO3(item.paisCodigo))
+            .filter(Boolean)
+        ),
+      ],
+    [wishlistItems]
+  );
+
+  const wishlistCityPins = useMemo(
+    () => wishlistItems.filter((item) => item.tipo === 'ciudad' && Array.isArray(item.coordenadas)),
+    [wishlistItems]
+  );
+
+  const showVisited = wishlistFilter !== 'wishlist';
+  const showWishlist = wishlistFilter !== 'visitados';
+
   const coordinateHash = useMemo(
     () => stops.map((stop) => `${stop.id}-${stop.coordenadas?.[0]}-${stop.coordenadas?.[1]}`).join('|'),
     [stops]
@@ -196,29 +230,42 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   }, [isModalOccluded]);
 
   // ── Reactive Geographic Identity (country fills + city pins + camera) ─
-  // Priority: Conquered (#FF6B35) > Residence (#45B0A8) > Origin (#2C3E50).
-  const countryFillPaint = useMemo(() => ({
-    'fill-color': [
-      'case',
-      ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', listaPaises]],
-      COLORS.atomicTangerine,
-      ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
-      COLORS.mutedTeal,
-      ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
-      COLORS.charcoalBlue,
-      COLORS.atomicTangerine,
-    ],
-    'fill-opacity': [
-      'case',
-      ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', listaPaises]],
-      0.65,
-      ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
-      0.45,
-      ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
-      0.45,
-      0,
-    ],
-  }), [listaPaises, residenceIso3, birthIso3]);
+  // Priority: Conquered (#FF6B35) > Residence (#45B0A8) > Origin (#2C3E50)
+  //           > Wishlist (#45B0A8 @ 0.22). Visited always wins over wishlist.
+  const countryFillPaint = useMemo(() => {
+    const visitedList = showVisited ? listaPaises : ['EMPTY'];
+    const wishlistActive = showWishlist && wishlistIso3List.length > 0;
+    const wishlistCondition = wishlistActive
+      ? ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', wishlistIso3List]]
+      : false;
+
+    return {
+      'fill-color': [
+        'case',
+        ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', visitedList]],
+        COLORS.atomicTangerine,
+        ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
+        COLORS.mutedTeal,
+        ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
+        COLORS.charcoalBlue,
+        wishlistCondition,
+        COLORS.mutedTeal,
+        COLORS.atomicTangerine,
+      ],
+      'fill-opacity': [
+        'case',
+        ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', visitedList]],
+        0.65,
+        ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
+        0.45,
+        ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
+        0.45,
+        wishlistCondition,
+        0.22,
+        0,
+      ],
+    };
+  }, [showVisited, showWishlist, listaPaises, residenceIso3, birthIso3, wishlistIso3List]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -293,6 +340,34 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
     identityMarkersRef.current.forEach((marker) => marker.remove());
     identityMarkersRef.current = [];
     mapInstanceRef.current = null;
+  }, []);
+
+  // ── Wishlist city pins (Block 2.5) ──────────────────────────────────
+  // Rebuilt on toggle / wishlist change; always removed before rebuilding so
+  // pins never accumulate. Attached to the raw Mapbox instance (never MapRef).
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !mapLoaded) return undefined;
+
+    wishlistMarkersRef.current.forEach((marker) => marker.remove());
+    wishlistMarkersRef.current = [];
+
+    if (wishlistFilter === 'visitados') return undefined;
+
+    wishlistCityPins.forEach((item) => {
+      const marker = new mapboxgl.Marker({ element: createWishlistPinElement(item.nombre) })
+        .setLngLat(item.coordenadas)
+        .addTo(map);
+      wishlistMarkersRef.current.push(marker);
+    });
+
+    return undefined;
+  }, [mapLoaded, wishlistFilter, wishlistCityPins]);
+
+  // Release wishlist pins on unmount.
+  useEffect(() => () => {
+    wishlistMarkersRef.current.forEach((marker) => marker.remove());
+    wishlistMarkersRef.current = [];
   }, []);
 
   // ── Map event handlers ───────────────────────────────────────────────
@@ -442,9 +517,24 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
               source-layer="country_boundaries"
               paint={countryFillPaint}
             />
+            {showWishlist && wishlistIso3List.length > 0 && (
+              <Layer
+                id="wishlist-country-outline"
+                type="line"
+                source-layer="country_boundaries"
+                filter={['in', ['get', 'iso_3166_1_alpha_3'], ['literal', wishlistIso3List]]}
+                paint={{
+                  'line-color': COLORS.mutedTeal,
+                  'line-width': 1.5,
+                  'line-dasharray': [2, 2],
+                  'line-opacity': 0.9,
+                }}
+              />
+            )}
           </Source>
 
-          {/* Trip stop markers with clustering */}
+          {/* Trip stop markers with clustering (hidden in wishlist-only mode) */}
+          {showVisited && (
           <Source
             id="paradas"
             type="geojson"
@@ -487,6 +577,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
               }}
             />
           </Source>
+          )}
 
           <FullscreenControl position="top-right" />
           <NavigationControl position="top-right" />
@@ -528,6 +619,8 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
               isMobile={typeof window !== 'undefined' && window.innerWidth < 768}
               activeTrip={selectedTrip}
               onTripSelect={handleTripSelect}
+              wishlistFilter={wishlistFilter}
+              onWishlistFilterChange={setWishlistFilter}
             />
           </>
         )}

@@ -169,6 +169,53 @@ export const resolveIdentityPins = ({ birthCity = null, baseCity = null } = {}) 
  * }} identity
  * @returns {'same_city'|'same_country'|'different_country'}
  */
+/**
+ * Builds a distinctive Muted Teal "teardrop" marker element for a Wishlist city
+ * pin (Block 2.5). Mirrors `createPinElement` ergonomics (44px-safe wrapper,
+ * hover tooltip, brand colors) but uses the teal accent + a bookmark glyph so
+ * wishlist and visited pins never visually clash.
+ *
+ * @param {string} label - human readable destination name (tooltip / a11y name).
+ * @returns {HTMLDivElement}
+ */
+export const createWishlistPinElement = (label = '') => {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'relative group cursor-pointer flex items-center justify-center pointer-events-auto';
+  if (label) {
+    wrapper.title = label;
+    wrapper.setAttribute('role', 'img');
+    wrapper.setAttribute('aria-label', label);
+  }
+
+  const shape = document.createElement('div');
+  shape.style.width = '18px';
+  shape.style.height = '18px';
+  shape.style.background = '#45B0A8';
+  shape.style.border = '2px solid #fff';
+  shape.style.boxShadow = '0 2px 8px rgba(0,0,0,0.25)';
+  shape.style.borderRadius = '50% 50% 50% 0';
+  shape.style.transform = 'rotate(-45deg)';
+  wrapper.appendChild(shape);
+
+  const glyph = document.createElement('span');
+  glyph.textContent = '🔖';
+  glyph.style.position = 'absolute';
+  glyph.style.fontSize = '9px';
+  glyph.style.lineHeight = '1';
+  glyph.style.pointerEvents = 'none';
+  wrapper.appendChild(glyph);
+
+  if (label) {
+    const tooltip = document.createElement('div');
+    tooltip.className =
+      'absolute bottom-full mb-2 hidden group-hover:flex items-center px-2 py-0.5 rounded bg-slate-900/90 text-white text-[10px] whitespace-nowrap pointer-events-none z-50 shadow-md';
+    tooltip.textContent = label;
+    wrapper.appendChild(tooltip);
+  }
+
+  return wrapper;
+};
+
 export const deriveResidenceMode = ({
   birthCountry = null,
   residenceCountry = null,

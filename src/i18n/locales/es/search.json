@@ -12,6 +12,10 @@
   "minChars": "Escribe al menos 3 caracteres para buscar",
   "country": "País",
   "add": "Añadir",
+  "addToWishlist": "A la Wishlist",
+  "savedToWishlist": "Guardado",
+  "createTrip": "Crear viaje",
+  "addedToWishlistToast": "🔖 {{name}} añadido a tu Wishlist",
   "popular": {
     "japan": "Japón",
     "italy": "Italia",

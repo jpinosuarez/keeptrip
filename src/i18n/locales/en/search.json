@@ -12,6 +12,10 @@
   "minChars": "Type at least 3 characters to search",
   "country": "Country",
   "add": "Add",
+  "addToWishlist": "Add to Wishlist",
+  "savedToWishlist": "Saved",
+  "createTrip": "Create trip",
+  "addedToWishlistToast": "🔖 {{name}} added to your Wishlist",
   "popular": {
     "japan": "Japan",
     "italy": "Italy",

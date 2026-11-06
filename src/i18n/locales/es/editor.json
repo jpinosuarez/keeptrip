@@ -70,6 +70,9 @@
     "saving": "Guardando...",
     "add": "Agregar"
   },
+  "toast": {
+    "wishlistFulfilled": "🎉 ¡Sueño cumplido! Visitaste {{destination}}, lo tachamos de tu Wishlist."
+  },
   "budget": {
     "mochilero": "Mochilero",
     "economico": "Económico",
