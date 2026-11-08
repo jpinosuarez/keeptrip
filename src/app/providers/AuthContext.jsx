@@ -199,12 +199,41 @@ export const AuthProvider = ({ children }) => {
     return isInWishlist(current, codeOrCity);
   }, []);
 
+  // Tracks whether the first auth resolution has fully settled. Used to grant a
+  // short grace window to cold-start transient `null` events so `AuthGuard`
+  // never bounces an authenticated user to `/` while the token rehydrates.
+  const hasSettledAuthRef = useRef(false);
+
   useEffect(() => {
     let mounted = true;
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!mounted) return;
 
+      // Cold-start transient-null guard: Firebase can emit a momentary `null`
+      // while rehydrating a persisted token on reload. If we previously had a
+      // session hint, hold the loading gate through a short settle window
+      // instead of committing `usuario = null` and redirecting to `/`.
+      if (!currentUser) {
+        let hasSessionHint = false;
+        try {
+          hasSessionHint =
+            typeof window !== 'undefined' &&
+            window.localStorage.getItem('keeptrip_has_session') === 'true';
+        } catch {
+          hasSessionHint = false;
+        }
+
+        if (hasSessionHint && !hasSettledAuthRef.current) {
+          await new Promise((resolve) => setTimeout(resolve, 1200));
+          if (!mounted) return;
+          if (auth.currentUser) {
+            currentUser = auth.currentUser; // eslint-disable-line no-param-reassign
+          }
+        }
+      }
+
+      hasSettledAuthRef.current = true;
       setUsuario(currentUser);
       setCargando(false);
       try {

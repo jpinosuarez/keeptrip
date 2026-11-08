@@ -194,6 +194,7 @@ const TripsPage = () => {
 
   return (
     <div className="flex flex-col h-full relative overflow-y-auto overflow-x-hidden">
+      <div className="w-full max-w-7xl mx-auto flex flex-col flex-1 min-h-0">
       {/* Block 2.5 — Segmented view switcher: Trips | Wishlist */}
       {ENABLE_WISHLIST && (
         <div
@@ -295,6 +296,7 @@ const TripsPage = () => {
           />
         </div>
       )}
+      </div>
 
       {/* Nested route modal support */}
       <Outlet />

@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, connectAuthEmulator, GoogleAuthProvider, signOut } from "firebase/auth";
+import { getAuth, connectAuthEmulator, GoogleAuthProvider, signOut, setPersistence, browserLocalPersistence } from "firebase/auth";
 import {
   connectFirestoreEmulator,
   initializeFirestore,
@@ -83,19 +83,57 @@ if (missingFirebaseConfig) {
 
 const app = initializeApp(firebaseConfig);
 
-if (isEmulator) {
-  // Prevent stale persisted auth sessions from trying to refresh against emulator with demo config.
+// Track which runtime "origin" (emulator vs production) owns the persisted
+// Firebase session. We only reset it when switching between the two, so an
+// active session survives hot-reloads and page navigations (no spurious logouts).
+const AUTH_ORIGIN_KEY = 'keeptrip_auth_origin';
+const currentAuthOrigin = isEmulator ? 'emulator' : 'prod';
+
+const readPersistedAuthOrigin = () => {
+  if (!isBrowser) return null;
+  try {
+    return window.localStorage.getItem(AUTH_ORIGIN_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const persistAuthOrigin = () => {
+  if (!isBrowser) return;
+  try {
+    window.localStorage.setItem(AUTH_ORIGIN_KEY, currentAuthOrigin);
+  } catch {
+    // Ignore storage access issues (private mode / strict policies).
+  }
+};
+
+const authOriginChanged = isBrowser && readPersistedAuthOrigin() !== currentAuthOrigin;
+
+if (isEmulator && authOriginChanged) {
+  // Prevent stale persisted auth sessions from trying to refresh against the
+  // emulator with demo config — ONLY when switching into the emulator, never on
+  // every reload of an already-active emulator session.
   clearStaleEmulatorAuthState();
 }
 
 const auth = getAuth(app);
 
-if (isEmulator) {
-  // For emulator development, force a neutral session to avoid bad refresh token issues.
+// Explicit local persistence guarantees sessions survive tab reloads and browser
+// restarts across Local Dev / Staging / Production. The SDK default is already
+// `browserLocalPersistence`; pinning it makes the contract deterministic.
+setPersistence(auth, browserLocalPersistence).catch(() => {
+  // Non-blocking: if persistence cannot be set, keep the SDK default.
+});
+
+if (isEmulator && authOriginChanged) {
+  // For emulator development, force a neutral session to avoid bad refresh token
+  // issues — but never sign out an already-active emulator session on reload.
   signOut(auth).catch(() => {
     // Ignore when there is no initial session.
   });
 }
+
+persistAuthOrigin();
 
 // Initialize Firestore with persistent multi-tab cache (offline-first).
 const useMemoryCache = isTestEnv || isEmulator;

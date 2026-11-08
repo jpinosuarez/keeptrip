@@ -509,6 +509,41 @@ describe('EditorFocusPanel (borrador)', () => {
       expect(screen.getByDisplayValue('2026-09-28')).toBeInTheDocument();
     });
   });
+
+  test('viaje existente sin ediciones: Cancelar cierra en el primer click sin confirmar', async () => {
+    const onClose = vi.fn();
+
+    render(
+      <EditorFocusPanel
+        viaje={{
+          id: 'trip-42',
+          nombreEspanol: 'Chile',
+          code: 'CL',
+          titulo: 'Ruta por Chile',
+          fechaInicio: '2024-01-01',
+          fechaFin: '2024-01-05',
+        }}
+        esBorrador={false}
+        onClose={onClose}
+        onSave={vi.fn(async () => true)}
+        isSaving={false}
+      />,
+      { wrapper: RouterWrapper }
+    );
+
+    const cancelBtn = screen
+      .getAllByRole('button')
+      .find((btn) => /button\.cancel/i.test(btn.textContent || ''));
+    expect(cancelBtn).toBeTruthy();
+
+    cancelBtn.click();
+
+    await waitFor(() => {
+      // Single click closes — no false-positive "discard changes?" confirm.
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.queryByText(/unsavedChanges\.title/i)).toBeNull();
+  });
 });
 
 // Tests de companion autocomplete e invitaciones se cubren vía E2E (e2e/invitations.spec.ts)

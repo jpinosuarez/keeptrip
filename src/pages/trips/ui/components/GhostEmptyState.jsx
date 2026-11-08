@@ -1,10 +1,17 @@
 import React from 'react';
 import { motion as Motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Plus } from 'lucide-react';
+import { Plus, Globe } from 'lucide-react';
 import { useUI } from '@app/providers/UIContext';
-import { COLORS, SHADOWS, RADIUS } from '@shared/config';
+import { RADIUS } from '@shared/config';
+import EmptyStateCard from '@shared/ui/components/EmptyStateCard';
 
+/**
+ * GhostEmptyState — "no trips yet" aspirational state for the Trips archive.
+ * Keeps the decorative ambient orbs + entrance animation, but delegates the card
+ * itself to the canonical <EmptyStateCard /> (Visual System v2.0, no serif, no
+ * off-palette gradients on the CTA).
+ */
 const GhostEmptyState = () => {
   const { t } = useTranslation('dashboard');
   const { openBuscador, isReadOnlyMode } = useUI();
@@ -43,75 +50,28 @@ const GhostEmptyState = () => {
       </div>
 
       <Motion.div
-        data-testid="ghost-empty-state"
         initial={{ opacity: 0, scale: 0.96, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 120, damping: 22 }}
-        style={{
-          position: 'relative',
-          zIndex: 10,
-          background: 'rgba(255,255,255,0.92)',
-          border: `1px solid ${COLORS.border}`,
-          borderRadius: RADIUS.xl,
-          padding: '32px 28px',
-          maxWidth: '480px',
-          width: '100%',
-          textAlign: 'center',
-          boxShadow: SHADOWS.md,
-          margin: '0 auto',
-        }}
+        className="relative z-10 w-full max-w-2xl mx-auto"
       >
-        <h2 style={{
-          fontSize: '1.4rem',
-          fontWeight: 900,
-          color: COLORS.charcoalBlue,
-          marginBottom: '10px',
-          marginTop: 0,
-          lineHeight: 1.2,
-          letterSpacing: '-0.01em',
-        }}>
-          {t('ghostEmptyState.title')}
-        </h2>
-        <p style={{
-          fontSize: '0.92rem',
-          color: COLORS.textSecondary,
-          marginBottom: '24px',
-          marginTop: 0,
-          lineHeight: 1.5,
-        }}>
-          {t('ghostEmptyState.description')}
-        </p>
-        
-        <Motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={openBuscador}
-          disabled={isReadOnlyMode}
-          style={{
-            background: `linear-gradient(135deg, ${COLORS.atomicTangerine}, #ff9a4d)`,
-            color: '#fff',
-            border: 'none',
-            minHeight: '48px',
-            borderRadius: '9999px',
-            padding: '0 28px',
-            fontSize: '0.92rem',
-            fontWeight: 800,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            boxShadow: `0 6px 20px ${COLORS.atomicTangerine}35`,
-            cursor: isReadOnlyMode ? 'not-allowed' : 'pointer',
-            letterSpacing: '0.01em',
-            opacity: isReadOnlyMode ? 0.55 : 1,
+        <EmptyStateCard
+          data-testid="ghost-empty-state"
+          icon={Globe}
+          accentColor="orange"
+          title={t('ghostEmptyState.title')}
+          description={t('ghostEmptyState.description')}
+          primaryAction={{
+            label: t('ghostEmptyState.action'),
+            onClick: isReadOnlyMode ? undefined : openBuscador,
+            icon: Plus,
           }}
-        >
-          <Plus size={20} strokeWidth={2.5} />
-          {t('ghostEmptyState.action')}
-        </Motion.button>
+          className={isReadOnlyMode ? 'opacity-60 pointer-events-none' : ''}
+        />
       </Motion.div>
     </div>
   );
 };
 
 export default GhostEmptyState;
+

@@ -261,7 +261,7 @@ const TripCommandBar = ({
   return (
     <div className="flex flex-col gap-2 pb-2" data-testid="trip-command-bar">
       {/* Unified live-filter search (desktop + mobile) */}
-      <div className="flex items-center h-11 w-full bg-white/90 backdrop-blur-md rounded-xl border border-border/60 px-3.5 gap-2 shadow-sm">
+      <div className="flex items-center min-h-[44px] w-full sm:max-w-[400px] rounded-full border border-slate-200/90 bg-white px-4 gap-2.5 shadow-2xs focus-within:border-[#FF6B35] focus-within:ring-2 focus-within:ring-[#FF6B35]/20 transition-all">
         <Search size={18} className="text-text-secondary shrink-0" />
         <input
           type="text"
@@ -269,7 +269,7 @@ const TripCommandBar = ({
           aria-label={t('searchTripsPlaceholder', 'Filtrar viajes por título, ciudad o país...')}
           value={inputValue}
           onChange={handleSearchChange}
-          className="border-none bg-transparent text-sm text-charcoalBlue w-full outline-none focus:ring-0 placeholder:text-text-secondary"
+          className="border-none bg-transparent text-sm text-slate-800 w-full min-w-0 flex-1 outline-none focus:ring-0 placeholder:text-slate-400"
         />
         {inputValue && (
           <button

@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, ChevronUp, Globe2, MapPin } from 'lucide-react';
+import { ChevronDown, ChevronUp, Globe2, MapPin, Plus } from 'lucide-react';
 import { useAuth } from '@app/providers';
 import { COLORS, RADIUS, SHADOWS } from '@shared/config';
 import { cn } from '@shared/lib/utils/cn';
 import TripRosterItem from './TripRosterItem';
+import CountryFlag from '@shared/ui/components/CountryFlag';
 import { COUNTRIES_DB } from '../../../../assets/sellos';
 
 /**
@@ -201,6 +202,40 @@ const MapLayerToggle = ({ value = 'todo', onChange }) => {
   );
 };
 
+/* ── Wishlist destination row (Explorer with 0 completed trips — Block 3.0) ── */
+const WishlistRow = ({ item, onSelect, onCreateTrip }) => {
+  const { t } = useTranslation('dashboard');
+  const label = item?.nombre || item?.paisNombre || item?.paisCodigo || '';
+
+  return (
+    <div className="flex items-center gap-1.5 rounded-xl px-2 hover:bg-[#45B0A8]/5 transition-colors">
+      <button
+        type="button"
+        onClick={() => onSelect?.(item)}
+        className="flex flex-1 min-w-0 items-center gap-2 min-h-[44px] text-left cursor-pointer bg-transparent border-none"
+      >
+        <CountryFlag code={item?.paisCodigo} size="xs" />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[0.82rem] font-bold text-[#2C3E50]">{label}</span>
+          <span className="mt-0.5 inline-flex items-center rounded-full bg-[#45B0A8]/10 px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-[#45B0A8]">
+            {t('wishlist.layerWishlist', 'Wishlist')}
+          </span>
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={() => onCreateTrip?.(item)}
+        aria-label={`${t('wishlist.createTrip', 'Crear viaje')}: ${label}`}
+        title={t('wishlist.createTrip', 'Crear viaje')}
+        className="inline-flex items-center justify-center gap-1 min-h-[44px] px-2.5 shrink-0 rounded-full border border-[#FF6B35]/30 text-[0.62rem] font-bold text-[#FF6B35] hover:bg-[#FF6B35]/10 transition-colors cursor-pointer bg-transparent"
+      >
+        <Plus size={12} />
+        {t('wishlist.createTrip', 'Crear viaje')}
+      </button>
+    </div>
+  );
+};
+
 /* ── Main TripRoster Component ───────────────────────────────────────── */
 const TripRoster = ({
   trips = [],
@@ -211,9 +246,16 @@ const TripRoster = ({
   onTripSelect,
   wishlistFilter = 'todo',
   onWishlistFilterChange = null,
+  wishlistItems = [],
+  onWishlistItemFly = null,
+  onCreateTripFromWishlist = null,
 }) => {
   const { t } = useTranslation('dashboard');
   const [isExpanded, setIsExpanded] = useState(!isMobile); // Mobile: collapsed by default, desktop: expanded
+
+  // Block 3.0 — show wishlist destinations in the Explorer whenever the active
+  // map layer includes them ("wishlist" or "todo") and the wishlist is not empty.
+  const showWishlistRows = wishlistFilter !== 'visitados' && wishlistItems.length > 0;
 
   // Sort trips by date (newest first)
   const sortedTrips = useMemo(
@@ -324,6 +366,21 @@ const TripRoster = ({
                   index={idx}
                 />
               ))}
+              {showWishlistRows && (
+                <div className="mt-1 border-t border-black/5 pt-1">
+                  <p className="mx-3 mt-1 mb-1 text-[0.68rem] font-bold uppercase tracking-wide text-[#64748B]">
+                    {t('wishlist.explorerTitle', 'Destinos en tu Wishlist')}
+                  </p>
+                  {wishlistItems.map((item) => (
+                    <WishlistRow
+                      key={item.id}
+                      item={item}
+                      onSelect={onWishlistItemFly}
+                      onCreateTrip={onCreateTripFromWishlist}
+                    />
+                  ))}
+                </div>
+              )}
             </Motion.div>
           )}
         </AnimatePresence>
@@ -402,6 +459,21 @@ const TripRoster = ({
                 index={idx}
               />
             ))}
+            {showWishlistRows && (
+              <div className="mt-1 border-t border-black/5 pt-1">
+                <p className="mx-3 mt-1 mb-1 text-[0.68rem] font-bold uppercase tracking-wide text-[#64748B]">
+                  {t('wishlist.explorerTitle', 'Destinos en tu Wishlist')}
+                </p>
+                {wishlistItems.map((item) => (
+                  <WishlistRow
+                    key={item.id}
+                    item={item}
+                    onSelect={onWishlistItemFly}
+                    onCreateTrip={onCreateTripFromWishlist}
+                  />
+                ))}
+              </div>
+            )}
           </Motion.div>
         )}
       </AnimatePresence>
