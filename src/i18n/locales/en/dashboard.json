@@ -197,7 +197,7 @@
   "wishlist": {
     "tabTrips": "Completed Trips",
     "tabWishlist": "My Wishlist",
-    "searchPlaceholder": "Search & add to your Wishlist…",
+    "searchPlaceholder": "Filter saved destinations...",
     "searchAria": "Search your Wishlist",
     "addDestination": "Add destination",
     "createTrip": "Create trip",
@@ -209,10 +209,25 @@
     "layerWishlist": "Wishlist",
     "layerAll": "All",
     "noResults": "No destinations match your search.",
+    "noMatchesCta": "Search the map to add it",
+    "countryComplete": "Whole country",
+    "wholeCountry": "Country on wishlist",
+    "addToWishlist": "Add to Wishlist",
+    "saved": "Saved",
+    "searching": "Searching destinations…",
+    "clear": "Clear search",
+    "deleteCountry": "Remove country from Wishlist",
+    "continents": {
+      "americas": "Americas",
+      "europe": "Europe",
+      "asia": "Asia",
+      "africa": "Africa",
+      "oceania": "Oceania"
+    },
     "empty": {
       "title": "Your bucket list awaits",
       "description": "Save countries and cities you dream of visiting. When you're ready, turn them into your next adventure.",
-      "cta": "Add my first destination"
+      "cta": "Add destination"
     }
   }
 }

@@ -12,7 +12,12 @@
  *     coordenadas: [lng, lat] | null, creadoEn: ISOString }
  */
 
-import { normalizeCountryCode } from '@shared/lib/utils/countryUtils';
+import {
+  normalizeCountryCode,
+  getCountryName,
+  getCountryCentroid,
+  getFlagUrl,
+} from '@shared/lib/utils/countryUtils';
 
 const normalizeName = (value) => String(value ?? '').trim().toLowerCase();
 
@@ -159,4 +164,76 @@ export const buildWishlistItemFromPlace = (place) => {
     paisNombre: place.countryName ?? place.paisNombre ?? '',
     coordenadas: place.coordinates ?? place.coordenadas ?? null,
   });
+};
+
+const toTimestamp = (value) => {
+  const time = new Date(value || 0).getTime();
+  return Number.isNaN(time) ? 0 : time;
+};
+
+/**
+ * Builds the initial array of trip stops from a wishlisted country group
+ * (Block 2.5 / Finding F1). This is the "default-include-all" conversion:
+ * every saved city becomes a route stop the traveler can prune in the editor,
+ * instead of silently picking only the first city.
+ *
+ * - Cities are sorted by `creadoEn` ascending (the traveler's inspiration order)
+ *   and de-duplicated by normalized `nombre + paisCodigo`.
+ * - When the group has no specific cities (country-level item only), a single
+ *   stop anchored on the country centroid + localized name is returned.
+ *
+ * @param {{ paisCodigo?: string, paisNombre?: string, ciudades?: object[] }} group
+ * @returns {object[]} clean stop payloads ready to seed the editor.
+ */
+export const buildStopsFromWishlistGroup = (group) => {
+  if (!group || typeof group !== 'object') return [];
+
+  const baseCode = normalizeCountryCode(group.paisCodigo) || group.paisCodigo || '';
+  const ciudades = Array.isArray(group.ciudades) ? group.ciudades : [];
+  const stamp = Date.now();
+
+  if (ciudades.length > 0) {
+    const ordered = [...ciudades].sort((a, b) => toTimestamp(a?.creadoEn) - toTimestamp(b?.creadoEn));
+    const seen = new Set();
+    const stops = [];
+
+    ordered.forEach((city, index) => {
+      const nombre = String(city?.nombre ?? '').trim();
+      if (!nombre) return;
+      const code = normalizeCountryCode(city?.paisCodigo || baseCode) || baseCode;
+      const key = `${nombre.toLowerCase()}_${code}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+
+      stops.push({
+        id: `stop-wishlist-${city.id || index}-${stamp}`,
+        nombre,
+        ciudad: nombre,
+        paisCodigo: code,
+        coordenadas: Array.isArray(city?.coordenadas) ? [...city.coordenadas] : null,
+        fechaLlegada: '',
+        fechaSalida: '',
+        orden: stops.length + 1,
+        flag: getFlagUrl(code),
+      });
+    });
+
+    if (stops.length > 0) return stops;
+  }
+
+  // Country-level fallback (no specific cities saved).
+  const countryName = group.paisNombre || getCountryName(baseCode) || baseCode;
+  return [
+    {
+      id: `stop-wishlist-country-${baseCode || 'xx'}-${stamp}`,
+      nombre: countryName,
+      ciudad: countryName,
+      paisCodigo: baseCode,
+      coordenadas: getCountryCentroid(baseCode) || null,
+      fechaLlegada: '',
+      fechaSalida: '',
+      orden: 1,
+      flag: getFlagUrl(baseCode),
+    },
+  ];
 };

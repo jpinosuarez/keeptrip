@@ -3,36 +3,46 @@ import { useTranslation } from 'react-i18next';
 import { Bookmark, Plus } from 'lucide-react';
 
 /**
- * EmptyWishlistState — warm, evocative empty state for the "Mi Wishlist" tab.
- * Copy follows the Keeptrip voice ("bucket list", no deprecated vocabulary).
+ * EmptyWishlistState — warm, aspirational empty state for the "Mi Wishlist" tab.
+ * Block-level design (mirrors GhostEmptyState/MapEmptyState convention): a
+ * bounded, centered white card with block <h3>/<p> so the copy always spans the
+ * card width and wraps normally — no flex-column shrink-wrap possible.
+ * Copy follows the Keeptrip voice (Clear-evoking, "tú", niche travel vocabulary).
  */
-const EmptyWishlistState = ({ onAdd }) => {
-  const { t } = useTranslation('dashboard');
+export default function EmptyWishlistState({ onAdd }) {
+  const { t } = useTranslation(['dashboard']);
 
   return (
-    <div className="flex flex-col items-center justify-center text-center gap-4 py-16 px-6 rounded-[24px] bg-white border border-[#E2E8F0] shadow-[0_4px_20px_rgba(0,0,0,0.07)]">
-      <div className="w-16 h-16 rounded-full bg-[#45B0A8]/12 flex items-center justify-center">
-        <Bookmark size={28} className="text-[#45B0A8]" />
+    <div className="mx-auto block w-full max-w-[480px] rounded-[24px] border border-slate-200/90 bg-white p-8 sm:p-10 text-center shadow-sm">
+      {/* Icon Badge */}
+      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[#45B0A8]/10 text-[#45B0A8]">
+        <Bookmark className="fill-[#45B0A8]/20" size={28} />
       </div>
-      <h3 className="m-0 text-xl font-extrabold text-[#1E293B] font-heading">
-        {t('wishlist.empty.title', 'Tu bucket list te espera')}
+
+      {/* Heading */}
+      <h3 className="block w-full font-heading text-xl font-bold text-slate-800 leading-snug">
+        {t('dashboard:wishlist.empty.title', 'Tu bucket list te espera')}
       </h3>
-      <p className="m-0 max-w-md text-sm text-[#64748B]">
+
+      {/* Description Paragraph */}
+      <p className="mt-3 block w-full text-sm sm:text-base text-slate-500 leading-relaxed whitespace-normal break-normal">
         {t(
-          'wishlist.empty.description',
+          'dashboard:wishlist.empty.description',
           'Guarda países y ciudades que sueñas visitar. Cuando estés listo, conviértelos en tu próxima aventura.'
         )}
       </p>
-      <button
-        type="button"
-        onClick={onAdd}
-        className="inline-flex items-center gap-2 min-h-[44px] px-6 rounded-full bg-[#FF6B35] text-white font-bold border-none cursor-pointer shadow-[0_6px_20px_rgba(255,107,53,0.4)] font-heading"
-      >
-        <Plus size={16} />
-        {t('wishlist.empty.cta', 'Añadir mi primer destino')}
-      </button>
+
+      {/* CTA Button */}
+      <div className="mt-8 flex justify-center w-full">
+        <button
+          type="button"
+          onClick={onAdd}
+          className="inline-flex min-h-[48px] min-w-[240px] items-center justify-center gap-2 rounded-full bg-[#FF6B35] hover:bg-[#e85a26] px-6 py-3 text-sm font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer"
+        >
+          <Plus size={18} />
+          <span>{t('dashboard:wishlist.empty.cta', 'Añadir destino')}</span>
+        </button>
+      </div>
     </div>
   );
-};
-
-export default EmptyWishlistState;
+}

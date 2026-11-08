@@ -11,6 +11,7 @@
   "emptyHelp": "Puedes buscar por nombre, país o ciudad.",
   "minChars": "Escribe al menos 3 caracteres para buscar",
   "country": "País",
+  "city": "Ciudad",
   "add": "Añadir",
   "addToWishlist": "A la Wishlist",
   "savedToWishlist": "Guardado",

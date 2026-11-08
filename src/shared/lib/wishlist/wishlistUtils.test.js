@@ -7,6 +7,7 @@ import {
   matchesWishlistQuery,
   groupWishlistByCountry,
   buildWishlistItemFromPlace,
+  buildStopsFromWishlistGroup,
 } from './wishlistUtils';
 
 describe('wishlistUtils / normalizeWishlistItem', () => {
@@ -130,5 +131,46 @@ describe('wishlistUtils / buildWishlistItemFromPlace', () => {
 
   it('returns null for empty input', () => {
     expect(buildWishlistItemFromPlace(null)).toBeNull();
+  });
+});
+
+describe('wishlistUtils / buildStopsFromWishlistGroup (Finding F1)', () => {
+  it('returns [] for a null/undefined group', () => {
+    expect(buildStopsFromWishlistGroup(null)).toEqual([]);
+    expect(buildStopsFromWishlistGroup(undefined)).toEqual([]);
+  });
+
+  it('builds a single country stop when there are no cities', () => {
+    const stops = buildStopsFromWishlistGroup({ paisCodigo: 'JP', paisNombre: 'Japón', ciudades: [] });
+    expect(stops).toHaveLength(1);
+    expect(stops[0]).toMatchObject({ nombre: 'Japón', paisCodigo: 'JP', orden: 1 });
+    expect(Array.isArray(stops[0].coordenadas)).toBe(true);
+  });
+
+  it('maps a single city to a stop with coordinates', () => {
+    const stops = buildStopsFromWishlistGroup({
+      paisCodigo: 'JP',
+      ciudades: [
+        { id: 'c1', nombre: 'Kioto', paisCodigo: 'JP', coordenadas: [135.7, 35.0], creadoEn: '2026-01-02T00:00:00Z' },
+      ],
+    });
+    expect(stops).toHaveLength(1);
+    expect(stops[0]).toMatchObject({ nombre: 'Kioto', paisCodigo: 'JP', orden: 1 });
+    expect(stops[0].coordenadas).toEqual([135.7, 35.0]);
+  });
+
+  it('orders by creadoEn asc, dedupes by name+code, and maps coordinates', () => {
+    const stops = buildStopsFromWishlistGroup({
+      paisCodigo: 'JP',
+      ciudades: [
+        { id: 'c2', nombre: 'Tokio', paisCodigo: 'JP', coordenadas: [139.69, 35.68], creadoEn: '2026-03-01T00:00:00Z' },
+        { id: 'c1', nombre: 'Kioto', paisCodigo: 'JP', coordenadas: [135.7, 35.0], creadoEn: '2026-01-01T00:00:00Z' },
+        { id: 'c3', nombre: 'kioto', paisCodigo: 'JP', coordenadas: [135.7, 35.0], creadoEn: '2026-02-01T00:00:00Z' },
+      ],
+    });
+    expect(stops).toHaveLength(2);
+    expect(stops.map((s) => s.nombre)).toEqual(['Kioto', 'Tokio']);
+    expect(stops.map((s) => s.orden)).toEqual([1, 2]);
+    expect(stops[0].coordenadas).toEqual([135.7, 35.0]);
   });
 });

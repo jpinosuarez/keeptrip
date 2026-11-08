@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useOutletContext, Outlet, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus } from 'lucide-react';
+import { Globe, Bookmark } from 'lucide-react';
 import { useAuth, useSearch, useUI, useToast } from '@app/providers';
 import { ENABLE_TRIPS_LIST_VIEW, ENABLE_WISHLIST } from '@shared/config';
 import { cn } from '@shared/lib/utils/cn';
@@ -11,7 +11,10 @@ import {
   normalizeCountryCode,
   getCountryCentroid,
 } from '@shared/lib/utils/countryUtils';
-import { normalizeWishlistItem } from '@shared/lib/wishlist/wishlistUtils';
+import {
+  normalizeWishlistItem,
+  buildStopsFromWishlistGroup,
+} from '@shared/lib/wishlist/wishlistUtils';
 import TripGrid from '@widgets/tripGrid/TripGrid';
 import TripListView from '@widgets/tripGrid/ui/TripListView';
 import {
@@ -49,7 +52,6 @@ const TripsPage = () => {
 
   // Block 2.5 — "Mis Viajes" vs "Mi Wishlist" segmented view switcher.
   const [activeTab, setActiveTab] = useState('trips');
-  const [wishlistQuery, setWishlistQuery] = useState('');
 
   const [filters, setFilters] = useState(() => ({
     viewMode: getInitialViewMode(),
@@ -82,15 +84,20 @@ const TripsPage = () => {
     );
   }, [eliminarDeWishlist, pushToast, t]);
 
+  const handleRemoveWishlistItem = useCallback(async (itemId) => {
+    if (!itemId) return;
+    await eliminarDeWishlist?.([itemId]);
+  }, [eliminarDeWishlist]);
+
   const handleCreateTripFromWishlist = useCallback((group) => {
     const code = normalizeCountryCode(group?.paisCodigo) || group?.paisCodigo || '';
     const countryInfo = COUNTRIES_DATA.find((country) => country.code === code);
-    const coords =
-      group?.items?.find((entry) => Array.isArray(entry.coordenadas))?.coordenadas ||
-      getCountryCentroid(code) ||
-      null;
     const countryName = countryInfo?.name || group?.paisNombre || code;
-    const cityItem = group?.ciudades?.[0] || null;
+    // Finding F1: seed ALL saved cities (default-include-all) instead of the first,
+    // so a multi-city country is never silently reduced to a single stop. The user
+    // prunes/reorders stops inside the editor.
+    const stops = buildStopsFromWishlistGroup(group);
+    const firstStop = stops[0] || null;
     const today = new Date().toISOString().split('T')[0];
 
     setViajeBorrador({
@@ -99,26 +106,33 @@ const TripsPage = () => {
       nombreEspanol: countryName,
       flag: getFlagUrl(code),
       continente: 'Mundo',
-      titulo: '',
+      titulo: countryName ? `Viaje a ${countryName}` : '',
       fechaInicio: today,
       fechaFin: today,
       foto: null,
-      latlng: coords,
-      coordenadas: coords,
+      latlng: firstStop?.coordenadas || null,
+      coordenadas: firstStop?.coordenadas || null,
+      paradas: stops,
       vibe: [],
       highlights: { topFood: '', topView: '', topTip: '' },
       companions: [],
       texto: '',
       presupuesto: null,
     });
-    setCiudadInicialBorrador({
-      nombre: cityItem?.nombre || countryName,
-      coordenadas: cityItem?.coordenadas || coords || [0, 0],
-      fecha: today,
-      paisCodigo: code,
-      flag: getFlagUrl(code),
-      _selectionId: `${Date.now()}`,
-    });
+
+    setCiudadInicialBorrador(
+      firstStop
+        ? { ...firstStop, fecha: today, _selectionId: `${Date.now()}` }
+        : {
+            nombre: countryName,
+            coordenadas: getCountryCentroid(code) || [0, 0],
+            fecha: today,
+            paisCodigo: code,
+            flag: getFlagUrl(code),
+            _selectionId: `${Date.now()}`,
+          }
+    );
+
     navigate('/trips?new=true');
   }, [setViajeBorrador, setCiudadInicialBorrador, navigate]);
 
@@ -182,20 +196,24 @@ const TripsPage = () => {
     <div className="flex flex-col h-full relative overflow-y-auto overflow-x-hidden">
       {/* Block 2.5 — Segmented view switcher: Trips | Wishlist */}
       {ENABLE_WISHLIST && (
-        <div className="flex items-center gap-2 mb-4" role="tablist">
+        <div
+          className="inline-flex items-center gap-1 p-1 mb-4 rounded-full bg-slate-100 border border-slate-200/80 self-start"
+          role="tablist"
+        >
           <button
             type="button"
             role="tab"
             aria-selected={activeTab === 'trips'}
             onClick={() => setActiveTab('trips')}
             className={cn(
-              'inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-full text-sm font-bold border transition-colors cursor-pointer font-heading',
+              'inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-full text-sm transition-colors cursor-pointer font-heading',
               activeTab === 'trips'
-                ? 'bg-[#FF6B35]/10 border-[#FF6B35] text-[#FF6B35]'
-                : 'bg-white border-[#E2E8F0] text-[#475569] hover:bg-slate-50'
+                ? 'bg-white text-slate-900 shadow-xs font-bold'
+                : 'text-slate-500 hover:text-slate-700 font-semibold'
             )}
           >
-            🌍 {t('wishlist.tabTrips', 'Viajes Realizados')} ({trips.length})
+            <Globe size={15} className={activeTab === 'trips' ? 'text-[#FF6B35]' : 'text-slate-400'} />
+            {t('wishlist.tabTrips', 'Viajes Realizados')} ({trips.length})
           </button>
           <button
             type="button"
@@ -203,13 +221,14 @@ const TripsPage = () => {
             aria-selected={activeTab === 'wishlist'}
             onClick={() => setActiveTab('wishlist')}
             className={cn(
-              'inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-full text-sm font-bold border transition-colors cursor-pointer font-heading',
+              'inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-full text-sm transition-colors cursor-pointer font-heading',
               activeTab === 'wishlist'
-                ? 'bg-[#45B0A8]/15 border-[#45B0A8] text-[#2C3E50]'
-                : 'bg-white border-[#E2E8F0] text-[#475569] hover:bg-slate-50'
+                ? 'bg-[#45B0A8] text-white shadow-xs font-bold'
+                : 'text-slate-500 hover:text-slate-700 font-semibold'
             )}
           >
-            🔖 {t('wishlist.tabWishlist', 'Mi Wishlist')} ({wishlistItems.length})
+            <Bookmark size={15} className={activeTab === 'wishlist' ? 'text-white' : 'text-slate-400'} />
+            {t('wishlist.tabWishlist', 'Mi Wishlist')} ({wishlistItems.length})
           </button>
         </div>
       )}
@@ -265,34 +284,12 @@ const TripsPage = () => {
           </div>
         </>
       ) : (
-        /* Block 2.5 — Wishlist view (no stats, no trip filters) */
+        /* Block 2.5 — Wishlist view (inline search + grid; no stats, no filters) */
         <div className="flex-1 flex flex-col">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="flex items-center gap-2 flex-1 min-w-0 px-3 rounded-full bg-white border border-[#E2E8F0] min-h-[44px]">
-              <Search size={16} className="text-[#45B0A8] shrink-0" />
-              <input
-                type="text"
-                value={wishlistQuery}
-                onChange={(e) => setWishlistQuery(e.target.value)}
-                placeholder={t('wishlist.searchPlaceholder', 'Buscar y añadir a tu Wishlist…')}
-                aria-label={t('wishlist.searchAria', 'Buscar en tu Wishlist')}
-                className="flex-1 min-w-0 border-none outline-none bg-transparent text-sm text-[#1E293B]"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={openBuscador}
-              aria-label={t('wishlist.addDestination', 'Añadir destino')}
-              className="inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-full bg-[#FF6B35] text-white font-bold border-none cursor-pointer shrink-0 shadow-[0_6px_20px_rgba(255,107,53,0.35)] font-heading"
-            >
-              <Plus size={16} />
-              <span className="hidden sm:inline">{t('wishlist.addDestination', 'Añadir destino')}</span>
-            </button>
-          </div>
           <WishlistView
             items={wishlistItems}
-            query={wishlistQuery}
-            onRemove={handleRemoveWishlistGroup}
+            onDeleteCountry={handleRemoveWishlistGroup}
+            onDeleteItem={handleRemoveWishlistItem}
             onCreateTrip={handleCreateTripFromWishlist}
             onAddDestination={openBuscador}
           />

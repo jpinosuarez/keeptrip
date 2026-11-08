@@ -8,7 +8,18 @@ import { normalizeWishlistItem } from '@shared/lib/wishlist/wishlistUtils';
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key, fallback) => (typeof fallback === 'string' ? fallback : key),
+    i18n: { language: 'es' },
   }),
+}));
+
+vi.mock('@shared/api/services/mapboxGeocoding', () => ({
+  fetchGeocoding: vi.fn(async () => ({ features: [] })),
+}));
+
+// Avoid booting the full i18n instance through countryI18n in the test env.
+vi.mock('@shared/lib/utils/countryI18n', () => ({
+  getLocalizedCountryName: (code) => code || '',
+  getCountryNameKey: (code) => (code ? `countries:${code}` : ''),
 }));
 
 const buildItems = () => [
@@ -25,7 +36,7 @@ describe('WishlistView', () => {
     render(<WishlistView items={[]} onAddDestination={onAddDestination} />);
 
     expect(screen.getByText('Tu bucket list te espera')).toBeTruthy();
-    fireEvent.click(screen.getByText('Añadir mi primer destino'));
+    fireEvent.click(screen.getByText('Añadir destino'));
     expect(onAddDestination).toHaveBeenCalledTimes(1);
   });
 
@@ -37,25 +48,36 @@ describe('WishlistView', () => {
     expect(screen.getByText('Portugal')).toBeTruthy();
   });
 
-  it('calls onCreateTrip with the country group and onRemove with the same group', () => {
+  it('calls onCreateTrip and onDeleteCountry with the correct country group', () => {
     const onCreateTrip = vi.fn();
-    const onRemove = vi.fn();
-    const items = buildItems();
-    render(<WishlistView items={items} onCreateTrip={onCreateTrip} onRemove={onRemove} />);
+    const onDeleteCountry = vi.fn();
+    render(<WishlistView items={buildItems()} onCreateTrip={onCreateTrip} onDeleteCountry={onDeleteCountry} />);
 
     const createButtons = screen.getAllByText('Crear viaje');
     fireEvent.click(createButtons[0]);
     expect(onCreateTrip).toHaveBeenCalledTimes(1);
     expect(onCreateTrip.mock.calls[0][0]).toMatchObject({ paisCodigo: 'JP' });
 
-    fireEvent.click(screen.getAllByLabelText('Quitar de la Wishlist')[0]);
-    expect(onRemove).toHaveBeenCalledTimes(1);
-    expect(onRemove.mock.calls[0][0]).toMatchObject({ paisCodigo: 'JP' });
+    fireEvent.click(screen.getAllByLabelText('Quitar país de la Wishlist')[0]);
+    expect(onDeleteCountry).toHaveBeenCalledTimes(1);
+    expect(onDeleteCountry.mock.calls[0][0]).toMatchObject({ paisCodigo: 'JP' });
   });
 
-  it('filters by query and shows the no-results state', () => {
-    render(<WishlistView items={buildItems()} query="lisboa" />);
-    expect(screen.getByText('No hay destinos que coincidan con tu búsqueda.')).toBeTruthy();
-    expect(screen.queryByText('Japón')).toBeNull();
+  it('removes a single city via its × button', () => {
+    const onDeleteItem = vi.fn();
+    render(<WishlistView items={buildItems()} onDeleteItem={onDeleteItem} />);
+
+    fireEvent.click(screen.getByLabelText('Quitar Kioto'));
+    expect(onDeleteItem).toHaveBeenCalledTimes(1);
+  });
+
+  it('filters the saved cards as the user types and shows the no-results state', () => {
+    render(<WishlistView items={buildItems()} />);
+
+    const input = screen.getByPlaceholderText('Filtrar destinos guardados...');
+    fireEvent.change(input, { target: { value: 'lisboa' } });
+
+    expect(screen.getByText(/No tienes destinos que coincidan con/)).toBeTruthy();
+    expect(screen.queryByText('Kioto')).toBeNull();
   });
 });
