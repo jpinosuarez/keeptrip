@@ -13,6 +13,9 @@ export const ENABLE_ONBOARDING = true;
 export const ENABLE_TRIPS_LIST_VIEW = true;
 // Block 2.3: Deep Travel Statistics Page ("Estadísticas de Viaje") at /hub.
 export const ENABLE_TRAVEL_STATS = true;
+// Block 2.5: Lightweight Wishlist ("Lista de Deseos / Bucket List") for
+// countries and cities, stored on the user profile (never on `viajes`).
+export const ENABLE_WISHLIST = true;
 // DEV-only tooling (data seeder + persona switcher). Hard-gated by
 // `import.meta.env.DEV`, which Vite statically replaces with `false` in
 // production builds so every consumer is tree-shaken out (zero leaked bytes).

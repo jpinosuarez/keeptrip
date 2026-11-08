@@ -96,3 +96,5 @@ export const Wallet = createIconComponent('Wallet');
 export const Users = createIconComponent('Users');
 export const Lightbulb = createIconComponent('Lightbulb');
 export const CloudSun = createIconComponent('CloudSun');
+export const Bookmark = createIconComponent('Bookmark');
+export const BookmarkCheck = createIconComponent('BookmarkCheck');

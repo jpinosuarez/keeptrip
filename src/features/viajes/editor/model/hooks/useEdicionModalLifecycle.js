@@ -14,6 +14,7 @@ export function useEdicionModalLifecycle({
   viaje,
   esBorrador,
   ciudadInicial,
+  paradasIniciales = [],
   usuarioUid,
   galeria,
   formData,
@@ -424,27 +425,41 @@ export function useEdicionModalLifecycle({
       return changed ? next : prev;
     });
 
-    // KILL ZOMBIE HOOK: Only initialize paradas on FIRST MOUNT, not when user deletes them
-    if (ciudadInicial && paradas.length === 0 && !initializedParadasRef.current) {
-      initializedParadasRef.current = true;
-      const initialDate = normalizeToIsoDate(viaje.fechaInicio || viaje.startDate) || new Date().toISOString().split('T')[0];
-      setParadas([
-        {
-          id: 'init',
-          nombre: ciudadInicial.nombre,
-          coordenadas: ciudadInicial.coordenadas,
-          fecha: initialDate,
-          fechaLlegada: initialDate,
-          fechaSalida: '',
-          paisCodigo: ciudadInicial.paisCodigo,
-          flag: viaje.flag,
-        },
-      ]);
+    // KILL ZOMBIE HOOK: Only initialize paradas on FIRST MOUNT, not when user deletes them.
+    // Block 2.5 / Finding F1: a wishlist "create trip" seed can carry MULTIPLE
+    // cities; seed them all so nothing is silently dropped, then let the user prune.
+    if (paradas.length === 0 && !initializedParadasRef.current) {
+      const hasInitialStops = Array.isArray(paradasIniciales) && paradasIniciales.length > 0;
+      if (hasInitialStops) {
+        initializedParadasRef.current = true;
+        setParadas(
+          paradasIniciales.map((stop, index) => ({
+            ...stop,
+            id: stop?.id || `init-${index}`,
+          }))
+        );
+      } else if (ciudadInicial) {
+        initializedParadasRef.current = true;
+        const initialDate = normalizeToIsoDate(viaje.fechaInicio || viaje.startDate) || new Date().toISOString().split('T')[0];
+        setParadas([
+          {
+            id: 'init',
+            nombre: ciudadInicial.nombre,
+            coordenadas: ciudadInicial.coordenadas,
+            fecha: initialDate,
+            fechaLlegada: initialDate,
+            fechaSalida: '',
+            paisCodigo: ciudadInicial.paisCodigo,
+            flag: viaje.flag,
+          },
+        ]);
+      }
     }
   }, [
     ciudadInicial,
     esBorrador,
     paradas.length,
+    paradasIniciales,
     setFormData,
     setParadas,
     viaje,

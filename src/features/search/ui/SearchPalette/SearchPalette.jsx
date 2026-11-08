@@ -9,7 +9,8 @@ import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { useDebounce } from '../../model/useDebounce';
 import { useSearchHistory } from '../../model/useSearchHistory';
 import RichResultCard from './RichResultCard';
-import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
+import { parsePlaceFeature, dedupePlaces } from '@shared/lib/geo/placeFeature';
+import { buildWishlistItemFromPlace, wishlistKey } from '@shared/lib/wishlist/wishlistUtils';
 
 import { fetchGeocoding } from '@shared/api/services/mapboxGeocoding';
 
@@ -18,7 +19,11 @@ const SearchPalette = ({
   onClose, 
   onSelectPlace, 
   onSelectTrip, 
-  allTrips = [] 
+  allTrips = [],
+  onAddToWishlist,
+  wishlist = [],
+  wishlistEnabled = false,
+  initialQuery = '',
 }) => {
   const { t, i18n } = useTranslation(['search', 'common']);
   const { pushToast } = useToast();
@@ -41,6 +46,15 @@ const SearchPalette = ({
   
   const [query, setQuery] = useState('');
   const [mapboxResults, setMapboxResults] = useState([]);
+
+  // When opened with a pre-filled query (e.g. Wishlist "search the map to add it"),
+  // seed the input so the user lands on live results immediately.
+  useEffect(() => {
+    if (isOpen && initialQuery) {
+      setQuery(initialQuery);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialQuery]);
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [showHelp, setShowHelp] = useState(false);
@@ -96,28 +110,12 @@ const SearchPalette = ({
           signal: controller.signal,
         });
 
-        const processed = (data.features || []).map((feat) => {
-          const countryContext =
-            feat.context?.find((c) => c.id.startsWith('country')) ||
-            (feat.place_type.includes('country') ? feat : null);
-          const countryCode = (
-            countryContext?.short_code ||
-            countryContext?.properties?.short_code ||
-            feat.properties?.short_code ||
-            feat.short_code
-          )?.toUpperCase();
-
-          return {
-            id: feat.id,
-            name: feat.text,
-            fullName: feat.place_name,
-            type: feat.place_type[0],
-            coordinates: feat.center,
-            countryCode,
-            countryName: getLocalizedCountryName(countryCode, i18n.language, t) || countryContext?.text || '',
-            _mapbox: true,
-          };
-        });
+        // Parse (region + type aware) then drop visually identical duplicates.
+        const processed = dedupePlaces(
+          (data.features || [])
+            .map((feat) => parsePlaceFeature(feat, { language: i18n.language, t }))
+            .filter(Boolean)
+        );
 
         setMapboxResults(processed);
       } catch (error) {
@@ -175,7 +173,7 @@ const SearchPalette = ({
         onSelectTrip?.(result.id);
       } else {
         onSelectPlace?.({
-          isCountry: result.type === 'country',
+          isCountry: result.isCountry ?? result.type === 'country',
           name: result.name,
           coordinates: result.coordinates,
           countryName: result.countryName,
@@ -187,6 +185,32 @@ const SearchPalette = ({
       onClose();
     },
     [onSelectPlace, onSelectTrip, onClose]
+  );
+
+  // Block 2.5 — wishlist: track which place keys are already saved so each row
+  // can flip its secondary action to "✓ Guardado" reactively.
+  const savedKeys = useMemo(
+    () => new Set((Array.isArray(wishlist) ? wishlist : []).map(wishlistKey)),
+    [wishlist]
+  );
+
+  const handleAddToWishlist = useCallback(
+    async (result) => {
+      if (!wishlistEnabled || typeof onAddToWishlist !== 'function') return;
+      const item = buildWishlistItemFromPlace(result);
+      if (!item) return;
+      const saved = await onAddToWishlist(item);
+      if (saved !== false && isMountedRef.current) {
+        pushToast({
+          type: 'success',
+          message: t('search:addedToWishlistToast', {
+            name: item.nombre,
+            defaultValue: `🔖 ${item.nombre} añadido a tu Wishlist`,
+          }),
+        });
+      }
+    },
+    [wishlistEnabled, onAddToWishlist, pushToast, t]
   );
 
   // Keyboard navigation
@@ -477,15 +501,23 @@ const SearchPalette = ({
 
             {!loading && allResults.length > 0 && (
               <div style={styles.resultsList}>
-                {allResults.map((result, idx) => (
-                  <RichResultCard
-                    key={result._type === 'trip' ? (result._tripId || `trip-${idx}`) : (result.id || `result-${idx}`)}
-                    item={result}
-                    type={result._type}
-                    isSelected={idx === selectedIndex}
-                    onClick={() => handleSelectResult(result)}
-                  />
-                ))}
+                {allResults.map((result, idx) => {
+                  const isPlace = result._type === 'place';
+                  const resultKey = isPlace ? wishlistKey(buildWishlistItemFromPlace(result)) : null;
+                  return (
+                    <RichResultCard
+                      key={result._type === 'trip' ? (result._tripId || `trip-${idx}`) : (result.id || `result-${idx}`)}
+                      item={result}
+                      type={result._type}
+                      isSelected={idx === selectedIndex}
+                      onClick={() => handleSelectResult(result)}
+                      showWishlistActions={wishlistEnabled && isPlace}
+                      isSaved={Boolean(resultKey && savedKeys.has(resultKey))}
+                      onCreateTrip={() => handleSelectResult(result)}
+                      onAddToWishlist={() => handleAddToWishlist(result)}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>

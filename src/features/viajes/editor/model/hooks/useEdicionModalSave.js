@@ -2,6 +2,7 @@ import { useOperationalFlags } from '@shared/lib/hooks/useOperationalFlags';
 import { normalizeToIsoDate, resolveCoverPhotoUrl } from '@shared/lib/utils/viajeUtils';
 import { normalizeCountryCode, getCountryName } from '@shared/lib/utils/countryUtils';
 import { ParadaSchema } from '@entities/viajes/model/viajeSchema';
+import { findWishlistMatches } from '@shared/lib/wishlist/wishlistUtils';
 
 /**
  * Recursively strips `undefined` values (Firestore writeBatch/writeBatch throws on
@@ -83,6 +84,8 @@ export function useEdicionModalSave({
   resetDirty,
   onAfterSave,
   autoFinalize = true,
+  wishlist = [],
+  onWishlistFulfilled = null,
 }) {
   const {
     flags: { level: operationalLevel },
@@ -244,6 +247,30 @@ export function useEdicionModalSave({
         // reason (validation warning) or swallowed a real error with its own toast.
         console.warn('[useEdicionModalSave] save produced no trip id; keeping editor open.');
         return null;
+      }
+
+      // Block 2.5 — Auto-completion: if this saved trip fulfills any wishlist
+      // dream (matching country code or city name), remove it and celebrate.
+      // Pure matching lives in wishlistUtils; persistence + toast are delegated
+      // to the composition root (no extra Firestore reads, single merge write).
+      if (Array.isArray(wishlist) && wishlist.length > 0 && typeof onWishlistFulfilled === 'function') {
+        try {
+          const matched = findWishlistMatches(wishlist, sanitizedStops);
+          if (matched.length > 0) {
+            await onWishlistFulfilled(matched);
+            const destination = matched[0]?.nombre || '';
+            pushToast(
+              t('toast.wishlistFulfilled', {
+                ns: 'editor',
+                destination,
+                defaultValue: `🎉 ¡Sueño cumplido! Visitaste ${destination}, lo tachamos de tu Wishlist.`,
+              }),
+              'success'
+            );
+          }
+        } catch (wishlistError) {
+          console.warn('[useEdicionModalSave] wishlist auto-complete failed:', wishlistError?.message || wishlistError);
+        }
       }
 
       if (galleryFiles.length > 0) {

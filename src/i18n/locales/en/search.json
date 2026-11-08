@@ -11,7 +11,12 @@
   "emptyHelp": "You can search by name, country or city.",
   "minChars": "Type at least 3 characters to search",
   "country": "Country",
+  "city": "City",
   "add": "Add",
+  "addToWishlist": "Add to Wishlist",
+  "savedToWishlist": "Saved",
+  "createTrip": "Create trip",
+  "addedToWishlistToast": "🔖 {{name}} added to your Wishlist",
   "popular": {
     "japan": "Japan",
     "italy": "Italy",

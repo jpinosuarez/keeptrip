@@ -193,5 +193,41 @@
     "couple": "As a couple",
     "family": "With family",
     "friends": "With friends"
+  },
+  "wishlist": {
+    "tabTrips": "Completed Trips",
+    "tabWishlist": "My Wishlist",
+    "searchPlaceholder": "Filter saved destinations...",
+    "searchAria": "Search your Wishlist",
+    "addDestination": "Add destination",
+    "createTrip": "Create trip",
+    "remove": "Remove from Wishlist",
+    "removed": "{{name}} removed from your Wishlist",
+    "cityLabel": "Saved cities",
+    "continent": "Continent",
+    "layerVisited": "Visited",
+    "layerWishlist": "Wishlist",
+    "layerAll": "All",
+    "noResults": "No destinations match your search.",
+    "noMatchesCta": "Search the map to add it",
+    "countryComplete": "Whole country",
+    "wholeCountry": "Country on wishlist",
+    "addToWishlist": "Add to Wishlist",
+    "saved": "Saved",
+    "searching": "Searching destinations…",
+    "clear": "Clear search",
+    "deleteCountry": "Remove country from Wishlist",
+    "continents": {
+      "americas": "Americas",
+      "europe": "Europe",
+      "asia": "Asia",
+      "africa": "Africa",
+      "oceania": "Oceania"
+    },
+    "empty": {
+      "title": "Your bucket list awaits",
+      "description": "Save countries and cities you dream of visiting. When you're ready, turn them into your next adventure.",
+      "cta": "Add destination"
+    }
   }
 }

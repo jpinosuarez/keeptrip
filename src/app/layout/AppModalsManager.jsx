@@ -4,11 +4,12 @@ import { useSearchParams, useNavigate, useMatch, useLocation } from 'react-route
 import { AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@app/providers/AuthContext';
+import { useUI } from '@app/providers/UIContext';
 
 import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import { ErrorBoundary } from '@shared/ui/components/ErrorBoundary';
 import { LoaderCircle } from 'lucide-react';
-import { COLORS, RADIUS, SHADOWS, ENABLE_ONBOARDING } from '@shared/config';
+import { COLORS, RADIUS, SHADOWS, ENABLE_ONBOARDING, ENABLE_WISHLIST } from '@shared/config';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { COUNTRIES_DATA, getCountryCentroid, getFlagUrl } from '@shared/lib/utils/countryUtils';
 
@@ -58,7 +59,13 @@ function AppModalsManager({
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, userProfile, loadingProfile } = useAuth() || {};
+  const { user, userProfile, loadingProfile, agregarAWishlist } = useAuth() || {};
+  const { searchPaletteInitialQuery } = useUI();
+
+  // Block 2.5 / Finding F1 — multi-stop wishlist seed. When the wishlist
+  // "create trip" flow seeds a draft it stores the stops on `viajeBorrador.paradas`;
+  // this state is an explicit override slot that always clears on close.
+  const [paradasInicialesBorrador, setParadasInicialesBorrador] = useState([]);
 
   const [isOnboardingDismissed, setIsOnboardingDismissed] = useState(
     () => typeof window !== 'undefined' && sessionStorage.getItem('keeptrip_onboarding_skipped') === 'true'
@@ -229,6 +236,7 @@ function AppModalsManager({
   const handleCloseEditor = useCallback(() => {
     setViajeBorrador(null);
     setCiudadInicialBorrador(null);
+    setParadasInicialesBorrador([]);
 
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -247,7 +255,7 @@ function AppModalsManager({
       }
       return changed ? next : prev;
     }, { replace: true });
-  }, [setSearchParams, setViajeBorrador, setCiudadInicialBorrador]);
+  }, [setSearchParams, setViajeBorrador, setCiudadInicialBorrador, setParadasInicialesBorrador]);
 
   // Block 2.4: `handleSaveTrip` must NOT close the editor. It only performs the
   // Firestore save and returns the result. Editor closing is delegated
@@ -352,9 +360,13 @@ function AppModalsManager({
             <SearchPalette
               isOpen={searchPaletteOpen}
               onClose={closeSearchPalette}
+              initialQuery={searchPaletteInitialQuery}
               allTrips={bitacora}
               onSelectPlace={onLugarSeleccionado}
               onSelectTrip={(tripId) => navigate(`/trips/${tripId}`)}
+              onAddToWishlist={agregarAWishlist}
+              wishlist={userProfile?.wishlist || []}
+              wishlistEnabled={ENABLE_WISHLIST}
             />
           </Suspense>
         </ErrorBoundary>
@@ -376,6 +388,11 @@ function AppModalsManager({
               isSaving={isSavingModal}
               esBorrador={esBorrador}
               ciudadInicial={ciudadInicialBorrador}
+              paradasIniciales={
+                paradasInicialesBorrador.length > 0
+                  ? paradasInicialesBorrador
+                  : (viajeParaEditar?.paradas || [])
+              }
               onAfterSave={handleCloseEditor}
             />
           </Suspense>

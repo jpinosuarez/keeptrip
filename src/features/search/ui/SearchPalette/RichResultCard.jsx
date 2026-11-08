@@ -1,5 +1,5 @@
 import React from 'react';
-import { Globe, MapPin, Calendar, Plus, ArrowRight } from 'lucide-react';
+import { Globe, MapPin, Calendar, Plus, ArrowRight, Bookmark, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { COLORS, RADIUS, SHADOWS, TRANSITIONS } from '@shared/config';
 import { formatDateRange } from '@shared/lib/utils/viajeUtils';
@@ -14,7 +14,11 @@ const RichResultCard = ({
   item, 
   isSelected = false, 
   type = 'place', // 'place' | 'trip'
-  onClick 
+  onClick,
+  showWishlistActions = false,
+  isSaved = false,
+  onAddToWishlist,
+  onCreateTrip,
 }) => {
   const { t } = useTranslation(['search', 'common']);
   const isTrip = type === 'trip';
@@ -23,9 +27,15 @@ const RichResultCard = ({
   // Trip: { titulo, nombreEspanol, banderas, fechaInicio, fechaFin, foto, ... }
   
   const title = isTrip ? item.titulo : item.name;
-  const subtitle = isTrip 
+  const typeLabel = isTrip ? null : (item.isCountry ? t('search:country', 'País') : t('search:city', 'Ciudad'));
+  const placeSubtitle = item.subtitle
+    || [item.regionName, item.countryName].filter(Boolean).join(', ')
+    || item.fullName
+    || item.countryName
+    || '';
+  const subtitle = isTrip
     ? formatDateRange(item.fechaInicio, item.fechaFin)
-    : (item.countryName || item.fullName);
+    : placeSubtitle;
   
   const year = isTrip && item.fechaInicio 
     ? new Date(item.fechaInicio).getFullYear()
@@ -43,6 +53,8 @@ const RichResultCard = ({
     container: {
       display: 'flex',
       alignItems: 'center',
+      flexWrap: 'wrap',
+      rowGap: '8px',
       gap: '12px',
       padding: '12px',
       borderRadius: RADIUS.md,
@@ -101,12 +113,32 @@ const RichResultCard = ({
       letterSpacing: '0.5px',
       flexShrink: 0,
     },
+    subtitleRow: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      minWidth: 0,
+    },
     subtitle: {
       fontSize: '0.8rem',
       color: COLORS.textSecondary,
       whiteSpace: 'nowrap',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
+      minWidth: 0,
+    },
+    typeBadge: {
+      flexShrink: 0,
+      fontSize: '0.62rem',
+      fontWeight: '800',
+      textTransform: 'uppercase',
+      letterSpacing: '0.5px',
+      color: COLORS.mutedTeal,
+      backgroundColor: 'rgba(69, 176, 168, 0.12)',
+      border: '1px solid rgba(69, 176, 168, 0.3)',
+      borderRadius: RADIUS.full,
+      padding: '1px 7px',
+      lineHeight: 1.6,
     },
     badgeContainer: {
       display: 'inline-flex',
@@ -123,6 +155,62 @@ const RichResultCard = ({
       letterSpacing: '0.3px',
       cursor: 'pointer',
       transition: TRANSITIONS.fast,
+    },
+    actionsGroup: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      gap: '8px',
+      flexWrap: 'wrap',
+      flexShrink: 0,
+    },
+    primaryAction: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      minHeight: '44px',
+      padding: '8px 12px',
+      borderRadius: RADIUS.full,
+      border: 'none',
+      backgroundColor: COLORS.atomicTangerine,
+      color: '#fff',
+      fontSize: '0.74rem',
+      fontWeight: '700',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap',
+      transition: TRANSITIONS.fast,
+    },
+    wishlistAction: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      minHeight: '44px',
+      padding: '8px 12px',
+      borderRadius: RADIUS.full,
+      border: `1.5px solid ${COLORS.mutedTeal}`,
+      backgroundColor: 'rgba(69, 176, 168, 0.12)',
+      color: COLORS.mutedTeal,
+      fontSize: '0.74rem',
+      fontWeight: '700',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap',
+      transition: TRANSITIONS.fast,
+    },
+    savedAction: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      minHeight: '44px',
+      padding: '8px 12px',
+      borderRadius: RADIUS.full,
+      border: `1.5px solid ${COLORS.mutedTeal}`,
+      backgroundColor: 'rgba(69, 176, 168, 0.2)',
+      color: COLORS.mutedTeal,
+      fontSize: '0.74rem',
+      fontWeight: '700',
+      cursor: 'default',
+      whiteSpace: 'nowrap',
+      opacity: 0.85,
     },
   };
 
@@ -161,17 +249,64 @@ const RichResultCard = ({
           <span style={styles.title}>{title}</span>
           {year && <span style={styles.year}>{year}</span>}
         </div>
-        <div style={styles.subtitle}>{subtitle}</div>
+        <div style={styles.subtitleRow}>
+          {typeLabel && <span style={styles.typeBadge}>{typeLabel}</span>}
+          <span style={styles.subtitle}>{subtitle}</span>
+        </div>
       </div>
 
-      {/* Badge */}
-      <div
-        style={styles.badgeContainer}
-        role="button"
-        aria-label={isTrip ? t('common:open') : t('common:add')}
-      >
-        {badgeIcon} {badgeLabel}
-      </div>
+      {/* Actions: trips → single open badge; place results → dual Create / Wishlist */}
+      {showWishlistActions && !isTrip ? (
+        <div className="flex items-center gap-2 flex-wrap justify-end shrink-0">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              (onCreateTrip || onClick)?.();
+            }}
+            aria-label={t('search:createTrip', 'Crear viaje')}
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-xl bg-slate-100 text-slate-700 border border-slate-200/80 text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer hover:bg-[#FF6B35] hover:text-white hover:border-[#FF6B35]"
+            data-testid={`create-trip-${item.id}`}
+          >
+            <Plus size={13} />
+            <span>{t('search:createTrip', 'Crear viaje')}</span>
+          </button>
+          <button
+            type="button"
+            disabled={isSaved}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToWishlist?.(item);
+            }}
+            aria-label={
+              isSaved
+                ? t('search:savedToWishlist', 'Guardado')
+                : t('search:addToWishlist', 'A la Wishlist')
+            }
+            className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors border ${
+              isSaved
+                ? 'bg-slate-100 text-slate-400 border-slate-200/60 cursor-default font-medium'
+                : 'bg-slate-100 text-slate-700 border-slate-200/80 hover:bg-[#45B0A8] hover:text-white hover:border-[#45B0A8] cursor-pointer'
+            }`}
+            data-testid={`add-wishlist-${item.id}`}
+          >
+            {isSaved ? <Check className="text-[#45B0A8]" size={13} /> : <Bookmark size={13} />}
+            <span>
+              {isSaved
+                ? t('search:savedToWishlist', 'Guardado')
+                : t('search:addToWishlist', 'A la Wishlist')}
+            </span>
+          </button>
+        </div>
+      ) : (
+        <div
+          style={styles.badgeContainer}
+          role="button"
+          aria-label={isTrip ? t('common:open') : t('common:add')}
+        >
+          {badgeIcon} {badgeLabel}
+        </div>
+      )}
     </div>
   );
 };

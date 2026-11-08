@@ -42,6 +42,7 @@ const EditorFocusPanel = ({
   onSave,
   esBorrador = false,
   ciudadInicial = null,
+  paradasIniciales = [],
   isProcessingImage = false,
   galleryFiles,
   setGalleryFiles,
@@ -57,7 +58,7 @@ const EditorFocusPanel = ({
     flags: { level: operationalLevel, appReadonlyMode },
   } = useOperationalFlags();
   const isReadOnlyMode = Boolean(appReadonlyMode) || operationalLevel >= 3;
-  const { usuario } = useAuth();
+  const { usuario, userProfile, eliminarDeWishlist } = useAuth();
   const { pushToast: pushToastFromContext } = useToast();
   const pushToast = pushToastFromContext || (() => {});
   const uploadCtx = useUpload();
@@ -156,6 +157,7 @@ const EditorFocusPanel = ({
     viaje,
     esBorrador,
     ciudadInicial,
+    paradasIniciales,
     usuarioUid,
     galeria,
     formData: effectiveFormData,
@@ -176,6 +178,14 @@ const EditorFocusPanel = ({
     : { isUploading: false };
 
   const isImageBusy = Boolean(isProcessingImage || isUploading || galeria?.uploading);
+
+  // Block 2.5 — wishlist auto-completion on save.
+  const wishlistItems = Array.isArray(userProfile?.wishlist) ? userProfile.wishlist : [];
+  const handleWishlistFulfilled = useCallback(async (matched) => {
+    if (typeof eliminarDeWishlist === 'function') {
+      await eliminarDeWishlist((matched || []).map((entry) => entry.id));
+    }
+  }, [eliminarDeWishlist]);
 
   // Manual save handler (explicit, not auto-save)
   const handleSaveManual = useEdicionModalSave({
@@ -198,6 +208,8 @@ const EditorFocusPanel = ({
     onClose,
     resetDirty: limpiarEstado,
     autoFinalize: false,
+    wishlist: wishlistItems,
+    onWishlistFulfilled: handleWishlistFulfilled,
   });
 
   // Gallery manager (network photo cover/delete/caption/stop assignment)

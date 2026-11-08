@@ -65,6 +65,8 @@ export const UIProvider = ({ children }) => {
   
   // SearchPalette (Cmd+K) state
   const [searchPaletteOpen, setSearchPaletteOpen] = useState(false);
+  // Optional pre-filled query when opening the palette (e.g. from Wishlist "search the map").
+  const [searchPaletteInitialQuery, setSearchPaletteInitialQuery] = useState('');
 
   // User menu bottom sheet
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -92,8 +94,9 @@ export const UIProvider = ({ children }) => {
     () => {
       // Backward compatibility: alias mostrarBuscador → searchPaletteOpen
       const mostrarBuscador = searchPaletteOpen;
-      const openBuscador = () => {
+      const openBuscador = (query = '') => {
         if (!isReadOnlyMode) {
+          setSearchPaletteInitialQuery(typeof query === 'string' ? query : '');
           setSearchPaletteOpen(true);
           return;
         }
@@ -106,7 +109,10 @@ export const UIProvider = ({ children }) => {
           'info'
         );
       };
-      const closeBuscador = () => setSearchPaletteOpen(false);
+      const closeBuscador = () => {
+        setSearchPaletteOpen(false);
+        setSearchPaletteInitialQuery('');
+      };
 
       return {
         searchPlaceholder: 'Buscar viajes, paises o ciudades...',
@@ -118,8 +124,13 @@ export const UIProvider = ({ children }) => {
         openMobileDrawer: () => setMobileDrawerOpen(true),
         closeMobileDrawer: () => setMobileDrawerOpen(false),
         searchPaletteOpen,
+        searchPaletteInitialQuery,
+        setSearchPaletteInitialQuery,
         openSearchPalette: () => setSearchPaletteOpen(true),
-        closeSearchPalette: () => setSearchPaletteOpen(false),
+        closeSearchPalette: () => {
+          setSearchPaletteOpen(false);
+          setSearchPaletteInitialQuery('');
+        },
         userMenuOpen,
         openUserMenu: () => setUserMenuOpen(true),
         closeUserMenu: () => setUserMenuOpen(false),
@@ -147,6 +158,7 @@ export const UIProvider = ({ children }) => {
       toggleSidebarCollapse,
       mobileDrawerOpen,
       searchPaletteOpen,
+      searchPaletteInitialQuery,
       userMenuOpen,
       viajeBorrador,
       ciudadInicialBorrador,

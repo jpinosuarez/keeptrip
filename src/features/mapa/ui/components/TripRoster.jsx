@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronUp, Globe2, MapPin } from 'lucide-react';
 import { useAuth } from '@app/providers';
 import { COLORS, RADIUS, SHADOWS } from '@shared/config';
+import { cn } from '@shared/lib/utils/cn';
 import TripRosterItem from './TripRosterItem';
 import { COUNTRIES_DB } from '../../../../assets/sellos';
 
@@ -161,6 +162,45 @@ const RosterHeader = ({ paises, trips, tripData, isMobile, onToggle, isExpanded 
   );
 };
 
+/* ── Map Layer Toggle: Visitados | Wishlist | Todo (Block 2.5) ───────── */
+const LAYER_OPTIONS = [
+  { id: 'visitados', labelKey: 'wishlist.layerVisited', fallback: 'Visitados' },
+  { id: 'wishlist', labelKey: 'wishlist.layerWishlist', fallback: 'Wishlist' },
+  { id: 'todo', labelKey: 'wishlist.layerAll', fallback: 'Todo' },
+];
+
+const MapLayerToggle = ({ value = 'todo', onChange }) => {
+  const { t } = useTranslation('dashboard');
+  return (
+    <div
+      className="flex items-center gap-1 px-3 py-2"
+      role="tablist"
+      aria-label={t('wishlist.layerAll', 'Todo')}
+    >
+      {LAYER_OPTIONS.map((opt) => {
+        const active = value === opt.id;
+        return (
+          <button
+            key={opt.id}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange?.(opt.id)}
+            className={cn(
+              'flex-1 inline-flex items-center justify-center min-h-[44px] px-2 rounded-full text-[0.72rem] font-bold border transition-colors cursor-pointer',
+              active
+                ? 'bg-[#45B0A8]/15 border-[#45B0A8] text-[#2C3E50]'
+                : 'bg-white border-[#E2E8F0] text-[#475569] hover:bg-slate-50'
+            )}
+          >
+            {t(opt.labelKey, opt.fallback)}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
 /* ── Main TripRoster Component ───────────────────────────────────────── */
 const TripRoster = ({
   trips = [],
@@ -169,6 +209,8 @@ const TripRoster = ({
   isMobile = false,
   activeTrip = null,
   onTripSelect,
+  wishlistFilter = 'todo',
+  onWishlistFilterChange = null,
 }) => {
   const { t } = useTranslation('dashboard');
   const [isExpanded, setIsExpanded] = useState(!isMobile); // Mobile: collapsed by default, desktop: expanded
@@ -255,6 +297,8 @@ const TripRoster = ({
           isExpanded={isExpanded}
         />
 
+        <MapLayerToggle value={wishlistFilter} onChange={onWishlistFilterChange} />
+
         {/* Trip list (internal scroll) */}
         <AnimatePresence>
           {isExpanded && (
@@ -318,6 +362,8 @@ const TripRoster = ({
         onToggle={toggleExpand}
         isExpanded={isExpanded}
       />
+
+      <MapLayerToggle value={wishlistFilter} onChange={onWishlistFilterChange} />
 
       {/* Trip list (internal scroll) */}
       <AnimatePresence>

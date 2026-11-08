@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react';
 
 import { 
   signInWithPopup, 
@@ -9,6 +9,12 @@ import {
   signInWithEmailAndPassword
 } from 'firebase/auth';
 import { auth, db, googleProvider, isEmulator } from '@shared/firebase';
+import { normalizeCountryCode } from '@shared/lib/utils/countryUtils';
+import {
+  normalizeWishlistItem,
+  wishlistKey,
+  isInWishlist,
+} from '@shared/lib/wishlist/wishlistUtils';
 
 const defaultAuthContext = {
   user: null,
@@ -21,6 +27,10 @@ const defaultAuthContext = {
   logout: () => {},
   updateUserProfile: async () => {},
   actualizarPerfilUsuario: async () => {},
+  // Block 2.5 wishlist API (no-op defaults so consumers never crash).
+  agregarAWishlist: async () => false,
+  eliminarDeWishlist: async () => false,
+  estaEnWishlist: () => false,
 };
 
 const AuthContext = createContext(defaultAuthContext);
@@ -126,6 +136,69 @@ export const AuthProvider = ({ children }) => {
   const actualizarPerfilUsuario = useCallback(async (nombre, fotoURL) => {
     return updateUserProfile(nombre, fotoURL);
   }, [updateUserProfile]);
+
+  // ── Wishlist (Block 2.5): stored on usuarios/{uid}.wishlist ──────────────
+  // A ref mirrors the latest array so rapid successive taps compute from the
+  // freshest value (no stale closures, no extra Firestore reads).
+  const wishlistRef = useRef([]);
+
+  useEffect(() => {
+    wishlistRef.current = Array.isArray(userProfile?.wishlist) ? userProfile.wishlist : [];
+  }, [userProfile]);
+
+  const persistWishlist = useCallback(async (nextItems) => {
+    const safeNext = Array.isArray(nextItems) ? nextItems : [];
+    wishlistRef.current = safeNext;
+    setUserProfile((prev) => ({ ...(prev || {}), wishlist: safeNext }));
+
+    if (!auth.currentUser) return true;
+    try {
+      const { doc, setDoc } = await import('firebase/firestore');
+      const perfilRef = doc(db, 'usuarios', auth.currentUser.uid);
+      await setDoc(perfilRef, { wishlist: safeNext, updatedAt: new Date() }, { merge: true });
+      return true;
+    } catch (error) {
+      console.error('Error persisting wishlist:', error);
+      return false;
+    }
+  }, []);
+
+  const agregarAWishlist = useCallback(async (item) => {
+    const normalized = normalizeWishlistItem(item);
+    if (!normalized) return false;
+    const current = wishlistRef.current;
+    const key = wishlistKey(normalized);
+    // Idempotent: adding an existing destination is a no-op.
+    if (current.some((existing) => wishlistKey(existing) === key)) return true;
+    return persistWishlist([...current, normalized]);
+  }, [persistWishlist]);
+
+  const eliminarDeWishlist = useCallback(async (idOrIds) => {
+    const ids = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
+    const idSet = new Set(ids.filter(Boolean));
+    if (idSet.size === 0) return false;
+    const current = wishlistRef.current;
+    const next = current.filter((item) => !idSet.has(item.id));
+    if (next.length === current.length) return false;
+    return persistWishlist(next);
+  }, [persistWishlist]);
+
+  const estaEnWishlist = useCallback((codeOrCity) => {
+    const current = wishlistRef.current;
+    if (!codeOrCity) return false;
+    if (typeof codeOrCity === 'string') {
+      const value = codeOrCity.trim().toLowerCase();
+      if (!value) return false;
+      const norm = normalizeCountryCode(codeOrCity);
+      return current.some(
+        (item) =>
+          (norm && normalizeCountryCode(item.paisCodigo) === norm) ||
+          String(item.nombre || '').trim().toLowerCase() === value
+      );
+    }
+    return isInWishlist(current, codeOrCity);
+  }, []);
+
   useEffect(() => {
     let mounted = true;
 
@@ -184,6 +257,7 @@ export const AuthProvider = ({ children }) => {
               birthCity: snapData?.birthCity || null,
               residenceCountry: snapData?.residenceCountry || null,
               baseCity: snapData?.baseCity || null,
+              wishlist: Array.isArray(snapData?.wishlist) ? snapData.wishlist : [],
               hasCompletedOnboarding,
             };
             setUserProfile(profileData);
@@ -272,9 +346,12 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateUserProfile,
     actualizarPerfilUsuario,
+    agregarAWishlist,
+    eliminarDeWishlist,
+    estaEnWishlist,
     cargando,
     isAdmin,
-  }), [usuario, userProfile, loadingProfile, login, logout, updateUserProfile, actualizarPerfilUsuario, cargando, isAdmin]);
+  }), [usuario, userProfile, loadingProfile, login, logout, updateUserProfile, actualizarPerfilUsuario, agregarAWishlist, eliminarDeWishlist, estaEnWishlist, cargando, isAdmin]);
 
   return (
     <AuthContext.Provider value={value}>
