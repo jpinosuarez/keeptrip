@@ -137,6 +137,9 @@ const EditorFocusPanel = ({
     effectiveSetGalleryFiles(files);
   }, [effectiveSetGalleryFiles]);
 
+  // Dirty detection: only genuine manual edits (userEditedRef) count.
+  const hasUnsavedChanges = useCallback(() => userEditedRef.current, []);
+
   const {
     isTituloAuto: autoTitleMode,
     setIsTituloAuto: setAutoTitleMode,
@@ -321,9 +324,14 @@ const EditorFocusPanel = ({
   };
 
   const handleClose = useCallback(() => {
+    if (isClosingRef.current) return;
+    if (hasUnsavedChanges()) {
+      setShowConfirmModal(true);
+      return;
+    }
     isClosingRef.current = true;
     onClose();
-  }, [onClose]);
+  }, [onClose, hasUnsavedChanges]);
 
   // Prevent background scroll while the panel is open (iOS-friendly)
   useEffect(() => {
@@ -550,6 +558,7 @@ const EditorFocusPanel = ({
             <button
               onClick={handleSaveWithLoading}
               disabled={!canSave}
+              data-testid="editor-save-btn"
               className={cn(
                 "min-h-[44px] px-6 py-2 bg-atomicTangerine text-white rounded-full font-bold text-[0.875rem] shadow-sm transition-all flex items-center gap-2",
                 canSave ? "hover:shadow-md hover:bg-atomicTangerine/90 cursor-pointer" : "opacity-50 cursor-not-allowed"

@@ -200,7 +200,8 @@ test.describe('Create trip from search modal (E2E)', () => {
 
     // Update title to ensure changes persist and UI reflects update
     await existingTitleInput.fill('E2E Trip Edited');
-    const saveUpdatedBtn = page.getByRole('button', { name: /Save|Guardar/i }).first();
+    const saveUpdatedBtn = page.getByTestId('editor-save-btn');
+    await expect(saveUpdatedBtn).toBeEnabled({ timeout: 15000 });
     await saveUpdatedBtn.click();
     await expect(page.getByLabel(/E2E Trip Edited/i).first()).toBeVisible({ timeout: 15000 });
   });
