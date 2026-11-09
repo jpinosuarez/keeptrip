@@ -115,38 +115,30 @@ const EditorFocusPanel = ({
   const serverGallery = useGaleriaViaje(isPersistedTrip ? viaje.id : null);
   const galeria = galeriaProp || serverGallery;
 
-  // Initialize tracking refs on mount (snapshots for change detection)
-  useEffect(() => {
-    if (!viaje?.id) return;
+  // Explicit user-edit tracking. Dirty detection is driven ONLY by genuine manual
+  // edits, so async hydration / gallery loading / auto-title normalization can never
+  // flag an untouched trip as "dirty" (that caused the Cancelar double-click + wipe).
+  const userEditedRef = useRef(false);
 
-    const isDraftTrip = viaje.id === 'new';
-    const hasHydratedFormState =
-      isDraftTrip ||
-      Boolean((effectiveFormData && Object.keys(effectiveFormData).length > 0) || (effectiveParadas && effectiveParadas.length > 0));
+  // "User" setters mark the editor dirty. The RAW setters are still handed to the
+  // lifecycle hook so hydration / auto-generation never counts as a manual edit.
+  const userSetFormData = useCallback((updater) => {
+    userEditedRef.current = true;
+    effectiveSetFormData(updater);
+  }, [effectiveSetFormData]);
 
-    if (!hasHydratedFormState) return;
-    if (initialTripIdRef.current === viaje.id && initialFormDataRef.current !== null) return;
+  const userSetParadas = useCallback((updater) => {
+    userEditedRef.current = true;
+    effectiveSetParadas(updater);
+  }, [effectiveSetParadas]);
 
-    // Reset flag when editing a new trip
-    initialTripIdRef.current = viaje.id;
-    isClosingRef.current = false;
-    setIsClosingAfterSave(false);
-    initialFormDataRef.current = structuredClone(effectiveFormData || {});
-    initialParadasRef.current = structuredClone(effectiveParadas || []);
-  }, [viaje?.id]); // Only snap initial state on mount or when trip ID changes
+  const userSetGalleryFiles = useCallback((files) => {
+    userEditedRef.current = true;
+    effectiveSetGalleryFiles(files);
+  }, [effectiveSetGalleryFiles]);
 
-  // Check for unsaved changes
-  const hasUnsavedChanges = useCallback(() => {
-    const current = {
-      form: structuredClone(effectiveFormData),
-      paradas: structuredClone(effectiveParadas),
-    };
-    const initial = {
-      form: initialFormDataRef.current || {},
-      paradas: initialParadasRef.current || [],
-    };
-    return JSON.stringify(current) !== JSON.stringify(initial);
-  }, [effectiveFormData, effectiveParadas]);
+  // Dirty detection: only genuine manual edits (userEditedRef) count.
+  const hasUnsavedChanges = useCallback(() => userEditedRef.current, []);
 
   const {
     isTituloAuto: autoTitleMode,
@@ -170,6 +162,27 @@ const EditorFocusPanel = ({
     t,
     i18n,
   });
+
+  // Reset per-trip guards exactly once when the editor opens a (new) trip.
+  // Dirty detection is now driven by explicit manual edits (userEditedRef), so async
+  // hydration / gallery / auto-title never flag an untouched trip as "dirty".
+  useEffect(() => {
+    if (!viaje?.id) return;
+    // Never reset the closing guard while a close is in flight — otherwise an
+    // identity change during teardown can re-open the panel with blank state.
+    if (isClosingRef.current) return;
+    if (initialTripIdRef.current === viaje.id) return;
+
+    initialTripIdRef.current = viaje.id;
+    isClosingRef.current = false;
+    setIsClosingAfterSave(false);
+    userEditedRef.current = false;
+  }, [viaje?.id]);
+
+  const userHandleTituloChange = useCallback((titulo) => {
+    userEditedRef.current = true;
+    handleTituloChange(titulo);
+  }, [handleTituloChange]);
 
   const iniciarSubida = uploadCtx?.iniciarSubida;
   const hasUploadContext = typeof iniciarSubida === 'function';
@@ -240,6 +253,7 @@ const EditorFocusPanel = ({
 
   // Pre-tag newly selected gallery drafts with the stop that launched "Upload photos".
   const handleGalleryFilesChange = useCallback((nextFiles) => {
+    userEditedRef.current = true;
     effectiveSetGalleryFiles(nextFiles);
     if (defaultParadaId) {
       setDraftTags((prev) => {
@@ -277,6 +291,7 @@ const EditorFocusPanel = ({
       initialParadasRef.current = structuredClone(effectiveParadas || []);
       setIsClosingAfterSave(true);
       isClosingRef.current = true;
+      userEditedRef.current = false;
       limpiarEstado();
       // `onAfterSave` (handleCloseEditor) strips `?editing` / `?new` with
       // { replace: true } and unmounts the editor. It is the SOLE closer.
@@ -302,23 +317,21 @@ const EditorFocusPanel = ({
   const handleConfirmClose = () => {
     setShowConfirmModal(false);
     isClosingRef.current = true;
-    limpiarEstado();
+    // No pre-unmount state wipe: the unmount (via handleCloseEditor param strip)
+    // discards the editor state, so the panel never flashes blank stops while
+    // leaving the screen.
     onClose();
   };
 
   const handleClose = useCallback(() => {
     if (isClosingRef.current) return;
-
-    // GUARDRAIL: Check for unsaved changes
     if (hasUnsavedChanges()) {
       setShowConfirmModal(true);
       return;
     }
-
     isClosingRef.current = true;
-    limpiarEstado();
     onClose();
-  }, [limpiarEstado, onClose, hasUnsavedChanges]);
+  }, [onClose, hasUnsavedChanges]);
 
   // Prevent background scroll while the panel is open (iOS-friendly)
   useEffect(() => {
@@ -429,12 +442,12 @@ const EditorFocusPanel = ({
             {/* Header Section (WYSIWYG) */}
             <EditableTripHeader
               formData={formDataWithFallback}
-              setFormData={effectiveSetFormData}
+              setFormData={userSetFormData}
               paradas={effectiveParadas}
               galleryFiles={effectiveGalleryFiles}
-              setGalleryFiles={effectiveSetGalleryFiles}
+              setGalleryFiles={userSetGalleryFiles}
               isProcessingImage={isImageBusy}
-              onTituloChange={handleTituloChange}
+              onTituloChange={userHandleTituloChange}
               isTituloAuto={autoTitleMode}
               onRegenerateTitle={() => setAutoTitleMode(true)}
             />
@@ -452,7 +465,7 @@ const EditorFocusPanel = ({
                 <EdicionParadasSection
                   t={t}
                   paradas={effectiveParadas}
-                  setParadas={effectiveSetParadas}
+                  setParadas={userSetParadas}
                   fechaRangoDisplay={`${formDataWithFallback.fechaInicio || '--'} - ${formDataWithFallback.fechaFin || '--'}`}
                   tripStartDate={formDataWithFallback.fechaInicio}
                   tripEndDate={formDataWithFallback.fechaFin}
@@ -468,7 +481,7 @@ const EditorFocusPanel = ({
                   <EdicionContextSection
                     t={t}
                     formData={formDataWithFallback}
-                    setFormData={effectiveSetFormData}
+                    setFormData={userSetFormData}
                     showCompanions
                     frequentCompanions={frequentCompanions}
                     companionDraft={companions.companionDraft}
@@ -480,13 +493,13 @@ const EditorFocusPanel = ({
                   <EdicionHighlightsSection
                     t={t}
                     formData={formDataWithFallback}
-                    setFormData={effectiveSetFormData}
+                    setFormData={userSetFormData}
                     paradas={effectiveParadas}
                   />
                   <EdicionNotesSection
                     t={t}
                     formData={formDataWithFallback}
-                    setFormData={effectiveSetFormData}
+                    setFormData={userSetFormData}
                     isBusy={isSavingManual}
                   />
                 </div>
@@ -500,6 +513,8 @@ const EditorFocusPanel = ({
                   defaultParadaId={defaultParadaId}
                   portadaIndex={effectiveGalleryPortada}
                   onPortadaChange={(urlOrIndex) => {
+                    // Cover auto-selection on open must NOT count as a manual edit,
+                    // so this keeps the raw setters (no userEditedRef marking).
                     if (typeof urlOrIndex === 'number') {
                       effectiveSetGalleryPortada(urlOrIndex);
                     } else if (typeof urlOrIndex === 'string') {
@@ -536,13 +551,14 @@ const EditorFocusPanel = ({
             <button
               onClick={handleClose}
               disabled={isSavingManual}
-              className="min-h-[44px] min-w-[44px] px-4 py-2 text-[0.875rem] font-bold text-textSecondary rounded-lg hover:bg-surface transition-colors disabled:opacity-50 inline-flex items-center justify-center"
+              className="min-h-[44px] min-w-[44px] px-4 py-2 text-[0.875rem] font-bold text-textSecondary rounded-lg hover:bg-surface transition-colors disabled:opacity-50 inline-flex items-center justify-center cursor-pointer"
             >
               {t('button.cancel') || 'Cancelar'}
             </button>
             <button
               onClick={handleSaveWithLoading}
               disabled={!canSave}
+              data-testid="editor-save-btn"
               className={cn(
                 "min-h-[44px] px-6 py-2 bg-atomicTangerine text-white rounded-full font-bold text-[0.875rem] shadow-sm transition-all flex items-center gap-2",
                 canSave ? "hover:shadow-md hover:bg-atomicTangerine/90 cursor-pointer" : "opacity-50 cursor-not-allowed"

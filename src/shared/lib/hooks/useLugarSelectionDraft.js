@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { COUNTRIES_DATA, getFlagUrl, normalizeCountryCode } from '@shared/lib/utils/countryUtils';
 
 export function useLugarSelectionDraft({
@@ -7,6 +8,9 @@ export function useLugarSelectionDraft({
   setViajeBorrador,
   setCiudadInicialBorrador,
 }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   return useCallback((lugar) => {
     let datosPais = null;
     let ciudad = null;
@@ -78,10 +82,15 @@ export function useLugarSelectionDraft({
 
     setViajeBorrador(nuevoBorrador);
     setCiudadInicialBorrador(ciudad);
+
+    // Deep-link the draft so a browser refresh (F5) preserves the open editor.
+    navigate(`${location.pathname}?new=true`, { replace: true });
   }, [
     closeBuscador,
     setFiltro,
     setViajeBorrador,
     setCiudadInicialBorrador,
+    navigate,
+    location.pathname,
   ]);
 }

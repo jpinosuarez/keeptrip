@@ -1,7 +1,13 @@
 /** @vitest-environment jsdom */
+import React from 'react';
 import { describe, test, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { useLugarSelectionDraft } from '../useLugarSelectionDraft';
+
+// The hook now performs router navigation (deep-link the draft via ?new=true),
+// so it must run inside a Router context.
+const wrapper = ({ children }) => <MemoryRouter>{children}</MemoryRouter>;
 
 describe('useLugarSelectionDraft', () => {
   test('crea borrador de pais y limpia buscador/filtro', () => {
@@ -15,7 +21,7 @@ describe('useLugarSelectionDraft', () => {
       setFiltro,
       setViajeBorrador,
       setCiudadInicialBorrador,
-    }));
+    }), { wrapper });
 
     act(() => {
       result.current({
@@ -52,7 +58,7 @@ describe('useLugarSelectionDraft', () => {
       setFiltro,
       setViajeBorrador,
       setCiudadInicialBorrador,
-    }));
+    }), { wrapper });
 
     act(() => {
       result.current({
@@ -60,7 +66,7 @@ describe('useLugarSelectionDraft', () => {
         name: 'Madrid',
         coordinates: [40.4168, -3.7038],
         countryCode: 'ES',
-        countryName: 'España',
+        countryName: 'Espana',
       });
     });
 
@@ -87,7 +93,7 @@ describe('useLugarSelectionDraft', () => {
       setFiltro,
       setViajeBorrador,
       setCiudadInicialBorrador,
-    }));
+    }), { wrapper });
 
     act(() => {
       result.current({

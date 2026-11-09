@@ -18,6 +18,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { CountryFlag } from '@shared/ui/components/CountryFlag';
+import EmptyStateCard from '@shared/ui/components/EmptyStateCard';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { cn } from '@shared/lib/utils/cn';
 import { formatLocalizedNumber, formatKmValue } from '@shared/lib/utils/numberUtils';
@@ -81,23 +82,22 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
 
   if (!analytics.hasTrips) {
     return (
-      <Card className="max-w-2xl mx-auto text-center flex flex-col items-center gap-3 py-10">
-        <Globe2 size={40} className="text-atomicTangerine" aria-hidden="true" />
-        <h2 className="m-0 text-xl font-black text-charcoalBlue font-heading">
-          {t('statsDashboard.emptyTitle', 'Tu historia aún no tiene estadísticas')}
-        </h2>
-        <p className="m-0 max-w-sm text-sm font-semibold text-text-secondary">
-          {t('statsDashboard.emptyMessage', 'Registra tu primera aventura y descubre tus continentes, distancias y días de viaje.')}
-        </p>
-        <button
-          type="button"
-          onClick={() => navigate('/trips')}
-          className="flex items-center gap-2 min-h-[44px] px-5 rounded-full bg-atomicTangerine text-white text-sm font-extrabold shadow-[0_4px_20px_rgba(255,107,53,0.3)] cursor-pointer hover:brightness-105 transition-all"
-        >
-          {t('statsDashboard.emptyCta', 'Registrar primera aventura')}
-          <ArrowRight size={16} />
-        </button>
-      </Card>
+      <div className="w-full py-8 flex justify-center px-4">
+        <EmptyStateCard
+          icon={Globe2}
+          accentColor="orange"
+          title={t('statsDashboard.emptyTitle', 'Tu historia aún no tiene estadísticas')}
+          description={t(
+            'statsDashboard.emptyMessage',
+            'Registra tu primera aventura y descubre tus continentes, distancias y días de viaje.'
+          )}
+          primaryAction={{
+            label: t('statsDashboard.emptyCta', 'Registrar primera aventura'),
+            onClick: () => navigate('/trips'),
+            icon: ArrowRight,
+          }}
+        />
+      </div>
     );
   }
 

@@ -107,12 +107,16 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   const [mapLoaded, setMapLoaded] = useState(false);
   const stops = useMemo(() => (Array.isArray(paradas) ? paradas : []), [paradas]);
 
-  const isEmptyMap = paises.length === 0;
-
   // Block 2.5 — Wishlist map layer: countries (translucent teal fill + dashed
   // border) and cities (teal teardrop pins). Filter state lifted here so the
   // TripRoster toggle can drive fills + markers without visual clash.
-  const [wishlistFilter, setWishlistFilter] = useState('todo');
+  const [wishlistFilter, setWishlistFilter] = useState(() => {
+    // Block 3.0 — when the archive has 0 completed trips but the wishlist holds
+    // destinations, default the map layer to the wishlist so the Explorer is
+    // immediately useful instead of showing the blocking empty state.
+    const rawWishlist = Array.isArray(userProfile?.wishlist) ? userProfile.wishlist : [];
+    return paises.length === 0 && rawWishlist.length > 0 ? 'wishlist' : 'todo';
+  });
   const wishlistMarkersRef = useRef([]);
 
   const wishlistItems = useMemo(() => {
@@ -137,6 +141,11 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
     () => wishlistItems.filter((item) => item.tipo === 'ciudad' && Array.isArray(item.coordenadas)),
     [wishlistItems]
   );
+
+  // Block 3.0 — Explorer is usable from the wishlist alone (0 completed trips).
+  // Only show the blocking empty state when there are truly no trips AND no wishlist.
+  const hasWishlist = wishlistItems.length > 0;
+  const showEmptyState = paises.length === 0 && !hasWishlist;
 
   const showVisited = wishlistFilter !== 'wishlist';
   const showWishlist = wishlistFilter !== 'visitados';
@@ -173,8 +182,8 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
 
   // ── SpinGlobe lifecycle ──────────────────────────────────────────────
   const initSpinGlobe = useCallback((map) => {
-    // Only spin on empty state with globe projection (desktop)
-    if (!isEmptyMap || (typeof window !== 'undefined' && window.innerWidth < 768)) return;
+    // Only spin on the truly-empty archive with globe projection (desktop).
+    if (!showEmptyState || (typeof window !== 'undefined' && window.innerWidth < 768)) return;
     if (spinGlobeRef.current) spinGlobeRef.current.destroy();
 
     spinGlobeRef.current = createSpinGlobe(map, {
@@ -182,11 +191,11 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
       maxSpinZoom: 5,
     });
     spinGlobeRef.current.start();
-  }, [isEmptyMap]);
+  }, [showEmptyState]);
 
   // Cleanup SpinGlobe when trips arrive or on unmount
   useEffect(() => {
-    if (!isEmptyMap && spinGlobeRef.current) {
+    if (!showEmptyState && spinGlobeRef.current) {
       spinGlobeRef.current.destroy();
       spinGlobeRef.current = null;
     }
@@ -196,7 +205,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
         spinGlobeRef.current = null;
       }
     };
-  }, [isEmptyMap]);
+  }, [showEmptyState]);
 
   // Pause SpinGlobe when modal overlays are mounted (?editing= or ?new)
   const [isModalOccluded, setIsModalOccluded] = useState(() => {
@@ -379,10 +388,10 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
 
     // The reactive identity effect owns the camera whenever an identity exists;
     // the spinning globe only runs on a truly empty archive.
-    if (!initialBaseCoords || !isEmptyMap) {
+    if (!initialBaseCoords || !showEmptyState) {
       initSpinGlobe(map);
     }
-  }, [i18n.language, initialBaseCoords, isEmptyMap, initSpinGlobe]);
+  }, [i18n.language, initialBaseCoords, showEmptyState, initSpinGlobe]);
 
   useEffect(() => {
     if (!mapRef.current || !isMapStyleLoaded(mapRef.current)) return;
@@ -472,6 +481,63 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
       }
     }
   }, [stops]);
+
+  // Wishlist destination -> fly the camera to its coordinates (city pin) or
+  // centroid (country item). No data fetches: coordinates are already in-memory.
+  const handleWishlistItemFly = useCallback((item) => {
+    const coords = item?.coordenadas;
+    if (Array.isArray(coords) && coords.length === 2) {
+      mapRef.current?.flyTo({ center: coords, zoom: 5.5, duration: 1800, essential: true });
+      return;
+    }
+    if (item?.paisCodigo) {
+      const centroid = getCountryCentroid(item.paisCodigo);
+      if (centroid) {
+        mapRef.current?.flyTo({ center: centroid, zoom: 3.5, duration: 1800, essential: true });
+      }
+    }
+  }, []);
+
+  // "Crear viaje" from a wishlist destination -> open the canonical creation
+  // flow (same final URL used by the wishlist tab). The draft auto-seeds from the
+  // traveler's geo identity in AppModalsManager.
+  const handleCreateTripFromWishlist = useCallback(() => {
+    navigate('/trips?new=true');
+  }, [navigate]);
+
+  // Block 3.0 — frame the camera around wishlist destinations when there are no
+  // completed trips (the Explorer is driven purely by the wishlist). Runs once per
+  // distinct coordinate signature so user panning is never fought.
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !mapLoaded) return;
+    if (paises.length !== 0 || !hasWishlist) return;
+    if (typeof mapboxgl.LngLatBounds !== 'function') return;
+
+    const coords = [
+      ...wishlistCityPins.map((item) => item.coordenadas),
+      ...wishlistItems
+        .filter((item) => item.tipo === 'pais')
+        .map((item) => getCountryCentroid(item.paisCodigo)),
+    ].filter((c) => Array.isArray(c) && c.length === 2);
+
+    if (coords.length === 0) return;
+
+    const signature = `wishlist:${coords.map((c) => `${c[0]},${c[1]}`).join('|')}`;
+    if (cameraTargetRef.current === signature) return;
+    cameraTargetRef.current = signature;
+
+    if (coords.length === 1) {
+      map.flyTo({ center: coords[0], zoom: 4, duration: 1400, essential: true });
+      return;
+    }
+
+    const bounds = coords.reduce(
+      (acc, c) => acc.extend(c),
+      new mapboxgl.LngLatBounds(coords[0], coords[0])
+    );
+    map.fitBounds(bounds, { padding: 80, maxZoom: 5, duration: 1400, essential: true });
+  }, [hasWishlist, mapLoaded, paises.length, wishlistCityPins, wishlistItems]);
 
   // ── Render ───────────────────────────────────────────────────────────
   return (
@@ -586,7 +652,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
 
       {/* ── OVERLAY LAYER ─────────────────────────────────────────────── */}
       <div className="absolute inset-0 pointer-events-none z-10">
-        {isEmptyMap ? (
+        {showEmptyState ? (
           hasGeoIdentity ? (
             /* Floating banner when user has origin/residence configured but 0 trips yet */
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 w-[min(calc(100vw-32px),520px)] bg-[#2C3E50] text-white rounded-2xl md:rounded-full p-3 md:p-2 md:pl-5 shadow-[0_4px_20px_rgba(0,0,0,0.07)] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 pointer-events-auto">
@@ -621,6 +687,9 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
               onTripSelect={handleTripSelect}
               wishlistFilter={wishlistFilter}
               onWishlistFilterChange={setWishlistFilter}
+              wishlistItems={wishlistItems}
+              onWishlistItemFly={handleWishlistItemFly}
+              onCreateTripFromWishlist={handleCreateTripFromWishlist}
             />
           </>
         )}
