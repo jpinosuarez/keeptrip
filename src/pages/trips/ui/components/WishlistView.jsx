@@ -40,7 +40,7 @@ const WishlistView = ({
   // EMPTY — only the centered empty-state card, no search bar.
   if (!hasItems) {
     return (
-      <div className="flex w-full justify-center px-4 py-8">
+      <div className="w-full py-8 flex justify-center px-4">
         <EmptyWishlistState onAdd={onAddDestination} />
       </div>
     );

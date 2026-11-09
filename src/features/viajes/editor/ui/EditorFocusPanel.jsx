@@ -168,6 +168,9 @@ const EditorFocusPanel = ({
   // hydration / gallery / auto-title never flag an untouched trip as "dirty".
   useEffect(() => {
     if (!viaje?.id) return;
+    // Never reset the closing guard while a close is in flight — otherwise an
+    // identity change during teardown can re-open the panel with blank state.
+    if (isClosingRef.current) return;
     if (initialTripIdRef.current === viaje.id) return;
 
     initialTripIdRef.current = viaje.id;

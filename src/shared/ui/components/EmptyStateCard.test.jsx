@@ -9,83 +9,58 @@ describe('EmptyStateCard', () => {
   afterEach(() => cleanup());
 
   it('renders the title and description', () => {
-    render(
-      <EmptyStateCard title="Tu mundo te espera" description="Cada viaje empieza con un destino." />
-    );
-    expect(screen.getByText('Tu mundo te espera')).toBeInTheDocument();
-    expect(screen.getByText('Cada viaje empieza con un destino.')).toBeInTheDocument();
+    render(<EmptyStateCard title="Tu bucket list te espera" description="Guarda países y ciudades." />);
+    expect(screen.getByText('Tu bucket list te espera')).toBeInTheDocument();
+    expect(screen.getByText('Guarda países y ciudades.')).toBeInTheDocument();
   });
 
-  it('always expands inside its layout (no narrow-column squish)', () => {
+  it('root is unshrinkable and full-width capped (no pillar collapse)', () => {
     render(<EmptyStateCard data-testid="card" title="T" description="D" />);
     const card = screen.getByTestId('card');
+    expect(card.className).toContain('shrink-0');
     expect(card.className).toContain('w-full');
-    expect(card.className).toContain('max-w-2xl');
-    expect(card.className).toContain('min-w-0');
+    expect(card.className).toContain('max-w-lg');
     expect(card.className).toContain('mx-auto');
-    // `self-stretch` stretched the card vertically inside flex-row parents.
-    expect(card.className).not.toContain('self-stretch');
+    expect(card.className).toContain('block');
+    expect(card.className).not.toContain('sm:min-w');
+    expect(card.className).not.toContain('min-w-[min(');
   });
 
-  it('renders an optional badge and icon', () => {
-    render(<EmptyStateCard icon={Globe} badgeText="Wishlist" title="T" description="D" />);
-    expect(screen.getByText('Wishlist')).toBeInTheDocument();
+  it('renders the icon with the requested accent color', () => {
+    render(<EmptyStateCard data-testid="card" icon={Globe} accentColor="teal" title="T" description="D" />);
+    const card = screen.getByTestId('card');
+    const iconBox = card.querySelector('.rounded-2xl');
+    expect(iconBox).toBeTruthy();
+    expect(iconBox.className).toContain('text-[#45B0A8]');
   });
 
-  it('fires the primary action and enforces mobile CTA sizing', () => {
+  it('fires the primary action with mobile CTA sizing', () => {
     const onClick = vi.fn();
-    render(
-      <EmptyStateCard
-        title="T"
-        description="D"
-        primaryAction={{ label: 'Crear viaje', onClick, icon: Globe }}
-      />
-    );
+    render(<EmptyStateCard title="T" description="D" primaryAction={{ label: 'Crear viaje', onClick, icon: Globe }} />);
     const button = screen.getByRole('button', { name: /Crear viaje/ });
     expect(button.className).toContain('min-h-[44px]');
-    expect(button.className).toContain('min-w-[240px]');
+    expect(button.className).toContain('min-w-[220px]');
+    expect(button.className).toContain('bg-[#FF6B35]');
     fireEvent.click(button);
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  it('applies the requested accent color to the primary action', () => {
-    render(
-      <EmptyStateCard
-        accentColor="teal"
-        title="T"
-        description="D"
-        primaryAction={{ label: 'Añadir destino', onClick: () => {} }}
-      />
-    );
-    const button = screen.getByRole('button', { name: /Añadir destino/ });
-    expect(button.className).toContain('bg-[#45B0A8]');
-  });
-
   it('fires the secondary action', () => {
     const onSecondary = vi.fn();
-    render(
-      <EmptyStateCard
-        title="T"
-        description="D"
-        secondaryAction={{ label: 'Explorar', onClick: onSecondary }}
-      />
-    );
+    render(<EmptyStateCard title="T" description="D" secondaryAction={{ label: 'Explorar', onClick: onSecondary }} />);
     fireEvent.click(screen.getByRole('button', { name: 'Explorar' }));
     expect(onSecondary).toHaveBeenCalledTimes(1);
   });
 
-  it('applies className overrides for variant styling (transparent Bento)', () => {
-    render(
-      <EmptyStateCard
-        data-testid="card"
-        title="T"
-        description="D"
-        className="bg-transparent border-0 shadow-none"
-      />
-    );
+  it('forwards data-testid to the root (keeps ghost-empty-state)', () => {
+    render(<EmptyStateCard data-testid="ghost-empty-state" title="T" description="D" />);
+    expect(screen.getByTestId('ghost-empty-state')).toBeInTheDocument();
+  });
+
+  it('merges a className override without clobbering the base layout', () => {
+    render(<EmptyStateCard data-testid="card" title="T" description="D" className="opacity-60 pointer-events-none" />);
     const card = screen.getByTestId('card');
-    expect(card.className).toContain('bg-transparent');
-    expect(card.className).toContain('border-0');
-    expect(card.className).toContain('shadow-none');
+    expect(card.className).toContain('max-w-lg');
+    expect(card.className).toContain('opacity-60');
   });
 });

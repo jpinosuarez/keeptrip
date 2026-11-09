@@ -82,21 +82,22 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
 
   if (!analytics.hasTrips) {
     return (
-      <EmptyStateCard
-        icon={Globe2}
-        accentColor="orange"
-        title={t('statsDashboard.emptyTitle', 'Tu historia aún no tiene estadísticas')}
-        description={t(
-          'statsDashboard.emptyMessage',
-          'Registra tu primera aventura y descubre tus continentes, distancias y días de viaje.'
-        )}
-        primaryAction={{
-          label: t('statsDashboard.emptyCta', 'Registrar primera aventura'),
-          onClick: () => navigate('/trips'),
-          icon: ArrowRight,
-        }}
-        className="w-full"
-      />
+      <div className="w-full py-8 flex justify-center px-4">
+        <EmptyStateCard
+          icon={Globe2}
+          accentColor="orange"
+          title={t('statsDashboard.emptyTitle', 'Tu historia aún no tiene estadísticas')}
+          description={t(
+            'statsDashboard.emptyMessage',
+            'Registra tu primera aventura y descubre tus continentes, distancias y días de viaje.'
+          )}
+          primaryAction={{
+            label: t('statsDashboard.emptyCta', 'Registrar primera aventura'),
+            onClick: () => navigate('/trips'),
+            icon: ArrowRight,
+          }}
+        />
+      </div>
     );
   }
 

@@ -182,8 +182,11 @@ function AppModalsManager({
   } = crud;
 
   // ── EdicionModal: ?editing=<id> para viajes existentes, viajeBorrador para nuevos ──
-  const isNewParam = searchParams.get('new') === 'true' || searchParams.get('editing') === 'new';
+  const isNewParam = searchParams.get('new') === 'true';
   const editingId = !isNewParam ? searchParams.get('editing') : null;
+  // Editor visibility is derived PURELY from the URL (single source of truth).
+  // It stays true for brand-new trips where `viajeParaEditar` is momentarily null.
+  const isEditorModalOpen = Boolean(editingId || isNewParam || viajeBorrador);
 
   // Auto-init draft trip if ?new=true is in URL and no draft exists.
   // The draft is seeded with the traveler's geo identity (residence → origin → ES)
@@ -229,32 +232,23 @@ function AppModalsManager({
   ]);
 
   const viajeParaEditar = editingId
-    ? bitacoraData[editingId] || bitacora.find((v) => v.id === editingId)
+    ? (bitacoraData[editingId] || (Array.isArray(bitacora) ? bitacora.find((v) => v.id === editingId) : null) || null)
     : viajeBorrador;
   const esBorrador = (!editingId && !!viajeBorrador) || isNewParam;
 
   const handleCloseEditor = useCallback(() => {
+    // URL is the single source of truth: stripping the params closes the modal on
+    // the next render (one pass, no blank-draft remount). Then clear draft state.
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete('new');
+      next.delete('editing');
+      next.delete('tab');
+      return next;
+    }, { replace: true });
     setViajeBorrador(null);
     setCiudadInicialBorrador(null);
     setParadasInicialesBorrador([]);
-
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      let changed = false;
-      if (next.has('new')) {
-        next.delete('new');
-        changed = true;
-      }
-      if (next.has('editing')) {
-        next.delete('editing');
-        changed = true;
-      }
-      if (next.has('tab')) {
-        next.delete('tab');
-        changed = true;
-      }
-      return changed ? next : prev;
-    }, { replace: true });
   }, [setSearchParams, setViajeBorrador, setCiudadInicialBorrador, setParadasInicialesBorrador]);
 
   // Block 2.4: `handleSaveTrip` must NOT close the editor. It only performs the
@@ -376,10 +370,11 @@ function AppModalsManager({
         <UserMenuBottomSheet />
       </Suspense>
 
-      {viajeParaEditar && (
+      {isEditorModalOpen && (
         <ErrorBoundary>
           <Suspense fallback={<VisorViajeFallback />}>
             <EditorFocusPanel
+              key={editingId ? `edit-${editingId}` : 'new-trip'}
               viaje={viajeParaEditar}
               bitacoraData={bitacoraData}
               frequentCompanions={frequentCompanions}
@@ -388,11 +383,7 @@ function AppModalsManager({
               isSaving={isSavingModal}
               esBorrador={esBorrador}
               ciudadInicial={ciudadInicialBorrador}
-              paradasIniciales={
-                paradasInicialesBorrador.length > 0
-                  ? paradasInicialesBorrador
-                  : (viajeParaEditar?.paradas || [])
-              }
+              paradasIniciales={paradasInicialesBorrador}
               onAfterSave={handleCloseEditor}
             />
           </Suspense>

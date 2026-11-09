@@ -2,14 +2,16 @@ import React from 'react';
 import { motion as Motion } from 'framer-motion';
 import { Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import EmptyStateCard from '@shared/ui/components/EmptyStateCard';
 
 /**
- * EmptyDashboardState — Minimalist empty placeholder for the "Recent Adventures" column.
- * No CTA button here — the primary Hero CTA lives in WelcomeBento to avoid visual
- * confusion. Uses the canonical <EmptyStateCard /> with a transparent Bento variant.
+ * EmptyDashboardState — lightweight, transparent empty placeholder for the Bento
+ * "Recent Adventures" cell. Intentionally OWNS its own minimal layout (NOT the
+ * shared EmptyStateCard) because a Bento cell has a constrained, definite width
+ * and must not inherit the full-page card's surface or min-width floor.
+ *
+ * No CTA here — the primary Hero CTA lives in WelcomeBento to avoid duplication.
  */
-const EmptyDashboardState = () => {
+export default function EmptyDashboardState() {
   const { t } = useTranslation('dashboard');
 
   return (
@@ -17,18 +19,17 @@ const EmptyDashboardState = () => {
       initial={{ opacity: 0, scale: 0.97, y: 8 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 120, damping: 22 }}
-      className="w-full h-full min-h-0 flex items-center justify-center"
+      className="w-full h-full min-h-0 flex flex-col items-center justify-center text-center bg-transparent px-6 py-10"
     >
-      <EmptyStateCard
-        icon={Globe}
-        accentColor="orange"
-        title={t('welcome.emptyStateTitle')}
-        description={t('welcome.recentPlaceholder')}
-        className="bg-transparent border-0 shadow-none w-full max-w-md px-4 py-8 md:px-6 md:py-10"
-      />
+      <div className="w-14 h-14 rounded-2xl bg-[#FF6B35]/10 text-[#FF6B35] flex items-center justify-center mb-4">
+        <Globe size={26} strokeWidth={1.75} aria-hidden="true" />
+      </div>
+      <h3 className="m-0 font-heading text-lg font-extrabold text-slate-800 tracking-tight">
+        {t('welcome.emptyStateTitle')}
+      </h3>
+      <p className="m-0 mt-2 font-sans text-sm text-slate-500 max-w-xs mx-auto">
+        {t('welcome.recentPlaceholder')}
+      </p>
     </Motion.div>
   );
-};
-
-export default EmptyDashboardState;
-
+}
