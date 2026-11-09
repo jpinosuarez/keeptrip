@@ -137,9 +137,6 @@ const EditorFocusPanel = ({
     effectiveSetGalleryFiles(files);
   }, [effectiveSetGalleryFiles]);
 
-  // Check for unsaved changes — a trip is "dirty" only after a genuine manual edit.
-  const hasUnsavedChanges = useCallback(() => userEditedRef.current, []);
-
   const {
     isTituloAuto: autoTitleMode,
     setIsTituloAuto: setAutoTitleMode,
@@ -324,18 +321,9 @@ const EditorFocusPanel = ({
   };
 
   const handleClose = useCallback(() => {
-    if (isClosingRef.current) return;
-
-    // GUARDRAIL: Check for unsaved changes
-    if (hasUnsavedChanges()) {
-      setShowConfirmModal(true);
-      return;
-    }
-
     isClosingRef.current = true;
-    // No pre-unmount state wipe — lets the panel close cleanly on the FIRST click.
     onClose();
-  }, [onClose, hasUnsavedChanges]);
+  }, [onClose]);
 
   // Prevent background scroll while the panel is open (iOS-friendly)
   useEffect(() => {

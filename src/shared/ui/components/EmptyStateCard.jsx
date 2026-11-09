@@ -22,9 +22,8 @@ export default function EmptyStateCard({
 
   return (
     <div
-      style={{ minWidth: 'min(100%, 360px)' }}
       className={cn(
-        'w-full max-w-[480px] mx-auto block box-border bg-white rounded-[28px] md:rounded-[32px] border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.05)] p-8 md:p-12 text-center shrink-0',
+        'w-full max-w-[500px] mx-auto block box-border bg-white rounded-[28px] md:rounded-[32px] border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.05)] p-8 md:p-10 text-center shrink-0',
         className
       )}
       {...rest}
@@ -40,7 +39,7 @@ export default function EmptyStateCard({
       </h3>
 
       {description && (
-        <p className="mt-2.5 max-w-sm mx-auto w-full font-sans text-slate-500 text-sm md:text-base leading-relaxed text-center whitespace-normal break-normal">
+        <p className="mt-3 w-full max-w-sm mx-auto font-sans text-slate-500 text-sm md:text-base leading-relaxed text-center whitespace-normal break-normal">
           {description}
         </p>
       )}

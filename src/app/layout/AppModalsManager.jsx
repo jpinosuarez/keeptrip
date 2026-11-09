@@ -186,7 +186,7 @@ function AppModalsManager({
   const editingId = !isNewParam ? searchParams.get('editing') : null;
   // Editor visibility is derived PURELY from the URL (single source of truth).
   // It stays true for brand-new trips where `viajeParaEditar` is momentarily null.
-  const isEditorModalOpen = Boolean(editingId || isNewParam || viajeBorrador);
+  const isEditorModalOpen = Boolean(editingId || isNewParam);
 
   // Auto-init draft trip if ?new=true is in URL and no draft exists.
   // The draft is seeded with the traveler's geo identity (residence → origin → ES)
@@ -237,9 +237,6 @@ function AppModalsManager({
   const esBorrador = Boolean(!editingId);
 
   const handleCloseEditor = useCallback(() => {
-    setViajeBorrador(null);
-    setCiudadInicialBorrador(null);
-    setParadasInicialesBorrador([]);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.delete('new');
@@ -247,6 +244,9 @@ function AppModalsManager({
       next.delete('tab');
       return next;
     }, { replace: true });
+    setViajeBorrador(null);
+    setCiudadInicialBorrador(null);
+    setParadasInicialesBorrador([]);
   }, [setSearchParams, setViajeBorrador, setCiudadInicialBorrador, setParadasInicialesBorrador]);
 
   // Block 2.4: `handleSaveTrip` must NOT close the editor. It only performs the
@@ -372,7 +372,7 @@ function AppModalsManager({
         <ErrorBoundary>
           <Suspense fallback={<VisorViajeFallback />}>
             <EditorFocusPanel
-              key={editingId ? `edit-${editingId}` : (viajeBorrador?.id ? `draft-${viajeBorrador.id}` : 'new-trip')}
+              key={editingId ? `edit-${editingId}` : 'new-trip'}
               viaje={viajeParaEditar}
               bitacoraData={bitacoraData}
               frequentCompanions={frequentCompanions}
