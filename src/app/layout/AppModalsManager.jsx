@@ -234,11 +234,12 @@ function AppModalsManager({
   const viajeParaEditar = editingId
     ? (bitacoraData[editingId] || (Array.isArray(bitacora) ? bitacora.find((v) => v.id === editingId) : null) || null)
     : viajeBorrador;
-  const esBorrador = (!editingId && !!viajeBorrador) || isNewParam;
+  const esBorrador = Boolean(!editingId);
 
   const handleCloseEditor = useCallback(() => {
-    // URL is the single source of truth: stripping the params closes the modal on
-    // the next render (one pass, no blank-draft remount). Then clear draft state.
+    setViajeBorrador(null);
+    setCiudadInicialBorrador(null);
+    setParadasInicialesBorrador([]);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.delete('new');
@@ -246,9 +247,6 @@ function AppModalsManager({
       next.delete('tab');
       return next;
     }, { replace: true });
-    setViajeBorrador(null);
-    setCiudadInicialBorrador(null);
-    setParadasInicialesBorrador([]);
   }, [setSearchParams, setViajeBorrador, setCiudadInicialBorrador, setParadasInicialesBorrador]);
 
   // Block 2.4: `handleSaveTrip` must NOT close the editor. It only performs the
@@ -374,7 +372,7 @@ function AppModalsManager({
         <ErrorBoundary>
           <Suspense fallback={<VisorViajeFallback />}>
             <EditorFocusPanel
-              key={editingId ? `edit-${editingId}` : 'new-trip'}
+              key={editingId ? `edit-${editingId}` : (viajeBorrador?.id ? `draft-${viajeBorrador.id}` : 'new-trip')}
               viaje={viajeParaEditar}
               bitacoraData={bitacoraData}
               frequentCompanions={frequentCompanions}

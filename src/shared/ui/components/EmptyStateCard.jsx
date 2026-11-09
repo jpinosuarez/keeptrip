@@ -7,13 +7,6 @@ const ACCENTS = {
   charcoal: { iconBg: 'bg-[#2C3E50]/10', iconText: 'text-[#2C3E50]' },
 };
 
-/**
- * EmptyStateCard — canonical full-page empty-state card (Visual System v2.0).
- *
- * Root uses `shrink-0 w-full max-w-lg mx-auto block` so a centered flex ancestor
- * can never shrink-wrap it to min-content (the ~80px vertical pillar). Content is
- * centered with block-level mx-auto/text-center and explicit whitespace-normal.
- */
 export default function EmptyStateCard({
   icon: Icon,
   accentColor = 'orange',
@@ -29,19 +22,20 @@ export default function EmptyStateCard({
 
   return (
     <div
+      style={{ minWidth: 'min(100%, 360px)' }}
       className={cn(
-        'shrink-0 w-full max-w-lg mx-auto block box-border bg-white rounded-[28px] md:rounded-[32px] border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.05)] p-8 md:p-12 text-center',
+        'w-full max-w-[480px] mx-auto block box-border bg-white rounded-[28px] md:rounded-[32px] border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.05)] p-8 md:p-12 text-center shrink-0',
         className
       )}
       {...rest}
     >
       {Icon && (
-        <div className={cn('mx-auto mb-5 flex w-14 h-14 items-center justify-center rounded-2xl', accent.iconBg, accent.iconText)}>
+        <div className={cn('mx-auto mb-5 flex w-14 h-14 items-center justify-center rounded-2xl shrink-0', accent.iconBg, accent.iconText)}>
           <Icon aria-hidden="true" size={28} strokeWidth={1.75} />
         </div>
       )}
 
-      <h3 className="w-full font-heading font-extrabold text-slate-800 text-lg md:text-xl tracking-tight text-center">
+      <h3 className="w-full font-heading font-extrabold text-slate-800 text-lg md:text-xl tracking-tight text-center leading-snug">
         {title}
       </h3>
 

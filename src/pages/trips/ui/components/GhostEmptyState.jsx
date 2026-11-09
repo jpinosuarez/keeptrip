@@ -53,7 +53,7 @@ const GhostEmptyState = () => {
         initial={{ opacity: 0, scale: 0.96, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 120, damping: 22 }}
-        className="relative z-10 w-full max-w-lg"
+        className="relative z-10 w-full max-w-[480px]"
       >
         <EmptyStateCard
           data-testid="ghost-empty-state"

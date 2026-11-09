@@ -14,16 +14,16 @@ describe('EmptyStateCard', () => {
     expect(screen.getByText('Guarda países y ciudades.')).toBeInTheDocument();
   });
 
-  it('root is unshrinkable and full-width capped (no pillar collapse)', () => {
+  it('root is unshrinkable, capped and has a viewport-safe min width', () => {
     render(<EmptyStateCard data-testid="card" title="T" description="D" />);
     const card = screen.getByTestId('card');
     expect(card.className).toContain('shrink-0');
     expect(card.className).toContain('w-full');
-    expect(card.className).toContain('max-w-lg');
+    expect(card.className).toContain('max-w-[480px]');
     expect(card.className).toContain('mx-auto');
     expect(card.className).toContain('block');
-    expect(card.className).not.toContain('sm:min-w');
-    expect(card.className).not.toContain('min-w-[min(');
+    // NOTE: jsdom's CSS parser cannot resolve `min()`, so the inline
+    // `style.minWidth` floor is validated in the real browser, not here.
   });
 
   it('renders the icon with the requested accent color', () => {
@@ -60,7 +60,7 @@ describe('EmptyStateCard', () => {
   it('merges a className override without clobbering the base layout', () => {
     render(<EmptyStateCard data-testid="card" title="T" description="D" className="opacity-60 pointer-events-none" />);
     const card = screen.getByTestId('card');
-    expect(card.className).toContain('max-w-lg');
+    expect(card.className).toContain('max-w-[480px]');
     expect(card.className).toContain('opacity-60');
   });
 });

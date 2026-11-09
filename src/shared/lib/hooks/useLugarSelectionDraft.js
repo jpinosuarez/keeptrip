@@ -84,7 +84,7 @@ export function useLugarSelectionDraft({
     setCiudadInicialBorrador(ciudad);
 
     // Deep-link the draft so a browser refresh (F5) preserves the open editor.
-    navigate(`${location.pathname}?new=true`);
+    navigate(`${location.pathname}?new=true`, { replace: true });
   }, [
     closeBuscador,
     setFiltro,
