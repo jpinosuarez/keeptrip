@@ -23,13 +23,13 @@ export default function EmptyStateCard({
   return (
     <div
       className={cn(
-        'w-full max-w-[500px] mx-auto block box-border bg-white rounded-[28px] md:rounded-[32px] border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.05)] p-8 md:p-10 text-center shrink-0',
+        'w-full max-w-[480px] mx-auto bg-white rounded-[28px] md:rounded-[32px] border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.05)] p-8 md:p-10 text-center flex flex-col items-center justify-center box-border',
         className
       )}
       {...rest}
     >
       {Icon && (
-        <div className={cn('mx-auto mb-5 flex w-14 h-14 items-center justify-center rounded-2xl shrink-0', accent.iconBg, accent.iconText)}>
+        <div className={cn('w-14 h-14 rounded-2xl flex items-center justify-center mb-5 shrink-0', accent.iconBg, accent.iconText)}>
           <Icon aria-hidden="true" size={28} strokeWidth={1.75} />
         </div>
       )}
@@ -39,7 +39,10 @@ export default function EmptyStateCard({
       </h3>
 
       {description && (
-        <p className="mt-3 w-full max-w-sm mx-auto font-sans text-slate-500 text-sm md:text-base leading-relaxed text-center whitespace-normal break-normal">
+        <p
+          style={{ width: '100%', maxWidth: '100%', whiteSpace: 'normal', wordBreak: 'normal' }}
+          className="mt-3 w-full font-sans text-slate-500 text-sm md:text-base leading-relaxed text-center"
+        >
           {description}
         </p>
       )}

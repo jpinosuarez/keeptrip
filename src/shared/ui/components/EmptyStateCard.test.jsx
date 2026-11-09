@@ -14,16 +14,23 @@ describe('EmptyStateCard', () => {
     expect(screen.getByText('Guarda países y ciudades.')).toBeInTheDocument();
   });
 
-  it('root is unshrinkable, capped and has a viewport-safe min width', () => {
+  it('root is a full-width centered block capped at 480px', () => {
     render(<EmptyStateCard data-testid="card" title="T" description="D" />);
     const card = screen.getByTestId('card');
-    expect(card.className).toContain('shrink-0');
     expect(card.className).toContain('w-full');
-    expect(card.className).toContain('max-w-[500px]');
+    expect(card.className).toContain('max-w-[480px]');
     expect(card.className).toContain('mx-auto');
-    expect(card.className).toContain('block');
-    // NOTE: jsdom's CSS parser cannot resolve `min()`, so the inline
-    // `style.minWidth` floor is validated in the real browser, not here.
+    expect(card.className).toContain('flex');
+    expect(card.className).toContain('items-center');
+  });
+
+  it('description enforces natural wrapping (100% width, whitespace normal)', () => {
+    const desc = 'Guarda países y ciudades que sueñas visitar.';
+    render(<EmptyStateCard title="T" description={desc} />);
+    const p = screen.getByText(desc);
+    expect(p.style.width).toBe('100%');
+    expect(p.style.maxWidth).toBe('100%');
+    expect(p.style.whiteSpace).toBe('normal');
   });
 
   it('renders the icon with the requested accent color', () => {
@@ -60,7 +67,7 @@ describe('EmptyStateCard', () => {
   it('merges a className override without clobbering the base layout', () => {
     render(<EmptyStateCard data-testid="card" title="T" description="D" className="opacity-60 pointer-events-none" />);
     const card = screen.getByTestId('card');
-    expect(card.className).toContain('max-w-[500px]');
+    expect(card.className).toContain('max-w-[480px]');
     expect(card.className).toContain('opacity-60');
   });
 });

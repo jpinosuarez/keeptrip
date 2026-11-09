@@ -15,10 +15,13 @@ export default function EmptyDashboardState() {
       <div className="w-14 h-14 rounded-2xl bg-[#FF6B35]/10 text-[#FF6B35] flex items-center justify-center mb-4">
         <Globe aria-hidden="true" size={26} strokeWidth={1.75} />
       </div>
-      <h3 className="m-0 font-heading text-lg font-extrabold text-slate-800 tracking-tight">
+      <h3 className="w-full m-0 font-heading text-lg font-extrabold text-slate-800 tracking-tight text-center">
         {t('welcome.emptyStateTitle')}
       </h3>
-      <p className="m-0 mt-2 font-sans text-sm text-slate-500 max-w-xs mx-auto">
+      <p
+        style={{ width: '100%', maxWidth: '100%', whiteSpace: 'normal', wordBreak: 'normal' }}
+        className="w-full m-0 mt-2 font-sans text-sm text-slate-500 text-center"
+      >
         {t('welcome.recentPlaceholder')}
       </p>
     </Motion.div>
