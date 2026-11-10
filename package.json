@@ -9,6 +9,7 @@
     "emulators:start:persist": "firebase emulators:start --only auth,firestore,storage --project keeptrip-app-b06b3 --import ./.emulator-data --export-on-exit",
     "emulators:exec:persist": "firebase emulators:exec --only auth,firestore,storage --project keeptrip-app-b06b3 --import ./.emulator-data --export-on-exit",
     "build": "vite build",
+    "build:country-emblems": "node scripts/build-country-emblems.mjs",
     "build:staging": "vite build --mode staging",
     "deploy:staging": "npm run build:staging && firebase deploy --only hosting,firestore:rules,storage --project staging",
     "deploy:prod": "npm run build && firebase deploy --only hosting,firestore:rules,storage --project default",

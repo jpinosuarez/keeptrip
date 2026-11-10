@@ -51,10 +51,32 @@ export const calculateTotalXP = (stats = {}) => {
  * @param {Array<Object>} photos
  * @returns {number}
  */
+const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
+
 export const calculateTripXP = (viaje, paradas = [], photos = []) => {
-  const stops = Array.isArray(paradas) ? paradas.length : 0;
+  const stopList = Array.isArray(paradas) ? paradas : [];
   const gallery = Array.isArray(photos) ? photos.length : 0;
-  return 100 + stops * 50 + gallery * 10;
+  const stops = stopList.length;
+
+  // Base value (unchanged — backwards compatible).
+  let xp = 100 + stops * 50 + gallery * 10;
+
+  // Curation bonus: full Trilogía (Mejor Sabor + Mejor Vista + Mejor Tip).
+  const highlights = viaje?.highlights;
+  const hasFullTrilogy =
+    hasText(highlights?.topFood) && hasText(highlights?.topView) && hasText(highlights?.topTip);
+  if (hasFullTrilogy) xp += 30;
+
+  // Curation bonus: documented stops + registered POIs.
+  for (const parada of stopList) {
+    if (hasText(parada?.titular) || hasText(parada?.nota) || hasText(parada?.relato)) {
+      xp += 15;
+    }
+    const places = Array.isArray(parada?.lugares) ? parada.lugares : [];
+    xp += places.length * 10;
+  }
+
+  return xp;
 };
 
 /**
@@ -110,4 +132,50 @@ export const checkLevelUp = (prevCount, newCount) => {
   const newLevel = getTravelerLevel(newCount);
   const leveledUp = newLevel.id !== prevLevel.id && newCount > prevCount;
   return { leveledUp, newLevel: leveledUp ? newLevel : null };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Level 3 Perks — Conquest Colour Themes
+// ─────────────────────────────────────────────────────────────────────────────
+export const CONQUEST_COLOR_THEMES = [
+  { id: 'atomic_tangerine', hex: '#FF6B35', nameKey: 'hub:conquestThemes.atomicTangerine', defaultName: 'Naranja Atómico' },
+  { id: 'solar_amber', hex: '#F59E0B', nameKey: 'hub:conquestThemes.solarAmber', defaultName: 'Ámbar Solar' },
+  { id: 'odyssey_indigo', hex: '#6366F1', nameKey: 'hub:conquestThemes.odysseyIndigo', defaultName: 'Índigo Odisea' },
+  { id: 'ruby_crimson', hex: '#E11D48', nameKey: 'hub:conquestThemes.rubyCrimson', defaultName: 'Carmesí Rubí' },
+  { id: 'boreal_violet', hex: '#8B5CF6', nameKey: 'hub:conquestThemes.borealViolet', defaultName: 'Violeta Boreal' },
+];
+
+export const DEFAULT_CONQUEST_COLOR = '#FF6B35';
+export const CONQUEST_COLOR_UNLOCK_LEVEL = 3;
+export const CONQUEST_COLOR_UNLOCK_XP = 3001;
+
+/** @returns {boolean} true once the traveler reaches Level 3 (3001+ XP). */
+export const isConquestColorUnlocked = (xp = 0) => Number(xp) >= CONQUEST_COLOR_UNLOCK_XP;
+
+/**
+ * Resolves the user's preferred conquest colour, falling back to the brand
+ * Atomic Tangerine when the perk is locked or the stored value is invalid.
+ *
+ * @param {{ conquestColor?: string }|null} userProfile
+ * @param {number} xp
+ * @returns {string} hex colour
+ */
+export const resolveConquestColor = (userProfile, xp = 0) => {
+  if (!isConquestColorUnlocked(xp)) return DEFAULT_CONQUEST_COLOR;
+  const preferred = userProfile?.conquestColor;
+  const isValid = CONQUEST_COLOR_THEMES.some(
+    (theme) => theme.hex.toLowerCase() === String(preferred || '').toLowerCase(),
+  );
+  return isValid ? preferred : DEFAULT_CONQUEST_COLOR;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Level Perks (1 → 5)
+// ─────────────────────────────────────────────────────────────────────────────
+export const LEVEL_PERKS = {
+  1: { level: 1, minXP: 0, perkKey: 'hub:perks.level1', defaultPerk: 'Mapa 3D, Emblemas de Destino y Estadísticas Base' },
+  2: { level: 2, minXP: 1001, perkKey: 'hub:perks.level2', defaultPerk: 'Insignia Destacada en Perfil y Cabecera' },
+  3: { level: 3, minXP: 3001, perkKey: 'hub:perks.level3', defaultPerk: 'Selector de Color de Conquista del Mapa (5 Temas)' },
+  4: { level: 4, minXP: 7001, perkKey: 'hub:perks.level4', defaultPerk: 'Marco Edición Coleccionista en Stories y Perfil' },
+  5: { level: 5, minXP: 15001, perkKey: 'hub:perks.level5', defaultPerk: 'Emblema Maestro Leyenda del Camino (Obsidiana y Oro)' },
 };

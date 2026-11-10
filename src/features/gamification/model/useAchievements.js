@@ -1,6 +1,17 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { getTravelerLevel } from './travelerLevel';
-import { buildStats, evaluateAchievements, getAchievementsWithProgress } from './achievementsEngine';
+import {
+  getTravelerLevel,
+  resolveConquestColor,
+  isConquestColorUnlocked as checkConquestColorUnlocked,
+} from './travelerLevel';
+import {
+  buildStats,
+  evaluateAchievements,
+  getAchievementsWithProgress,
+  calculateXPBreakdown,
+  calculateCountryEmblems,
+  getNextAchievableBadges,
+} from './achievementsEngine';
 import { ENABLE_GAMIFICATION } from '@shared/config';
 import { useAuth } from '@app/providers/AuthContext';
 
@@ -100,11 +111,55 @@ export const useAchievements = ({ paisesVisitados, bitacora, todasLasParadas }) 
     [stats],
   );
 
+  // Group trips + their stops on the fly so the XP 2.0 / emblem engines stay
+  // 100% in-memory (no extra Firestore reads, no N+1 queries).
+  const viajes = useMemo(() => {
+    if (!ENABLE_GAMIFICATION) return [];
+    const stopsByTrip = new Map();
+    for (const parada of Array.isArray(todasLasParadas) ? todasLasParadas : []) {
+      const tripId = parada?.viajeId;
+      if (!tripId) continue;
+      if (!stopsByTrip.has(tripId)) stopsByTrip.set(tripId, []);
+      stopsByTrip.get(tripId).push(parada);
+    }
+    const trips = Array.isArray(bitacora) ? bitacora : [];
+    return trips.map((trip) => ({ ...trip, paradas: stopsByTrip.get(trip.id) || [] }));
+  }, [bitacora, todasLasParadas]);
+
+  const xpBreakdown = useMemo(
+    () => (ENABLE_GAMIFICATION ? calculateXPBreakdown(viajes, userProfile) : null),
+    [viajes, userProfile],
+  );
+
+  const countryEmblems = useMemo(
+    () => (ENABLE_GAMIFICATION ? calculateCountryEmblems(viajes, userProfile) : []),
+    [viajes, userProfile],
+  );
+
+  const nextAchievableBadges = useMemo(
+    () => (ENABLE_GAMIFICATION ? getNextAchievableBadges(achievementsWithProgress, 2) : []),
+    [achievementsWithProgress],
+  );
+
+  const totalXP = xpBreakdown?.totalXP || 0;
+
+  const conquestColor = useMemo(
+    () => resolveConquestColor(userProfile, totalXP),
+    [userProfile, totalXP],
+  );
+
+  const conquestColorUnlocked = useMemo(() => checkConquestColorUnlocked(totalXP), [totalXP]);
+
   return {
     celebrations,
     dismissCelebration,
     dismissAll,
     stats,
     achievementsWithProgress,
+    xpBreakdown,
+    countryEmblems,
+    nextAchievableBadges,
+    conquestColor,
+    isConquestColorUnlocked: conquestColorUnlocked,
   };
 };

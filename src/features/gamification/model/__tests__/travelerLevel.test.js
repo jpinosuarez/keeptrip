@@ -5,7 +5,15 @@ import {
   getNextLevel,
   checkLevelUp,
   calculateTotalXP,
-  ONBOARDING_XP_BONUS
+  calculateTripXP,
+  ONBOARDING_XP_BONUS,
+  CONQUEST_COLOR_THEMES,
+  DEFAULT_CONQUEST_COLOR,
+  CONQUEST_COLOR_UNLOCK_LEVEL,
+  CONQUEST_COLOR_UNLOCK_XP,
+  isConquestColorUnlocked,
+  resolveConquestColor,
+  LEVEL_PERKS,
 } from '../travelerLevel';
 
 describe('travelerLevel', () => {
@@ -168,6 +176,81 @@ describe('travelerLevel', () => {
       const { leveledUp, newLevel } = checkLevelUp(0, 11);
       expect(leveledUp).toBe(true);
       expect(newLevel.id).toBe('globetrotter');
+    });
+  });
+
+  describe('calculateTripXP (XP 2.0 curation bonuses)', () => {
+    it('returns the legacy base when there is no curation', () => {
+      expect(calculateTripXP({}, [], [])).toBe(100);
+      expect(calculateTripXP({}, [{}, {}], [{}, {}, {}])).toBe(100 + 100 + 30);
+    });
+
+    it('adds +30 when the full Trilogía is present', () => {
+      const viaje = { highlights: { topFood: 'Asado', topView: 'Mirador', topTip: 'Reservá' } };
+      expect(calculateTripXP(viaje, [], [])).toBe(130);
+    });
+
+    it('adds +15 per documented stop (titular | nota | relato)', () => {
+      const paradas = [
+        { titular: 'Día 1' },
+        { nota: 'Llevá efectivo' },
+        { relato: 'Gran atardecer' },
+        {},
+      ];
+      expect(calculateTripXP({}, paradas, [])).toBe(100 + 4 * 50 + 3 * 15);
+    });
+
+    it('adds +10 per POI registered in parada.lugares', () => {
+      const paradas = [{ lugares: [{}, {}] }, { lugares: [{}] }];
+      expect(calculateTripXP({}, paradas, [])).toBe(100 + 2 * 50 + 3 * 10);
+    });
+
+    it('combines base + all curation bonuses', () => {
+      const viaje = { highlights: { topFood: 'X', topView: 'Y', topTip: 'Z' } };
+      const paradas = [{ titular: 'T', lugares: [{}, {}] }];
+      expect(calculateTripXP(viaje, paradas, [{}, {}])).toBe(100 + 50 + 20 + 30 + 15 + 20);
+    });
+  });
+
+  describe('Conquest colour themes (Level 3 perk)', () => {
+    it('exposes 5 brand-safe themes in the official order', () => {
+      expect(CONQUEST_COLOR_THEMES).toHaveLength(5);
+      expect(CONQUEST_COLOR_THEMES.map((theme) => theme.hex)).toEqual([
+        '#FF6B35',
+        '#F59E0B',
+        '#6366F1',
+        '#E11D48',
+        '#8B5CF6',
+      ]);
+    });
+
+    it('unlocks at Level 3 / 3001 XP', () => {
+      expect(CONQUEST_COLOR_UNLOCK_LEVEL).toBe(3);
+      expect(CONQUEST_COLOR_UNLOCK_XP).toBe(3001);
+      expect(isConquestColorUnlocked(0)).toBe(false);
+      expect(isConquestColorUnlocked(2999)).toBe(false);
+      expect(isConquestColorUnlocked(3001)).toBe(true);
+      expect(isConquestColorUnlocked(5000)).toBe(true);
+    });
+
+    it('resolveConquestColor locks to the default below the threshold', () => {
+      expect(resolveConquestColor({ conquestColor: '#E11D48' }, 100)).toBe(DEFAULT_CONQUEST_COLOR);
+    });
+
+    it('resolveConquestColor honors a valid unlocked preference', () => {
+      expect(resolveConquestColor({ conquestColor: '#E11D48' }, 5000)).toBe('#E11D48');
+    });
+
+    it('resolveConquestColor falls back on an invalid preference', () => {
+      expect(resolveConquestColor({ conquestColor: '#123456' }, 5000)).toBe(DEFAULT_CONQUEST_COLOR);
+      expect(resolveConquestColor(null, 5000)).toBe(DEFAULT_CONQUEST_COLOR);
+    });
+
+    it('LEVEL_PERKS maps levels 1..5 with ascending XP gates', () => {
+      expect(Object.keys(LEVEL_PERKS)).toEqual(['1', '2', '3', '4', '5']);
+      expect(LEVEL_PERKS[1].minXP).toBe(0);
+      expect(LEVEL_PERKS[3].minXP).toBe(3001);
+      expect(LEVEL_PERKS[5].minXP).toBe(15001);
     });
   });
 });
