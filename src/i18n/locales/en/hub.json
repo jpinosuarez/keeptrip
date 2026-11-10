@@ -46,6 +46,62 @@
     "dream_architect": "Dream Architect",
     "dream_architect_desc": "Save 3 destinations to your Wishlist"
   },
+  "emblems": {
+    "identity": {
+      "roots": "Roots",
+      "base": "Home Base",
+      "rootsAndBase": "Roots & Base"
+    },
+    "tiers": {
+      "wishlist": "In Wishlist",
+      "locked": "To Discover",
+      "explorador": "Explorer",
+      "conocedor": "Connoisseur",
+      "experto": "Route Expert",
+      "segundo_hogar": "Second Home",
+      "leyenda": "Local Legend"
+    },
+    "filters": {
+      "discovered": "Discovered",
+      "wishlist": "In Wishlist",
+      "byContinent": "By Continent",
+      "atlas": "Complete Atlas"
+    },
+    "continents": {
+      "all": "All",
+      "europe": "Europe",
+      "americas": "Americas",
+      "asia": "Asia",
+      "africa": "Africa",
+      "oceania": "Oceania"
+    },
+    "modal": {
+      "viewFront": "View chromatic front",
+      "viewBack": "Flip engraved reverse (180°)",
+      "visits": "Trips",
+      "cities": "Cities",
+      "days": "Days",
+      "citiesExplored": "Explored cities & stops",
+      "openSingleTrip": "Open trip",
+      "yourTripsInCountry": "Your trips in",
+      "viewAllFilteredTrips": "View all {{count}} filtered trips in My Trips",
+      "createTripCta": "Create trip to {{country}} (+500 XP)"
+    },
+    "empty": {
+      "wishlistTitle": "Your Wishlist is empty",
+      "wishlistDesc": "Save destinations you dream of visiting to see their Muted Teal cartographic silhouettes.",
+      "discoveredTitle": "No emblems found in this view",
+      "discoveredDesc": "Log your first adventure to unlock the 3D emblem of each explored country."
+    },
+    "searchPlaceholder": "Search country or ISO code...",
+    "tripSingular": "trip",
+    "tripPlural": "trips",
+    "citySingular": "city",
+    "cityPlural": "cities",
+    "microstateHint": "Microstate — Magnified cartographic loupe view",
+    "wishlistPrompt": "+500 XP on discovery",
+    "lockedPrompt": "Pending discovery"
+  },
   "conquestThemes": {
     "atomicTangerine": "Atomic Tangerine",
     "solarAmber": "Solar Amber",

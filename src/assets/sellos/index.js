@@ -1,16 +1,9 @@
 // src/assets/sellos/index.js
 
-// --- 1. IMPORTACIONES DE IMÁGENES ---
-import selloARG from './sello_ARG.png';
-import selloDEU from './sello_DEU.png';
-import selloCHN from './sello_CHN.png';
-
-// --- 2. DICCIONARIO DE IMÁGENES (Para la Bitácora) ---
-export const IMAGENES_SELLOS = {
-  ARG: selloARG,
-  DEU: selloDEU,
-  CHN: selloCHN,
-};
+// --- 1. DICCIONARIO DE IMÁGENES (legacy PNG stamps retired in Block 3.1) ---
+// The obsolete bitmap stamps were replaced by the pre-processed Country Emblems
+// catalog. Kept as an empty map for backwards compatibility with legacy imports.
+export const IMAGENES_SELLOS = {};
 
 // --- 3. GUÍA DE COLORES POR CONTINENTE ---
 export const COLORES_CONTINENTE = {

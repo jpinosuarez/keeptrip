@@ -98,3 +98,7 @@ export const Lightbulb = createIconComponent('Lightbulb');
 export const CloudSun = createIconComponent('CloudSun');
 export const Bookmark = createIconComponent('Bookmark');
 export const BookmarkCheck = createIconComponent('BookmarkCheck');
+export const RotateCw = createIconComponent('RotateCw');
+export const ExternalLink = createIconComponent('ExternalLink');
+export const Lock = createIconComponent('Lock');
+export const Home = createIconComponent('Home');

@@ -155,6 +155,9 @@ describe('achievementsEngine - emblem states', () => {
     const ar = emblems.find((emblem) => emblem.iso2 === 'AR');
     expect(ar.status).toBe('visited');
     expect(ar.visitsCount).toBe(1);
+    expect(ar.countryCode).toBe('AR');
+    expect(Array.isArray(ar.cities)).toBe(true);
+    expect(ar.cities).toEqual(expect.arrayContaining(['Buenos Aires', 'Mendoza']));
     expect(ar.tier).toBe('explorador');
     expect(ar.stars).toBe(1);
     expect(ar.accentColor).toBe('#FF6B35');

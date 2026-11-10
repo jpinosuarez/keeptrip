@@ -76,6 +76,62 @@
     "dream_architect": "Arquitecto de Sueños",
     "dream_architect_desc": "Guardá 3 destinos en tu Wishlist"
   },
+  "emblems": {
+    "identity": {
+      "roots": "Raíces",
+      "base": "Mi Base",
+      "rootsAndBase": "Raíces y Base"
+    },
+    "tiers": {
+      "wishlist": "En Wishlist",
+      "locked": "Por Descubrir",
+      "explorador": "Explorador",
+      "conocedor": "Conocedor",
+      "experto": "Experto de Ruta",
+      "segundo_hogar": "Segundo Hogar",
+      "leyenda": "Leyenda Local"
+    },
+    "filters": {
+      "discovered": "Descubiertos",
+      "wishlist": "En Wishlist",
+      "byContinent": "Por Continente",
+      "atlas": "Atlas Completo"
+    },
+    "continents": {
+      "all": "Todos",
+      "europe": "Europa",
+      "americas": "América",
+      "asia": "Asia",
+      "africa": "África",
+      "oceania": "Oceanía"
+    },
+    "modal": {
+      "viewFront": "Ver anverso cromático",
+      "viewBack": "Girar reverso grabado (180°)",
+      "visits": "Viajes",
+      "cities": "Ciudades",
+      "days": "Días",
+      "citiesExplored": "Ciudades y paradas exploradas",
+      "openSingleTrip": "Abrir viaje",
+      "yourTripsInCountry": "Tus viajes en",
+      "viewAllFilteredTrips": "Ver los {{count}} viajes filtrados en Mis Viajes",
+      "createTripCta": "Crear viaje a {{country}} (+500 XP)"
+    },
+    "empty": {
+      "wishlistTitle": "Tu Wishlist está vacía",
+      "wishlistDesc": "Guarda destinos que sueñas visitar para ver sus siluetas cartográficas en Muted Teal.",
+      "discoveredTitle": "Aún no tienes emblemas en esta vista",
+      "discoveredDesc": "Registra tu primera aventura para esculpir y desbloquear el emblema 3D de cada país explorado."
+    },
+    "searchPlaceholder": "Buscar país o código ISO...",
+    "tripSingular": "viaje",
+    "tripPlural": "viajes",
+    "citySingular": "ciudad",
+    "cityPlural": "ciudades",
+    "microstateHint": "Microestado — Vista con lupa cartográfica",
+    "wishlistPrompt": "+500 XP al conquistar",
+    "lockedPrompt": "Pendiente de explorar"
+  },
   "conquestThemes": {
     "atomicTangerine": "Naranja Atómico",
     "solarAmber": "Ámbar Solar",

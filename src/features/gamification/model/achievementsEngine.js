@@ -435,14 +435,16 @@ const buildNavigationAction = (iso2, trips) => {
   return { type: 'create_trip', path: `/trips?new=true&country=${iso2}` };
 };
 
-const buildEmblemBase = ({ iso2, visitsCount = 0, citiesCount = 0, daysCount = 0, firstVisitedAt = null, isBirthCountry = false, isResidenceCountry = false, trips = [] }) => {
+const buildEmblemBase = ({ iso2, visitsCount = 0, citiesCount = 0, daysCount = 0, firstVisitedAt = null, isBirthCountry = false, isResidenceCountry = false, trips = [], cities = [] }) => {
   const sortedTrips = sortTripsByRecency(trips);
   const tier = resolveMasteryTier(visitsCount, citiesCount, daysCount);
   return {
     iso2,
+    countryCode: iso2,
     iso3: resolveIso3(iso2),
     visitsCount,
     citiesCount,
+    cities: asArray(cities),
     daysCount,
     status: 'visited',
     tier: tier.tier,
@@ -542,6 +544,7 @@ export function calculateCountryEmblems(viajes = [], userProfile = null, options
         isBirthCountry,
         isResidenceCountry,
         trips: agg.trips,
+        cities: [...agg.cities],
       }),
     );
   }
@@ -572,9 +575,11 @@ export function calculateCountryEmblems(viajes = [], userProfile = null, options
     const both = isBirthCountry && isResidenceCountry;
     originCountries.push({
       iso2,
+      countryCode: iso2,
       iso3: resolveIso3(iso2),
       visitsCount: 0,
       citiesCount: 0,
+      cities: [],
       daysCount: 0,
       status: 'origin_unvisited',
       tier: 'raices_base',
@@ -612,9 +617,11 @@ export function calculateCountryEmblems(viajes = [], userProfile = null, options
     const isResidenceCountry = Boolean(residenceIso2) && residenceIso2 === iso2;
     wishlistCountries.push({
       iso2,
+      countryCode: iso2,
       iso3: resolveIso3(iso2),
       visitsCount: 0,
       citiesCount: 0,
+      cities: [],
       daysCount: 0,
       status: 'wishlist',
       tier: 'wishlist',
@@ -644,9 +651,11 @@ export function calculateCountryEmblems(viajes = [], userProfile = null, options
       if (!iso2 || taken.has(iso2)) continue;
       lockedCountries.push({
         iso2,
+        countryCode: iso2,
         iso3: spec.iso3 || resolveIso3(iso2),
         visitsCount: 0,
         citiesCount: 0,
+        cities: [],
         daysCount: 0,
         status: 'locked',
         tier: 'locked',
