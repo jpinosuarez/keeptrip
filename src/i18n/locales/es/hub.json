@@ -76,6 +76,53 @@
     "dream_architect": "Arquitecto de Sueños",
     "dream_architect_desc": "Guardá 3 destinos en tu Wishlist"
   },
+  "tabs": {
+    "ariaLabel": "Secciones del Hub de Viajero",
+    "stats": "Radiografía",
+    "emblems": "Emblemas de Destino",
+    "badges": "Insignias e Hitos"
+  },
+  "levelLabel": "Nivel",
+  "defaultTravelerName": "Explorador Keeptrip",
+  "nextLevelProgress": "Próximo rango: Nivel {{level}} (faltan {{remaining}} XP)",
+  "maxLevelReached": "¡Has alcanzado el rango máximo de Leyenda!",
+  "conquestColorSaved": "Color de conquista actualizado",
+  "conquestColorError": "No se pudo guardar el color",
+  "celebrations": {
+    "country": {
+      "title": "¡Nuevo país descubierto!",
+      "xp": "+500 XP"
+    }
+  },
+  "emblemShare": {
+    "visits": "Viajes",
+    "cities": "Ciudades",
+    "variant": "Emblema"
+  },
+  "xp2": {
+    "totalLabel": "Experiencia Total",
+    "curationShort": "curación",
+    "breakdownBtn": "Desglose XP 2.0 y Beneficios",
+    "formulaTitle": "Fórmula XP 2.0 (Exploración + Curación)",
+    "countriesLine": "Países descubiertos (+500 XP c/u)",
+    "tripsLine": "Viajes completados (+100 XP c/u)",
+    "stopsLine": "Paradas y fotos registradas",
+    "curationLine": "Bono Curación (Trilogía +30, Crónicas +15, POIs +10)"
+  },
+  "assistant": {
+    "title": "🎯 Próximo Hito a tu Alcance",
+    "remainingCount": "Faltan {{count}} para desbloquear",
+    "cta": "Completar"
+  },
+  "badges": {
+    "categories": {
+      "all": "Todas",
+      "exploration": "Exploración Global",
+      "narrative": "Profundidad Documental",
+      "movement": "Estilo y Movimiento",
+      "tribeDreams": "Tribu y Sueños"
+    }
+  },
   "emblems": {
     "identity": {
       "roots": "Raíces",
@@ -133,6 +180,10 @@
     "lockedPrompt": "Pendiente de explorar"
   },
   "conquestThemes": {
+    "title": "Color de Conquista del Mapa",
+    "unlockedSub": "Beneficio Nivel 3 activo · Personaliza tu mapa",
+    "lockedSub": "Se desbloquea en Nivel 3 (3.001+ XP)",
+    "lockedTooltip": "Desbloquea en Nivel 3 (Trotamundos) para personalizar el color de tu mapa",
     "atomicTangerine": "Naranja Atómico",
     "solarAmber": "Ámbar Solar",
     "odysseyIndigo": "Índigo Odisea",
@@ -140,6 +191,8 @@
     "borealViolet": "Violeta Boreal"
   },
   "perks": {
+    "roadmapTitle": "Recompensas por Rango de Viajero",
+    "active": "Activo",
     "level1": "Mapa 3D, Emblemas de Destino y Estadísticas Base",
     "level2": "Insignia Destacada en Perfil y Cabecera",
     "level3": "Selector de Color de Conquista del Mapa (5 Temas)",

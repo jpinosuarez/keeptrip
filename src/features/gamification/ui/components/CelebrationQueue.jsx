@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { COLORS, SHADOWS, RADIUS, FONTS, Z_INDEX } from '@shared/config';
-import { TIER_COLORS } from '@features/gamification';
+import { TIER_COLORS } from '../../model/achievementDefinitions';
 import { useTranslation } from 'react-i18next';
+import CountryEmblem3D from './CountryEmblem3D';
+import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 
 let confettiLoader;
 
@@ -80,6 +82,63 @@ const AchievementUnlockCard = ({ achievement, onNext, isLast, t }) => {
   );
 };
 
+const CountryDiscoverCard = ({ item, t, i18n, onNext, isLast }) => {
+  const countryCode =
+    item?.countryCode || item?.data?.countryCode || item?.country || item?.data?.country || 'AR';
+  const localizedName =
+    getLocalizedCountryName(countryCode, i18n?.language) || item?.title || countryCode;
+  const discoveryCode = item?.discoveryCode || item?.data?.discoveryCode || '#01';
+
+  return (
+    <Motion.div
+      initial={{ scale: 0.75, rotateY: -180, opacity: 0 }}
+      animate={{ scale: 1, rotateY: 0, opacity: 1 }}
+      exit={{ scale: 0.8, opacity: 0 }}
+      transition={{ type: 'spring', stiffness: 120, damping: 16 }}
+      onClick={(e) => e.stopPropagation()}
+      style={{ ...cardStyles.card, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+      data-testid="celebration-country-emblem"
+    >
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            width: '260px',
+            height: '260px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255,107,53,0.35) 0%, transparent 70%)',
+          }}
+        />
+        <CountryEmblem3D
+          countryCode={countryCode}
+          tier={item?.tier || 'explorador'}
+          status="visited"
+          variant="detail"
+          interactive={false}
+        />
+      </div>
+      <h2 style={cardStyles.title}>{t('hub:celebrations.country.title', '¡Nuevo país descubierto!')}</h2>
+      <p style={{ ...cardStyles.highlight, color: COLORS.atomicTangerine }}>{localizedName}</p>
+      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', margin: '0 0 16px 0' }}>
+        <span style={cardStyles.tierBadge} data-testid="celebration-discovery-code">
+          {discoveryCode}
+        </span>
+        <span style={cardStyles.tierBadge} data-testid="celebration-country-xp">
+          {t('hub:celebrations.country.xp', '+500 XP')}
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={onNext}
+        style={{ ...cardStyles.btn, background: COLORS.atomicTangerine, boxShadow: SHADOWS.glow }}
+      >
+        {isLast ? t('hub:celebration.great') : t('hub:celebration.next')}
+      </button>
+    </Motion.div>
+  );
+};
+
 const SummaryCard = ({ celebrations, onDismiss, t }) => (
   <Motion.div
     initial={{ scale: 0.5, opacity: 0, y: 30 }}
@@ -129,16 +188,27 @@ const SummaryCard = ({ celebrations, onDismiss, t }) => (
  * Renders one celebration at a time, or a summary if 3+ are queued.
  */
 const CelebrationQueue = ({ celebrations, onDismiss, onDismissAll }) => {
-  const { t } = useTranslation('hub');
+  const { t, i18n } = useTranslation('hub');
   const current = celebrations[0];
   const isLast = celebrations.length === 1;
   const showSummary = celebrations.length >= 3;
+
+  const activeCountryCode =
+    current?.countryCode ||
+    current?.data?.countryCode ||
+    current?.country ||
+    current?.data?.country ||
+    null;
+  const isCountryDiscovery =
+    current?.type === 'country' ||
+    current?.type === 'country_unlocked' ||
+    Boolean(activeCountryCode);
 
   useEffect(() => {
     if (current) {
       const color = current.type === 'level-up'
         ? current.data.color
-        : TIER_COLORS[current.data.tier];
+        : TIER_COLORS[current.data?.tier];
       void fireConfetti(color);
     }
   }, [current]);
@@ -164,6 +234,8 @@ const CelebrationQueue = ({ celebrations, onDismiss, onDismissAll }) => {
       >
         {showSummary ? (
           <SummaryCard celebrations={celebrations} onDismiss={onDismissAll} t={t} />
+        ) : isCountryDiscovery ? (
+          <CountryDiscoverCard item={current} t={t} i18n={i18n} onNext={onDismiss} isLast={isLast} />
         ) : current.type === 'level-up' ? (
           <LevelUpCard level={current.data} onNext={onDismiss} isLast={isLast} t={t} />
         ) : (

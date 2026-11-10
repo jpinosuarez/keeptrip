@@ -17,6 +17,7 @@ import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
 import { OperationalMapFallback } from '@shared/ui/components';
 import { useAuth } from '@app/providers/AuthContext';
 import { getCountryISO3, getCountryCentroid } from '@shared/lib/utils/countryUtils';
+import { resolveConquestColor, CONQUEST_COLOR_UNLOCK_XP } from '@shared/lib/utils/conquestTheme';
 import { normalizeWishlistItem } from '@shared/lib/wishlist/wishlistUtils';
 import { Plus, MapPin } from 'lucide-react';
 
@@ -67,6 +68,12 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   const residenceIso3 = profileResidenceCountry ? getCountryISO3(profileResidenceCountry) : null;
   const hasGeoIdentity = Boolean(
     profileBirthCountry || profileResidenceCountry || profileBirthCity || profileBaseCity
+  );
+
+  // Level 3 conquest colour (declarative paint; never setPaintProperty on a ref).
+  const activeConquestColor = useMemo(
+    () => resolveConquestColor(userProfile, CONQUEST_COLOR_UNLOCK_XP),
+    [userProfile],
   );
 
   // Initial camera focus on roots/base if no trip selected
@@ -252,7 +259,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
       'fill-color': [
         'case',
         ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', visitedList]],
-        COLORS.atomicTangerine,
+        activeConquestColor,
         ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
         COLORS.mutedTeal,
         ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
@@ -274,7 +281,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
         0,
       ],
     };
-  }, [showVisited, showWishlist, listaPaises, residenceIso3, birthIso3, wishlistIso3List]);
+  }, [showVisited, showWishlist, listaPaises, residenceIso3, birthIso3, wishlistIso3List, activeConquestColor]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;

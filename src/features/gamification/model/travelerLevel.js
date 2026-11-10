@@ -135,39 +135,17 @@ export const checkLevelUp = (prevCount, newCount) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Level 3 Perks — Conquest Colour Themes
+// Level 3 Perks — Conquest Colour Themes (canonical logic lives in @shared for
+// FSD compliance; re-exported here so the gamification public API is unchanged)
 // ─────────────────────────────────────────────────────────────────────────────
-export const CONQUEST_COLOR_THEMES = [
-  { id: 'atomic_tangerine', hex: '#FF6B35', nameKey: 'hub:conquestThemes.atomicTangerine', defaultName: 'Naranja Atómico' },
-  { id: 'solar_amber', hex: '#F59E0B', nameKey: 'hub:conquestThemes.solarAmber', defaultName: 'Ámbar Solar' },
-  { id: 'odyssey_indigo', hex: '#6366F1', nameKey: 'hub:conquestThemes.odysseyIndigo', defaultName: 'Índigo Odisea' },
-  { id: 'ruby_crimson', hex: '#E11D48', nameKey: 'hub:conquestThemes.rubyCrimson', defaultName: 'Carmesí Rubí' },
-  { id: 'boreal_violet', hex: '#8B5CF6', nameKey: 'hub:conquestThemes.borealViolet', defaultName: 'Violeta Boreal' },
-];
-
-export const DEFAULT_CONQUEST_COLOR = '#FF6B35';
-export const CONQUEST_COLOR_UNLOCK_LEVEL = 3;
-export const CONQUEST_COLOR_UNLOCK_XP = 3001;
-
-/** @returns {boolean} true once the traveler reaches Level 3 (3001+ XP). */
-export const isConquestColorUnlocked = (xp = 0) => Number(xp) >= CONQUEST_COLOR_UNLOCK_XP;
-
-/**
- * Resolves the user's preferred conquest colour, falling back to the brand
- * Atomic Tangerine when the perk is locked or the stored value is invalid.
- *
- * @param {{ conquestColor?: string }|null} userProfile
- * @param {number} xp
- * @returns {string} hex colour
- */
-export const resolveConquestColor = (userProfile, xp = 0) => {
-  if (!isConquestColorUnlocked(xp)) return DEFAULT_CONQUEST_COLOR;
-  const preferred = userProfile?.conquestColor;
-  const isValid = CONQUEST_COLOR_THEMES.some(
-    (theme) => theme.hex.toLowerCase() === String(preferred || '').toLowerCase(),
-  );
-  return isValid ? preferred : DEFAULT_CONQUEST_COLOR;
-};
+export {
+  CONQUEST_COLOR_THEMES,
+  DEFAULT_CONQUEST_COLOR,
+  CONQUEST_COLOR_UNLOCK_LEVEL,
+  CONQUEST_COLOR_UNLOCK_XP,
+  isConquestColorUnlocked,
+  resolveConquestColor,
+} from '@shared/lib/utils/conquestTheme';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Level Perks (1 → 5)

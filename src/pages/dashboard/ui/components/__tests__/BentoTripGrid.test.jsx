@@ -4,6 +4,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import BentoTripGrid from '../BentoTripGrid';
 import { getGridSpan } from '../bentoGridUtils';
+import WelcomeBento from '../WelcomeBento';
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
@@ -18,6 +19,8 @@ vi.mock('react-i18next', () => ({
     },
     i18n: { language: 'es' },
   }),
+  Trans: ({ children }) => children,
+  initReactI18next: { type: '3rdParty', init: () => {} },
 }));
 
 // Mock TripCard to avoid subcomponent dependencies in layout testing
@@ -30,6 +33,17 @@ vi.mock('@widgets/tripGrid/ui/TripCard', () => ({
     </div>
   ),
 }));
+
+const { mockWelcomeProfile } = vi.hoisted(() => ({ mockWelcomeProfile: { current: null } }));
+
+vi.mock('@app/providers/AuthContext', () => ({
+  useAuth: () => ({ userProfile: mockWelcomeProfile.current }),
+}));
+
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, useSearchParams: () => [new URLSearchParams(), vi.fn()] };
+});
 
 describe('BentoTripGrid', () => {
   afterEach(() => {
@@ -111,5 +125,43 @@ describe('BentoTripGrid', () => {
       expect(screen.getByText('Japón 2026')).toBeInTheDocument();
       expect(screen.getByText('Noruega Fjord')).toBeInTheDocument();
     });
+  });
+});
+
+describe('WelcomeBento canonical identity badges', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('renders the canonical Roots pill (#2C3E50) for a birth-only profile', () => {
+    mockWelcomeProfile.current = {
+      birthCountry: 'AR',
+      residenceCountry: 'DE',
+      birthCity: { name: 'Córdoba' },
+    };
+    render(<WelcomeBento name="Mateo" />);
+    const pill = screen.getByTestId('welcome-identity-roots');
+    expect(pill).toBeInTheDocument();
+    expect(pill).toHaveStyle({ backgroundColor: '#2C3E50' });
+  });
+
+  it('renders the canonical Base pill (#45B0A8) for a residence-only profile', () => {
+    mockWelcomeProfile.current = { residenceCountry: 'DE', baseCity: { name: 'Berlín' } };
+    render(<WelcomeBento name="Mateo" />);
+    const pill = screen.getByTestId('welcome-identity-base');
+    expect(pill).toBeInTheDocument();
+    expect(pill).toHaveStyle({ backgroundColor: '#45B0A8' });
+  });
+
+  it('renders the combined Roots & Base pill (#45B0A8 bg + #2C3E50 border)', () => {
+    mockWelcomeProfile.current = {
+      birthCountry: 'AR',
+      residenceCountry: 'AR',
+      baseCity: { name: 'Córdoba' },
+    };
+    render(<WelcomeBento name="Mateo" />);
+    const pill = screen.getByTestId('welcome-identity-roots-and-base');
+    expect(pill).toBeInTheDocument();
+    expect(pill).toHaveStyle({ backgroundColor: '#45B0A8', borderColor: '#2C3E50' });
   });
 });

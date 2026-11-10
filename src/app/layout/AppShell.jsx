@@ -74,6 +74,11 @@ function AppShell() {
     dismissAll,
     stats: achievementStats,
     achievementsWithProgress,
+    xpBreakdown,
+    countryEmblems,
+    nextAchievableBadges,
+    conquestColor,
+    isConquestColorUnlocked,
   } = useAchievements({ paisesVisitados, bitacora, todasLasParadas });
 
   const invitationsHook = useInvitations();
@@ -155,6 +160,11 @@ function AppShell() {
     gamification: {
       achievementsWithProgress,
       achievementStats,
+      xpBreakdown,
+      countryEmblems,
+      nextAchievableBadges,
+      conquestColor,
+      isConquestColorUnlocked,
     },
     invitations: invitationsHook,
     onAfterDelete: () => {

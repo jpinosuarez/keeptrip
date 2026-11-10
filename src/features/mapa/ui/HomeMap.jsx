@@ -10,6 +10,7 @@ import { OperationalMapFallback } from '@shared/ui/components';
 import { cn } from '@shared/lib/utils/cn';
 import { useAuth } from '@app/providers/AuthContext';
 import { getCountryISO3 } from '@shared/lib/utils/countryUtils';
+import { resolveConquestColor, CONQUEST_COLOR_UNLOCK_XP } from '@shared/lib/utils/conquestTheme';
 
 // Fixed flat Mercator world view (Block 2.1): the Home map is a stable 2D
 // archive canvas — no flyTo, no fitBounds, no globe spin, no camera shifts.
@@ -55,6 +56,13 @@ const HomeMap = ({ paisesVisitados = [], userProfile: propProfile = null }) => {
 
   const birthIso3 = profileBirthCountry ? getCountryISO3(profileBirthCountry) : null;
   const residenceIso3 = profileResidenceCountry ? getCountryISO3(profileResidenceCountry) : null;
+
+  // Level 3 conquest colour: validates the stored theme (falls back to Atomic
+  // Tangerine when missing/invalid). Declarative paint only — never setPaintProperty.
+  const activeConquestColor = useMemo(
+    () => resolveConquestColor(profile, CONQUEST_COLOR_UNLOCK_XP),
+    [profile],
+  );
 
   const {
     flags: { level: operationalLevel },
@@ -179,7 +187,7 @@ const HomeMap = ({ paisesVisitados = [], userProfile: propProfile = null }) => {
     'fill-color': [
       'case',
       ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', listaPaises]],
-      COLORS.atomicTangerine,
+      activeConquestColor,
       ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
       COLORS.mutedTeal,
       ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
@@ -196,7 +204,7 @@ const HomeMap = ({ paisesVisitados = [], userProfile: propProfile = null }) => {
       0.45,
       0,
     ],
-  }), [listaPaises, residenceIso3, birthIso3]);
+  }), [listaPaises, residenceIso3, birthIso3, activeConquestColor]);
 
   useEffect(() => {
     const map = mapRef.current;

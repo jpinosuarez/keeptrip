@@ -102,3 +102,6 @@ export const RotateCw = createIconComponent('RotateCw');
 export const ExternalLink = createIconComponent('ExternalLink');
 export const Lock = createIconComponent('Lock');
 export const Home = createIconComponent('Home');
+export const Shield = createIconComponent('Shield');
+export const Flame = createIconComponent('Flame');
+export const Award = createIconComponent('Award');

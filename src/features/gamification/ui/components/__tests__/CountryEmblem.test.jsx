@@ -41,10 +41,13 @@ vi.mock('react-router-dom', () => ({
   useNavigate: () => mockedNavigate,
 }));
 
+vi.mock('canvas-confetti', () => ({ default: () => {} }));
+
 import CountryEmblem3D from '../CountryEmblem3D';
 import CountryEmblemCard from '../CountryEmblemCard';
 import CountryEmblemModal from '../CountryEmblemModal';
 import CountryEmblemGrid from '../CountryEmblemGrid';
+import CelebrationQueue from '../CelebrationQueue';
 
 const mockCatalogSpec = {
   iso2: 'AR',
@@ -180,5 +183,22 @@ describe('CountryEmblem UI Component Suite (Phase B)', () => {
 
     fireEvent.click(screen.getByTestId('emblem-card-JP'));
     expect(screen.getByTestId('country-emblem-modal')).toBeDefined();
+  });
+});
+
+describe('CelebrationQueue country discovery', () => {
+  it('renders the 3D country emblem + XP badge for a country discovery event', () => {
+    render(
+      <CelebrationQueue
+        celebrations={[
+          { type: 'country', data: { countryCode: 'AR', discoveryCode: '#01' } },
+        ]}
+        onDismiss={vi.fn()}
+        onDismissAll={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId('celebration-country-emblem')).toBeDefined();
+    expect(screen.getByTestId('celebration-country-xp')).toBeDefined();
+    expect(screen.getByTestId('country-emblem-3d-AR')).toBeDefined();
   });
 });

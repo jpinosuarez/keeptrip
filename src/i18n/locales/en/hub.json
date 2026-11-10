@@ -46,6 +46,53 @@
     "dream_architect": "Dream Architect",
     "dream_architect_desc": "Save 3 destinations to your Wishlist"
   },
+  "tabs": {
+    "ariaLabel": "Traveler Hub sections",
+    "stats": "Overview",
+    "emblems": "Destination Emblems",
+    "badges": "Badges & Milestones"
+  },
+  "levelLabel": "Level",
+  "defaultTravelerName": "Keeptrip Explorer",
+  "nextLevelProgress": "Next rank: Level {{level}} ({{remaining}} XP to go)",
+  "maxLevelReached": "You have reached the maximum Legend rank!",
+  "conquestColorSaved": "Conquest color updated",
+  "conquestColorError": "Could not save the color",
+  "celebrations": {
+    "country": {
+      "title": "New country discovered!",
+      "xp": "+500 XP"
+    }
+  },
+  "emblemShare": {
+    "visits": "Trips",
+    "cities": "Cities",
+    "variant": "Emblem"
+  },
+  "xp2": {
+    "totalLabel": "Total Experience",
+    "curationShort": "curation",
+    "breakdownBtn": "XP 2.0 Breakdown & Perks",
+    "formulaTitle": "XP 2.0 Formula (Exploration + Curation)",
+    "countriesLine": "Countries discovered (+500 XP each)",
+    "tripsLine": "Trips completed (+100 XP each)",
+    "stopsLine": "Stops and photos logged",
+    "curationLine": "Curation Bonus (Trilogy +30, Chronicles +15, POIs +10)"
+  },
+  "assistant": {
+    "title": "🎯 Next Milestone Within Reach",
+    "remainingCount": "{{count}} more to unlock",
+    "cta": "Complete"
+  },
+  "badges": {
+    "categories": {
+      "all": "All",
+      "exploration": "Global Exploration",
+      "narrative": "Documentary Depth",
+      "movement": "Style & Movement",
+      "tribeDreams": "Tribe & Dreams"
+    }
+  },
   "emblems": {
     "identity": {
       "roots": "Roots",
@@ -103,6 +150,10 @@
     "lockedPrompt": "Pending discovery"
   },
   "conquestThemes": {
+    "title": "Map Conquest Color",
+    "unlockedSub": "Level 3 perk active · Personalize your map",
+    "lockedSub": "Unlocks at Level 3 (3,001+ XP)",
+    "lockedTooltip": "Unlock at Level 3 (Globetrotter) to personalize your map color",
     "atomicTangerine": "Atomic Tangerine",
     "solarAmber": "Solar Amber",
     "odysseyIndigo": "Odyssey Indigo",
@@ -110,6 +161,8 @@
     "borealViolet": "Boreal Violet"
   },
   "perks": {
+    "roadmapTitle": "Traveler Rank Rewards",
+    "active": "Active",
     "level1": "3D Map, Destination Emblems and Base Stats",
     "level2": "Featured Badge on Profile and Header",
     "level3": "Map Conquest Color Selector (5 Themes)",

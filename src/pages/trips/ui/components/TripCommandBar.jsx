@@ -352,6 +352,23 @@ const TripCommandBar = ({
         </div>
       </div>
 
+      {/* Active country deep-link chip */}
+      {filters.country && filters.country !== 'all' && (
+        <button
+          type="button"
+          onClick={() => onChange?.({ country: 'all' })}
+          className="min-h-[44px] px-3.5 py-1.5 rounded-full bg-[#FF6B35]/10 border border-[#FF6B35]/30 text-[#FF6B35] font-sans text-xs font-bold inline-flex items-center gap-2 hover:bg-[#FF6B35]/15 transition-colors cursor-pointer self-start"
+          data-testid="active-country-filter-pill"
+        >
+          <CountryFlag code={filters.country} size="xs" />
+          <span>
+            {countryOptionsList.find((option) => option.value === filters.country)?.label ||
+              filters.country}
+          </span>
+          <X aria-label="Quitar filtro de país" size={14} />
+        </button>
+      )}
+
       {/* Results indicator */}
       {hasActiveFilters && (
         <div className="flex items-center justify-between gap-2 text-[0.78rem] text-slate-500">
