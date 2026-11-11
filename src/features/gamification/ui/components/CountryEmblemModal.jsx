@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, RotateCw, MapPin, Calendar, Compass, ArrowRight, Plus, ExternalLink, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -53,17 +54,20 @@ export default function CountryEmblemModal({ emblem, isOpen, onClose, onCreateTr
     }
   };
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="country-emblem-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-fadeIn overflow-y-auto"
+      style={{ zIndex: 1200 }}
       onClick={onClose}
       data-testid="country-emblem-modal"
     >
       <div
-        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-[32px] bg-white border border-slate-200 shadow-2xl p-6 md:p-8 text-slate-800"
+        data-testid="country-emblem-modal-card"
+        style={{ width: 'min(92vw, 520px)', maxWidth: '520px', minWidth: 'min(100%, 320px)' }}
+        className="relative w-full max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-[32px] bg-white border border-slate-200 shadow-2xl p-5 sm:p-7 text-slate-800 shrink-0 my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-2 mb-4">
@@ -247,6 +251,7 @@ export default function CountryEmblemModal({ emblem, isOpen, onClose, onCreateTr
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

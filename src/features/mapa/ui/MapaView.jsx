@@ -17,7 +17,7 @@ import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
 import { OperationalMapFallback } from '@shared/ui/components';
 import { useAuth } from '@app/providers/AuthContext';
 import { getCountryISO3, getCountryCentroid } from '@shared/lib/utils/countryUtils';
-import { resolveConquestColor, CONQUEST_COLOR_UNLOCK_XP } from '@shared/lib/utils/conquestTheme';
+import { resolveConquestColor, CONQUEST_COLOR_UNLOCK_XP, isConquestColorUnlocked } from '@shared/lib/utils/conquestTheme';
 import { normalizeWishlistItem } from '@shared/lib/wishlist/wishlistUtils';
 import { Plus, MapPin } from 'lucide-react';
 
@@ -55,7 +55,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   const spinGlobeRef = useRef(null);
   const identityMarkersRef = useRef([]);
   const cameraTargetRef = useRef(null);
-  const { userProfile } = useAuth() || {};
+  const { userProfile, updateUserProfile } = useAuth() || {};
 
   // Granular identity slices: they change only when the geographic identity changes,
   // so the reactive map effect never re-runs on unrelated profile edits (e.g. avatar).
@@ -74,6 +74,16 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   const activeConquestColor = useMemo(
     () => resolveConquestColor(userProfile, CONQUEST_COLOR_UNLOCK_XP),
     [userProfile],
+  );
+
+  const estimatedXP = (paises?.length || 0) * 500 + (trips?.length || 0) * 100;
+  const isConquestUnlocked = Boolean(userProfile?.conquestColor) || isConquestColorUnlocked(estimatedXP);
+
+  const handleSelectConquestColor = useCallback(
+    async (hex) => {
+      if (updateUserProfile) await updateUserProfile({ conquestColor: hex });
+    },
+    [updateUserProfile],
   );
 
   // Initial camera focus on roots/base if no trip selected
@@ -697,6 +707,9 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
               wishlistItems={wishlistItems}
               onWishlistItemFly={handleWishlistItemFly}
               onCreateTripFromWishlist={handleCreateTripFromWishlist}
+              conquestColor={activeConquestColor}
+              isConquestColorUnlocked={isConquestUnlocked}
+              onSelectConquestColor={handleSelectConquestColor}
             />
           </>
         )}

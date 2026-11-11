@@ -74,16 +74,40 @@
     "tribe_traveler": "Viajero en Tribu",
     "tribe_traveler_desc": "Sumá un viaje en familia o con amigos",
     "dream_architect": "Arquitecto de Sueños",
-    "dream_architect_desc": "Guardá 3 destinos en tu Wishlist"
+    "dream_architect_desc": "Guardá 3 destinos en tu Wishlist",
+    "milestoneTag": "Hito Único",
+    "milestoneCompleted": "Hito desbloqueado",
+    "nextTierLabel": "Siguiente",
+    "maxTierReached": "¡Nivel Leyenda completado!",
+    "progressLabel": "Progreso",
+    "tiers": {
+      "bronze": "Bronce",
+      "silver": "Plata",
+      "gold": "Oro",
+      "legend": "Leyenda",
+      "locked": "Evolutiva"
+    }
   },
   "tabs": {
     "ariaLabel": "Secciones del Hub de Viajero",
-    "stats": "Radiografía",
+    "stats": "Estadísticas",
+    "emblemsShort": "Emblemas",
+    "badgesShort": "Insignias",
     "emblems": "Emblemas de Destino",
     "badges": "Insignias e Hitos"
   },
   "levelLabel": "Nivel",
   "defaultTravelerName": "Explorador Keeptrip",
+  "hubTitle": "Tu Progreso de Explorador",
+  "hubSubtitle": "Tus estadísticas de viaje, emblemas 3D e insignias de ruta",
+  "nextRankHumanCopy": "A {{remaining}} XP de alcanzar {{nextTitle}} (Nivel {{nextLevel}})",
+  "ranks": {
+    "level1": "Explorador Inicial",
+    "level2": "Viajero Frecuente",
+    "level3": "Trotamundos",
+    "level4": "Explorador Global",
+    "level5": "Leyenda del Camino"
+  },
   "nextLevelProgress": "Próximo rango: Nivel {{level}} (faltan {{remaining}} XP)",
   "maxLevelReached": "¡Has alcanzado el rango máximo de Leyenda!",
   "conquestColorSaved": "Color de conquista actualizado",

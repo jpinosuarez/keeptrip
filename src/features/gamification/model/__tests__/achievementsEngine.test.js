@@ -329,3 +329,29 @@ describe('achievementsEngine - getNextAchievableBadges', () => {
   });
 });
 
+describe('achievementsEngine - dual badge types', () => {
+  it('returns milestone badges with isMilestone + raw progress', () => {
+    const stats = buildStats(['ARG'], [{ id: 't1', paisCodigo: 'AR' }], []);
+    const list = getAchievementsWithProgress(stats);
+    const firstStep = list.find((badge) => badge.id === 'first_step');
+    expect(firstStep.type).toBe('milestone');
+    expect(firstStep.isMilestone).toBe(true);
+    expect(firstStep.unlocked).toBe(true);
+    expect(firstStep.target).toBe(1);
+  });
+
+  it('returns tiered badges with attained tier index + next threshold', () => {
+    const stats = buildStats(['ARG', 'DEU', 'FRA', 'ITA', 'ESP'], [{ id: 't1' }], []);
+    const list = getAchievementsWithProgress(stats);
+    const globeTrotter = list.find((badge) => badge.id === 'globe_trotter');
+    expect(globeTrotter.type).toBe('tiered');
+    expect(globeTrotter.unlocked).toBe(true);
+    expect(globeTrotter.tiers).toHaveLength(4);
+    expect(globeTrotter.attainedTierIndex).toBe(0);
+    expect(globeTrotter.nextTierThreshold).toBe(10);
+    expect(globeTrotter.tier).toBe('bronze');
+    expect(globeTrotter.progress).toBeGreaterThanOrEqual(0);
+    expect(globeTrotter.progress).toBeLessThanOrEqual(1);
+  });
+});
+

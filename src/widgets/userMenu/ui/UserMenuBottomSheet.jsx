@@ -5,16 +5,17 @@
  */
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, LogOut, BarChart3 } from 'lucide-react';
+import { Settings, LogOut, Compass, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import BottomSheet from '@shared/ui/components/BottomSheet';
 import { useAuth } from '@app/providers/AuthContext';
 import { useUI } from '@app/providers/UIContext';
 import { ENABLE_TRAVEL_STATS } from '@shared/config';
+import { setDevMenuOpen } from '@shared/dev/devMenuState';
 import { cn } from '@shared/lib/utils/cn';
 
 const UserMenuBottomSheet = () => {
-  const { t } = useTranslation(['common', 'settings']);
+  const { t } = useTranslation(['common', 'settings', 'landing']);
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { userMenuOpen, closeUserMenu } = useUI();
@@ -34,6 +35,11 @@ const UserMenuBottomSheet = () => {
     navigate('/hub');
   };
 
+  const handleDevPanel = () => {
+    closeUserMenu();
+    setDevMenuOpen(true);
+  };
+
   return (
     <BottomSheet isOpen={userMenuOpen} onClose={closeUserMenu} ariaLabel="User menu"> 
       <div className="flex flex-col gap-3 p-5">
@@ -47,8 +53,8 @@ const UserMenuBottomSheet = () => {
               "text-left hover:bg-black/5 transition-all duration-200 font-heading"
             )}
           >
-            <BarChart3 size={18} className="text-atomicTangerine" />
-            <span className="flex-1">{t('nav:stats', 'Estadísticas')}</span>
+            <Compass size={18} className="text-atomicTangerine" />
+            <span className="flex-1">{t('nav:progress', 'Progreso')}</span>
           </button>
         )}
 
@@ -64,6 +70,25 @@ const UserMenuBottomSheet = () => {
           <Settings size={18} className="text-text-secondary" />
           <span className="flex-1">{t('settings:settings', 'Ajustes')}</span>
         </button>
+
+        {import.meta.env.DEV && (
+          <button
+            type="button"
+            onClick={handleDevPanel}
+            className={cn(
+              "flex items-center gap-3 w-full min-h-[44px] px-4 py-3.5 rounded-xl",
+              "border border-dashed border-black/15 bg-white cursor-pointer text-base font-bold text-slate-800",
+              "text-left hover:bg-black/5 transition-all duration-200 font-heading"
+            )}
+            data-testid="user-menu-dev-panel"
+          >
+            <Wrench size={18} className="text-text-secondary" />
+            <span className="flex-1">{t('landing:devDock.panel.title', 'Panel Desarrollador')}</span>
+            <span className="px-2 py-0.5 rounded-full bg-[#FF6B35]/10 text-[#FF6B35] text-[0.62rem] font-extrabold tracking-wider">
+              DEV
+            </span>
+          </button>
+        )}
 
         <button
           type="button"

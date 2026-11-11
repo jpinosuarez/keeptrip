@@ -1,191 +1,220 @@
 import React from 'react';
-import { motion as Motion } from 'framer-motion';
-import { cn } from '@shared/lib/utils/cn';
-import { TIER_COLORS, TIER_GLOW } from '../model/achievementDefinitions';
+import { Lock, Check, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { TIER_COLORS } from '../model/achievementDefinitions';
+import { formatLocalizedNumber } from '@shared/lib/utils';
+import { cn } from '@shared/lib/utils/cn';
 
-/**
- * Prestige Achievement Token (2026 Redesign)
- *
- * Unlocked: Convex hexagon shell with tier radial glow + emoji center.
- *           Spring bounce on mount. Shimmer sweep CSS animation.
- * Locked:   Same shell but greyscale + SVG circular progress ring.
- *           Silhouette visible to keep curiosity alive.
- */
+const TIER_STEPS = [
+  { key: 'bronze', labelKey: 'achievements.tiers.bronze', defaultLabel: 'Bronce', icon: '🥉' },
+  { key: 'silver', labelKey: 'achievements.tiers.silver', defaultLabel: 'Plata', icon: '🥈' },
+  { key: 'gold', labelKey: 'achievements.tiers.gold', defaultLabel: 'Oro', icon: '🥇' },
+  { key: 'legend', labelKey: 'achievements.tiers.legend', defaultLabel: 'Leyenda', icon: '👑' },
+];
 
-// SVG Progress Ring — Apple Fitness style
-const ProgressRing = ({ progress, color, size = 72, stroke = 5 }) => {
-  const radius = (size - stroke * 2) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - Math.min(Math.max(progress, 0), 1));
+export default function AchievementCard({ achievement, unlocked: propUnlocked }) {
+  const { t, i18n } = useTranslation('hub');
+  if (!achievement) return null;
 
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      style={{ position: 'absolute', top: 0, left: 0, transform: 'rotate(-90deg)' }}
-      aria-hidden="true"
-    >
-      {/* Track */}
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke="rgba(0,0,0,0.08)"
-        strokeWidth={stroke}
-      />
-      {/* Fill */}
-      <Motion.circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke={color}
-        strokeWidth={stroke}
-        strokeLinecap="round"
-        strokeDasharray={circumference}
-        initial={{ strokeDashoffset: circumference }}
-        animate={{ strokeDashoffset: offset }}
-        transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
-      />
-    </svg>
-  );
-};
+  const lang = i18n.language || 'es';
+  const {
+    id,
+    icon = '🏆',
+    type = 'milestone',
+    tiers = null,
+    unlocked: achUnlocked,
+    current = 0,
+    progress = 0,
+    target = 1,
+    attainedTierIndex = -1,
+    nextTierThreshold = null,
+    defaultTitle,
+    defaultDescription,
+    unitLabel = '',
+  } = achievement;
 
-const AchievementCard = ({ achievement, isMobile = false }) => {
-  const { icon, tier, progress, current, unlocked, criteria } = achievement;
-  const tierColor  = TIER_COLORS[tier] || '#64748b';
-  const tierGlow   = TIER_GLOW[tier]   || 'rgba(0,0,0,0.1)';
-  const { t } = useTranslation('hub');
+  const isUnlocked = Boolean(propUnlocked ?? achUnlocked);
+  const isTiered = type === 'tiered' && Array.isArray(tiers) && tiers.length > 0;
+  const currentValue = Number(current) || Number(progress) * Number(target) || 0;
 
-  const name        = t(`achievements.${achievement.id}`, achievement.id);
-  const description = t(`achievements.${achievement.id}_desc`, '');
-  const tierLabel   = tier.charAt(0).toUpperCase() + tier.slice(1);
-  const progressPct = Math.round(progress * 100);
-  const tokenSize   = isMobile ? 60 : 72;
+  const title = t(`achievements.${id}`, defaultTitle || id);
+  const description = t(`achievements.${id}_desc`, defaultDescription || '');
+
+  const activeStep =
+    isTiered && attainedTierIndex >= 0
+      ? TIER_STEPS[Math.min(attainedTierIndex, TIER_STEPS.length - 1)]
+      : null;
+  const nextStep =
+    isTiered && attainedTierIndex + 1 < tiers.length
+      ? TIER_STEPS[Math.min(attainedTierIndex + 1, TIER_STEPS.length - 1)]
+      : null;
+
+  const effectiveTarget = isTiered
+    ? nextTierThreshold ?? tiers[tiers.length - 1]
+    : target || achievement?.criteria?.threshold || 1;
+
+  const barPct =
+    isUnlocked && (!isTiered || !nextTierThreshold)
+      ? 100
+      : Math.min(99, Math.max(4, Math.round((currentValue / Math.max(1, effectiveTarget)) * 100)));
 
   return (
-    <Motion.div
-      initial={{ opacity: 0, scale: 0.85 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true, margin: '-10px' }}
-      transition={{ type: 'spring', stiffness: 200, damping: 18 }}
-      whileHover={unlocked ? { scale: 1.06, y: -3 } : { scale: 1.02 }}
-      whileTap={{ scale: 0.96 }}
+    <div
       className={cn(
-        "flex flex-col items-center text-center gap-3 rounded-3xl p-3.5 md:p-4 min-w-0 overflow-hidden relative transition-all duration-200 border",
-        unlocked ? "shadow-sm" : "shadow-none"
+        'relative rounded-[24px] border p-5 flex flex-col justify-between gap-4 transition-all duration-300',
+        isUnlocked
+          ? type === 'milestone'
+            ? 'bg-gradient-to-br from-amber-50/70 via-white to-white border-amber-300/80 shadow-[0_6px_24px_rgba(245,158,11,0.10)]'
+            : 'bg-white border-slate-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'
+          : 'bg-slate-50/80 border-slate-200/70 text-slate-500 opacity-90',
       )}
-      style={{
-        background: unlocked ? `linear-gradient(145deg, #fff 0%, ${tierColor}08 100%)` : '#fafafa',
-        borderColor: unlocked ? `${tierColor}40` : 'rgba(0,0,0,0.06)'
-      }}
+      data-testid={`achievement-card-${id}`}
+      data-type={type}
+      data-unlocked={String(isUnlocked)}
     >
-      {/* ── Prestige Token ── */}
-      <div className={cn("relative shrink-0", isMobile ? "w-[60px] h-[60px]" : "w-[72px] h-[72px]")}>
-        {/* SVG Ring (locked only) */}
-        {!unlocked && (
-          <ProgressRing
-            progress={progress}
-            color={tierColor}
-            size={tokenSize}
-            stroke={isMobile ? 4 : 5}
-          />
-        )}
-
-        {/* Hexagonal token shell */}
+      {/* Icon + type/tier pill */}
+      <div className="flex items-start justify-between gap-3">
         <div
-          className="absolute inset-2 rounded-[20px] flex items-center justify-center overflow-hidden"
-          style={{
-            background: unlocked
-              ? `radial-gradient(circle at 35% 35%, ${tierColor}CC, ${tierColor}88)`
-              : `rgba(0, 0, 0, 0.05)`,
-            boxShadow: unlocked
-              ? `0 4px 20px ${tierGlow}, inset 0 1px 0 rgba(255,255,255,0.4)`
-              : 'none',
-          }}
-        >
-          {/* Shimmer sweep (unlocked only) */}
-          {unlocked && (
-            <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.55)_50%,transparent_60%)] animate-[shimmerSweep_2.4s_ease-in-out_infinite] z-0" aria-hidden="true" />
+          className={cn(
+            'w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 border shadow-2xs',
+            isUnlocked
+              ? 'bg-slate-900 border-slate-700 text-white'
+              : 'bg-slate-200/70 border-slate-300/80 grayscale opacity-70',
           )}
+        >
+          <span>{icon}</span>
+        </div>
 
+        {isTiered ? (
+          <span
+            style={
+              activeStep
+                ? {
+                    backgroundColor: `${TIER_COLORS[activeStep.key] || '#FF6B35'}18`,
+                    color: TIER_COLORS[activeStep.key] || '#FF6B35',
+                    borderColor: `${TIER_COLORS[activeStep.key] || '#FF6B35'}40`,
+                  }
+                : undefined
+            }
+            className={cn(
+              'inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-mono text-[10px] font-bold uppercase tracking-wider border',
+              !activeStep && 'bg-slate-200/70 text-slate-500 border-slate-300',
+            )}
+            data-testid={`achievement-tier-pill-${id}`}
+          >
+            {activeStep ? (
+              <>
+                <span>{activeStep.icon}</span>
+                <span>{t(activeStep.labelKey, activeStep.defaultLabel)}</span>
+              </>
+            ) : (
+              <>
+                <Lock size={10} />
+                <span>{t('achievements.tiers.locked', 'Evolutiva')}</span>
+              </>
+            )}
+          </span>
+        ) : (
           <span
             className={cn(
-              "leading-none z-[1] relative",
-              isMobile ? "text-[1.6rem]" : "text-[2rem]",
-              !unlocked && "grayscale opacity-25"
+              'inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-mono text-[10px] font-bold uppercase tracking-wider border',
+              isUnlocked
+                ? 'bg-amber-500/15 text-amber-700 border-amber-400/50'
+                : 'bg-slate-200/70 text-slate-500 border-slate-300',
             )}
+            data-testid={`achievement-milestone-pill-${id}`}
           >
-            {icon}
+            <Sparkles className={isUnlocked ? 'text-amber-500' : 'text-slate-400'} size={10} />
+            <span>{t('achievements.milestoneTag', 'Hito Único')}</span>
           </span>
-        </div>
-      </div>
-
-      {/* ── Text content ── */}
-      <div className="flex flex-col items-center gap-1.5 w-full min-w-0 flex-1">
-        <h4 className={cn(
-          "m-0 text-[0.82rem] font-black font-heading leading-[1.3] line-clamp-2 w-full",
-          unlocked ? "text-charcoalBlue" : "text-text-secondary"
-        )}>
-          {name}
-        </h4>
-
-        {unlocked ? (
-          <>
-            <span 
-              className="inline-flex px-3 py-1 rounded-full text-[0.65rem] font-black font-heading uppercase border items-center w-fit min-h-[32px]"
-              style={{ background: `${tierColor}20`, color: tierColor, borderColor: `${tierColor}40` }}
-            >
-              {tierLabel}
-            </span>
-            <span className="text-[0.65rem] text-text-secondary font-medium mt-0.5">
-              {t('achievements.criteriaMet', {
-                count: criteria.threshold,
-                unit:
-                  criteria.type === 'countries'
-                    ? t('goals.units.countries_other')
-                    : criteria.type === 'trips'
-                    ? t('goals.units.trips_other')
-                    : criteria.type === 'continents'
-                    ? t('goals.units.continents_other')
-                    : criteria.type === 'detailed_trips'
-                    ? t('goals.units.detailed_trips_other')
-                    : criteria.type,
-              })}
-            </span>
-          </>
-        ) : (
-          <>
-            {description ? (
-              <p className="m-0 text-[0.7rem] text-charcoalBlue/70 leading-[1.3] font-body line-clamp-2">{description}</p>
-            ) : null}
-            <div className="flex items-center gap-1.5 w-full mt-1">
-              <div className="flex-1 h-1 rounded-full bg-black/10 overflow-hidden">
-                <Motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progressPct}%` }}
-                  transition={{ duration: 0.8, ease: 'easeOut' }}
-                  className="h-full rounded-full"
-                  style={{ background: tierColor }}
-                />
-              </div>
-              <span className="text-[0.68rem] font-black font-mono whitespace-nowrap" style={{ color: tierColor }}>
-                {progressPct}%
-              </span>
-            </div>
-            {criteria.threshold > 1 && (
-              <span className="text-[0.65rem] text-text-secondary font-mono mt-0.5">{current} / {criteria.threshold}</span>
-            )}
-          </>
         )}
       </div>
-    </Motion.div>
+
+      {/* Title + description (replaces the broken criteriaMet key) */}
+      <div className="space-y-1">
+        <h4
+          className={cn(
+            'font-heading font-extrabold text-base tracking-tight',
+            isUnlocked ? 'text-slate-900' : 'text-slate-700',
+          )}
+        >
+          {title}
+        </h4>
+        <p className="font-sans text-xs text-slate-500 leading-relaxed">{description}</p>
+      </div>
+      {isTiered ? (
+        <div className="pt-2 border-t border-slate-100 space-y-2.5" data-testid={`achievement-stepper-${id}`}>
+          <div className="grid grid-cols-4 gap-1">
+            {tiers.slice(0, 4).map((thresholdValue, idx) => {
+              const stepMeta = TIER_STEPS[idx] || TIER_STEPS[0];
+              const stepCompleted = currentValue >= thresholdValue;
+              const isCurrentTarget = !stepCompleted && (idx === 0 || currentValue >= tiers[idx - 1]);
+              return (
+                <div
+                  key={stepMeta.key}
+                  className={cn(
+                    'px-1.5 py-1 rounded-lg border text-center flex flex-col items-center justify-center transition-colors',
+                    stepCompleted
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700'
+                      : isCurrentTarget
+                        ? 'bg-[#FF6B35]/10 border-[#FF6B35]/40 text-[#FF6B35]'
+                        : 'bg-slate-100/80 border-slate-200/70 text-slate-400',
+                  )}
+                >
+                  <span className="text-[10px] leading-none">{stepMeta.icon}</span>
+                  <span className="font-mono text-[10px] font-bold mt-0.5">
+                    {formatLocalizedNumber(thresholdValue, lang)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-sans font-semibold text-slate-600">
+                {nextStep
+                  ? `${t('achievements.nextTierLabel', 'Siguiente')}: ${t(nextStep.labelKey, nextStep.defaultLabel)}`
+                  : t('achievements.maxTierReached', '¡Nivel Leyenda completado!')}
+              </span>
+              <span className="font-mono font-bold text-slate-700">
+                {formatLocalizedNumber(currentValue, lang)} / {formatLocalizedNumber(effectiveTarget, lang)}{' '}
+                {unitLabel}
+              </span>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
+              <div
+                style={{ width: `${barPct}%` }}
+                className={cn(
+                  'h-full rounded-full transition-all duration-500',
+                  nextStep ? 'bg-[#FF6B35]' : 'bg-emerald-500',
+                )}
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+          {isUnlocked ? (
+            <span className="inline-flex items-center gap-1.5 font-sans font-bold text-emerald-600">
+              <Check className="stroke-[2.5]" size={14} />
+              <span>{t('achievements.milestoneCompleted', 'Hito desbloqueado')}</span>
+            </span>
+          ) : (
+            <div className="w-full space-y-1">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-sans text-slate-500">{t('achievements.progressLabel', 'Progreso')}</span>
+                <span className="font-mono font-bold text-slate-600">
+                  {formatLocalizedNumber(currentValue, lang)} / {formatLocalizedNumber(effectiveTarget, lang)}
+                </span>
+              </div>
+              <div className="w-full h-1.5 rounded-full bg-slate-200/70 overflow-hidden">
+                <div style={{ width: `${barPct}%` }} className="h-full rounded-full bg-[#FF6B35]" />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
-};
-
-
-
-export default AchievementCard;
+}

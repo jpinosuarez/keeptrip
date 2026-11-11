@@ -4,13 +4,15 @@
  * Deterministic, build-time generator for the pre-processed Country Emblems catalog.
  *
  * Pipeline:
- *   1. Read the vendored Natural Earth 110m TopoJSON (scripts/data/…-countries-110m.json).
+ *   1. Read the vendored Natural Earth 50m TopoJSON (scripts/data/…-countries-50m.json).
  *   2. Map each geometry's ISO 3166-1 numeric id → ISO-2 (via world-countries ccn3 ↔ cca2).
  *   3. Filter outlier overseas subpaths (< 5% of the largest polygon with a distant centroid),
  *      while preserving compact archipelagos (JP, ID, PH, GR, GB, NZ).
  *   4. Project each country with d3-geo Mercator, rotated to its centroid,
  *      fit uniformly into a 256×256 canvas with 24px padding ([[24,24],[232,232]]).
- *   5. Emit absolute, 1-decimal-rounded SVG paths + curated/fallback flag palettes.
+ *   5. Simplify each projected ring with Douglas-Peucker (planar px tolerance),
+ *      then emit absolute, 1-decimal-rounded SVG paths + curated/fallback palettes.
+ *   6. Size-guard: if the output exceeds 520 KB, retry with a 0.6px DP tolerance.
  *
  * Zero runtime API calls. Zero Firestore. Fully offline during `npm run build`.
  */
@@ -19,15 +21,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { geoMercator, geoPath } from 'd3-geo';
+import { geoMercator, geoAlbersUsa, geoPath } from 'd3-geo';
 import * as topojson from 'topojson-client';
+import { UN_195_COUNTRIES } from '../src/shared/lib/utils/countryUtils.js';
 
 const require = createRequire(import.meta.url);
 const worldCountries = require('world-countries');
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(SCRIPT_DIR, '..');
-const TOPO_PATH = path.join(SCRIPT_DIR, 'data', 'world-atlas-countries-110m.json');
+const TOPO_PATH = path.join(SCRIPT_DIR, 'data', 'world-atlas-countries-50m.json');
 const OUT_PATH = path.join(
   ROOT,
   'src',
@@ -45,10 +48,21 @@ const EXTENT = [
   [256 - PAD, 256 - PAD],
 ];
 
+// Exactly the 195 sovereign UN countries. Every non-sovereign territory is
+// excluded from the catalog (FK → never an independent emblem; AR keeps its own
+// geometry, and runtime normalization maps FK visits to AR).
+const UN_COUNTRY_SET = new Set(UN_195_COUNTRIES);
+
 // Microstates get a clean, magnified silhouette (shield fallback when absent from 110m).
 const MICROSTATES = new Set(['MC', 'VA', 'SM', 'AD', 'LI', 'MT', 'SG', 'LU', 'BH', 'MV', 'SC', 'BB']);
 // Compact archipelagos must keep every island (never collapse to a single blob).
 const ARCHIPELAGO_PRESERVE = new Set(['JP', 'ID', 'PH', 'GR', 'GB', 'NZ']);
+// Countries whose distant tropical/overseas landmasses must not stretch the
+// fitExtent into an invisible speck:
+//   FR → French Guiana (4°N), Caribbean, Réunion, Mayotte
+//   NL → Caribbean ABC islands (~12°N)
+const OVERSEAS_LAT_BAND = new Set(['FR', 'NL']);
+const OVERSEAS_LAT_TOLERANCE = 20; // degrees away from the mainland centroid
 
 // Clean 256×256 geometric shield used for microstates / countries absent from 110m.
 const FALLBACK_SHIELD =
@@ -326,6 +340,22 @@ const filterOutlierPolygons = (polygons, iso2) => {
 
   const kept = infos.filter((info) => {
     if (info === main) return true;
+
+    // Polar-archipelago outliers (e.g. Svalbard for Norway): when the mainland
+    // centroid is temperate, drop far-north islands so Mercator distortion never
+    // shrinks/splits the primary landmass.
+    if (main.center[1] < 68 && info.center[1] > 72) return false;
+
+    // Overseas territories far outside the mainland latitude band (French
+    // Guiana, Caribbean islands, Réunion, Mayotte) would otherwise anchor the
+    // bounding box and shrink the metropolitan silhouette into a speck.
+    if (
+      OVERSEAS_LAT_BAND.has(iso2) &&
+      Math.abs(info.center[1] - main.center[1]) > OVERSEAS_LAT_TOLERANCE
+    ) {
+      return false;
+    }
+
     const areaRatio = info.area / main.area;
     const rawDLng = Math.abs(info.center[0] - main.center[0]);
     const dLng = Math.min(rawDLng, 360 - rawDLng);
@@ -346,6 +376,87 @@ const normalizePolygons = (geometry) => {
   return [];
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Douglas-Peucker simplification (planar px space) — keeps 50m silhouettes crisp
+// while staying inside the catalog size budget. geoPath emits absolute M/L/Z.
+// ─────────────────────────────────────────────────────────────────────────────
+const DP_EPSILON_DEFAULT = 0.45;
+let dpTolerance = DP_EPSILON_DEFAULT;
+
+const perpendicularDistance = (point, start, end) => {
+  const [x, y] = point;
+  const [x1, y1] = start;
+  const [x2, y2] = end;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const magnitude = Math.hypot(dx, dy);
+  if (magnitude === 0) return Math.hypot(x - x1, y - y1);
+  const t = Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / (magnitude * magnitude)));
+  return Math.hypot(x - (x1 + t * dx), y - (y1 + t * dy));
+};
+
+const douglasPeucker = (points, tolerance) => {
+  if (points.length <= 2) return points;
+  let maxDistance = 0;
+  let index = 0;
+  const start = points[0];
+  const end = points[points.length - 1];
+  for (let i = 1; i < points.length - 1; i += 1) {
+    const distance = perpendicularDistance(points[i], start, end);
+    if (distance > maxDistance) {
+      maxDistance = distance;
+      index = i;
+    }
+  }
+  if (maxDistance > tolerance) {
+    const left = douglasPeucker(points.slice(0, index + 1), tolerance);
+    const right = douglasPeucker(points.slice(index), tolerance);
+    return left.slice(0, -1).concat(right);
+  }
+  return [start, end];
+};
+
+/** Simplifies each M…L…Z ring of a projected SVG path with Douglas-Peucker. */
+const simplifySvgPath = (svgPathD, tolerance = dpTolerance) => {
+  if (!svgPathD) return '';
+  const tokens = svgPathD.match(/[MLZmlz]|-?\d+(?:\.\d+)?/g);
+  if (!tokens) return svgPathD;
+
+  const output = [];
+  let ring = [];
+  let index = 0;
+
+  const flushRing = () => {
+    if (ring.length >= 2) {
+      const simplified = douglasPeucker(ring, tolerance);
+      output.push(`M${simplified.map(([x, y]) => `${x},${y}`).join('L')}Z`);
+    }
+    ring = [];
+  };
+
+  while (index < tokens.length) {
+    const token = tokens[index];
+    if (/^[mlz]$/i.test(token)) {
+      const command = token.toUpperCase();
+      if (command === 'M' || command === 'L') {
+        if (command === 'M') flushRing();
+        index += 1;
+        const x = Number(tokens[index]);
+        const y = Number(tokens[index + 1]);
+        index += 2;
+        if (Number.isFinite(x) && Number.isFinite(y)) ring.push([x, y]);
+      } else {
+        flushRing();
+        index += 1;
+      }
+    } else {
+      index += 1;
+    }
+  }
+  flushRing();
+  return output.join('');
+};
+
 /** Rounds every decimal coordinate to 1 decimal place and normalizes whitespace. */
 const roundPath = (d) => {
   if (!d) return '';
@@ -355,21 +466,55 @@ const roundPath = (d) => {
     .trim();
 };
 
+/**
+ * Drops degenerate rings whose projected bounding box is smaller than
+ * `minSize` px (e.g. sub-pixel Aleutian atolls collapsed by DP rounding),
+ * preventing noise like `M229,159Z` from bloating the path string.
+ */
+const dropDegenerateRings = (d, minSize = 0.5) => {
+  if (!d) return '';
+  const rings = d.split('M').filter(Boolean).map((ring) => `M${ring}`);
+  const kept = rings.filter((ring) => {
+    const nums = ring.match(/-?\d+(?:\.\d+)?/g) || [];
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (let i = 0; i + 1 < nums.length; i += 2) {
+      const x = Number(nums[i]);
+      const y = Number(nums[i + 1]);
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+    return maxX - minX >= minSize || maxY - minY >= minSize;
+  });
+  return kept.length > 0 ? kept.join('') : d;
+};
+
 const buildIsoMaps = () => {
   const numericToIso2 = new Map();
   const meta = {};
   for (const country of worldCountries) {
     if (!country || !country.cca2) continue;
     const iso2 = String(country.cca2).toUpperCase();
+
+    // Numeric map must cover EVERY feature (including territories) so we can
+    // resolve each geometry before filtering it out.
+    if (country.ccn3) {
+      numericToIso2.set(String(country.ccn3).padStart(3, '0'), iso2);
+      numericToIso2.set(String(Number(country.ccn3)), iso2);
+    }
+
+    // Metadata is restricted to the 195 sovereign UN countries.
+    if (!UN_COUNTRY_SET.has(iso2)) continue;
+
     meta[iso2] = {
       iso3: country.cca3 || null,
       continent: country.subregion || country.region || 'World',
       latlng: Array.isArray(country.latlng) ? country.latlng : null,
     };
-    if (country.ccn3) {
-      numericToIso2.set(String(country.ccn3).padStart(3, '0'), iso2);
-      numericToIso2.set(String(Number(country.ccn3)), iso2);
-    }
   }
   return { numericToIso2, meta };
 };
@@ -391,6 +536,37 @@ const buildEntryFromFeature = (feature, iso2, meta) => {
     };
   }
 
+  // United States — canonical Albers USA composite: CONUS at true equal-area
+  // scale, Alaska inset (~35%) and Hawaii placed by d3. Bypasses the outlier
+  // filter so Hawaii and the Aleutian chain survive (Albers handles the 180°
+  // wrap natively).
+  if (iso2 === 'US' && feature.geometry) {
+    let usPath = '';
+    try {
+      const featureObj = { type: 'Feature', geometry: feature.geometry };
+      const projection = geoAlbersUsa().fitExtent(EXTENT, featureObj);
+      usPath = roundPath(
+        dropDegenerateRings(
+          simplifySvgPath(geoPath().projection(projection)(featureObj), dpTolerance),
+        ),
+      );
+    } catch {
+      usPath = '';
+    }
+    if (!usPath) usPath = FALLBACK_SHIELD;
+
+    return {
+      iso2,
+      iso3: meta?.iso3 || 'USA',
+      type: 'country',
+      continent: meta?.continent || 'North America',
+      isMicrostate: false,
+      viewBox: VIEWBOX,
+      svgPath: usPath,
+      palette: resolvePalette(iso2),
+    };
+  }
+
   const polygons = normalizePolygons(feature.geometry);
   const kept = filterOutlierPolygons(polygons, iso2);
   let svgPath = '';
@@ -400,14 +576,14 @@ const buildEntryFromFeature = (feature, iso2, meta) => {
     const centerLng = meta?.latlng?.[1] ?? ringBounds(kept[0][0]).center[0];
     try {
       const projection = geoMercator().rotate([-centerLng, 0]).fitExtent(EXTENT, featureObj);
-      svgPath = roundPath(geoPath().projection(projection)(featureObj));
+      svgPath = roundPath(simplifySvgPath(geoPath().projection(projection)(featureObj), dpTolerance));
     } catch {
       svgPath = '';
     }
     if (!svgPath) {
       try {
         const projection = geoMercator().fitExtent(EXTENT, featureObj);
-        svgPath = roundPath(geoPath().projection(projection)(featureObj));
+        svgPath = roundPath(simplifySvgPath(geoPath().projection(projection)(featureObj), dpTolerance));
       } catch {
         svgPath = '';
       }
@@ -428,7 +604,8 @@ const buildEntryFromFeature = (feature, iso2, meta) => {
   };
 };
 
-const buildCatalog = () => {
+const buildCatalog = (tolerance = DP_EPSILON_DEFAULT) => {
+  dpTolerance = tolerance;
   const topology = JSON.parse(fs.readFileSync(TOPO_PATH, 'utf8'));
   const collection = topojson.feature(topology, topology.objects.countries);
   const { numericToIso2, meta } = buildIsoMaps();
@@ -441,11 +618,13 @@ const buildCatalog = () => {
       numericToIso2.get(rawId.padStart(3, '0')) ||
       numericToIso2.get(rawId) ||
       numericToIso2.get(String(Number(rawId)));
-    if (!iso2 || catalog[iso2]) continue;
+    // Only the 195 UN sovereigns get an emblem: territories/dependencies
+    // (FK, GL, PR, HK, AQ…) are skipped so they never appear as countries.
+    if (!iso2 || !UN_COUNTRY_SET.has(iso2) || catalog[iso2]) continue;
     catalog[iso2] = buildEntryFromFeature(feature, iso2, meta[iso2]);
   }
 
-  // Guarantee 100% ISO-2 coverage (shield fallback for countries absent from 110m).
+  // Guarantee 100% ISO-2 coverage (shield fallback for countries absent from 50m).
   for (const iso2 of Object.keys(meta)) {
     if (catalog[iso2]) continue;
     catalog[iso2] = buildEntryFromFeature({ geometry: null }, iso2, meta[iso2]);
@@ -456,7 +635,7 @@ const buildCatalog = () => {
 
   return {
     version: 1,
-    source: 'Natural Earth 110m (world-atlas@2) · d3-geo Mercator fit-extent 256x256',
+    source: `Natural Earth 50m (world-atlas@2) · 195 UN sovereign countries · d3-geo Mercator fit-extent 256x256 (Albers USA for US) · DP ${tolerance}px`,
     viewBox: VIEWBOX,
     padding: PAD,
     totalCountries: Object.keys(ordered).length,
@@ -464,15 +643,37 @@ const buildCatalog = () => {
   };
 };
 
-const writeCatalog = (catalog) => {
+const writeCatalog = (catalog, json, tolerance) => {
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
-  fs.writeFileSync(OUT_PATH, `${JSON.stringify(catalog, null, 2)}\n`, 'utf8');
+  fs.writeFileSync(OUT_PATH, json, 'utf8');
   const microstates = Object.values(catalog.countries).filter((entry) => entry.isMicrostate).length;
+  const bytes = Buffer.byteLength(json);
+  const kb = (bytes / 1024).toFixed(1);
   console.log(
-    `✔ countryEmblemsCatalog.json → ${catalog.totalCountries} countries (${microstates} microstates), ${fs.statSync(OUT_PATH).size} bytes`,
+    `✔ 50m Catalog generated successfully: ${catalog.totalCountries} countries (${microstates} microstates), ${kb} KB (dp tolerance ${tolerance}px)`,
   );
+  if (catalog.totalCountries !== UN_195_COUNTRIES.length) {
+    console.error(
+      `✖ Catalog must contain exactly ${UN_195_COUNTRIES.length} UN sovereign countries (got ${catalog.totalCountries}).`,
+    );
+    process.exitCode = 1;
+  }
+  if (bytes > 450 * 1024) {
+    console.error('✖ Catalog exceeds the 450 KB budget even at maximum simplification.');
+    process.exitCode = 1;
+  }
 };
 
-writeCatalog(buildCatalog());
+// Generate with the default tolerance; if the catalog exceeds the 450 KB
+// budget, retry deterministically with a coarser 0.6px Douglas-Peucker tolerance.
+let dpToleranceUsed = DP_EPSILON_DEFAULT;
+let catalog = buildCatalog(dpToleranceUsed);
+let catalogJson = `${JSON.stringify(catalog, null, 2)}\n`;
+if (Buffer.byteLength(catalogJson) > 450 * 1024) {
+  dpToleranceUsed = 0.6;
+  catalog = buildCatalog(dpToleranceUsed);
+  catalogJson = `${JSON.stringify(catalog, null, 2)}\n`;
+}
+writeCatalog(catalog, catalogJson, dpToleranceUsed);
 
 

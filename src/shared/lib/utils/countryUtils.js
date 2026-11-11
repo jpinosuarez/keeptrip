@@ -1,18 +1,77 @@
 // Fuente de verdad para banderas y códigos.
 // Usamos flagcdn.com para asegurar compatibilidad total (Windows/Mac/Android).
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Territory → Sovereign normalization (UN sovereign consolidation)
+// Non-sovereign territories always resolve to their administering sovereign, so
+// visits, emblems and analytics aggregate on the 195 UN countries. Malvinas
+// (Falkland Islands, "FK") map strictly to Argentina ("AR").
+// ─────────────────────────────────────────────────────────────────────────────
+export const TERRITORY_TO_SOVEREIGN_MAP = Object.freeze({
+  // Argentine sovereignty over the Malvinas/Falkland Islands
+  FK: 'AR',
+  // United States territories
+  PR: 'US',
+  GU: 'US',
+  AS: 'US',
+  VI: 'US',
+  MP: 'US',
+  // Danish territories
+  GL: 'DK',
+  FO: 'DK',
+  // French overseas territories
+  GF: 'FR',
+  GP: 'FR',
+  MQ: 'FR',
+  RE: 'FR',
+  PF: 'FR',
+  NC: 'FR',
+  YT: 'FR',
+  BL: 'FR',
+  MF: 'FR',
+  PM: 'FR',
+  WF: 'FR',
+  // British overseas territories (FK is intentionally excluded → AR)
+  AI: 'GB',
+  BM: 'GB',
+  KY: 'GB',
+  GI: 'GB',
+  MS: 'GB',
+  TC: 'GB',
+  VG: 'GB',
+  SH: 'GB',
+  IO: 'GB',
+  // Dutch overseas territories
+  AW: 'NL',
+  CW: 'NL',
+  SX: 'NL',
+  BQ: 'NL',
+  // Chinese Special Administrative Regions
+  HK: 'CN',
+  MO: 'CN',
+  // New Zealand dependencies
+  CK: 'NZ',
+  NU: 'NZ',
+  TK: 'NZ',
+  // Norwegian Arctic territories
+  SJ: 'NO',
+});
+
 export const normalizeCountryCode = (code) => {
   if (!code || typeof code !== 'string') return null;
   const normalized = code.trim().toUpperCase();
   if (!normalized) return null;
-  if (normalized.length === 2) return normalized;
 
-  if (normalized.length === 3) {
+  let iso2 = null;
+  if (normalized.length === 2) {
+    iso2 = normalized;
+  } else if (normalized.length === 3) {
     const country = COUNTRIES_DATA.find((item) => item.iso3 === normalized);
-    return country?.code || null;
+    iso2 = country?.code || null;
   }
 
-  return null;
+  if (!iso2) return null;
+  return TERRITORY_TO_SOVEREIGN_MAP[iso2] || iso2;
 };
 
 export const getFlagUrl = (countryCode) => {
@@ -65,6 +124,28 @@ export const CONTINENT_COUNTRY_CODES = {
 };
 
 export const CONTINENT_TOTALS = { EU: 44, AM: 35, AS: 48, AF: 54, OC: 14 };
+
+/**
+ * Exactly the 195 sovereign UN countries (193 UN members + Holy See 'VA' +
+ * Palestine 'PS'). Derived from the continental taxonomy above so both lists can
+ * never drift apart. Immutable and ISO-2 sorted.
+ */
+export const UN_195_COUNTRIES = Object.freeze(
+  [...new Set(Object.values(CONTINENT_COUNTRY_CODES).flat())].sort(),
+);
+
+const UN_195_SET = new Set(UN_195_COUNTRIES);
+
+/**
+ * True when the (possibly territory) code resolves to one of the 195 sovereign
+ * UN countries. `normalizeCountryCode` applies the sovereignty map first.
+ * @param {string} code
+ * @returns {boolean}
+ */
+export const isUn195Country = (code) => {
+  const iso2 = normalizeCountryCode(code);
+  return Boolean(iso2 && UN_195_SET.has(iso2));
+};
 
 export const CONTINENT_MAP = Object.entries(CONTINENT_COUNTRY_CODES).reduce(
   (acc, [continent, codes]) => {
@@ -305,6 +386,7 @@ export const COUNTRIES_DATA = [
   { code: 'EE', iso3: 'EST', name: 'Estonia' },
   { code: 'PH', iso3: 'PHL', name: 'Filipinas' },
   { code: 'FI', iso3: 'FIN', name: 'Finlandia' },
+  { code: 'FJ', iso3: 'FJI', name: 'Fiyi' },
   { code: 'FR', iso3: 'FRA', name: 'Francia' },
   { code: 'GR', iso3: 'GRC', name: 'Grecia' },
   { code: 'GT', iso3: 'GTM', name: 'Guatemala' },

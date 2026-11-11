@@ -134,7 +134,10 @@ export default function AchievementsGrid({
       )}
 
       {/* 4 mastery-category filter pills */}
-      <div className="flex flex-wrap items-center gap-2 bg-white p-3 rounded-3xl border border-slate-200/80 shadow-xs">
+      <div
+        className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-1 sm:flex-wrap bg-transparent sm:bg-white sm:p-3 sm:rounded-3xl sm:border sm:border-slate-200/80 shadow-2xs"
+        role="tablist"
+      >
         {CATEGORY_TABS.map((cat) => {
           const Icon = cat.icon;
           const isActive = selectedCategory === cat.id;
@@ -144,8 +147,10 @@ export default function AchievementsGrid({
               type="button"
               onClick={() => setSelectedCategory(cat.id)}
               className={cn(
-                'min-h-[44px] px-4 py-2 rounded-full font-sans text-xs font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer',
-                isActive ? 'bg-[#FF6B35] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100',
+                'min-h-[44px] shrink-0 px-4 py-2 rounded-full font-sans text-xs font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer',
+                isActive
+                  ? 'bg-[#FF6B35] text-white shadow-xs'
+                  : 'bg-white sm:bg-transparent border sm:border-0 border-slate-200 text-slate-600 hover:bg-slate-100',
               )}
               data-testid={`badge-category-${cat.id}`}
             >

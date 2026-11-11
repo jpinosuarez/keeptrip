@@ -13,11 +13,6 @@ import {
   calculateXPBreakdown,
   getNextAchievableBadges,
 } from '../model/achievementsEngine';
-import {
-  DEFAULT_CONQUEST_COLOR,
-  isConquestColorUnlocked as checkConquestUnlocked,
-  resolveConquestColor,
-} from '../model/travelerLevel';
 import { cn } from '@shared/lib/utils/cn';
 
 const VALID_TABS = ['stats', 'emblems', 'badges'];
@@ -93,10 +88,15 @@ export default function TravelerHub({
     return calculateCountryEmblems(compositeViajes, effectiveProfile, { includeLocked: false });
   }, [propCountryEmblems, compositeViajes, effectiveProfile]);
 
-  const allEmblemsWithLocked = useMemo(
-    () => calculateCountryEmblems(compositeViajes, effectiveProfile, { includeLocked: true }),
-    [compositeViajes, effectiveProfile],
-  );
+  const allEmblemsWithLocked = useMemo(() => {
+    const localAtlas = calculateCountryEmblems(compositeViajes, effectiveProfile, { includeLocked: true });
+    // DEV God Mode injects the full simulated atlas through `countryEmblems`;
+    // prefer it only when it is richer, so the real locked atlas never shrinks.
+    if (Array.isArray(propCountryEmblems) && propCountryEmblems.length > localAtlas.length) {
+      return propCountryEmblems;
+    }
+    return localAtlas;
+  }, [propCountryEmblems, compositeViajes, effectiveProfile]);
 
   const resolvedNextBadges = useMemo(
     () =>
@@ -106,28 +106,15 @@ export default function TravelerHub({
     [propNextBadges, achievementsWithProgress],
   );
 
-  const totalXP = resolvedXpBreakdown?.totalXP ?? 0;
-  const resolvedUnlocked =
-    propConquestUnlocked !== null ? propConquestUnlocked : checkConquestUnlocked(totalXP);
-  const resolvedColor =
-    propConquestColor || resolveConquestColor(effectiveProfile, totalXP) || DEFAULT_CONQUEST_COLOR;
-
-  const handleSelectConquestColor = useCallback(
-    async (hex) => {
-      try {
-        if (auth.updateUserProfile) await auth.updateUserProfile({ conquestColor: hex });
-        pushToast(t('conquestColorSaved', 'Color de conquista actualizado'), 'success');
-      } catch {
-        pushToast(t('conquestColorError', 'No se pudo guardar el color'), 'error');
-      }
-    },
-    [auth, pushToast, t],
+  const isDiscoveredEmblem = useCallback(
+    (emblem) => (emblem?.visitsCount || 0) > 0 || emblem?.status === 'origin_unvisited',
+    [],
   );
 
-  const discoveredCount = useMemo(() => {
-    const visited = resolvedEmblems.filter((emblem) => (emblem.visitsCount || 0) > 0).length;
-    return visited || paisesVisitados.length;
-  }, [resolvedEmblems, paisesVisitados.length]);
+  const discoveredCount = useMemo(
+    () => resolvedEmblems.filter(isDiscoveredEmblem).length || paisesVisitados.length,
+    [resolvedEmblems, paisesVisitados.length, isDiscoveredEmblem],
+  );
 
   const unlockedBadgesCount = useMemo(
     () => achievementsWithProgress.filter((a) => a.unlocked).length,
@@ -138,14 +125,14 @@ export default function TravelerHub({
   const photoURL = effectiveProfile?.photoURL || '';
 
   return (
-    <div className="flex-1 w-full overflow-y-auto px-4 md:px-8 py-6 pb-28 md:pb-12">
+    <div className="flex-1 w-full min-h-0 overflow-y-auto px-4 md:px-8 py-4 md:py-6 pb-28 md:pb-12">
       <div className="max-w-6xl mx-auto space-y-6">
-        <header className="space-y-1">
+        <header className="hidden md:block space-y-1">
           <h1 className="font-heading font-extrabold text-2xl md:text-3xl text-slate-900 tracking-tight">
-            {t('statsDashboard.title', 'Estadísticas de Viaje')}
+            {t('hubTitle', 'Tu Progreso de Explorador')}
           </h1>
           <p className="font-sans text-sm text-slate-500">
-            {t('statsDashboard.subtitle', 'Resumen de tus destinos, emblemas 3D e insignias de explorador')}
+            {t('hubSubtitle', 'Tus estadísticas de viaje, emblemas 3D e insignias de ruta')}
           </p>
         </header>
 
@@ -155,10 +142,9 @@ export default function TravelerHub({
             photoURL={photoURL}
             countriesCount={discoveredCount}
             tripsCount={bitacora.length}
+            unlockedBadgesCount={unlockedBadgesCount}
+            totalBadgesCount={achievementsWithProgress.length}
             xpBreakdown={resolvedXpBreakdown}
-            conquestColor={resolvedColor}
-            isConquestColorUnlocked={resolvedUnlocked}
-            onSelectConquestColor={handleSelectConquestColor}
           />
         )}
 
@@ -166,7 +152,7 @@ export default function TravelerHub({
           <div
             role="tablist"
             aria-label={t('tabs.ariaLabel', 'Secciones del Hub de Viajero')}
-            className="inline-flex flex-wrap items-center gap-1.5 p-1.5 rounded-full bg-slate-100 border border-slate-200/80 shadow-2xs"
+            className="grid grid-cols-3 w-full sm:w-auto sm:inline-flex sm:flex-nowrap sm:items-center sm:gap-1.5 p-1 sm:p-1.5 rounded-2xl sm:rounded-full bg-slate-100 border border-slate-200/80 shadow-2xs"
             data-testid="traveler-hub-tabs"
           >
             <button
@@ -175,13 +161,13 @@ export default function TravelerHub({
               aria-selected={activeTab === 'stats'}
               onClick={() => handleTabChange('stats')}
               className={cn(
-                'min-h-[44px] px-5 py-2 rounded-full font-sans text-xs md:text-sm font-bold inline-flex items-center gap-2 transition-all cursor-pointer',
+                'min-h-[44px] min-w-0 px-2 sm:px-5 py-2 rounded-xl sm:rounded-full font-sans text-xs md:text-sm font-bold inline-flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer',
                 activeTab === 'stats' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900',
               )}
               data-testid="hub-tab-stats"
             >
-              <BarChart3 className="text-[#FF6B35]" size={16} />
-              <span>{t('tabs.stats', 'Radiografía')}</span>
+              <BarChart3 className="text-[#FF6B35] shrink-0" size={16} />
+              <span>{t('tabs.stats', 'Estadísticas')}</span>
             </button>
 
             <button
@@ -190,14 +176,15 @@ export default function TravelerHub({
               aria-selected={activeTab === 'emblems'}
               onClick={() => handleTabChange('emblems')}
               className={cn(
-                'min-h-[44px] px-5 py-2 rounded-full font-sans text-xs md:text-sm font-bold inline-flex items-center gap-2 transition-all cursor-pointer',
+                'min-h-[44px] min-w-0 px-2 sm:px-5 py-2 rounded-xl sm:rounded-full font-sans text-xs md:text-sm font-bold inline-flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer',
                 activeTab === 'emblems' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900',
               )}
               data-testid="hub-tab-emblems"
             >
-              <Shield className="text-[#45B0A8]" size={16} />
-              <span>{t('tabs.emblems', 'Emblemas de Destino')}</span>
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 font-mono text-[11px] font-bold text-slate-700">
+              <Shield className="text-[#45B0A8] shrink-0" size={16} />
+              <span className="sm:hidden">{t('tabs.emblemsShort', 'Emblemas')}</span>
+              <span className="hidden sm:inline">{t('tabs.emblems', 'Emblemas de Destino')}</span>
+              <span className="px-1.5 py-0.5 rounded-full bg-slate-200/80 font-mono text-[10px] sm:text-[11px] font-bold text-slate-700 shrink-0">
                 {discoveredCount}
               </span>
             </button>
@@ -208,14 +195,15 @@ export default function TravelerHub({
               aria-selected={activeTab === 'badges'}
               onClick={() => handleTabChange('badges')}
               className={cn(
-                'min-h-[44px] px-5 py-2 rounded-full font-sans text-xs md:text-sm font-bold inline-flex items-center gap-2 transition-all cursor-pointer',
+                'min-h-[44px] min-w-0 px-2 sm:px-5 py-2 rounded-xl sm:rounded-full font-sans text-xs md:text-sm font-bold inline-flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer',
                 activeTab === 'badges' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900',
               )}
               data-testid="hub-tab-badges"
             >
-              <Trophy className="text-amber-500" size={16} />
-              <span>{t('tabs.badges', 'Insignias e Hitos')}</span>
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 font-mono text-[11px] font-bold text-slate-700">
+              <Trophy className="text-amber-500 shrink-0" size={16} />
+              <span className="sm:hidden">{t('tabs.badgesShort', 'Insignias')}</span>
+              <span className="hidden sm:inline">{t('tabs.badges', 'Insignias e Hitos')}</span>
+              <span className="px-1.5 py-0.5 rounded-full bg-slate-200/80 font-mono text-[10px] sm:text-[11px] font-bold text-slate-700 shrink-0">
                 {unlockedBadgesCount}/{achievementsWithProgress.length}
               </span>
             </button>

@@ -15,8 +15,15 @@ import ConfirmModal from '@shared/ui/modals/ConfirmModal';
 import {
   User, Globe, LogOut, ChevronRight,
   CheckCircle, Camera, Pencil, Trash2,
-  Compass, Heart, Home, MapPin, Check, Save
+  Compass, Heart, Home, MapPin, Check, Save, Lock
 } from 'lucide-react';
+import { useOutletContext } from 'react-router-dom';
+import {
+  CONQUEST_COLOR_THEMES,
+  CONQUEST_COLOR_UNLOCK_XP,
+  isConquestColorUnlocked,
+  resolveConquestColor,
+} from '@shared/lib/utils/conquestTheme';
 import { useAuth } from '@app/providers/AuthContext';
 import { useToast } from '@app/providers/ToastContext';
 import { useTranslation } from 'react-i18next';
@@ -172,6 +179,23 @@ const SettingsPage = () => {
   const { t, i18n } = useTranslation(['settings', 'common', 'nav']);
   const { t: tNav } = useTranslation('nav');
   useDocumentTitle(tNav('settings'));
+
+  const outlet = useOutletContext?.() || {};
+  const estimatedConquestXP =
+    (outlet?.data?.paises?.length || 0) * 500 + (outlet?.data?.bitacora?.length || 0) * 100;
+  const isConquestUnlocked =
+    Boolean(userProfile?.conquestColor) ||
+    Boolean(outlet?.gamification?.isConquestColorUnlocked) ||
+    isConquestColorUnlocked(estimatedConquestXP);
+
+  const handleSelectConquest = useCallback(
+    async (hex) => {
+      if (!isConquestUnlocked || !updateUserProfile) return;
+      await updateUserProfile({ conquestColor: hex });
+      pushToast(t('settings:conquestSaved', 'Color de conquista actualizado'), 'success');
+    },
+    [isConquestUnlocked, updateUserProfile, pushToast, t],
+  );
 
   const founderUid = import.meta.env.VITE_FOUNDER_UID || FOUNDER_UID_FALLBACK;
   const hasFounderUidAccess = Boolean(user?.uid && user.uid === founderUid);
@@ -467,6 +491,48 @@ const SettingsPage = () => {
             </AnimatePresence>
           </GroupCard>
         </Motion.div>
+
+        {/* ── Conquest Color Theme (Level 3 perk — relocated from /hub) ── */}
+        <SectionHeader>{t('settings:conquestThemeTitle', 'Tema de Conquista del Mapa')}</SectionHeader>
+        <GroupCard>
+          <div className="p-4 md:p-5" data-testid="settings-conquest-color-card">
+            <div className="flex flex-wrap items-center gap-2">
+              {CONQUEST_COLOR_THEMES.map((theme) => {
+                const isSelected =
+                  String(resolveConquestColor(userProfile, CONQUEST_COLOR_UNLOCK_XP) || '').toLowerCase() ===
+                  theme.hex.toLowerCase();
+                return (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    disabled={!isConquestUnlocked}
+                    onClick={() => handleSelectConquest(theme.hex)}
+                    title={theme.defaultName}
+                    aria-label={theme.defaultName}
+                    data-testid={`settings-conquest-swatch-${theme.id}`}
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <span
+                      style={{ backgroundColor: theme.hex }}
+                      className="w-8 h-8 rounded-full flex items-center justify-center border border-white shadow-xs"
+                    >
+                      {isConquestUnlocked ? (
+                        isSelected && <Check size={16} className="text-white" />
+                      ) : (
+                        <Lock size={13} className="text-white/90" />
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {!isConquestUnlocked && (
+              <p className="mt-2 text-xs text-slate-500">
+                {t('settings:conquestLockedHint', 'Se desbloquea en Nivel 3 (Trotamundos) para personalizar el color de tu mapa')}
+              </p>
+            )}
+          </div>
+        </GroupCard>
 
         {/* ── Geographic Identity Section ── */}
         <SectionHeader>{t('settings:geoIdentityTitle', 'Lugar de origen y residencia')}</SectionHeader>

@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, ChevronUp, Globe2, MapPin, Plus } from 'lucide-react';
+import { ChevronDown, ChevronUp, Globe2, MapPin, Plus, Palette, Check, Lock } from 'lucide-react';
+import { CONQUEST_COLOR_THEMES, DEFAULT_CONQUEST_COLOR } from '@shared/lib/utils/conquestTheme';
 import { useAuth } from '@app/providers';
 import { COLORS, RADIUS, SHADOWS } from '@shared/config';
 import { cn } from '@shared/lib/utils/cn';
@@ -202,6 +203,95 @@ const MapLayerToggle = ({ value = 'todo', onChange }) => {
   );
 };
 
+/* ── Conquest colour control (Level 3 perk — relocated from /hub) ─────── */
+const ConquestColorControl = ({
+  conquestColor = DEFAULT_CONQUEST_COLOR,
+  isUnlocked = false,
+  onSelect,
+}) => {
+  const { t } = useTranslation('dashboard');
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelect = async (hex) => {
+    if (!isUnlocked) return;
+    await onSelect?.(hex);
+    setIsOpen(false);
+  };
+
+  const lockedTooltip = t(
+    'conquestThemes.lockedTooltip',
+    'Desbloquea en Nivel 3 (Trotamundos) para personalizar el color de tu mapa',
+  );
+
+  return (
+    <div className="relative px-3 pb-2 pt-1">
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        data-testid="map-conquest-color-trigger"
+        className="min-h-[44px] w-full px-3 rounded-full bg-white/95 border border-slate-200/80 shadow-xs inline-flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer"
+      >
+        <span
+          className="w-4 h-4 rounded-full border border-white shadow-sm"
+          style={{ backgroundColor: conquestColor }}
+        />
+        <Palette size={14} className="text-[#FF6B35]" />
+        <span>{t('map.conquestColor', 'Color de mapa')}</span>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <Motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            className="absolute left-3 right-3 bottom-full mb-2 z-30 rounded-2xl bg-white border border-slate-200 shadow-lg p-2"
+            data-testid="map-conquest-color-popover"
+          >
+            <div className="flex items-center justify-center gap-1.5">
+              {CONQUEST_COLOR_THEMES.map((theme) => {
+                const isSelected =
+                  String(conquestColor || '').toLowerCase() === theme.hex.toLowerCase();
+                return (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    disabled={!isUnlocked}
+                    onClick={() => handleSelect(theme.hex)}
+                    title={
+                      isUnlocked
+                        ? t(theme.nameKey.replace('hub:', ''), theme.defaultName)
+                        : lockedTooltip
+                    }
+                    data-testid={`map-conquest-swatch-${theme.id}`}
+                    className="relative min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <span
+                      className="w-7 h-7 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: theme.hex }}
+                    >
+                      {isUnlocked ? (
+                        isSelected && <Check size={14} className="text-white" />
+                      ) : (
+                        <Lock size={12} className="text-white/90" />
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {!isUnlocked && (
+              <p className="mt-1 text-center text-[10px] text-slate-500">
+                {t('conquestThemes.lockedSub', 'Se desbloquea en Nivel 3 (3.001+ XP)')}
+              </p>
+            )}
+          </Motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 /* ── Wishlist destination row (Explorer with 0 completed trips — Block 3.0) ── */
 const WishlistRow = ({ item, onSelect, onCreateTrip }) => {
   const { t } = useTranslation('dashboard');
@@ -249,6 +339,9 @@ const TripRoster = ({
   wishlistItems = [],
   onWishlistItemFly = null,
   onCreateTripFromWishlist = null,
+  conquestColor = DEFAULT_CONQUEST_COLOR,
+  isConquestColorUnlocked = false,
+  onSelectConquestColor = null,
 }) => {
   const { t } = useTranslation('dashboard');
   const [isExpanded, setIsExpanded] = useState(!isMobile); // Mobile: collapsed by default, desktop: expanded
@@ -341,6 +434,12 @@ const TripRoster = ({
 
         <MapLayerToggle value={wishlistFilter} onChange={onWishlistFilterChange} />
 
+        <ConquestColorControl
+          conquestColor={conquestColor}
+          isUnlocked={isConquestColorUnlocked}
+          onSelect={onSelectConquestColor}
+        />
+
         {/* Trip list (internal scroll) */}
         <AnimatePresence>
           {isExpanded && (
@@ -421,6 +520,12 @@ const TripRoster = ({
       />
 
       <MapLayerToggle value={wishlistFilter} onChange={onWishlistFilterChange} />
+
+      <ConquestColorControl
+        conquestColor={conquestColor}
+        isUnlocked={isConquestColorUnlocked}
+        onSelect={onSelectConquestColor}
+      />
 
       {/* Trip list (internal scroll) */}
       <AnimatePresence>

@@ -44,16 +44,40 @@
     "tribe_traveler": "Tribe Traveler",
     "tribe_traveler_desc": "Add a family or friends trip",
     "dream_architect": "Dream Architect",
-    "dream_architect_desc": "Save 3 destinations to your Wishlist"
+    "dream_architect_desc": "Save 3 destinations to your Wishlist",
+    "milestoneTag": "Unique Milestone",
+    "milestoneCompleted": "Milestone unlocked",
+    "nextTierLabel": "Next",
+    "maxTierReached": "Legend tier complete!",
+    "progressLabel": "Progress",
+    "tiers": {
+      "bronze": "Bronze",
+      "silver": "Silver",
+      "gold": "Gold",
+      "legend": "Legend",
+      "locked": "Evolving"
+    }
   },
   "tabs": {
     "ariaLabel": "Traveler Hub sections",
-    "stats": "Overview",
+    "stats": "Statistics",
+    "emblemsShort": "Emblems",
+    "badgesShort": "Badges",
     "emblems": "Destination Emblems",
     "badges": "Badges & Milestones"
   },
   "levelLabel": "Level",
   "defaultTravelerName": "Keeptrip Explorer",
+  "hubTitle": "Your Explorer Progress",
+  "hubSubtitle": "Your travel stats, 3D emblems and route badges",
+  "nextRankHumanCopy": "{{remaining}} XP to reach {{nextTitle}} (Level {{nextLevel}})",
+  "ranks": {
+    "level1": "Rookie Explorer",
+    "level2": "Frequent Traveler",
+    "level3": "Globetrotter",
+    "level4": "Global Explorer",
+    "level5": "Legend of the Road"
+  },
   "nextLevelProgress": "Next rank: Level {{level}} ({{remaining}} XP to go)",
   "maxLevelReached": "You have reached the maximum Legend rank!",
   "conquestColorSaved": "Conquest color updated",

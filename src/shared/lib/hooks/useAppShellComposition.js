@@ -136,6 +136,11 @@ export function useAppShellComposition({
       isDeletingViaje: isDeletingTrip,
     },
     gamification: {
+      // Forward the FULL gamification bundle (countryEmblems, xpBreakdown,
+      // conquestColor, isConquestColorUnlocked, nextAchievableBadges…).
+      // Dropping keys here silently falls back to real-data derivations in the
+      // Traveler Hub — e.g. DEV God Mode badges would unlock but emblems would not.
+      ...gamification,
       achievementsWithProgress,
       achievementStats,
     },

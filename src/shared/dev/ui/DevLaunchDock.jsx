@@ -1,11 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Globe2, LoaderCircle, Rocket, Sprout } from 'lucide-react';
+import { Globe2, LoaderCircle, Rocket, Sprout, Zap } from 'lucide-react';
 import { useToast } from '@app/providers/ToastContext';
 import { ENABLE_DEV_TOOLS } from '@shared/config';
 import { cn } from '@shared/lib/utils/cn';
 import { ensureDevSession } from '@shared/dev/ensureDevSession';
+import {
+  isDevGodModeEnabled,
+  setDevGodMode,
+  DEV_OVERRIDE_EVENT,
+} from '@shared/dev/devGamificationOverride';
 
 /**
  * DevLaunchDock — floating DEV-only persona launcher (Phase B).
@@ -29,6 +34,7 @@ const DevLaunchDock = () => {
   const { pushToast } = useToast();
   const navigate = useNavigate();
   const [pendingScenario, setPendingScenario] = useState(null);
+  const [godMode, setGodModeState] = useState(() => isDevGodModeEnabled());
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -36,6 +42,13 @@ const DevLaunchDock = () => {
     return () => {
       isMountedRef.current = false;
     };
+  }, []);
+
+  // Keep the switch in sync if another DEV surface flips the override.
+  useEffect(() => {
+    const sync = () => setGodModeState(isDevGodModeEnabled());
+    window.addEventListener(DEV_OVERRIDE_EVENT, sync);
+    return () => window.removeEventListener(DEV_OVERRIDE_EVENT, sync);
   }, []);
 
   const launch = useCallback(
@@ -108,6 +121,48 @@ const DevLaunchDock = () => {
             </button>
           ))}
         </div>
+
+        <div className="h-px bg-slate-200/80" aria-hidden="true" />
+
+        <button
+          type="button"
+          role="switch"
+          aria-checked={godMode}
+          onClick={() => setDevGodMode(!godMode)}
+          className={cn(
+            'min-h-[44px] w-full px-3 py-2 rounded-xl border flex items-center justify-between gap-3 text-left transition-colors cursor-pointer',
+            godMode
+              ? 'bg-[#FF6B35]/10 border-[#FF6B35]/40'
+              : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+          )}
+          data-testid="dev-god-mode-switch"
+        >
+          <span className="flex items-center gap-2 min-w-0">
+            <Zap size={14} className={cn('shrink-0', godMode ? 'text-[#FF6B35]' : 'text-slate-400')} />
+            <span className="min-w-0">
+              <span className="block text-[0.7rem] font-extrabold text-slate-700 leading-tight">
+                {t('devDock.godMode.label', 'Gamification God Mode')}
+              </span>
+              <span className="block text-[0.62rem] font-medium text-slate-500 leading-tight">
+                {t('devDock.godMode.hint', 'Desbloquea los 250 emblemas y todas las insignias')}
+              </span>
+            </span>
+          </span>
+          <span
+            aria-hidden="true"
+            className={cn(
+              'relative w-9 h-5 rounded-full shrink-0 transition-colors',
+              godMode ? 'bg-[#FF6B35]' : 'bg-slate-300'
+            )}
+          >
+            <span
+              className={cn(
+                'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-xs transition-all',
+                godMode ? 'left-[18px]' : 'left-0.5'
+              )}
+            />
+          </span>
+        </button>
       </div>
     </div>
   );

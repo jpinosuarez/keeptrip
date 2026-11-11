@@ -10,6 +10,7 @@
   "exit": "Salir",
   "hub": "Hub",
   "stats": "Estadísticas",
+  "progress": "Progreso",
   "adjust": "Ajustes",
   "addTrip": "Añadir destino",
   "collapseSidebar": "Contraer menú",
@@ -27,6 +28,7 @@
     "worldMap": "Mapa Mundial",
     "hub": "Traveler Hub",
     "stats": "Estadísticas",
+    "progress": "Progreso",
     "invitations": "Invitaciones",
     "settings": "Ajustes",
     "curation": "Curación de fotos"

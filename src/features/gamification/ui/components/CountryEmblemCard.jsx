@@ -2,7 +2,6 @@ import React from 'react';
 import { Heart, Home, Star, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CountryEmblem3D from './CountryEmblem3D';
-import CountryFlag from '@shared/ui/components/CountryFlag';
 import { getLocalizedCountryName } from '@shared/lib/utils/countryI18n';
 import { cn } from '@shared/lib/utils/cn';
 
@@ -137,7 +136,6 @@ export default function CountryEmblemCard({ emblem, variant = 'card', onSelect, 
             isLegend ? 'bg-slate-800 text-amber-300 border border-amber-400/30' : 'bg-slate-100 text-slate-600',
           )}
         >
-          <CountryFlag code={effectiveCode} size="xs" />
           <span>
             {discoveryCode ? `${discoveryCode} · ` : ''}
             {iso3 || catalogSpec?.iso3 || effectiveCode}

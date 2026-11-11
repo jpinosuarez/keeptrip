@@ -64,6 +64,8 @@ function buildInput(overrides = {}) {
     gamification: {
       achievementsWithProgress: [{ id: 'a1' }],
       achievementStats: { total: 1 },
+      countryEmblems: [{ iso2: 'AR' }, { iso2: 'DE' }],
+      xpBreakdown: { totalXP: 18500 },
     },
     invitations: {
       invitations: [{ id: 'i1' }, { id: 'i2' }],
@@ -127,8 +129,13 @@ describe('useAppShellComposition', () => {
       loadingViajes: false,
     });
 
+    // Regression: the outlet context must forward the FULL gamification bundle
+    // (countryEmblems included). Dropping it made DEV God Mode unlock badges but
+    // not the emblem grid.
     expect(result.current.activeViewController.gamification).toMatchObject({
       achievementStats: { total: 1 },
+      countryEmblems: [{ iso2: 'AR' }, { iso2: 'DE' }],
+      xpBreakdown: { totalXP: 18500 },
     });
 
     expect(result.current.activeViewController.invitations).toBe(input.invitations);

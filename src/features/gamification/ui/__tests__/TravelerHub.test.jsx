@@ -94,21 +94,21 @@ describe('TravelerHub 3-tab showcase', () => {
     expect(screen.getByTestId('achievements')).toBeInTheDocument();
   });
 
-  it('renders the TravelerProgress header and the conquest colour picker', () => {
+  it('renders the streamlined TravelerProgress banner without the /hub conquest picker', () => {
     renderHub();
     expect(screen.getByTestId('traveler-progress-card')).toBeInTheDocument();
-    expect(screen.getByTestId('conquest-color-picker')).toBeInTheDocument();
-    expect(screen.getByTestId('conquest-swatch-atomic_tangerine')).toBeInTheDocument();
+    expect(screen.getByTestId('traveler-total-xp')).toBeInTheDocument();
+    expect(screen.queryByTestId('conquest-color-picker')).not.toBeInTheDocument();
   });
 
-  it('saves the conquest colour when the Level 3 perk is unlocked', () => {
-    renderHub({ xpBreakdown: { totalXP: 4000, curationTotalXP: 0 } });
-    fireEvent.click(screen.getByTestId('conquest-swatch-ruby_crimson'));
-    expect(mockUpdateUserProfile).toHaveBeenCalledWith({ conquestColor: '#E11D48' });
-  });
-
-  it('locks the conquest swatches below Level 3', () => {
+  it('labels the first tab "Estadísticas"', () => {
     renderHub();
-    expect(screen.getByTestId('conquest-swatch-atomic_tangerine')).toBeDisabled();
+    expect(screen.getByTestId('hub-tab-stats').textContent).toContain('Estadísticas');
+  });
+
+  it('renders the 3 KPI pills inside the rank banner', () => {
+    renderHub({ achievementsWithProgress: [{ id: 'a', unlocked: true }, { id: 'b', unlocked: false }] });
+    expect(screen.getByTestId('traveler-progress-card')).toBeInTheDocument();
+    expect(screen.getByTestId('hub-tab-badges').textContent).toContain('1/2');
   });
 });

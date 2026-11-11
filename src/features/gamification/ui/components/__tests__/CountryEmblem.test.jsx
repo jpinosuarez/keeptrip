@@ -124,11 +124,13 @@ afterEach(() => {
 });
 
 describe('CountryEmblem UI Component Suite (Phase B)', () => {
-  it('renders CountryEmblem3D with clipPath flag fill for visited and dashed border for wishlist/locked', () => {
+  it('renders sculpted metallic fill + flag medallion for visited, dashed wishlist, slate locked', () => {
     const { container: visited } = render(
       <CountryEmblem3D catalogSpec={mockCatalogSpec} countryCode="AR" status="visited" tier="explorador" />,
     );
     expect(visited.innerHTML).toContain('clipPath');
+    expect(visited.innerHTML).toContain('metal-grad-explorador');
+    expect(visited.querySelector('[data-testid="emblem-flag-medallion"]')).not.toBeNull();
 
     const { container: wishlist } = render(
       <CountryEmblem3D catalogSpec={mockEmblemWishlist.catalogSpec} countryCode="JP" status="wishlist" tier="wishlist" />,
@@ -139,7 +141,8 @@ describe('CountryEmblem UI Component Suite (Phase B)', () => {
     const { container: locked } = render(
       <CountryEmblem3D catalogSpec={mockCatalogSpec} countryCode="AR" status="locked" tier="locked" />,
     );
-    expect(locked.innerHTML).toContain('#1E293B');
+    expect(locked.innerHTML).toContain('#334155');
+    expect(locked.querySelector('[data-testid="emblem-flag-medallion"]')).toBeNull();
   });
 
   it('renders CountryEmblemCard thumbnail and card variants with discovery code and identity badge', () => {
@@ -155,6 +158,12 @@ describe('CountryEmblem UI Component Suite (Phase B)', () => {
 
   it('resolves CountryEmblemModal flip and Case A (single trip) / Case B (multi-trip) navigation', () => {
     const { rerender } = render(<CountryEmblemModal emblem={mockEmblemVisited} isOpen onClose={vi.fn()} />);
+
+    // Portal + rigid width: never collapses to a narrow min-content column.
+    expect(screen.getByTestId('country-emblem-modal').parentElement).toBe(document.body);
+    const modalCard = screen.getByTestId('country-emblem-modal-card');
+    expect(modalCard.style.maxWidth).toBe('520px');
+    expect(modalCard.className).toContain('shrink-0');
 
     fireEvent.click(screen.getByTestId('emblem-flip-button'));
     expect(screen.getByTestId('emblem-backplate')).toBeDefined();

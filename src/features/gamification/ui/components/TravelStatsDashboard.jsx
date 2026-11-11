@@ -142,7 +142,7 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
   );
 
   return (
-    <div className="w-full max-w-5xl mx-auto flex flex-col gap-4">
+    <div className="w-full max-w-6xl mx-auto flex flex-col gap-4">
       {/* Year segmented filter */}
       {availableYears.length > 0 && (
         <div
@@ -189,7 +189,7 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-6xl w-full mx-auto">
         {/* ROW 1 — Left column: stacked Odometer + Farthest */}
         <div className="flex flex-col gap-4">
           {/* Odometer */}

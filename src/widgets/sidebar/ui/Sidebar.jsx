@@ -17,7 +17,7 @@ import {
   Settings,
   LogOut,
   Trophy,
-  BarChart3,
+  Compass,
   Plus,
   PanelLeftClose,
   PanelLeft,
@@ -41,7 +41,7 @@ const MENU_ITEMS = (t) => {
   // Block 2.3: the /hub destination is "Estadísticas" when the deep-stats
   // experience is enabled, falling back to the gamification "Hub" label.
   const hubItem = ENABLE_TRAVEL_STATS
-    ? { id: 'hub', icon: BarChart3, label: t('stats') }
+    ? { id: 'hub', icon: Compass, label: t('progress') }
     : { id: 'hub', icon: Trophy, label: t('hub') };
   const showHub = ENABLE_TRAVEL_STATS || ENABLE_GAMIFICATION;
 

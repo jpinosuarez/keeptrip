@@ -93,7 +93,7 @@ export default function CountryEmblemGrid({ emblems = [], allEmblemsWithLocked =
                 : id === 'wishlist'
                   ? ` (${wishlistEmblems.length})`
                   : id === 'atlas'
-                    ? ` (${discoveredEmblems.length}/195)`
+                    ? ` (${discoveredEmblems.length}/${atlasSource.length})`
                     : '';
             return (
               <button
