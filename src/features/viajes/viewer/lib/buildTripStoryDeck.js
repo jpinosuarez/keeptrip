@@ -4,6 +4,7 @@ import {
   esParadaEscapada,
   formatDateRange,
   haversineKm,
+  resolveCoverPhotoUrl,
 } from '@shared/lib/utils/viajeUtils';
 import { normalizeCountryCode } from '@shared/lib/utils/countryUtils';
 
@@ -119,13 +120,169 @@ const pickEvenly = (stops, max) => {
   );
 };
 
+const MEMORY_POI_EMOJI = {
+  monumento: '🏛️',
+  gastronomia: '🍽️',
+  food: '🍽️',
+  mirador: '🌅',
+  view: '🌅',
+  cultura: '🎭',
+  hotel: '🏨',
+};
+
+const resolveMemoryPoiEmoji = (poi) => {
+  const explicit = typeof poi?.emoji === 'string' ? poi.emoji.trim() : '';
+  if (explicit) return explicit;
+  return MEMORY_POI_EMOJI[String(poi?.categoria || '').toLowerCase()] || '📍';
+};
+
+const resolveMemoryStopNote = (stop) => {
+  const candidates = [stop?.titular, stop?.relato, stop?.notaCorta, stop?.nota];
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate.trim()) {
+      const trimmed = candidate.trim();
+      return trimmed.length > 180 ? `${trimmed.slice(0, 180).trim()}…` : trimmed;
+    }
+  }
+  return '';
+};
+
+/**
+ * Memory Capsule deck: memory-cover -> focused stops (max 3) -> trilogy ->
+ * closing. Total slides never exceed 6 (0 stop slides → 3 slides).
+ */
+const buildMemoryStoryDeck = ({ viaje = {}, paradasOrdenadas = [], photos = [], memoryCapsule = {} }) => {
+  const stops = Array.isArray(paradasOrdenadas) ? paradasOrdenadas.filter(Boolean) : [];
+  const photoList = (Array.isArray(photos) ? photos : []).filter(
+    (photo) => photo && typeof photo.url === 'string' && photo.url
+  );
+
+  const coverUrl = memoryCapsule.coverUrl || resolveCoverPhotoUrl(viaje) || null;
+  const countryCodes = Array.isArray(memoryCapsule.countryCodes)
+    ? memoryCapsule.countryCodes.filter(Boolean)
+    : [];
+  const primaryCountry = countryCodes[0] || null;
+  const tripTitle = memoryCapsule.tripTitle || viaje?.titulo || '';
+  const highlightSet = {
+    topFood: memoryCapsule.highlights?.topFood || viaje?.highlights?.topFood || null,
+    topView: memoryCapsule.highlights?.topView || viaje?.highlights?.topView || null,
+    topTip: memoryCapsule.highlights?.topTip || viaje?.highlights?.topTip || null,
+  };
+
+  const slides = [];
+
+  // 1) Memory cover (⏳ UN DÍA COMO HOY / ✨ CÁPSULA DEL TIEMPO pill source)
+  slides.push({
+    id: 'memory-cover',
+    type: 'memory-cover',
+    title: memoryCapsule.stopCity || tripTitle,
+    subtitle: tripTitle,
+    image: coverUrl,
+    countryCode: primaryCountry,
+    countryCodes,
+    memoryBadge: {
+      matchType: memoryCapsule.matchType || 'thematic_highlight',
+      yearsAgo: Number.isFinite(memoryCapsule.yearsAgo) ? memoryCapsule.yearsAgo : 0,
+      tierLevel: Number.isFinite(memoryCapsule.tierLevel) ? memoryCapsule.tierLevel : 3,
+    },
+    headline: memoryCapsule.headline || null,
+    companions: Array.isArray(memoryCapsule.companions) ? memoryCapsule.companions : [],
+    dateRange: memoryCapsule.tripDateRange || { start: '', end: '' },
+    kenBurnsEffect: true,
+    deepLink: memoryCapsule.deepLink || null,
+  });
+
+  // 2) Focused stops: matched stop first, then up to 2 complementary stops.
+  const matchedStopId = memoryCapsule.stopId ? String(memoryCapsule.stopId) : null;
+  const orderedStops = [...stops];
+  if (matchedStopId) {
+    const matchedIndex = orderedStops.findIndex((stop) => String(stop?.id) === matchedStopId);
+    if (matchedIndex > 0) {
+      const [matched] = orderedStops.splice(matchedIndex, 1);
+      orderedStops.unshift(matched);
+    } else if (matchedIndex === -1 && memoryCapsule.rawStop) {
+      orderedStops.unshift(memoryCapsule.rawStop);
+    }
+  }
+
+  const isMatchedStop = (stop) => Boolean(
+    matchedStopId && stop && String(stop?.id) === matchedStopId
+  );
+
+  orderedStops.slice(0, 3).forEach((parada, index) => {
+    const stopPhotos = photoList.filter((photo) => {
+      const photoStopId = photo?.paradaId || photo?.stopId;
+      return photoStopId && String(photoStopId) === String(parada?.id);
+    });
+    const lugares = (Array.isArray(parada?.lugares) ? parada.lugares : [])
+      .filter(Boolean)
+      .map((poi) => ({ ...poi, emoji: resolveMemoryPoiEmoji(poi) }));
+
+    slides.push({
+      id: `memory-stop-${parada?.id || index}`,
+      type: 'stop',
+      stopNumber: index + 1,
+      title: parada?.nombre || '',
+      subtitle: formatDateRange(parada?.fechaLlegada || parada?.fecha, parada?.fechaSalida),
+      note: resolveMemoryStopNote(parada),
+      image: stopPhotos[0]?.url || (typeof parada?.foto === 'string' && parada.foto) || coverUrl,
+      photos: stopPhotos.map((photo) => photo.url).filter(Boolean),
+      favorite: Boolean(parada?.esFavorita),
+      vibes: Array.isArray(parada?.vibes) ? parada.vibes.filter(Boolean) : [],
+      lugares,
+      countryCode:
+        normalizeCountryCode(
+          parada?.paisCodigo ||
+            parada?.countryCode ||
+            parada?.codigoPais ||
+            parada?.pais ||
+            parada?.country
+        ) || primaryCountry,
+      isMemoryStop: isMatchedStop(parada),
+      memoryStopId: isMatchedStop(parada) ? matchedStopId : null,
+    });
+  });
+
+  // 3) La Trilogía del Recuerdo (only when curated highlights exist).
+  if (highlightSet.topFood || highlightSet.topView || highlightSet.topTip) {
+    slides.push({
+      id: 'memory-trilogy',
+      type: 'trilogy',
+      title: tripTitle,
+      image: coverUrl,
+      countryCode: primaryCountry,
+      highlights: highlightSet,
+      icons: { topFood: '🍽️', topView: '🌅', topTip: '✨' },
+    });
+  }
+
+  // 4) Closing — jump back to the full Documentary Viewer.
+  slides.push({
+    id: 'memory-closing',
+    type: 'closing',
+    title: tripTitle,
+    image: coverUrl,
+    countryCode: primaryCountry,
+    countryCodes,
+    fullTripUrl: `/trips/${viaje?.id || memoryCapsule.tripId}`,
+    isMemoryMode: true,
+    xpEarned: calculateTripXP(viaje, stops, photoList),
+  });
+
+  return slides;
+};
+
+
 /**
  * Builds the Instagram-Stories deck for a trip: 3 to 7 non-empty slides.
  *
  * Slide order: Cover -> Route/Telemetry -> up to 4 Stop slides ->
  * (Highlights/Context only when present) -> Finale.
  *
- * @param {{ viaje?: Object, paradasOrdenadas?: Array<Object>, photos?: Array<Object>, telemetry?: Object|null, userProfile?: Object|null }} input
+ * When `mode === 'memory'` and a `memoryCapsule` is provided, a dedicated
+ * Google-Photos-style memory deck is returned instead (never > 6 slides).
+ *
+ * @param {{ viaje?: Object, paradasOrdenadas?: Array<Object>, photos?: Array<Object>, telemetry?: Object|null, userProfile?: Object|null, mode?: string, memoryCapsule?: Object|null }} input
  * @returns {Array<Object>}
  */
 export const buildTripStoryDeck = ({
@@ -134,7 +291,13 @@ export const buildTripStoryDeck = ({
   photos = [],
   telemetry = null,
   userProfile = null,
+  mode = 'default',
+  memoryCapsule = null,
 } = {}) => {
+  if (mode === 'memory' && memoryCapsule) {
+    return buildMemoryStoryDeck({ viaje, paradasOrdenadas, photos, memoryCapsule });
+  }
+
   const stops = Array.isArray(paradasOrdenadas) ? paradasOrdenadas.filter(Boolean) : [];
   const photoList = (Array.isArray(photos) ? photos : []).filter(
     (photo) => photo && typeof photo.url === 'string' && photo.url

@@ -147,3 +147,114 @@ describe('getHomeConnectionStatus', () => {
     expect(status.baseCityName).toBe('Madrid');
   });
 });
+
+describe('buildTripStoryDeck · memory mode', () => {
+  const memoryStops = [
+    { id: 's1', nombre: 'Madrid', fechaLlegada: '2026-05-01', fechaSalida: '2026-05-03', esFavorita: true, vibes: ['tapas'], lugares: [{ id: 'p1', nombre: 'Mercado', categoria: 'gastronomia' }] },
+    { id: 's2', nombre: 'Toledo', fechaLlegada: '2026-05-04', fechaSalida: '2026-05-04' },
+    { id: 's3', nombre: 'Valencia', fechaLlegada: '2026-05-05', fechaSalida: '2026-05-07' },
+    { id: 's4', nombre: 'Sevilla', fechaLlegada: '2026-05-08', fechaSalida: '2026-05-10' },
+  ];
+
+  const memoryPhotos = [
+    { id: 'photo-1', url: 'https://example.com/madrid.jpg', paradaId: 's1' },
+    { id: 'photo-2', url: 'https://example.com/toledo.jpg', paradaId: 's2' },
+  ];
+
+  const memoryCapsule = {
+    tripId: 't1',
+    stopId: 's1',
+    matchType: 'exact_day',
+    tierLevel: 1,
+    yearsAgo: 2,
+    stopCity: 'Madrid',
+    tripTitle: 'Ruta España',
+    countryCodes: ['ES'],
+    coverUrl: 'https://example.com/cover.jpg',
+    headline: 'Tarde de tapas',
+    highlights: { topFood: 'Paella', topView: 'Sagrada', topTip: null },
+    companions: ['Ana'],
+    tripDateRange: { start: '2026-05-01', end: '2026-05-10' },
+    deepLink: '/dashboard?memory=t1&stop=s1',
+  };
+
+  it('builds a max-6-slide memory deck with cover, matched stop, trilogy and closing', () => {
+    const deck = buildTripStoryDeck({
+      viaje: baseViaje,
+      paradasOrdenadas: memoryStops,
+      photos: memoryPhotos,
+      mode: 'memory',
+      memoryCapsule,
+    });
+
+    expect(deck.length).toBeLessThanOrEqual(6);
+    expect(deck.map((slide) => slide.type)).toEqual([
+      'memory-cover',
+      'stop',
+      'stop',
+      'stop',
+      'trilogy',
+      'closing',
+    ]);
+
+    const cover = deck[0];
+    expect(cover.memoryBadge).toEqual({ matchType: 'exact_day', yearsAgo: 2, tierLevel: 1 });
+    expect(cover.kenBurnsEffect).toBe(true);
+    expect(cover.headline).toBe('Tarde de tapas');
+    expect(cover.companions).toEqual(['Ana']);
+    expect(cover.countryCode).toBe('ES');
+    expect(cover.countryCodes).toEqual(['ES']);
+    expect(cover.deepLink).toBe('/dashboard?memory=t1&stop=s1');
+    expect(cover.image).toBe('https://example.com/cover.jpg');
+
+    const firstStop = deck[1];
+    expect(firstStop.isMemoryStop).toBe(true);
+    expect(firstStop.memoryStopId).toBe('s1');
+    expect(firstStop.title).toBe('Madrid');
+    expect(firstStop.photos).toEqual(['https://example.com/madrid.jpg']);
+    expect(firstStop.image).toBe('https://example.com/madrid.jpg');
+    expect(firstStop.favorite).toBe(true);
+    expect(firstStop.vibes).toEqual(['tapas']);
+    expect(firstStop.lugares[0]).toMatchObject({ nombre: 'Mercado', emoji: '🍽️' });
+
+    const complementary = deck.slice(2, 4);
+    expect(complementary.every((slide) => slide.isMemoryStop === false)).toBe(true);
+    expect(complementary.map((slide) => slide.title)).toEqual(['Toledo', 'Valencia']);
+
+    const trilogy = deck.find((slide) => slide.type === 'trilogy');
+    expect(trilogy.highlights).toEqual({ topFood: 'Paella', topView: 'Sagrada', topTip: null });
+    expect(trilogy.icons).toEqual({ topFood: '🍽️', topView: '🌅', topTip: '✨' });
+
+    const closing = deck[deck.length - 1];
+    expect(closing.type).toBe('closing');
+    expect(closing.fullTripUrl).toBe('/trips/t1');
+    expect(closing.isMemoryMode).toBe(true);
+    expect(typeof closing.xpEarned).toBe('number');
+  });
+
+  it('omits the trilogy slide when the trip has no curated highlights', () => {
+    const deck = buildTripStoryDeck({
+      viaje: baseViaje,
+      paradasOrdenadas: memoryStops,
+      photos: memoryPhotos,
+      mode: 'memory',
+      memoryCapsule: { ...memoryCapsule, highlights: {} },
+    });
+
+    expect(deck.map((slide) => slide.type)).toEqual(['memory-cover', 'stop', 'stop', 'stop', 'closing']);
+    expect(deck.length).toBe(5);
+  });
+
+  it('falls back to the default deck when mode is memory but no capsule is provided', () => {
+    const deck = buildTripStoryDeck({
+      viaje: baseViaje,
+      paradasOrdenadas: [],
+      photos: [],
+      mode: 'memory',
+      memoryCapsule: null,
+    });
+
+    expect(deck.map((slide) => slide.type)).toEqual(['cover', 'route', 'finale']);
+  });
+});
+

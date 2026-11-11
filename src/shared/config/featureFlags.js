@@ -16,6 +16,9 @@ export const ENABLE_TRAVEL_STATS = true;
 // Block 2.5: Lightweight Wishlist ("Lista de Deseos / Bucket List") for
 // countries and cities, stored on the user profile (never on `viajes`).
 export const ENABLE_WISHLIST = true;
+// Block 3.2: Memory Capsule (Google-Photos-style "memory story deck").
+// Pure in-memory selection + lazy gallery read on demand (never on boot).
+export const ENABLE_MEMORY_CAPSULE = true;
 // DEV-only tooling (data seeder + persona switcher). Hard-gated by
 // `import.meta.env.DEV`, which Vite statically replaces with `false` in
 // production builds so every consumer is tree-shaken out (zero leaked bytes).
@@ -30,6 +33,7 @@ export const FEATURE_FLAGS = {
   ENABLE_ONBOARDING,
   ENABLE_TRIPS_LIST_VIEW,
   ENABLE_TRAVEL_STATS,
+  ENABLE_MEMORY_CAPSULE,
   ENABLE_DEV_TOOLS,
 };
 
