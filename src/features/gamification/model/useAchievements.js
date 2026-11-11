@@ -55,6 +55,12 @@ export const useAchievements = ({ paisesVisitados, bitacora, todasLasParadas }) 
   const tripCount = bitacora.length;
   const stopCount = todasLasParadas.length;
 
+  // Increment 3.1 — initial Firestore hydration guard. On the very first render
+  // `bitacora` is [] (snapshot pending); seeding the baseline there would flag
+  // every pre-existing achievement as "new" when the snapshot lands, opening the
+  // full-screen CelebrationQueue over the editor/dashboard.
+  const pendingHydrationRef = useRef(false);
+
   useEffect(() => {
     if (!ENABLE_GAMIFICATION) return;
 
@@ -63,15 +69,28 @@ export const useAchievements = ({ paisesVisitados, bitacora, todasLasParadas }) 
     const currentLevel = getTravelerLevel(countryCount);
     const persisted = readPersisted();
 
-    // First run ever (or cleared storage): seed state, don't celebrate
+    const seedBaseline = () =>
+      writePersisted({
+        unlockedIds: unlocked.map((a) => a.id),
+        celebratedLevel: currentLevel.id,
+      });
+
+    // First run: seed the baseline. If the archive is still empty (Firestore
+    // snapshot pending) remember it and re-seed silently on hydration.
     if (isInitialLoadRef.current) {
       isInitialLoadRef.current = false;
       if (!persisted) {
-        writePersisted({
-          unlockedIds: unlocked.map((a) => a.id),
-          celebratedLevel: currentLevel.id,
-        });
+        seedBaseline();
       }
+      pendingHydrationRef.current = countryCount + tripCount + stopCount === 0;
+      return;
+    }
+
+    // First snapshot arrived after an empty mount → this is hydration, not a
+    // genuine unlock. Re-seed in silence so no celebration modal is mounted.
+    if (pendingHydrationRef.current) {
+      pendingHydrationRef.current = false;
+      seedBaseline();
       return;
     }
 
@@ -90,11 +109,25 @@ export const useAchievements = ({ paisesVisitados, bitacora, todasLasParadas }) 
     }
 
     if (queue.length > 0) {
-      setCelebrations((prev) => [...prev, ...queue]);
       writePersisted({
         unlockedIds: [...new Set([...prevUnlockedIds, ...unlocked.map((a) => a.id)])],
         celebratedLevel: currentLevel.id,
       });
+
+      // Automated E2E runs must never mount full-screen celebration overlays
+      // (they sit at Z_INDEX.celebration and intercept editor pointer events).
+      // Opt back in per-spec with window.__ENABLE_GAMIFICATION_CELEBRATIONS_E2E__.
+      const isE2E =
+        typeof window !== 'undefined' &&
+        (window.navigator?.webdriver === true || import.meta.env.VITE_E2E === 'true');
+      const allowCelebrations =
+        !isE2E ||
+        (typeof window !== 'undefined' &&
+          window.__ENABLE_GAMIFICATION_CELEBRATIONS_E2E__ === true);
+
+      if (allowCelebrations) {
+        setCelebrations((prev) => [...prev, ...queue]);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countryCount, tripCount, stopCount]);

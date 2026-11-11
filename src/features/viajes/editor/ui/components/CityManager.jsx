@@ -358,7 +358,7 @@ const CityManager = ({
                     </button>
                     <button type="button" data-testid="editor-stop-move-up" aria-label={t('citymanager.moveStopUp', 'Mover arriba')} disabled={index === 0 || isReadOnlyActive} onClick={() => moverParada(index, -1)} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed"><ArrowUp size={16} /></button>
                     <button type="button" data-testid="editor-stop-move-down" aria-label={t('citymanager.moveStopDown', 'Mover abajo')} disabled={index === paradas.length - 1 || isReadOnlyActive} onClick={() => moverParada(index, 1)} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed"><ArrowDown size={16} /></button>
-                    <button type="button" data-testid="editor-stop-delete" disabled={isReadOnlyActive} onClick={() => eliminarParada(index)} className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed" aria-label={t('citymanager.deleteStop', 'Eliminar destino')}>
+                    <button type="button" data-testid="editor-stop-delete" disabled={isReadOnlyActive} onClick={() => eliminarParada(index)} className="relative z-10 min-h-[44px] min-w-[44px] inline-flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed" aria-label={t('citymanager.deleteStop', 'Eliminar destino')}>
                       <Trash2 size={16} className="text-slate-400 hover:text-rose-600" />
                     </button>
                   </div>
