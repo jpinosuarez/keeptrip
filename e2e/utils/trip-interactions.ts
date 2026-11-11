@@ -21,20 +21,45 @@ export async function openTripActionMenu(
   tripCard: Locator,
   action?: RegExp,
 ): Promise<void> {
-  const menuBtn = tripCard.getByTestId('trip-card-menu-btn').first();
-  const isDelete = action && (action.test('Delete') || action.test('Eliminar'));
+  const card = tripCard.first();
+  const actionRegex = action ?? /Editar|Edit/i;
+  const isDelete = /delete|eliminar/i.test(actionRegex.source);
   const actionBtnId = isDelete ? 'trip-card-menu-delete' : 'trip-card-menu-edit';
-  const actionBtn = page.getByTestId(actionBtnId).first();
 
-  // Playwright's native click automatically scrolls, checks actionability, and auto-retries on detachment.
-  // `scrollIntoViewIfNeeded` + `force` keep the click resilient against the sticky
-  // <Header> and decorative card overlays intercepting the hit-test.
+  const actionBtn = page
+    .getByTestId(actionBtnId)
+    .or(page.getByRole('menuitem', { name: actionRegex }))
+    .first();
+
+  await expect(card).toBeVisible({ timeout: 10000 });
+
+  // 1. Scroll the card to the VERTICAL CENTER of the viewport. Aligning it to
+  //    the top would park the 3-dot button underneath the sticky <Header>
+  //    (z-40), swallowing the click and leaving the portal menu unrendered.
+  await card.evaluate((el) => el.scrollIntoView({ block: 'center', inline: 'nearest' }));
+  await page.waitForTimeout(300);
+
+  const menuBtn = card.getByTestId('trip-card-menu-btn').first();
   await expect(menuBtn).toBeVisible({ timeout: 10000 });
-  await menuBtn.scrollIntoViewIfNeeded();
+
+  // 2. Open the portal dropdown (force skips decorative overlay hit-testing).
   await menuBtn.click({ force: true });
 
+  // 3. If a sticky overlay swallowed the synthetic click, dispatch it directly
+  //    so React's isMenuOpen state flips and the menu renders in the DOM.
+  const isMenuRendered = await actionBtn.isVisible().catch(() => false);
+  if (!isMenuRendered) {
+    await menuBtn.dispatchEvent('click');
+  }
+
   await expect(actionBtn).toBeVisible({ timeout: 10000 });
-  await actionBtn.click({ force: true });
+
+  // 4. The menu item can sit at the viewport edge → dispatch fallback.
+  try {
+    await actionBtn.click({ timeout: 3000 });
+  } catch {
+    await actionBtn.dispatchEvent('click');
+  }
 }
 
 /**
