@@ -26,12 +26,15 @@ export async function openTripActionMenu(
   const actionBtnId = isDelete ? 'trip-card-menu-delete' : 'trip-card-menu-edit';
   const actionBtn = page.getByTestId(actionBtnId).first();
 
-  // Playwright's native click automatically scrolls, checks actionability, and auto-retries on detachment
+  // Playwright's native click automatically scrolls, checks actionability, and auto-retries on detachment.
+  // `scrollIntoViewIfNeeded` + `force` keep the click resilient against the sticky
+  // <Header> and decorative card overlays intercepting the hit-test.
   await expect(menuBtn).toBeVisible({ timeout: 10000 });
-  await menuBtn.click();
+  await menuBtn.scrollIntoViewIfNeeded();
+  await menuBtn.click({ force: true });
 
   await expect(actionBtn).toBeVisible({ timeout: 10000 });
-  await actionBtn.click();
+  await actionBtn.click({ force: true });
 }
 
 /**

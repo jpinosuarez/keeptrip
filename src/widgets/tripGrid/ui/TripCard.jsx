@@ -136,7 +136,7 @@ const TripCard = ({ trip = {}, onEdit, onDelete, onView, isMobile = false, varia
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className={cn(
-        "relative cursor-pointer group rounded-2xl shadow-md bg-charcoalBlue transition-shadow duration-300 border-0 overflow-hidden",
+        "relative cursor-pointer group rounded-2xl shadow-md bg-charcoalBlue transition-shadow duration-300 border-0 overflow-hidden scroll-mt-24",
         virtualizationClass,
         isMenuOpen ? "z-dropdown" : "z-base"
       )}
@@ -209,7 +209,7 @@ const TripCard = ({ trip = {}, onEdit, onDelete, onView, isMobile = false, varia
           )}
         </div>
           
-        <div className="relative">
+        <div className="relative z-20">
           <button
             ref={buttonRef}
             type="button"
