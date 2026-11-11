@@ -200,6 +200,7 @@ export function useEdicionModalLifecycle({
           fechaSalida: '',
           paisCodigo: ciudadInicial.paisCodigo,
           flag: ciudadInicial.flag || ciudadInicial.paisCodigo,
+          orden: 1,
         },
       ]);
       return;
@@ -211,23 +212,56 @@ export function useEdicionModalLifecycle({
       const cargarParadas = async () => {
         try {
           const paradasRef = collection(db, `usuarios/${usuarioUid}/viajes/${viaje.id}/paradas`);
-          const snap = await getDocs(paradasRef);
-          const loaded = snap.docs.map((d) => {
-            const data = d.data();
-            const fechaLlegada = normalizeToIsoDate(data.fechaLlegada || data.fecha) || '';
-            const fechaSalida = normalizeToIsoDate(data.fechaSalida) || '';
-            const fecha = normalizeToIsoDate(data.fecha || data.fechaLlegada) || fechaLlegada;
-            return {
-              ...data,
-              id: d.id,
-              fecha,
-              fechaLlegada,
-              fechaSalida,
-              flag: data.flag || (data.paisCodigo ? getFlagUrl(data.paisCodigo) : ''),
-            };
-          });
-          const paradasOrdenadas = loaded.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+          const readStops = async () => {
+            const snap = await getDocs(paradasRef);
+            return snap.docs.map((d) => {
+              const data = d.data();
+              const fechaLlegada = normalizeToIsoDate(data.fechaLlegada || data.fecha) || '';
+              const fechaSalida = normalizeToIsoDate(data.fechaSalida) || '';
+              const fecha = normalizeToIsoDate(data.fecha || data.fechaLlegada) || fechaLlegada;
+              return {
+                ...data,
+                id: d.id,
+                fecha,
+                fechaLlegada,
+                fechaSalida,
+                flag: data.flag || (data.paisCodigo ? getFlagUrl(data.paisCodigo) : ''),
+              };
+            });
+          };
+
+          const sortStops = (stops) =>
+            stops
+              .map((stop, idx) => ({ stop, idx }))
+              .sort((a, b) => {
+                const ordenA = Number.isFinite(Number(a.stop?.orden)) ? Number(a.stop.orden) : a.idx + 1;
+                const ordenB = Number.isFinite(Number(b.stop?.orden)) ? Number(b.stop.orden) : b.idx + 1;
+                if (ordenA !== ordenB) return ordenA - ordenB;
+                const dateA = new Date(a.stop?.fecha).getTime();
+                const dateB = new Date(b.stop?.fecha).getTime();
+                return (Number.isFinite(dateA) ? dateA : 0) - (Number.isFinite(dateB) ? dateB : 0);
+              })
+              .map(({ stop }) => stop);
+
+          const loaded = await readStops();
+          const fallbackStops = Array.isArray(viaje?.paradas)
+            ? viaje.paradas
+            : Array.isArray(viaje?.destinos)
+              ? viaje.destinos
+              : [];
+          const paradasOrdenadas = sortStops(loaded.length > 0 ? loaded : fallbackStops);
           setParadas(paradasOrdenadas);
+
+          // Right after creating a trip, its stops can land a beat after the
+          // trip document that renders the card. Re-read once in the background
+          // (without delaying `isHydratingStops`) so Save enables on reopen.
+          if (loaded.length === 0) {
+            setTimeout(() => {
+              void readStops().then((retried) => {
+                if (retried.length > 0) setParadas(sortStops(retried));
+              });
+            }, 600);
+          }
 
           // Restore auto-title mode if the saved title identically matches the generated one for these stops
           if (!esBorrador && viaje.titulo) {
@@ -248,7 +282,13 @@ export function useEdicionModalLifecycle({
     }
 
     setIsHydratingStops(false);
-    setParadas([]);
+    // Existing trips: NEVER wipe already-hydrated stops on dependency churn.
+    // The Firestore trips snapshot replaces `viaje` with a new object reference,
+    // re-running this effect; clearing here disabled Save with "a trip must
+    // include at least one destination" even though the stops were loaded.
+    if (esBorrador) {
+      setParadas([]);
+    }
   }, [
     ciudadInicial,
     esBorrador,
@@ -436,6 +476,7 @@ export function useEdicionModalLifecycle({
           paradasIniciales.map((stop, index) => ({
             ...stop,
             id: stop?.id || `init-${index}`,
+            orden: stop?.orden ?? index + 1,
           }))
         );
       } else if (ciudadInicial) {
@@ -451,6 +492,7 @@ export function useEdicionModalLifecycle({
             fechaSalida: '',
             paisCodigo: ciudadInicial.paisCodigo,
             flag: viaje.flag,
+            orden: 1,
           },
         ]);
       }

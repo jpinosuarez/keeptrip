@@ -268,7 +268,11 @@ const EditorFocusPanel = ({
 
   const stopPhotos = galeria?.fotos || [];
 
-  const hasValidStops = Array.isArray(effectiveParadas) && effectiveParadas.length > 0;
+  const hasDestinations =
+    (Array.isArray(effectiveParadas) && effectiveParadas.length > 0) ||
+    (Array.isArray(effectiveFormData?.destinos) && effectiveFormData.destinos.length > 0) ||
+    (Array.isArray(viaje?.destinos) && viaje.destinos.length > 0);
+  const hasValidStops = hasDestinations;
   const hasValidTitle = Boolean((formDataWithFallback?.titulo || '').trim());
   const hasValidStartDate = Boolean((effectiveFormData?.fechaInicio || viaje?.fechaInicio || '').toString().trim());
   const canSave = hasValidStops && hasValidTitle && hasValidStartDate && !isSavingManual && !isReadOnlyMode && !isImageBusy;

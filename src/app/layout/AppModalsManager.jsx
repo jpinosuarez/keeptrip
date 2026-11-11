@@ -183,7 +183,7 @@ function AppModalsManager({
 
   // ── EdicionModal: ?editing=<id> para viajes existentes, viajeBorrador para nuevos ──
   const isNewParam = searchParams.get('new') === 'true';
-  const editingId = !isNewParam ? searchParams.get('editing') : null;
+  const editingId = searchParams.get('editing') || null;
   // Editor visibility is derived PURELY from the URL (single source of truth).
   // It stays true for brand-new trips where `viajeParaEditar` is momentarily null.
   const isEditorModalOpen = Boolean(editingId || isNewParam);
