@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from 'react';
 import { BarChart3, Shield, Trophy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useAuth, useToast } from '@app/providers';
+import { useAuth } from '@app/providers';
 import { ENABLE_GAMIFICATION, ENABLE_TRAVEL_STATS } from '@shared/config';
 import TravelerProgress from './TravelerProgress';
 import AchievementsGrid from './AchievementsGrid';
@@ -32,15 +32,11 @@ export default function TravelerHub({
   xpBreakdown: propXpBreakdown = null,
   countryEmblems: propCountryEmblems = null,
   nextAchievableBadges: propNextBadges = null,
-  conquestColor: propConquestColor = null,
-  isConquestColorUnlocked: propConquestUnlocked = null,
 }) {
   const { t } = useTranslation('hub');
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const auth = useAuth() || {};
-  const toast = useToast?.() || {};
-  const pushToast = toast.pushToast || (() => {});
   const effectiveProfile = propProfile || auth.userProfile || null;
 
   const rawTab = searchParams.get('tab');
@@ -89,13 +85,13 @@ export default function TravelerHub({
   }, [propCountryEmblems, compositeViajes, effectiveProfile]);
 
   const allEmblemsWithLocked = useMemo(() => {
-    const localAtlas = calculateCountryEmblems(compositeViajes, effectiveProfile, { includeLocked: true });
+    const base = calculateCountryEmblems(compositeViajes, effectiveProfile, { includeLocked: true });
     // DEV God Mode injects the full simulated atlas through `countryEmblems`;
     // prefer it only when it is richer, so the real locked atlas never shrinks.
-    if (Array.isArray(propCountryEmblems) && propCountryEmblems.length > localAtlas.length) {
+    if (Array.isArray(propCountryEmblems) && propCountryEmblems.length >= base.length && base.length > 0) {
       return propCountryEmblems;
     }
-    return localAtlas;
+    return base;
   }, [propCountryEmblems, compositeViajes, effectiveProfile]);
 
   const resolvedNextBadges = useMemo(

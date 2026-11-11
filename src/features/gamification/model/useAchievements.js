@@ -12,13 +12,8 @@ import {
   calculateCountryEmblems,
   getNextAchievableBadges,
 } from './achievementsEngine';
-import { ENABLE_GAMIFICATION, ENABLE_DEV_TOOLS } from '@shared/config';
-import { isDevGodModeEnabled, DEV_OVERRIDE_EVENT } from '@shared/dev/devGamificationOverride';
-import {
-  getGodModeXpBreakdown,
-  getSimulatedGodModeBadges,
-  getSimulatedGodModeEmblems,
-} from './devGodModeSimulation';
+import { ENABLE_GAMIFICATION } from '@shared/config';
+import { useDevGodMode } from './useDevGodMode';
 import { useAuth } from '@app/providers/AuthContext';
 
 const STORAGE_KEY = 'keeptrip-achievements';
@@ -49,19 +44,11 @@ export const useAchievements = ({ paisesVisitados, bitacora, todasLasParadas }) 
   const isInitialLoadRef = useRef(true);
   const { userProfile } = useAuth() || {};
 
-  // DEV-only Gamification God Mode (session-scoped). When enabled, every
-  // selector below returns a full simulated payload so the Hub can be audited
-  // with all 195 UN emblems + every badge without touching Firestore.
-  const [godMode, setGodMode] = useState(() => ENABLE_DEV_TOOLS && isDevGodModeEnabled());
-  // Hard-gated to DEV builds: a stray sessionStorage key can never unlock the
-  // simulated payloads in production.
-  const godModeActive = ENABLE_DEV_TOOLS && ENABLE_GAMIFICATION && godMode;
-
-  useEffect(() => {
-    const sync = () => setGodMode(isDevGodModeEnabled());
-    window.addEventListener(DEV_OVERRIDE_EVENT, sync);
-    return () => window.removeEventListener(DEV_OVERRIDE_EVENT, sync);
-  }, []);
+  // DEV-only Gamification God Mode (session-scoped). `useDevGodMode` lazily
+  // imports the override store + simulation behind `import.meta.env.DEV`, so
+  // production bundles contain neither the payloads nor the session key.
+  const { enabled: devGodModeEnabled, sim: devGodModeSim } = useDevGodMode();
+  const godModeActive = ENABLE_GAMIFICATION && devGodModeEnabled;
 
   // Derive meaningful dep values to avoid reacting to reference changes
   const countryCount = paisesVisitados.length;
@@ -129,10 +116,10 @@ export const useAchievements = ({ paisesVisitados, bitacora, todasLasParadas }) 
   const achievementsWithProgress = useMemo(
     () => {
       if (!ENABLE_GAMIFICATION) return [];
-      if (godModeActive) return getSimulatedGodModeBadges();
+      if (godModeActive && devGodModeSim) return devGodModeSim.getSimulatedGodModeBadges();
       return getAchievementsWithProgress(stats);
     },
-    [godModeActive, stats],
+    [godModeActive, devGodModeSim, stats],
   );
 
   // Group trips + their stops on the fly so the XP 2.0 / emblem engines stay
@@ -152,15 +139,15 @@ export const useAchievements = ({ paisesVisitados, bitacora, todasLasParadas }) 
 
   const xpBreakdown = useMemo(() => {
     if (!ENABLE_GAMIFICATION) return null;
-    if (godModeActive) return getGodModeXpBreakdown();
+    if (godModeActive && devGodModeSim) return devGodModeSim.getGodModeXpBreakdown();
     return calculateXPBreakdown(viajes, userProfile);
-  }, [godModeActive, viajes, userProfile]);
+  }, [godModeActive, devGodModeSim, viajes, userProfile]);
 
   const countryEmblems = useMemo(() => {
     if (!ENABLE_GAMIFICATION) return [];
-    if (godModeActive) return getSimulatedGodModeEmblems();
+    if (godModeActive && devGodModeSim) return devGodModeSim.getSimulatedGodModeEmblems();
     return calculateCountryEmblems(viajes, userProfile);
-  }, [godModeActive, viajes, userProfile]);
+  }, [godModeActive, devGodModeSim, viajes, userProfile]);
 
   const nextAchievableBadges = useMemo(
     () => (ENABLE_GAMIFICATION ? getNextAchievableBadges(achievementsWithProgress, 2) : []),

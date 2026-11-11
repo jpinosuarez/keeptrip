@@ -918,6 +918,8 @@ export function calculateCountryEmblems(viajes = [], userProfile = null, options
         iso2,
         countryCode: iso2,
         iso3: spec.iso3 || resolveIso3(iso2),
+        countryName: iso2,
+        continent: spec.continent || 'World',
         visitsCount: 0,
         citiesCount: 0,
         cities: [],

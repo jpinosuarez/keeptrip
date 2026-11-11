@@ -140,8 +140,6 @@ function ExplorerRoute() {
         xpBreakdown={gamification.xpBreakdown}
         countryEmblems={gamification.countryEmblems}
         nextAchievableBadges={gamification.nextAchievableBadges}
-        conquestColor={gamification.conquestColor}
-        isConquestColorUnlocked={gamification.isConquestColorUnlocked}
         stats={gamification.achievementStats}
       />
     </Suspense>

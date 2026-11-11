@@ -16,13 +16,27 @@ const CONTINENT_FILTERS = [
   { id: 'Oceania', labelKey: 'emblems.continents.oceania', defaultLabel: 'Oceanía' },
 ];
 
+const cleanSearchText = (value) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+
 function matchesContinentFilter(emblem, continentId) {
   if (!continentId || continentId === 'ALL') return true;
   const raw = String(emblem?.continent || emblem?.catalogSpec?.continent || '').toLowerCase();
+  const code = String(emblem?.countryCode || emblem?.iso2 || '').toUpperCase();
+  if (continentId === 'Europe') {
+    return (
+      raw.includes('europ') ||
+      raw === 'eu' ||
+      ['MC', 'VA', 'SM', 'LI', 'AD', 'MT'].includes(code)
+    );
+  }
   if (continentId === 'Americas') {
     return raw.includes('america') || raw === 'am' || raw === 'na' || raw === 'sa';
   }
-  if (continentId === 'Europe') return raw.includes('europ') || raw === 'eu';
   if (continentId === 'Asia') return raw.includes('asia') || raw === 'as';
   if (continentId === 'Africa') return raw.includes('afric') || raw === 'af';
   if (continentId === 'Oceania') return raw.includes('ocean') || raw === 'oc';
@@ -61,12 +75,14 @@ export default function CountryEmblemGrid({ emblems = [], allEmblemsWithLocked =
       base = base.filter((e) => matchesContinentFilter(e, selectedContinent));
     }
 
-    const q = searchQuery.trim().toLowerCase();
+    const q = cleanSearchText(searchQuery);
     if (q) {
       base = base.filter((e) => {
-        const code = String(e.countryCode || e.iso2 || '').toLowerCase();
-        const locName = (getLocalizedCountryName(code, i18n.language) || e.countryName || '').toLowerCase();
-        const iso3 = String(e.iso3 || e.catalogSpec?.iso3 || '').toLowerCase();
+        const code = cleanSearchText(e.countryCode || e.iso2);
+        const locName = cleanSearchText(
+          getLocalizedCountryName(e.countryCode || e.iso2, i18n.language) || e.countryName,
+        );
+        const iso3 = cleanSearchText(e.iso3 || e.catalogSpec?.iso3);
         return locName.includes(q) || code.includes(q) || iso3.includes(q);
       });
     }

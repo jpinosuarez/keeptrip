@@ -355,3 +355,21 @@ describe('achievementsEngine - dual badge types', () => {
   });
 });
 
+describe('achievementsEngine — 195 UN locked atlas', () => {
+  it('always includes Monaco (MC) with curated geometry and continent metadata', () => {
+    const atlas = calculateCountryEmblems([], null, { includeLocked: true });
+
+    expect(atlas).toHaveLength(195);
+
+    const monaco = atlas.find((emblem) => emblem.iso2 === 'MC');
+    expect(monaco).toBeTruthy();
+    expect(monaco.status).toBe('locked');
+    expect(monaco.countryName).toBe('MC');
+    expect(monaco.continent).toBeTruthy();
+    expect(monaco.catalogSpec?.svgPath?.startsWith('M')).toBe(true);
+    expect(monaco.catalogSpec?.svgPath?.includes('C')).toBe(false);
+    expect((monaco.catalogSpec?.svgPath?.match(/L/g) || []).length).toBeGreaterThanOrEqual(30);
+    expect(atlas.filter((emblem) => emblem.status === 'locked')).toHaveLength(195);
+  });
+});
+

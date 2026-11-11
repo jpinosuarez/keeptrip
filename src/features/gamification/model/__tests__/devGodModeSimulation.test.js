@@ -21,6 +21,14 @@ describe('devGodModeSimulation', () => {
     expect(argentina.tier).toBe('leyenda');
     expect(argentina.identityBadge).toEqual({ type: 'roots' });
     expect(emblems.find((emblem) => emblem.iso2 === 'DE').identityBadge).toEqual({ type: 'base' });
+
+    // Monaco must always be part of the simulated 195, with its curated vector.
+    const monaco = emblems.find((emblem) => emblem.countryCode === 'MC');
+    expect(monaco).toBeTruthy();
+    expect(monaco.continent).toBeTruthy();
+    expect(monaco.catalogSpec?.svgPath?.startsWith('M')).toBe(true);
+    expect(monaco.catalogSpec?.svgPath?.includes('C')).toBe(false);
+    expect((monaco.catalogSpec?.svgPath?.match(/L/g) || []).length).toBeGreaterThanOrEqual(30);
   });
 
   it('unlocks every achievement at its maximum tier', () => {

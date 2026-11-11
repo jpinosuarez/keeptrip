@@ -50,6 +50,7 @@ export function getSimulatedGodModeEmblems() {
       countryCode: spec.iso2,
       iso3: spec.iso3 || getCountryISO3(spec.iso2),
       countryName: spec.iso2,
+      continent: spec.continent || 'World',
       visitsCount: mastery.stars * 2,
       citiesCount: 2,
       cities: ['Ciudad Alfa', 'Ciudad Beta'],

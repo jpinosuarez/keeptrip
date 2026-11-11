@@ -15,6 +15,10 @@ export const COUNTRY_EMBLEM_VIEWBOX = '0 0 256 256';
 
 const CATALOG = catalogData?.countries || {};
 
+// Bumped whenever the generator regenerates the JSON. Exported so Vite's module
+// graph (and any cached consumer) is invalidated as soon as the catalog changes.
+export const CATALOG_BUILD_VERSION = catalogData?.version || 4;
+
 // Clean 256×256 geometric shield used for unknown ISO codes.
 const FALLBACK_SHIELD =
   'M128,24 L200,52 L200,148 C200,196 166,220 128,232 C90,220 56,196 56,148 L56,52 Z';

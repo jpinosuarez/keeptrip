@@ -48,6 +48,7 @@ import CountryEmblemCard from '../CountryEmblemCard';
 import CountryEmblemModal from '../CountryEmblemModal';
 import CountryEmblemGrid from '../CountryEmblemGrid';
 import CelebrationQueue from '../CelebrationQueue';
+import { getCountryEmblemSpec } from '../../../model/countryEmblemsCatalog';
 
 const mockCatalogSpec = {
   iso2: 'AR',
@@ -145,25 +146,24 @@ describe('CountryEmblem UI Component Suite (Phase B)', () => {
     expect(locked.querySelector('[data-testid="emblem-flag-medallion"]')).toBeNull();
   });
 
-  it('renders the curated microstate geometries from the real catalog (MC/VA/SM)', () => {
-    const curatedPrefix = {
-      MC: 'M38,154',
-      VA: 'M82,164',
-      SM: 'M128,34',
-      LI: 'M130,30',
-      AD: 'M128,40',
-    };
+  it('renders real multi-vertex GIS microstate geometries (no synthetic Bézier)', () => {
+    for (const code of ['MC', 'VA', 'SM', 'LI', 'AD']) {
+      const spec = getCountryEmblemSpec(code);
+      const lCount = (spec.svgPath.match(/L/g) || []).length;
 
-    Object.entries(curatedPrefix).forEach(([code, prefix]) => {
+      expect(spec.svgPath.startsWith('M')).toBe(true);
+      expect(spec.svgPath.includes('C')).toBe(false);
+      expect(lCount).toBeGreaterThanOrEqual(30);
+
       const { container, unmount } = render(
         <CountryEmblem3D countryCode={code} status="locked" tier="locked" />,
       );
-      const rendered = Array.from(container.querySelectorAll('path')).some((path) =>
-        (path.getAttribute('d') || '').startsWith(prefix),
+      const rendered = Array.from(container.querySelectorAll('path')).some(
+        (path) => path.getAttribute('d') === spec.svgPath,
       );
-      expect(rendered).toBe(true); // curated catalog geometry must reach the SVG
+      expect(rendered).toBe(true);
       unmount();
-    });
+    }
   });
 
   it('renders CountryEmblemCard thumbnail and card variants with discovery code and identity badge', () => {

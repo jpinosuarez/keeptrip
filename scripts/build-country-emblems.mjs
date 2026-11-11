@@ -21,7 +21,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { geoMercator, geoAlbersUsa, geoPath } from 'd3-geo';
+import { geoMercator, geoAlbersUsa, geoArea, geoPath } from 'd3-geo';
 import * as topojson from 'topojson-client';
 import {
   UN_195_COUNTRIES,
@@ -34,7 +34,9 @@ const worldCountries = require('world-countries');
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(SCRIPT_DIR, '..');
-const TOPO_PATH = path.join(SCRIPT_DIR, 'data', 'world-atlas-countries-50m.json');
+const TOPO_50M_PATH = path.join(SCRIPT_DIR, 'data', 'world-atlas-countries-50m.json');
+const TOPO_10M_PATH = path.join(SCRIPT_DIR, 'data', 'world-atlas-countries-10m.json');
+const OSM_MICROSTATES_PATH = path.join(SCRIPT_DIR, 'data', 'osm-microstates.json');
 const OUT_PATH = path.join(
   ROOT,
   'src',
@@ -60,26 +62,19 @@ const UN_COUNTRY_SET = new Set(UN_195_COUNTRIES);
 // Microstates get a clean, magnified silhouette (shield fallback when absent from 110m).
 const MICROSTATES = new Set(['MC', 'VA', 'SM', 'AD', 'LI', 'MT', 'SG', 'LU', 'BH', 'MV', 'SC', 'BB']);
 
-// Curated high-fidelity silhouettes for microstates whose 50m geometry is a
-// crude 4–6 vertex blob. Authored inside the 24..232 safe area of the 256×256
-// viewBox. Injected verbatim into the catalog by `buildEntryFromFeature`.
-const CURATED_MICROSTATE_PATHS = {
-  // Monaco (MC): authentic coastline with Port Hercule harbour bay, Monte Carlo
-  // and the Le Rocher promontory.
-  MC: 'M38,154 C48,142 62,136 76,134 C88,132 98,138 108,144 C116,148 126,148 134,142 C142,134 146,122 152,112 C160,100 170,92 182,86 C194,80 208,72 218,62 C224,56 226,48 222,44 C216,42 204,50 190,58 C176,66 164,74 150,82 C138,90 126,98 114,108 C102,118 90,128 78,138 C66,148 52,156 42,164 C36,168 34,162 38,154 Z',
-  // Vatican City (VA): authentic Leonine walls, western bastions and the
-  // St. Peter's colonnade ellipse arc.
-  VA: 'M82,164 C74,152 70,138 68,124 C66,108 72,94 80,82 C90,70 102,60 116,54 C128,48 144,46 158,50 C172,54 184,62 194,74 C202,86 208,100 210,114 C212,128 208,142 200,154 C192,164 180,172 166,176 C158,178 148,176 140,170 C132,164 126,154 120,148 C114,150 108,156 102,162 C96,168 88,172 82,164 Z',
-  // San Marino (SM): national boundary contour following the Monte Titano
-  // ridges (smooth crest, no spiky crown).
-  SM: 'M128,34 C144,36 160,44 172,56 C184,68 194,84 198,100 C202,116 200,132 196,148 C192,164 184,178 174,190 C162,202 148,212 134,216 C120,216 108,210 98,200 C88,188 80,174 76,158 C72,142 72,126 76,110 C80,94 88,78 100,64 C112,50 120,38 128,34 Z',
-  // Liechtenstein (LI): elongated Rhine valley to the west, alpine crest east.
-  LI: 'M130,30 C138,36 142,50 144,66 C148,84 154,102 160,122 C166,142 168,162 164,182 C160,198 152,212 140,222 C128,226 118,220 112,208 C106,192 106,174 108,156 C110,136 112,116 114,96 C116,78 118,60 122,46 C124,34 126,30 130,30 Z',
-  // Andorra (AD): mountainous Pyrenean valley basin with natural ridges.
-  AD: 'M128,40 C146,38 166,44 182,54 C196,64 206,78 212,94 C216,110 214,126 208,142 C200,158 188,172 174,184 C160,196 144,206 130,214 C120,210 108,198 96,186 C84,172 74,156 68,138 C64,120 66,104 74,88 C84,72 98,58 114,48 C120,44 124,42 128,40 Z',
-};
+// 10m priority list: microstates, small island states and (dynamically) any
+// country whose projected 50m silhouette has fewer than 35 vertices.
+const HIGH_RES_10M = new Set([
+  ...MICROSTATES,
+  'MT', 'SG', 'BH', 'MV', 'SC', 'BB', 'LU', 'CY', 'NR', 'PW', 'MH', 'FM',
+  'KI', 'ST', 'CV', 'KM', 'MU', 'LC', 'GD', 'VC', 'AG', 'DM', 'KN', 'WS', 'TO',
+]);
+
+// Survey-grade terrestrial polygons (OpenStreetMap / geoBoundaries, ODbL) for
+// the four European microstates + Monaco. Never synthetic Bézier curves.
+const OSM_MICROSTATE_CODES = new Set(['MC', 'VA', 'SM', 'LI', 'AD']);
 // Compact archipelagos must keep every island (never collapse to a single blob).
-const ARCHIPELAGO_PRESERVE = new Set(['JP', 'ID', 'PH', 'GR', 'GB', 'NZ']);
+const ARCHIPELAGO_PRESERVE = new Set(['JP', 'ID', 'PH', 'GR', 'GB', 'NZ', 'TV']);
 // Countries whose distant tropical/overseas landmasses must not stretch the
 // fitExtent into an invisible speck:
 //   FR → French Guiana (4°N), Caribbean, Réunion, Mayotte
@@ -392,6 +387,33 @@ const filterOutlierPolygons = (polygons, iso2) => {
   return kept.map((info) => info.rings);
 };
 
+/**
+ * d3-geo uses spherical winding: a GeoJSON ring wound the "wrong" way describes
+ * the complement of the polygon (the whole planet), which makes `fitExtent`
+ * collapse microstates to a single pixel. Rewind rings when `geoArea` reports
+ * more than a hemisphere.
+ */
+const rewindGeometry = (geometry) => {
+  if (!geometry || (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon')) {
+    return geometry;
+  }
+  const area = geoArea({ type: 'Feature', geometry });
+  if (area <= 2 * Math.PI) return geometry;
+
+  if (geometry.type === 'Polygon') {
+    return {
+      type: 'Polygon',
+      coordinates: geometry.coordinates.map((ring) => [...ring].reverse()),
+    };
+  }
+  return {
+    type: 'MultiPolygon',
+    coordinates: geometry.coordinates.map((polygon) =>
+      polygon.map((ring) => [...ring].reverse()),
+    ),
+  };
+};
+
 const normalizePolygons = (geometry) => {
   if (!geometry) return [];
   if (geometry.type === 'Polygon') return [geometry.coordinates];
@@ -542,8 +564,9 @@ const buildIsoMaps = () => {
   return { numericToIso2, meta };
 };
 
-const buildEntryFromFeature = (feature, iso2, meta) => {
+const buildEntryFromFeature = (feature, iso2, meta, options = {}) => {
   const isMicrostate = MICROSTATES.has(iso2);
+  const dp = options.tolerance ?? dpTolerance;
 
   // Antarctica cannot be projected with Mercator (poles); use the clean shield.
   if (iso2 === 'AQ') {
@@ -570,7 +593,7 @@ const buildEntryFromFeature = (feature, iso2, meta) => {
       const projection = geoAlbersUsa().fitExtent(EXTENT, featureObj);
       usPath = roundPath(
         dropDegenerateRings(
-          simplifySvgPath(geoPath().projection(projection)(featureObj), dpTolerance),
+          simplifySvgPath(geoPath().projection(projection)(featureObj), dp),
         ),
       );
     } catch {
@@ -599,14 +622,14 @@ const buildEntryFromFeature = (feature, iso2, meta) => {
     const centerLng = meta?.latlng?.[1] ?? ringBounds(kept[0][0]).center[0];
     try {
       const projection = geoMercator().rotate([-centerLng, 0]).fitExtent(EXTENT, featureObj);
-      svgPath = roundPath(simplifySvgPath(geoPath().projection(projection)(featureObj), dpTolerance));
+      svgPath = roundPath(simplifySvgPath(geoPath().projection(projection)(featureObj), dp));
     } catch {
       svgPath = '';
     }
     if (!svgPath) {
       try {
         const projection = geoMercator().fitExtent(EXTENT, featureObj);
-        svgPath = roundPath(simplifySvgPath(geoPath().projection(projection)(featureObj), dpTolerance));
+        svgPath = roundPath(simplifySvgPath(geoPath().projection(projection)(featureObj), dp));
       } catch {
         svgPath = '';
       }
@@ -629,76 +652,152 @@ const buildEntryFromFeature = (feature, iso2, meta) => {
 
 const buildCatalog = (tolerance = DP_EPSILON_DEFAULT) => {
   dpTolerance = tolerance;
-  const topology = JSON.parse(fs.readFileSync(TOPO_PATH, 'utf8'));
-  const collection = topojson.feature(topology, topology.objects.countries);
+  // Higher-resolution datasets get a finer DP tolerance so microstates keep a
+  // recognisable coastline. OSM microstate boundaries are sub-pixel dense
+  // (~0.24 px between vertices), so they need a much finer tolerance than 50m.
+  const highResTolerance = tolerance > 0.45 ? 0.5 : 0.1;
+  const osmTolerance = 0.16;
+
+  const topology50 = JSON.parse(fs.readFileSync(TOPO_50M_PATH, 'utf8'));
+  const topology10 = JSON.parse(fs.readFileSync(TOPO_10M_PATH, 'utf8'));
+  const osmData = JSON.parse(fs.readFileSync(OSM_MICROSTATES_PATH, 'utf8'));
+  const collection50 = topojson.feature(topology50, topology50.objects.countries);
+  const collection10 = topojson.feature(topology10, topology10.objects.countries);
   const { numericToIso2, meta } = buildIsoMaps();
+  const osmGeometries = osmData?.countries || {};
 
   // Index every TopoJSON feature by resolved ISO-2. Territories are indexed too
   // (so we can resolve them), then filtered out: FK/GL/PR/HK/AQ are not in the
   // 195 sovereign set, so they never become independent emblems.
-  const featureMap = new Map();
-  for (const feature of collection.features || []) {
-    if (!feature || feature.id == null) continue;
-    const rawId = String(feature.id);
-    const iso2 =
-      numericToIso2.get(rawId.padStart(3, '0')) ||
-      numericToIso2.get(rawId) ||
-      numericToIso2.get(String(Number(rawId)));
-    if (!iso2 || !UN_COUNTRY_SET.has(iso2) || featureMap.has(iso2)) continue;
-    featureMap.set(iso2, feature);
-  }
+  const indexFeatures = (collection) => {
+    const map = new Map();
+    for (const feature of collection.features || []) {
+      if (!feature || feature.id == null) continue;
+      const rawId = String(feature.id);
+      const iso2 =
+        numericToIso2.get(rawId.padStart(3, '0')) ||
+        numericToIso2.get(rawId) ||
+        numericToIso2.get(String(Number(rawId)));
+      if (!iso2 || !UN_COUNTRY_SET.has(iso2) || map.has(iso2)) continue;
+      map.set(iso2, feature);
+    }
+    return map;
+  };
 
-  // Iterate the canonical 195 UN list so EVERY sovereign is always emitted —
-  // even when Natural Earth 50m has no polygon (e.g. Monaco).
+  const features50m = indexFeatures(collection50);
+  const features10m = indexFeatures(collection10);
+
+  const countVertices = (entry) => (entry?.svgPath.match(/L/g) || []).length;
+
+  // Tune the Douglas-Peucker tolerance so small countries keep a readable,
+  // cartographically honest number of vertices (60–250 for OSM microstates,
+  // >=35 for 10m island states) without bloating the catalog.
+  const buildAdaptiveEntry = (feature, countryCode, countryMeta, { min, max, start }) => {
+    let tol = start;
+    let entry = buildEntryFromFeature(feature, countryCode, countryMeta, { tolerance: tol });
+    let guard = 0;
+    while (countVertices(entry) < min && tol > 0.004 && guard < 14) {
+      tol *= 0.7;
+      entry = buildEntryFromFeature(feature, countryCode, countryMeta, { tolerance: tol });
+      guard += 1;
+    }
+    guard = 0;
+    while (countVertices(entry) > max && tol < 2 && guard < 14) {
+      tol *= 1.3;
+      entry = buildEntryFromFeature(feature, countryCode, countryMeta, { tolerance: tol });
+      guard += 1;
+    }
+    return entry;
+  };
+
+  const sources = new Map();
   const catalogCountries = [];
+
+  // Iterate the canonical 195 UN list so EVERY sovereign is always emitted.
   for (const countryCode of UN_195_COUNTRIES) {
     const countryMeta = meta[countryCode];
-    const feature = featureMap.get(countryCode);
+    let entry = null;
 
-    if (CURATED_MICROSTATE_PATHS[countryCode]) {
-      catalogCountries.push({
+    // Priority 1 — survey-grade terrestrial polygons (OSM / geoBoundaries).
+    const osmGeometry = osmGeometries[countryCode]
+      ? rewindGeometry(osmGeometries[countryCode])
+      : null;
+    if (OSM_MICROSTATE_CODES.has(countryCode) && osmGeometry) {
+      entry = buildAdaptiveEntry({ geometry: osmGeometry }, countryCode, countryMeta, {
+        min: 60,
+        max: 250,
+        start: osmTolerance,
+      });
+      sources.set(countryCode, 'osm');
+      if (entry.svgPath === FALLBACK_SHIELD) entry = null;
+    }
+
+    if (!entry) {
+      const feature50 = features50m.get(countryCode);
+      if (feature50) {
+        const lowRes = buildEntryFromFeature(feature50, countryCode, countryMeta, {
+          tolerance,
+        });
+        const vertexCount = (lowRes.svgPath.match(/L/g) || []).length;
+        const needs10m =
+          HIGH_RES_10M.has(countryCode) ||
+          vertexCount < 35 ||
+          lowRes.svgPath === FALLBACK_SHIELD;
+
+        if (needs10m && features10m.has(countryCode)) {
+          entry = buildAdaptiveEntry(features10m.get(countryCode), countryCode, countryMeta, {
+            min: 35,
+            max: 320,
+            start: highResTolerance,
+          });
+          sources.set(countryCode, '10m');
+        } else {
+          entry = lowRes;
+          sources.set(countryCode, '50m');
+        }
+      } else if (features10m.has(countryCode)) {
+        // Priority 2 — absent from 50m (e.g. Tuvalu): high-res 10m polygon.
+        entry = buildAdaptiveEntry(features10m.get(countryCode), countryCode, countryMeta, {
+          min: 35,
+          max: 320,
+          start: highResTolerance,
+        });
+        sources.set(countryCode, '10m');
+      }
+    }
+
+    // Last resort — shield fallback (should never happen for the 195).
+    if (!entry) {
+      entry = {
         iso2: countryCode,
         iso3: countryMeta?.iso3 || getCountryISO3(countryCode) || countryCode,
         type: 'country',
         continent: countryMeta?.continent || getCountryContinent(countryCode) || 'World',
-        isMicrostate: true,
+        isMicrostate: MICROSTATES.has(countryCode),
         viewBox: VIEWBOX,
-        svgPath: CURATED_MICROSTATE_PATHS[countryCode],
+        svgPath: FALLBACK_SHIELD,
         palette: resolvePalette(countryCode),
-      });
-      continue;
+      };
+      sources.set(countryCode, 'shield');
     }
 
-    if (feature) {
-      catalogCountries.push(buildEntryFromFeature(feature, countryCode, countryMeta));
-      continue;
-    }
-
-    // Absent from 50m: clean shield fallback, still a 195 sovereign entry.
-    catalogCountries.push({
-      iso2: countryCode,
-      iso3: countryMeta?.iso3 || getCountryISO3(countryCode) || countryCode,
-      type: 'country',
-      continent: countryMeta?.continent || getCountryContinent(countryCode) || 'World',
-      isMicrostate: MICROSTATES.has(countryCode),
-      viewBox: VIEWBOX,
-      svgPath: FALLBACK_SHIELD,
-      palette: resolvePalette(countryCode),
-    });
+    catalogCountries.push(entry);
   }
 
   // UN_195_COUNTRIES is ISO-2 sorted, so insertion order is deterministic.
   const ordered = {};
   for (const entry of catalogCountries) ordered[entry.iso2] = entry;
 
-  return {
-    version: 1,
-    source: `Natural Earth 50m (world-atlas@2) · 195 UN sovereign countries · d3-geo Mercator fit-extent 256x256 (Albers USA for US) · DP ${tolerance}px`,
+  const result = {
+    version: 4,
+    source: `Hybrid Natural Earth 50m/10m + OSM microstates · 195 UN sovereign countries · d3-geo Mercator fit-extent 256x256 (Albers USA for US) · DP ${tolerance}px`,
     viewBox: VIEWBOX,
     padding: PAD,
     totalCountries: catalogCountries.length,
     countries: ordered,
   };
+  Object.defineProperty(result, 'sources', { value: sources, enumerable: false });
+  return result;
 };
 
 const writeCatalog = (catalog, json, tolerance) => {
@@ -707,27 +806,59 @@ const writeCatalog = (catalog, json, tolerance) => {
   const microstates = Object.values(catalog.countries).filter((entry) => entry.isMicrostate).length;
   const bytes = Buffer.byteLength(json);
   const kb = (bytes / 1024).toFixed(1);
+  const sources = catalog.sources || new Map();
+
   console.log(
-    `✔ 50m Catalog generated successfully: ${catalog.totalCountries} countries (${microstates} microstates), ${kb} KB (dp tolerance ${tolerance}px)`,
+    `✔ Hybrid 50m/10m/OSM catalog generated: ${catalog.totalCountries} countries (${microstates} microstates), ${kb} KB (dp tolerance ${tolerance}px)`,
   );
+
+  // ── Geometry verification table ──────────────────────────────────────────
+  const verifyCodes = ['MC', 'VA', 'SM', 'LI', 'AD', 'MT', 'TV'];
+  const shieldCount = Object.values(catalog.countries).filter(
+    (entry) => entry.svgPath === FALLBACK_SHIELD,
+  ).length;
+  const sourceCounts = [...sources.values()].reduce((acc, source) => {
+    acc[source] = (acc[source] || 0) + 1;
+    return acc;
+  }, {});
+
+  console.log('  code | L vertices | C cmds | source');
+  let geometryFailures = 0;
+  for (const code of verifyCodes) {
+    const entry = catalog.countries[code];
+    const lCount = (entry?.svgPath.match(/L/g) || []).length;
+    const cCount = (entry?.svgPath.match(/C/g) || []).length;
+    console.log(`  ${code}   | ${String(lCount).padStart(10)} | ${String(cCount).padStart(6)} | ${sources.get(code) || 'n/a'}`);
+    if (!entry || lCount < 35 || cCount > 0) geometryFailures += 1;
+  }
+  console.log(`  fallback shields: ${shieldCount} | sources: ${JSON.stringify(sourceCounts)}`);
+
   if (catalog.totalCountries !== UN_195_COUNTRIES.length) {
     console.error(
       `✖ Catalog must contain exactly ${UN_195_COUNTRIES.length} UN sovereign countries (got ${catalog.totalCountries}).`,
     );
     process.exitCode = 1;
   }
-  if (bytes > 450 * 1024) {
-    console.error('✖ Catalog exceeds the 450 KB budget even at maximum simplification.');
+  if (geometryFailures > 0) {
+    console.error('✖ Some microstates still have <35 real L vertices or Bézier C commands.');
+    process.exitCode = 1;
+  }
+  if (shieldCount > 0) {
+    console.error('✖ Fallback shields detected: every UN sovereign must have a real GIS silhouette.');
+    process.exitCode = 1;
+  }
+  if (bytes > 480 * 1024) {
+    console.error('✖ Catalog exceeds the 480 KB budget even at maximum simplification.');
     process.exitCode = 1;
   }
 };
 
-// Generate with the default tolerance; if the catalog exceeds the 450 KB
+// Generate with the default tolerance; if the catalog exceeds the 480 KB
 // budget, retry deterministically with a coarser 0.6px Douglas-Peucker tolerance.
 let dpToleranceUsed = DP_EPSILON_DEFAULT;
 let catalog = buildCatalog(dpToleranceUsed);
 let catalogJson = `${JSON.stringify(catalog, null, 2)}\n`;
-if (Buffer.byteLength(catalogJson) > 450 * 1024) {
+if (Buffer.byteLength(catalogJson) > 480 * 1024) {
   dpToleranceUsed = 0.6;
   catalog = buildCatalog(dpToleranceUsed);
   catalogJson = `${JSON.stringify(catalog, null, 2)}\n`;
