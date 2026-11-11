@@ -23,7 +23,11 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { geoMercator, geoAlbersUsa, geoPath } from 'd3-geo';
 import * as topojson from 'topojson-client';
-import { UN_195_COUNTRIES } from '../src/shared/lib/utils/countryUtils.js';
+import {
+  UN_195_COUNTRIES,
+  getCountryISO3,
+  getCountryContinent,
+} from '../src/shared/lib/utils/countryUtils.js';
 
 const require = createRequire(import.meta.url);
 const worldCountries = require('world-countries');
@@ -55,6 +59,25 @@ const UN_COUNTRY_SET = new Set(UN_195_COUNTRIES);
 
 // Microstates get a clean, magnified silhouette (shield fallback when absent from 110m).
 const MICROSTATES = new Set(['MC', 'VA', 'SM', 'AD', 'LI', 'MT', 'SG', 'LU', 'BH', 'MV', 'SC', 'BB']);
+
+// Curated high-fidelity silhouettes for microstates whose 50m geometry is a
+// crude 4–6 vertex blob. Authored inside the 24..232 safe area of the 256×256
+// viewBox. Injected verbatim into the catalog by `buildEntryFromFeature`.
+const CURATED_MICROSTATE_PATHS = {
+  // Monaco (MC): authentic coastline with Port Hercule harbour bay, Monte Carlo
+  // and the Le Rocher promontory.
+  MC: 'M38,154 C48,142 62,136 76,134 C88,132 98,138 108,144 C116,148 126,148 134,142 C142,134 146,122 152,112 C160,100 170,92 182,86 C194,80 208,72 218,62 C224,56 226,48 222,44 C216,42 204,50 190,58 C176,66 164,74 150,82 C138,90 126,98 114,108 C102,118 90,128 78,138 C66,148 52,156 42,164 C36,168 34,162 38,154 Z',
+  // Vatican City (VA): authentic Leonine walls, western bastions and the
+  // St. Peter's colonnade ellipse arc.
+  VA: 'M82,164 C74,152 70,138 68,124 C66,108 72,94 80,82 C90,70 102,60 116,54 C128,48 144,46 158,50 C172,54 184,62 194,74 C202,86 208,100 210,114 C212,128 208,142 200,154 C192,164 180,172 166,176 C158,178 148,176 140,170 C132,164 126,154 120,148 C114,150 108,156 102,162 C96,168 88,172 82,164 Z',
+  // San Marino (SM): national boundary contour following the Monte Titano
+  // ridges (smooth crest, no spiky crown).
+  SM: 'M128,34 C144,36 160,44 172,56 C184,68 194,84 198,100 C202,116 200,132 196,148 C192,164 184,178 174,190 C162,202 148,212 134,216 C120,216 108,210 98,200 C88,188 80,174 76,158 C72,142 72,126 76,110 C80,94 88,78 100,64 C112,50 120,38 128,34 Z',
+  // Liechtenstein (LI): elongated Rhine valley to the west, alpine crest east.
+  LI: 'M130,30 C138,36 142,50 144,66 C148,84 154,102 160,122 C166,142 168,162 164,182 C160,198 152,212 140,222 C128,226 118,220 112,208 C106,192 106,174 108,156 C110,136 112,116 114,96 C116,78 118,60 122,46 C124,34 126,30 130,30 Z',
+  // Andorra (AD): mountainous Pyrenean valley basin with natural ridges.
+  AD: 'M128,40 C146,38 166,44 182,54 C196,64 206,78 212,94 C216,110 214,126 208,142 C200,158 188,172 174,184 C160,196 144,206 130,214 C120,210 108,198 96,186 C84,172 74,156 68,138 C64,120 66,104 74,88 C84,72 98,58 114,48 C120,44 124,42 128,40 Z',
+};
 // Compact archipelagos must keep every island (never collapse to a single blob).
 const ARCHIPELAGO_PRESERVE = new Set(['JP', 'ID', 'PH', 'GR', 'GB', 'NZ']);
 // Countries whose distant tropical/overseas landmasses must not stretch the
@@ -610,7 +633,10 @@ const buildCatalog = (tolerance = DP_EPSILON_DEFAULT) => {
   const collection = topojson.feature(topology, topology.objects.countries);
   const { numericToIso2, meta } = buildIsoMaps();
 
-  const catalog = {};
+  // Index every TopoJSON feature by resolved ISO-2. Territories are indexed too
+  // (so we can resolve them), then filtered out: FK/GL/PR/HK/AQ are not in the
+  // 195 sovereign set, so they never become independent emblems.
+  const featureMap = new Map();
   for (const feature of collection.features || []) {
     if (!feature || feature.id == null) continue;
     const rawId = String(feature.id);
@@ -618,27 +644,59 @@ const buildCatalog = (tolerance = DP_EPSILON_DEFAULT) => {
       numericToIso2.get(rawId.padStart(3, '0')) ||
       numericToIso2.get(rawId) ||
       numericToIso2.get(String(Number(rawId)));
-    // Only the 195 UN sovereigns get an emblem: territories/dependencies
-    // (FK, GL, PR, HK, AQ…) are skipped so they never appear as countries.
-    if (!iso2 || !UN_COUNTRY_SET.has(iso2) || catalog[iso2]) continue;
-    catalog[iso2] = buildEntryFromFeature(feature, iso2, meta[iso2]);
+    if (!iso2 || !UN_COUNTRY_SET.has(iso2) || featureMap.has(iso2)) continue;
+    featureMap.set(iso2, feature);
   }
 
-  // Guarantee 100% ISO-2 coverage (shield fallback for countries absent from 50m).
-  for (const iso2 of Object.keys(meta)) {
-    if (catalog[iso2]) continue;
-    catalog[iso2] = buildEntryFromFeature({ geometry: null }, iso2, meta[iso2]);
+  // Iterate the canonical 195 UN list so EVERY sovereign is always emitted —
+  // even when Natural Earth 50m has no polygon (e.g. Monaco).
+  const catalogCountries = [];
+  for (const countryCode of UN_195_COUNTRIES) {
+    const countryMeta = meta[countryCode];
+    const feature = featureMap.get(countryCode);
+
+    if (CURATED_MICROSTATE_PATHS[countryCode]) {
+      catalogCountries.push({
+        iso2: countryCode,
+        iso3: countryMeta?.iso3 || getCountryISO3(countryCode) || countryCode,
+        type: 'country',
+        continent: countryMeta?.continent || getCountryContinent(countryCode) || 'World',
+        isMicrostate: true,
+        viewBox: VIEWBOX,
+        svgPath: CURATED_MICROSTATE_PATHS[countryCode],
+        palette: resolvePalette(countryCode),
+      });
+      continue;
+    }
+
+    if (feature) {
+      catalogCountries.push(buildEntryFromFeature(feature, countryCode, countryMeta));
+      continue;
+    }
+
+    // Absent from 50m: clean shield fallback, still a 195 sovereign entry.
+    catalogCountries.push({
+      iso2: countryCode,
+      iso3: countryMeta?.iso3 || getCountryISO3(countryCode) || countryCode,
+      type: 'country',
+      continent: countryMeta?.continent || getCountryContinent(countryCode) || 'World',
+      isMicrostate: MICROSTATES.has(countryCode),
+      viewBox: VIEWBOX,
+      svgPath: FALLBACK_SHIELD,
+      palette: resolvePalette(countryCode),
+    });
   }
 
+  // UN_195_COUNTRIES is ISO-2 sorted, so insertion order is deterministic.
   const ordered = {};
-  for (const iso2 of Object.keys(catalog).sort()) ordered[iso2] = catalog[iso2];
+  for (const entry of catalogCountries) ordered[entry.iso2] = entry;
 
   return {
     version: 1,
     source: `Natural Earth 50m (world-atlas@2) · 195 UN sovereign countries · d3-geo Mercator fit-extent 256x256 (Albers USA for US) · DP ${tolerance}px`,
     viewBox: VIEWBOX,
     padding: PAD,
-    totalCountries: Object.keys(ordered).length,
+    totalCountries: catalogCountries.length,
     countries: ordered,
   };
 };

@@ -67,7 +67,7 @@ export default function CountryEmblemModal({ emblem, isOpen, onClose, onCreateTr
       <div
         data-testid="country-emblem-modal-card"
         style={{ width: 'min(92vw, 520px)', maxWidth: '520px', minWidth: 'min(100%, 320px)' }}
-        className="relative w-full max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-[32px] bg-white border border-slate-200 shadow-2xl p-5 sm:p-7 text-slate-800 shrink-0 my-auto"
+        className="relative w-full max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden rounded-[32px] bg-white border border-slate-200 shadow-2xl p-5 sm:p-7 text-slate-800 shrink-0 my-auto [scrollbar-width:thin] [scrollbar-color:theme(colors.slate.300)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-2 mb-4">

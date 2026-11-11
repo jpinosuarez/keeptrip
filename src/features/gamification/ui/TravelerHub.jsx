@@ -204,7 +204,8 @@ export default function TravelerHub({
               <span className="sm:hidden">{t('tabs.badgesShort', 'Insignias')}</span>
               <span className="hidden sm:inline">{t('tabs.badges', 'Insignias e Hitos')}</span>
               <span className="px-1.5 py-0.5 rounded-full bg-slate-200/80 font-mono text-[10px] sm:text-[11px] font-bold text-slate-700 shrink-0">
-                {unlockedBadgesCount}/{achievementsWithProgress.length}
+                {unlockedBadgesCount}
+                <span className="hidden sm:inline">/{achievementsWithProgress.length}</span>
               </span>
             </button>
           </div>

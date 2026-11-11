@@ -302,7 +302,6 @@ export default function CountryEmblem3D({
               <g clipPath={`url(#${clipId})`}>
                 <rect x="0" y="0" width="256" height="256" fill={`url(#${metalGradId})`} />
                 <rect x="0" y="0" width="256" height="256" fill={`url(#${sheenId})`} />
-                <ellipse cx="110" cy="80" rx="70" ry="32" fill={metal.specular} transform="rotate(-15 110 80)" />
                 {tier === 'leyenda' && (
                   <path d={svgPath} fillRule="evenodd" fill="none" stroke="#F59E0B" strokeWidth="2.5" opacity="0.65" />
                 )}

@@ -145,6 +145,27 @@ describe('CountryEmblem UI Component Suite (Phase B)', () => {
     expect(locked.querySelector('[data-testid="emblem-flag-medallion"]')).toBeNull();
   });
 
+  it('renders the curated microstate geometries from the real catalog (MC/VA/SM)', () => {
+    const curatedPrefix = {
+      MC: 'M38,154',
+      VA: 'M82,164',
+      SM: 'M128,34',
+      LI: 'M130,30',
+      AD: 'M128,40',
+    };
+
+    Object.entries(curatedPrefix).forEach(([code, prefix]) => {
+      const { container, unmount } = render(
+        <CountryEmblem3D countryCode={code} status="locked" tier="locked" />,
+      );
+      const rendered = Array.from(container.querySelectorAll('path')).some((path) =>
+        (path.getAttribute('d') || '').startsWith(prefix),
+      );
+      expect(rendered).toBe(true); // curated catalog geometry must reach the SVG
+      unmount();
+    });
+  });
+
   it('renders CountryEmblemCard thumbnail and card variants with discovery code and identity badge', () => {
     const { unmount } = render(<CountryEmblemCard emblem={mockEmblemVisited} variant="thumbnail" />);
     expect(screen.getByTestId('emblem-card-thumbnail-AR')).toBeDefined();

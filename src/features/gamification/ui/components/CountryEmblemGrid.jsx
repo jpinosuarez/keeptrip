@@ -84,7 +84,7 @@ export default function CountryEmblemGrid({ emblems = [], allEmblemsWithLocked =
   return (
     <div className="w-full max-w-6xl mx-auto space-y-6" data-testid="country-emblem-grid">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3 rounded-3xl border border-slate-200/80 shadow-xs">
-        <div className="flex flex-wrap items-center gap-1.5" role="tablist">
+        <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-0.5 sm:flex-wrap" role="tablist">
           {filters.map(({ id, Icon, labelKey, defaultLabel, activeClass }) => {
             const isActive = activeFilter === id;
             const countSuffix =
@@ -103,7 +103,7 @@ export default function CountryEmblemGrid({ emblems = [], allEmblemsWithLocked =
                 aria-selected={isActive}
                 onClick={() => setActiveFilter(id)}
                 className={cn(
-                  'min-h-[44px] px-4 py-2 rounded-full font-sans text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5',
+                  'min-h-[44px] shrink-0 px-4 py-2 rounded-full font-sans text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5',
                   isActive ? activeClass : 'text-slate-600 hover:bg-slate-100',
                 )}
                 data-testid={`emblem-filter-${id}`}
