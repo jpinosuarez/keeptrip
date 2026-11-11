@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.2.0](https://github.com/jpinosuarez/keeptrip/compare/v1.1.0...v1.2.0) (2026-11-11)
+
+
+### Features
+
+* **settings:** implement geographic identity section in settings ([8e28415](https://github.com/jpinosuarez/keeptrip/commit/8e28415eb4c7344d403cc2707c3449400766276f))
+* **trips:** finalize list view, 5D filters, custom dropdowns, and stories access (Block 2.2) ([#84](https://github.com/jpinosuarez/keeptrip/issues/84)) ([c37cf18](https://github.com/jpinosuarez/keeptrip/commit/c37cf18920a93fbac01bf0db52767d93adbc1831))
+* **trips:** refactor TripsPage and related components for better wishlist handling ([c2d6faf](https://github.com/jpinosuarez/keeptrip/commit/c2d6faf8123243f0c48f8a8bb54af1036cbd7893))
+* **ui:** create reusable CountryFlag component ([8e28415](https://github.com/jpinosuarez/keeptrip/commit/8e28415eb4c7344d403cc2707c3449400766276f))
+
+
+### Bug Fixes
+
+* **editor:** ensure trip and stop dates hydrate deterministically in editor modal ([#78](https://github.com/jpinosuarez/keeptrip/issues/78)) ([7d9b771](https://github.com/jpinosuarez/keeptrip/commit/7d9b7713faeeb7c5060c4c1a27617d5714636235))
+* **editor:** implement elastic date recalculation and non-blocking stop date selection ([#80](https://github.com/jpinosuarez/keeptrip/issues/80)) ([b6e0a29](https://github.com/jpinosuarez/keeptrip/commit/b6e0a294942a80e6df34036a67289887ee95571a))
+* **wishlist:** ensure proper deletion of wishlist items and countries ([c2d6faf](https://github.com/jpinosuarez/keeptrip/commit/c2d6faf8123243f0c48f8a8bb54af1036cbd7893))
+* **worldmap:** update pin rendering logic based on birth and residence cities ([8e28415](https://github.com/jpinosuarez/keeptrip/commit/8e28415eb4c7344d403cc2707c3449400766276f))
+
+
+### Performance Improvements
+
+* **core:** optimize GPU compositing, memoize SVG geometry, and clean card listeners ([#81](https://github.com/jpinosuarez/keeptrip/issues/81)) ([1868c46](https://github.com/jpinosuarez/keeptrip/commit/1868c469e10e75a253f137d18ee941a3161f2d5b))
+
 ## [1.1.0](https://github.com/jpinosuarez/keeptrip/compare/v1.0.1...v1.1.0) (2026-10-21)
 
 
