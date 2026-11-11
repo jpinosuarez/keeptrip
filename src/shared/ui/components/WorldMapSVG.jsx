@@ -6,6 +6,11 @@ import * as topojson from 'topojson-client';
 import { cn } from '@shared/lib/utils/cn';
 import { useAuth } from '@app/providers/AuthContext';
 import { getCountryCentroid, getCountryName } from '@shared/lib/utils/countryUtils';
+import {
+  resolveConquestColor,
+  DEFAULT_CONQUEST_COLOR,
+  CONQUEST_COLOR_UNLOCK_XP,
+} from '@shared/lib/utils/conquestTheme';
 
 // Real-world TopoJSON from jsDelivr CDN (Natural Earth 110m — CC0 public domain)
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
@@ -29,10 +34,16 @@ const ROUTES = [
   { from: [2.35, 48.86], to: [-68.5, -51.0] },
 ];
 
-export const WorldMapSVG = ({ color = '#FF6B35', userProfile: propProfile = null }) => {
+export const WorldMapSVG = ({ color = '#FF6B35', conquestColor = null, userProfile: propProfile = null }) => {
   const { t } = useTranslation();
   const auth = useAuth() || {};
   const profile = propProfile || auth.userProfile || null;
+
+  const activeConquestColor =
+    conquestColor ||
+    (profile?.conquestColor
+      ? resolveConquestColor(profile, CONQUEST_COLOR_UNLOCK_XP)
+      : color || DEFAULT_CONQUEST_COLOR);
   const svgRef = useRef(null);
   const containerRef = useRef(null);
   const [dims, setDims] = useState({ w: 600, h: 280 });
@@ -188,7 +199,7 @@ export const WorldMapSVG = ({ color = '#FF6B35', userProfile: propProfile = null
             {countryPaths.map((country) => {
               const { id, d, isVisited, isResidence, isBirth } = country;
               const isHovered = hoveredCountry === id;
-              const pathFill = isVisited ? color : (isResidence ? '#45B0A8' : (isBirth ? '#2C3E50' : '#CBD5E1'));
+              const pathFill = isVisited ? activeConquestColor : (isResidence ? '#45B0A8' : (isBirth ? '#2C3E50' : '#CBD5E1'));
               const pathOpacity = isVisited ? (isHovered ? 0.85 : 0.6) : ((isResidence || isBirth) ? 0.55 : 0.75);
               const isInteractive = isVisited || isResidence || isBirth;
 

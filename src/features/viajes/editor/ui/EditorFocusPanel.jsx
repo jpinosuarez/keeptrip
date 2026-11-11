@@ -268,7 +268,11 @@ const EditorFocusPanel = ({
 
   const stopPhotos = galeria?.fotos || [];
 
-  const hasValidStops = Array.isArray(effectiveParadas) && effectiveParadas.length > 0;
+  const hasDestinations =
+    (Array.isArray(effectiveParadas) && effectiveParadas.length > 0) ||
+    (Array.isArray(effectiveFormData?.destinos) && effectiveFormData.destinos.length > 0) ||
+    (Array.isArray(viaje?.destinos) && viaje.destinos.length > 0);
+  const hasValidStops = hasDestinations;
   const hasValidTitle = Boolean((formDataWithFallback?.titulo || '').trim());
   const hasValidStartDate = Boolean((effectiveFormData?.fechaInicio || viaje?.fechaInicio || '').toString().trim());
   const canSave = hasValidStops && hasValidTitle && hasValidStartDate && !isSavingManual && !isReadOnlyMode && !isImageBusy;
@@ -551,7 +555,7 @@ const EditorFocusPanel = ({
             <button
               onClick={handleClose}
               disabled={isSavingManual}
-              className="min-h-[44px] min-w-[44px] px-4 py-2 text-[0.875rem] font-bold text-textSecondary rounded-lg hover:bg-surface transition-colors disabled:opacity-50 inline-flex items-center justify-center cursor-pointer"
+              className="relative z-10 min-h-[44px] min-w-[44px] px-4 py-2 text-[0.875rem] font-bold text-textSecondary rounded-lg hover:bg-surface transition-colors disabled:opacity-50 inline-flex items-center justify-center cursor-pointer"
             >
               {t('button.cancel') || 'Cancelar'}
             </button>
@@ -560,7 +564,7 @@ const EditorFocusPanel = ({
               disabled={!canSave}
               data-testid="editor-save-btn"
               className={cn(
-                "min-h-[44px] px-6 py-2 bg-atomicTangerine text-white rounded-full font-bold text-[0.875rem] shadow-sm transition-all flex items-center gap-2",
+                "relative z-10 min-h-[44px] px-6 py-2 bg-atomicTangerine text-white rounded-full font-bold text-[0.875rem] shadow-sm transition-all flex items-center gap-2",
                 canSave ? "hover:shadow-md hover:bg-atomicTangerine/90 cursor-pointer" : "opacity-50 cursor-not-allowed"
               )}
               aria-disabled={!canSave}

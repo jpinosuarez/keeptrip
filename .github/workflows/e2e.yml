@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
       - name: Run unit tests (no emulator needed)
         run: npm run test:unit
       - name: Install Firebase CLI

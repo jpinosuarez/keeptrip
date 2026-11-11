@@ -55,6 +55,25 @@
     "toast": {
       "success": "Scenario \"{{scenario}}\" loaded with {{count}} trips.",
       "error": "Could not load the scenario. Check the console."
+    },
+    "godMode": {
+      "label": "Gamification God Mode",
+      "hint": "Hot-unlocks all 195 emblems and every badge without touching Firestore"
+    },
+    "panel": {
+      "title": "Development Panel",
+      "trigger": "DEV",
+      "open": "Open developer panel",
+      "close": "Close panel",
+      "statusOn": "Enabled",
+      "statusOff": "Disabled",
+      "quickSwitch": "Switch demo",
+      "reset": "Reset real data",
+      "resetBusy": "Resetting...",
+      "resetDone": "Data reset.",
+      "seeded": "Demo loaded. Opening the trips dashboard...",
+      "error": "Could not complete the action.",
+      "onlyDev": "DEV environment only"
     }
   }
 }

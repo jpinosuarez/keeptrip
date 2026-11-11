@@ -1,284 +1,235 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { motion as Motion } from 'framer-motion';
-import { getTravelerLevel, getNextLevel, TRAVELER_LEVELS } from '../model/travelerLevel';
-import { cn } from '@shared/lib/utils/cn';
-import AchievementsGrid from './AchievementsGrid';
+import React, { useMemo, useCallback } from 'react';
+import { BarChart3, Shield, Trophy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
-import { Share } from 'lucide-react';
-import { useToast } from '@app/providers';
-import { BottomSheet, BottomSheetHeader, BottomSheetContent } from '@shared/ui/components';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '@app/providers';
 import { ENABLE_GAMIFICATION, ENABLE_TRAVEL_STATS } from '@shared/config';
+import TravelerProgress from './TravelerProgress';
+import AchievementsGrid from './AchievementsGrid';
 import TravelStatsDashboard from './components/TravelStatsDashboard';
+import CountryEmblemGrid from './components/CountryEmblemGrid';
+import {
+  calculateCountryEmblems,
+  calculateXPBreakdown,
+  getNextAchievableBadges,
+} from '../model/achievementsEngine';
+import { cn } from '@shared/lib/utils/cn';
 
-// Inject shimmer keyframes once
-const injectShimmerCSS = () => {
-  const id = 'keeptrip-shimmer-anim';
-  if (typeof document === 'undefined' || document.getElementById(id)) return;
-  const style = document.createElement('style');
-  style.id = id;
-  style.textContent = `
-    @keyframes shimmerSweep {
-      0%   { transform: translateX(-100%); }
-      60%  { transform: translateX(200%); }
-      100% { transform: translateX(200%); }
-    }
-  `;
-  document.head.appendChild(style);
-};
+const VALID_TABS = ['stats', 'emblems', 'badges'];
 
 /**
- * TravelerHub — 2026 Prestige Edition
- * - Glassmorphic Hero Card with animated level progress ring
- * - canvas-confetti unlock celebration on new achievement detection
- * - AchievementsGrid with 3D Prestige Tokens
+ * TravelerHub v3 — 3-tab showcase (stats | emblems | badges) with URL-synced
+ * tab state, a persistent TravelerProgress header anchor, and 100% in-memory
+ * gamification derivation (zero extra Firestore reads).
  */
-const TravelerHub = ({
+export default function TravelerHub({
   paisesVisitados = [],
   bitacora = [],
   bitacoraData = {},
-  userProfile = null,
+  todasLasParadas = [],
+  userProfile: propProfile = null,
   achievementsWithProgress = [],
-}) => {
+  xpBreakdown: propXpBreakdown = null,
+  countryEmblems: propCountryEmblems = null,
+  nextAchievableBadges: propNextBadges = null,
+}) {
   const { t } = useTranslation('hub');
-  const { t: tNav } = useTranslation('nav');
-  useDocumentTitle(
-    ENABLE_TRAVEL_STATS ? t('statsDashboard.title', 'Estadísticas de Viaje') : tNav('hub')
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const auth = useAuth() || {};
+  const effectiveProfile = propProfile || auth.userProfile || null;
+
+  const rawTab = searchParams.get('tab');
+  const activeTab = VALID_TABS.includes(rawTab) ? rawTab : 'stats';
+
+  const handleTabChange = useCallback(
+    (tabId) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set('tab', tabId);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
   );
-  injectShimmerCSS();
 
-  const [showLevels, setShowLevels] = useState(false);
-
-  const countryCount = paisesVisitados.length;
-  const level = getTravelerLevel(countryCount);
-  const next  = getNextLevel(countryCount);
-  const { pushToast } = useToast();
-  
-  const prevUnlockedCount = useRef(null);
-
-  useEffect(() => {
-    if (!achievementsWithProgress) return;
-    const currentUnlocked = achievementsWithProgress.filter((a) => a.unlocked).length;
-
-    if (prevUnlockedCount.current !== null && currentUnlocked > prevUnlockedCount.current) {
-      const lastUnlocked = achievementsWithProgress.filter((a) => a.unlocked).at(-1);
-      const tierColor = lastUnlocked
-        ? { bronze: '#CD7F32', silver: '#94A3B8', gold: '#FBBF24', platinum: '#8B5CF6', diamond: '#22D3EE' }[lastUnlocked.tier]
-        : '#ff7e42';
-
-      import('canvas-confetti').then(({ default: confetti }) => {
-        confetti({
-          particleCount: 90,
-          spread: 70,
-          origin: { y: 0.55 },
-          colors: [tierColor, '#fff', tierColor + 'aa'],
-          zIndex: 9999,
-        });
+  // Build composite trips in-memory (bitacora + its stops) for the engines.
+  const compositeViajes = useMemo(() => {
+    const stopsByTrip = new Map();
+    if (Array.isArray(todasLasParadas)) {
+      todasLasParadas.forEach((parada) => {
+        const tripId = parada?.viajeId || parada?.tripId;
+        if (!tripId) return;
+        if (!stopsByTrip.has(tripId)) stopsByTrip.set(tripId, []);
+        stopsByTrip.get(tripId).push(parada);
       });
-
-      if (lastUnlocked) {
-        const name = t(`achievements.${lastUnlocked.id}`, lastUnlocked.id);
-        pushToast(`🏆 ¡Desbloqueado! ${name}`, 'success');
-      }
     }
+    return (Array.isArray(bitacora) ? bitacora : []).map((stub) => {
+      const rich = bitacoraData?.[stub.id] || {};
+      const paradas = rich.paradas || stub.paradas || stopsByTrip.get(stub.id) || [];
+      return { ...stub, ...rich, paradas };
+    });
+  }, [bitacora, bitacoraData, todasLasParadas]);
 
-    prevUnlockedCount.current = currentUnlocked;
-  }, [achievementsWithProgress, pushToast, t]);
+  const resolvedXpBreakdown = useMemo(
+    () => propXpBreakdown || calculateXPBreakdown(compositeViajes, effectiveProfile),
+    [propXpBreakdown, compositeViajes, effectiveProfile],
+  );
 
-  const handleShare = useCallback(async () => {
-    const url = window.location.href;
-    if (navigator.share) {
-      try { await navigator.share({ title: tNav('hub'), url }); } catch {
-        // Share not available
-      }
-    } else if (navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(url);
-        pushToast(t('shareCopied'), 'success');
-      } catch {
-        // Clipboard not available
-      }
+  const resolvedEmblems = useMemo(() => {
+    if (Array.isArray(propCountryEmblems) && propCountryEmblems.length > 0) return propCountryEmblems;
+    return calculateCountryEmblems(compositeViajes, effectiveProfile, { includeLocked: false });
+  }, [propCountryEmblems, compositeViajes, effectiveProfile]);
+
+  const allEmblemsWithLocked = useMemo(() => {
+    const base = calculateCountryEmblems(compositeViajes, effectiveProfile, { includeLocked: true });
+    // DEV God Mode injects the full simulated atlas through `countryEmblems`;
+    // prefer it only when it is richer, so the real locked atlas never shrinks.
+    if (Array.isArray(propCountryEmblems) && propCountryEmblems.length >= base.length && base.length > 0) {
+      return propCountryEmblems;
     }
-  }, [pushToast, tNav, t]);
+    return base;
+  }, [propCountryEmblems, compositeViajes, effectiveProfile]);
 
-  const progressPercent = Math.round((next.progress || 0) * 100);
+  const resolvedNextBadges = useMemo(
+    () =>
+      Array.isArray(propNextBadges)
+        ? propNextBadges
+        : getNextAchievableBadges(achievementsWithProgress, 2),
+    [propNextBadges, achievementsWithProgress],
+  );
+
+  const isDiscoveredEmblem = useCallback(
+    (emblem) => (emblem?.visitsCount || 0) > 0 || emblem?.status === 'origin_unvisited',
+    [],
+  );
+
+  const discoveredCount = useMemo(
+    () => resolvedEmblems.filter(isDiscoveredEmblem).length || paisesVisitados.length,
+    [resolvedEmblems, paisesVisitados.length, isDiscoveredEmblem],
+  );
+
+  const unlockedBadgesCount = useMemo(
+    () => achievementsWithProgress.filter((a) => a.unlocked).length,
+    [achievementsWithProgress],
+  );
+
+  const displayName = effectiveProfile?.displayName || effectiveProfile?.nombre || '';
+  const photoURL = effectiveProfile?.photoURL || '';
 
   return (
-    <div className="w-full h-full flex flex-col md:pr-5 md:pb-5 overflow-hidden box-border">
-      <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1.5 pb-10 custom-scroll">
-
-        {/* ── Page Header (Deep Travel Statistics) ── */}
-        <div className="mb-4">
-          <h1 className="m-0 text-2xl md:text-3xl font-black text-charcoalBlue leading-tight font-heading">
-            {t('statsDashboard.title', 'Estadísticas de Viaje')}
+    <div className="flex-1 w-full min-h-0 overflow-y-auto px-4 md:px-8 py-4 md:py-6 pb-28 md:pb-12">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <header className="hidden md:block space-y-1">
+          <h1 className="font-heading font-extrabold text-2xl md:text-3xl text-slate-900 tracking-tight">
+            {t('hubTitle', 'Tu Progreso de Explorador')}
           </h1>
-          <p className="m-0 mt-1 text-sm font-semibold text-text-secondary font-body">
-            {t('statsDashboard.subtitle', 'Resumen de tus destinos, distancias y días de viaje')}
+          <p className="font-sans text-sm text-slate-500">
+            {t('hubSubtitle', 'Tus estadísticas de viaje, emblemas 3D e insignias de ruta')}
           </p>
+        </header>
+
+        {ENABLE_GAMIFICATION && (
+          <TravelerProgress
+            displayName={displayName}
+            photoURL={photoURL}
+            countriesCount={discoveredCount}
+            tripsCount={bitacora.length}
+            unlockedBadgesCount={unlockedBadgesCount}
+            totalBadgesCount={achievementsWithProgress.length}
+            xpBreakdown={resolvedXpBreakdown}
+          />
+        )}
+
+        {ENABLE_GAMIFICATION && (
+          <div
+            role="tablist"
+            aria-label={t('tabs.ariaLabel', 'Secciones del Hub de Viajero')}
+            className="grid grid-cols-3 w-full sm:w-auto sm:inline-flex sm:flex-nowrap sm:items-center sm:gap-1.5 p-1 sm:p-1.5 rounded-2xl sm:rounded-full bg-slate-100 border border-slate-200/80 shadow-2xs"
+            data-testid="traveler-hub-tabs"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'stats'}
+              onClick={() => handleTabChange('stats')}
+              className={cn(
+                'min-h-[44px] min-w-0 px-2 sm:px-5 py-2 rounded-xl sm:rounded-full font-sans text-xs md:text-sm font-bold inline-flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer',
+                activeTab === 'stats' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900',
+              )}
+              data-testid="hub-tab-stats"
+            >
+              <BarChart3 className="text-[#FF6B35] shrink-0" size={16} />
+              <span>{t('tabs.stats', 'Estadísticas')}</span>
+            </button>
+
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'emblems'}
+              onClick={() => handleTabChange('emblems')}
+              className={cn(
+                'min-h-[44px] min-w-0 px-2 sm:px-5 py-2 rounded-xl sm:rounded-full font-sans text-xs md:text-sm font-bold inline-flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer',
+                activeTab === 'emblems' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900',
+              )}
+              data-testid="hub-tab-emblems"
+            >
+              <Shield className="text-[#45B0A8] shrink-0" size={16} />
+              <span className="sm:hidden">{t('tabs.emblemsShort', 'Emblemas')}</span>
+              <span className="hidden sm:inline">{t('tabs.emblems', 'Emblemas de Destino')}</span>
+              <span className="px-1.5 py-0.5 rounded-full bg-slate-200/80 font-mono text-[10px] sm:text-[11px] font-bold text-slate-700 shrink-0">
+                {discoveredCount}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'badges'}
+              onClick={() => handleTabChange('badges')}
+              className={cn(
+                'min-h-[44px] min-w-0 px-2 sm:px-5 py-2 rounded-xl sm:rounded-full font-sans text-xs md:text-sm font-bold inline-flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer',
+                activeTab === 'badges' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900',
+              )}
+              data-testid="hub-tab-badges"
+            >
+              <Trophy className="text-amber-500 shrink-0" size={16} />
+              <span className="sm:hidden">{t('tabs.badgesShort', 'Insignias')}</span>
+              <span className="hidden sm:inline">{t('tabs.badges', 'Insignias e Hitos')}</span>
+              <span className="px-1.5 py-0.5 rounded-full bg-slate-200/80 font-mono text-[10px] sm:text-[11px] font-bold text-slate-700 shrink-0">
+                {unlockedBadgesCount}
+                <span className="hidden sm:inline">/{achievementsWithProgress.length}</span>
+              </span>
+            </button>
+          </div>
+        )}
+
+        <div className="pt-1">
+          {(!ENABLE_GAMIFICATION || activeTab === 'stats') && ENABLE_TRAVEL_STATS && (
+            <TravelStatsDashboard trips={bitacora} tripData={bitacoraData} userProfile={effectiveProfile} />
+          )}
+
+          {ENABLE_GAMIFICATION && activeTab === 'emblems' && (
+            <CountryEmblemGrid
+              emblems={resolvedEmblems}
+              allEmblemsWithLocked={allEmblemsWithLocked}
+              onCreateTrip={(emblem) =>
+                navigate(`/trips?new=true&country=${emblem?.countryCode || emblem?.iso2 || ''}`)
+              }
+            />
+          )}
+
+          {ENABLE_GAMIFICATION && activeTab === 'badges' && (
+            <AchievementsGrid
+              achievementsWithProgress={achievementsWithProgress}
+              nextAchievableBadges={resolvedNextBadges}
+            />
+          )}
         </div>
-
-        {ENABLE_TRAVEL_STATS && (
-          <TravelStatsDashboard
-            trips={bitacora}
-            tripData={bitacoraData}
-            userProfile={userProfile}
-          />
-        )}
-
-        {/* ── Gamification experience (Block 3.1-ready, gated) ── */}
-        {ENABLE_GAMIFICATION && (
-          <>
-        {/* ── Glassmorphic Hero Card ── */}
-        <Motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-          className="relative px-6 py-[22px] md:px-8 md:py-6 rounded-3xl mb-5 flex flex-wrap items-center justify-between gap-[18px] overflow-hidden"
-          style={{
-            background: `linear-gradient(135deg, ${level.color}22, ${level.color}08)`,
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: `1px solid ${level.color}30`,
-            boxShadow: `0 8px 40px ${level.color}30, inset 0 1px 0 rgba(255,255,255,0.5)`,
-          }}
-        >
-          {/* Ambient glow blob */}
-          <div 
-            className="absolute w-[220px] h-[220px] rounded-full top-[-60px] right-[-60px] pointer-events-none"
-            style={{
-              background: `radial-gradient(circle, ${level.color}40, transparent 70%)`,
-            }} 
-          />
-
-          <div className="flex flex-col gap-2 z-[1]">
-            <div className="flex items-center gap-4">
-              {/* Level Icon — floating on a glowing ring */}
-              <div className="relative w-[72px] h-[72px] shrink-0">
-                {/* Ring glow */}
-                <div 
-                  className="absolute inset-0 rounded-full border-[3px]"
-                  style={{
-                    borderColor: `${level.color}60`,
-                    boxShadow: `0 0 16px ${level.color}60, inset 0 0 8px ${level.color}30`,
-                  }} 
-                />
-                <div 
-                  className="absolute inset-2 rounded-full flex items-center justify-center text-[2.2rem] leading-none"
-                  style={{
-                    background: `radial-gradient(circle, ${level.color}30, transparent)`,
-                  }}
-                >
-                  {level.icon}
-                </div>
-              </div>
-
-              <div>
-                <h2 className="m-0 text-2xl font-black text-charcoalBlue leading-tight font-heading">{level.label}</h2>
-                <p className="m-0 text-[0.85rem] font-bold text-text-primary font-body">
-                  {next.level
-                    ? `${next.remaining} ${next.remaining !== 1 ? t('goals.units.countries_other') : t('goals.units.countries_one')} para ${next.level.label}`
-                    : t('progress.maxLevel')}
-                </p>
-              </div>
-            </div>
-
-            {/* Progress bar */}
-            {next.level && (
-              <div className="mt-2.5 flex items-center gap-2">
-                <div className="w-[200px] max-w-full h-2 rounded-full bg-black/10 overflow-hidden">
-                  <Motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progressPercent}%` }}
-                    transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
-                    className="h-full rounded-full transition-all duration-1000 ease-out"
-                    style={{ background: level.color }}
-                  />
-                </div>
-                <span className="text-[0.72rem] font-black" style={{ color: level.color }}>
-                  {progressPercent}%
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3 z-[1] flex-wrap">
-            <Motion.button
-              type="button"
-              onClick={handleShare}
-              className="w-11 h-11 p-0 border-none bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white cursor-pointer shadow-lg transition-all"
-              aria-label={t('share')}
-              title={t('share')}
-              whileHover={{ scale: 1.12 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <Share size={18} className="text-charcoalBlue" />
-            </Motion.button>
-
-            <Motion.button
-              type="button"
-              onClick={() => setShowLevels(true)}
-              className="px-6 py-2.5 rounded-full bg-white text-charcoalBlue font-black text-[0.7rem] uppercase tracking-widest shadow-lg border-none cursor-pointer"
-              aria-label={t('levels.viewAll')}
-              title={t('levels.viewAll')}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {t('levels.viewAll')}
-            </Motion.button>
-          </div>
-        </Motion.div>
-
-        {/* ── Achievement Grid ── */}
-        <AchievementsGrid achievementsWithProgress={achievementsWithProgress} />
-          </>
-        )}
-
-        {ENABLE_GAMIFICATION && (
-        <BottomSheet isOpen={showLevels} onClose={() => setShowLevels(false)} ariaLabel={t('levels.title')}>
-          <BottomSheetHeader />
-          <BottomSheetContent>
-            <div className="p-4 flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="m-0 text-[1.1rem] font-black text-charcoalBlue font-heading">
-                  {t('levels.title')}
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setShowLevels(false)}
-                  className="border-none bg-none text-text-secondary font-bold cursor-pointer p-0"
-                >
-                  {t('common.close')}
-                </button>
-              </div>
-              {TRAVELER_LEVELS.map((lvl) => (
-                <div key={lvl.id} 
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-2xl border transition-all",
-                    lvl.id === level.id ? "border-solid" : "border-black/5 bg-white/60"
-                  )}
-                  style={{
-                    backgroundColor: lvl.id === level.id ? `${lvl.color}20` : undefined,
-                    borderColor: lvl.id === level.id ? lvl.color : undefined,
-                  }}
-                >
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-[1.2rem] shrink-0 shadow-sm" style={{ backgroundColor: lvl.color }}>
-                    {lvl.icon}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-black text-charcoalBlue leading-tight">{lvl.label}</div>
-                    <div className="text-[0.8rem] text-text-secondary">
-                      {t('levels.requirement', { count: lvl.min })}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </BottomSheetContent>
-        </BottomSheet>
-        )}
       </div>
     </div>
   );
-};
-
-export default TravelerHub;
+}

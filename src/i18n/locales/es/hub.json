@@ -50,7 +50,178 @@
     "world_adventurer": "Aventurero Global",
     "world_adventurer_desc": "Visitá 100 países",
     "legend": "Leyenda Viviente",
-    "legend_desc": "Visitá 50 países"
+    "legend_desc": "Visitá 50 países",
+    "first_step": "Primer Paso",
+    "first_step_desc": "Registrá tu primer viaje",
+    "globe_trotter": "Trotamundos",
+    "globe_trotter_desc": "Visitá 5 países distintos",
+    "continental_conqueror": "Conquistador Continental",
+    "continental_conqueror_desc": "Pisá 3 continentes distintos",
+    "detailed_chronicler": "Cronista Detallado",
+    "detailed_chronicler_desc": "Documentá 3 viajes con titular, prólogo o relato",
+    "border_taster": "Catador de Fronteras",
+    "border_taster_desc": "Registrá el Mejor Sabor en 3 viajes",
+    "paparazzi": "Fotógrafo de Ruta",
+    "paparazzi_desc": "Subí 20 fotos a tus historias",
+    "corner_collector": "Coleccionista de Rincones",
+    "corner_collector_desc": "Registrá 5 lugares en tus paradas",
+    "route_polyglot": "Políglota de Rutas",
+    "route_polyglot_desc": "Usá 3 medios de transporte distintos",
+    "day_escapist": "Escapista de Día",
+    "day_escapist_desc": "Registrá una escapada por el día",
+    "nomad": "Nómade Digital",
+    "nomad_desc": "Completá un viaje de 21 días o más",
+    "tribe_traveler": "Viajero en Tribu",
+    "tribe_traveler_desc": "Sumá un viaje en familia o con amigos",
+    "dream_architect": "Arquitecto de Sueños",
+    "dream_architect_desc": "Guardá 3 destinos en tu Wishlist",
+    "milestoneTag": "Hito Único",
+    "milestoneCompleted": "Hito desbloqueado",
+    "nextTierLabel": "Siguiente",
+    "maxTierReached": "¡Nivel Leyenda completado!",
+    "progressLabel": "Progreso",
+    "tiers": {
+      "bronze": "Bronce",
+      "silver": "Plata",
+      "gold": "Oro",
+      "legend": "Leyenda",
+      "locked": "Evolutiva"
+    }
+  },
+  "tabs": {
+    "ariaLabel": "Secciones del Hub de Viajero",
+    "stats": "Estadísticas",
+    "emblemsShort": "Emblemas",
+    "badgesShort": "Insignias",
+    "emblems": "Emblemas de Destino",
+    "badges": "Insignias e Hitos"
+  },
+  "levelLabel": "Nivel",
+  "defaultTravelerName": "Explorador Keeptrip",
+  "hubTitle": "Tu Progreso de Explorador",
+  "hubSubtitle": "Tus estadísticas de viaje, emblemas 3D e insignias de ruta",
+  "nextRankHumanCopy": "A {{remaining}} XP de alcanzar {{nextTitle}} (Nivel {{nextLevel}})",
+  "ranks": {
+    "level1": "Explorador Inicial",
+    "level2": "Viajero Frecuente",
+    "level3": "Trotamundos",
+    "level4": "Explorador Global",
+    "level5": "Leyenda del Camino"
+  },
+  "nextLevelProgress": "Próximo rango: Nivel {{level}} (faltan {{remaining}} XP)",
+  "maxLevelReached": "¡Has alcanzado el rango máximo de Leyenda!",
+  "conquestColorSaved": "Color de conquista actualizado",
+  "conquestColorError": "No se pudo guardar el color",
+  "celebrations": {
+    "country": {
+      "title": "¡Nuevo país descubierto!",
+      "xp": "+500 XP"
+    }
+  },
+  "emblemShare": {
+    "visits": "Viajes",
+    "cities": "Ciudades",
+    "variant": "Emblema"
+  },
+  "xp2": {
+    "totalLabel": "Experiencia Total",
+    "curationShort": "curación",
+    "breakdownBtn": "Desglose XP 2.0 y Beneficios",
+    "formulaTitle": "Fórmula XP 2.0 (Exploración + Curación)",
+    "countriesLine": "Países descubiertos (+500 XP c/u)",
+    "tripsLine": "Viajes completados (+100 XP c/u)",
+    "stopsLine": "Paradas y fotos registradas",
+    "curationLine": "Bono Curación (Trilogía +30, Crónicas +15, POIs +10)"
+  },
+  "assistant": {
+    "title": "🎯 Próximo Hito a tu Alcance",
+    "remainingCount": "Faltan {{count}} para desbloquear",
+    "cta": "Completar"
+  },
+  "badges": {
+    "categories": {
+      "all": "Todas",
+      "exploration": "Exploración Global",
+      "narrative": "Profundidad Documental",
+      "movement": "Estilo y Movimiento",
+      "tribeDreams": "Tribu y Sueños"
+    }
+  },
+  "emblems": {
+    "identity": {
+      "roots": "Raíces",
+      "base": "Mi Base",
+      "rootsAndBase": "Raíces y Base"
+    },
+    "tiers": {
+      "wishlist": "En Wishlist",
+      "locked": "Por Descubrir",
+      "explorador": "Explorador",
+      "conocedor": "Conocedor",
+      "experto": "Experto de Ruta",
+      "segundo_hogar": "Segundo Hogar",
+      "leyenda": "Leyenda Local"
+    },
+    "filters": {
+      "discovered": "Descubiertos",
+      "wishlist": "En Wishlist",
+      "byContinent": "Por Continente",
+      "atlas": "Atlas Completo"
+    },
+    "continents": {
+      "all": "Todos",
+      "europe": "Europa",
+      "americas": "América",
+      "asia": "Asia",
+      "africa": "África",
+      "oceania": "Oceanía"
+    },
+    "modal": {
+      "viewFront": "Ver anverso cromático",
+      "viewBack": "Girar reverso grabado (180°)",
+      "visits": "Viajes",
+      "cities": "Ciudades",
+      "days": "Días",
+      "citiesExplored": "Ciudades y paradas exploradas",
+      "openSingleTrip": "Abrir viaje",
+      "yourTripsInCountry": "Tus viajes en",
+      "viewAllFilteredTrips": "Ver los {{count}} viajes filtrados en Mis Viajes",
+      "createTripCta": "Crear viaje a {{country}} (+500 XP)"
+    },
+    "empty": {
+      "wishlistTitle": "Tu Wishlist está vacía",
+      "wishlistDesc": "Guarda destinos que sueñas visitar para ver sus siluetas cartográficas en Muted Teal.",
+      "discoveredTitle": "Aún no tienes emblemas en esta vista",
+      "discoveredDesc": "Registra tu primera aventura para esculpir y desbloquear el emblema 3D de cada país explorado."
+    },
+    "searchPlaceholder": "Buscar país o código ISO...",
+    "tripSingular": "viaje",
+    "tripPlural": "viajes",
+    "citySingular": "ciudad",
+    "cityPlural": "ciudades",
+    "microstateHint": "Microestado — Vista con lupa cartográfica",
+    "wishlistPrompt": "+500 XP al conquistar",
+    "lockedPrompt": "Pendiente de explorar"
+  },
+  "conquestThemes": {
+    "title": "Color de Conquista del Mapa",
+    "unlockedSub": "Beneficio Nivel 3 activo · Personaliza tu mapa",
+    "lockedSub": "Se desbloquea en Nivel 3 (3.001+ XP)",
+    "lockedTooltip": "Desbloquea en Nivel 3 (Trotamundos) para personalizar el color de tu mapa",
+    "atomicTangerine": "Naranja Atómico",
+    "solarAmber": "Ámbar Solar",
+    "odysseyIndigo": "Índigo Odisea",
+    "rubyCrimson": "Carmesí Rubí",
+    "borealViolet": "Violeta Boreal"
+  },
+  "perks": {
+    "roadmapTitle": "Recompensas por Rango de Viajero",
+    "active": "Activo",
+    "level1": "Mapa 3D, Emblemas de Destino y Estadísticas Base",
+    "level2": "Insignia Destacada en Perfil y Cabecera",
+    "level3": "Selector de Color de Conquista del Mapa (5 Temas)",
+    "level4": "Marco Edición Coleccionista en Stories y Perfil",
+    "level5": "Emblema Maestro Leyenda del Camino (Obsidiana y Oro)"
   },
   "stats": {
     "countries": "Países",

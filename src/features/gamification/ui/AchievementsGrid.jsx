@@ -1,120 +1,190 @@
-import React, { useMemo } from 'react';
-import { motion as Motion } from 'framer-motion';
-import { Trophy, Compass, Target } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Target, ArrowRight, Globe2, BookOpen, Train, Users, Award } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import AchievementCard from './AchievementCard';
 import { cn } from '@shared/lib/utils/cn';
 
+const CATEGORY_TABS = [
+  { id: 'ALL', labelKey: 'badges.categories.all', defaultLabel: 'Todas', icon: Award },
+  { id: 'exploration', labelKey: 'badges.categories.exploration', defaultLabel: 'Exploración Global', icon: Globe2 },
+  { id: 'narrative', labelKey: 'badges.categories.narrative', defaultLabel: 'Profundidad Documental', icon: BookOpen },
+  { id: 'movement', labelKey: 'badges.categories.movement', defaultLabel: 'Estilo y Movimiento', icon: Train },
+  { id: 'tribe_dreams', labelKey: 'badges.categories.tribeDreams', defaultLabel: 'Tribu y Sueños', icon: Users },
+];
+
 /**
- * AchievementsGrid — renders next goals, unlocked badges, and locked badges.
- * Extracted from TravelerHub to be a standalone, composable component.
- *
- * @param {{ achievementsWithProgress: object[], isMobile: boolean }} props
+ * AchievementsGrid v2.0 — "🎯 Próximo Hito a tu Alcance" assistant banner,
+ * 4 mastery-category filter pills and the unlocked/locked badge grids.
  */
-const AchievementsGrid = ({ achievementsWithProgress = [] }) => {
+export default function AchievementsGrid({
+  achievementsWithProgress = [],
+  nextAchievableBadges = [],
+}) {
   const { t } = useTranslation('hub');
+  const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
 
-  const { unlocked, locked, nextGoals } = useMemo(() => {
-    const un = achievementsWithProgress.filter((a) => a.unlocked);
-    const lo = achievementsWithProgress.filter((a) => !a.unlocked);
-    const goals = [...lo].sort((a, b) => b.progress - a.progress).slice(0, 3);
-    return { unlocked: un, locked: lo, nextGoals: goals };
-  }, [achievementsWithProgress]);
+  const topNextBadges = useMemo(() => {
+    if (Array.isArray(nextAchievableBadges) && nextAchievableBadges.length > 0) {
+      return nextAchievableBadges.slice(0, 2);
+    }
+    return achievementsWithProgress
+      .filter((a) => !a.unlocked && (a.progress > 0 || a.current > 0))
+      .slice(0, 2);
+  }, [nextAchievableBadges, achievementsWithProgress]);
 
-  const unlockedCount = unlocked.length;
-  const totalCount = achievementsWithProgress.length;
+  const filteredAchievements = useMemo(() => {
+    if (selectedCategory === 'ALL') return achievementsWithProgress;
+    return achievementsWithProgress.filter((a) => a.category === selectedCategory);
+  }, [achievementsWithProgress, selectedCategory]);
+
+  const unlockedList = useMemo(
+    () => filteredAchievements.filter((a) => a.unlocked),
+    [filteredAchievements],
+  );
+  const lockedList = useMemo(
+    () => filteredAchievements.filter((a) => !a.unlocked),
+    [filteredAchievements],
+  );
+
+  const handleAssistantAction = (badge) => {
+    if (badge?.targetTab === 'wishlist') {
+      navigate('/trips?tab=wishlist');
+    } else {
+      navigate('/trips');
+    }
+  };
 
   return (
-    <div>
-      {/* ── Next Goals ── */}
-      {nextGoals.length > 0 && (
-        <Motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.1 }}
+    <div className="w-full max-w-6xl mx-auto space-y-6" data-testid="achievements-grid">
+      {topNextBadges.length > 0 && (
+        <div
+          className="rounded-[28px] bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-5 md:p-6 shadow-lg border border-slate-700/80"
+          data-testid="next-milestone-assistant"
         >
-          <div className="flex items-center justify-between mb-3.5">
-            <h3 className="text-base font-black text-charcoalBlue font-heading flex items-center gap-2 m-0">
-              <Target size={16} /> {t('achievements.nextGoals')}
-            </h3>
+          <div className="flex items-center gap-2 text-amber-400 font-mono text-xs font-bold uppercase tracking-wider mb-3">
+            <Target className="text-[#FF6B35]" size={16} />
+            <span>{t('assistant.title', '🎯 Próximo Hito a tu Alcance')}</span>
           </div>
-          <div className="flex flex-col gap-3 p-5 md:p-6 rounded-3xl bg-slate-50/50 border border-slate-200/50 shadow-sm mb-6">
-            {nextGoals.map((goal, i) => {
-              const isLast = i === nextGoals.length - 1;
-              const remaining = goal.criteria.threshold - goal.current;
-              const unitMap = {
-                countries: remaining === 1 ? t('goals.units.countries_one') : t('goals.units.countries_other'),
-                trips: remaining === 1 ? t('goals.units.trips_one') : t('goals.units.trips_other'),
-                continents: remaining === 1 ? t('goals.units.continents_one') : t('goals.units.continents_other'),
-                detailed_trips: remaining === 1 ? t('goals.units.detailed_trips_one') : t('goals.units.detailed_trips_other'),
-              };
-              const goalName = t(`achievements.${goal.id}`, goal.id);
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {topNextBadges.map((badge) => {
+              const pct =
+                badge.progressPct ??
+                Math.min(
+                  99,
+                  Math.round(
+                    ((badge.progress ?? badge.current ?? 0) / Math.max(1, badge.target || 1)) * 100,
+                  ),
+                );
+              const remaining =
+                badge.remainingCount ??
+                Math.max(1, (badge.target || 1) - (badge.progress ?? badge.current ?? 0));
+
               return (
-                <div key={goal.id} 
-                  className={cn(
-                    "flex items-center gap-3 p-2.5 md:p-3 rounded-2xl bg-slate-900/5",
-                    !isLast && "border-b border-black/5"
-                  )}
+                <div
+                  key={badge.id}
+                  className="rounded-2xl bg-white/5 border border-white/10 p-4 flex flex-col justify-between gap-3"
+                  data-testid={`assistant-badge-${badge.id}`}
                 >
-                  <span className="text-[1.4rem] grayscale-[0.6]">{goal.icon}</span>
-                  <div className="flex-1">
-                    <p className="font-black text-charcoalBlue m-0 text-[0.85rem]">{goalName}</p>
-                    <p className="m-0 text-[0.8rem] text-charcoalBlue/80 font-medium">
-                      {remaining} {unitMap[goal.criteria.type] || t('goals.units.countries_other')} {t('para-desbloquear')}
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-heading font-extrabold text-base text-white">
+                        {t(`achievements.${badge.id}`, badge.id)}
+                      </span>
+                      <span className="font-mono text-xs font-bold text-[#FF6B35]">{pct}%</span>
+                    </div>
+                    <p className="mt-1 font-sans text-xs text-slate-300">
+                      {t(`achievements.${badge.id}_desc`, '')}
                     </p>
+                    {badge.category && (
+                      <span className="mt-1.5 inline-flex px-2 py-0.5 rounded-full bg-white/10 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-200">
+                        {t(`badges.categories.${badge.category}`, badge.category)}
+                      </span>
+                    )}
                   </div>
-                  <span className="text-[0.75rem] font-black font-mono text-text-secondary">{Math.round(goal.progress * 100)}%</span>
+
+                  <div className="space-y-2">
+                    <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                      <div style={{ width: `${pct}%` }} className="h-full rounded-full bg-[#FF6B35]" />
+                    </div>
+                    <div className="flex items-center justify-between gap-2 pt-1">
+                      <span className="font-mono text-[11px] text-amber-300">
+                        {t('assistant.remainingCount', {
+                          count: remaining,
+                          defaultValue: `Faltan ${remaining} para desbloquear`,
+                        })}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleAssistantAction(badge)}
+                        className="min-h-[44px] px-3 py-1 rounded-full bg-[#FF6B35] hover:bg-[#e85a26] text-white font-sans text-xs font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <span>{t('assistant.cta', 'Completar')}</span>
+                        <ArrowRight size={13} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               );
             })}
           </div>
-        </Motion.div>
+        </div>
       )}
 
-      {/* ── Unlocked badges ── */}
-      {unlockedCount > 0 && (
-        <Motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.15 }}
-        >
-          <div className="flex items-center justify-between mb-3.5">
-            <h3 className="text-base font-black text-charcoalBlue font-heading flex items-center gap-2 m-0">
-              <Trophy size={16} /> {t('achievements.unlockedTitle')}
-            </h3>
-            <span className="text-[0.8rem] font-semibold text-text-secondary">
-              {unlockedCount}/{totalCount}
-            </span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
-            {unlocked.map((a) => (
-              <AchievementCard key={a.id} achievement={a} />
+      {/* 4 mastery-category filter pills */}
+      <div
+        className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-1 sm:flex-wrap bg-transparent sm:bg-white sm:p-3 sm:rounded-3xl sm:border sm:border-slate-200/80 shadow-2xs"
+        role="tablist"
+      >
+        {CATEGORY_TABS.map((cat) => {
+          const Icon = cat.icon;
+          const isActive = selectedCategory === cat.id;
+          return (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setSelectedCategory(cat.id)}
+              className={cn(
+                'min-h-[44px] shrink-0 px-4 py-2 rounded-full font-sans text-xs font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer',
+                isActive
+                  ? 'bg-[#FF6B35] text-white shadow-xs'
+                  : 'bg-white sm:bg-transparent border sm:border-0 border-slate-200 text-slate-600 hover:bg-slate-100',
+              )}
+              data-testid={`badge-category-${cat.id}`}
+            >
+              <Icon size={14} />
+              <span>{t(cat.labelKey, cat.defaultLabel)}</span>
+            </button>
+          );
+        })}
+      </div>
+      {unlockedList.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="font-heading font-extrabold text-base text-slate-800">
+            {t('achievements.unlockedTitle', 'Insignias Desbloqueadas')} ({unlockedList.length})
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {unlockedList.map((ach) => (
+              <AchievementCard key={ach.id} achievement={ach} />
             ))}
           </div>
-        </Motion.div>
+        </div>
       )}
 
-      {/* ── Locked badges ── */}
-      {locked.length > 0 && (
-        <Motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.2 }}
-        >
-          <div className="flex items-center justify-between mb-3.5">
-            <h3 className="text-base font-black text-charcoalBlue font-heading flex items-center gap-2 m-0">
-              <Compass size={16} /> {t('achievements.lockedTitle')}
-            </h3>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
-            {locked.map((a) => (
-              <AchievementCard key={a.id} achievement={a} />
+      {lockedList.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="font-heading font-extrabold text-base text-slate-600">
+            {t('achievements.lockedTitle', 'Próximos Desafíos')} ({lockedList.length})
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {lockedList.map((ach) => (
+              <AchievementCard key={ach.id} achievement={ach} />
             ))}
           </div>
-        </Motion.div>
+        </div>
       )}
     </div>
   );
-};
-
-export default AchievementsGrid;
+}

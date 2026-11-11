@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { motion as Motion } from 'framer-motion';
 import { Share2, Download, Instagram, Loader2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -28,6 +28,17 @@ const ShareStoryButton = ({ data, style = {} }) => {
   const [selectedVariant, setSelectedVariant] = useState('classic');
   const [isExporting, setIsExporting] = useState(false);
   const templateRefs = useRef({});
+
+  const showEmblemVariant = Boolean(
+    data?.templateType === 'emblem' || data?.countryCode || data?.catalogSpec,
+  );
+  const variants = useMemo(
+    () =>
+      showEmblemVariant
+        ? [...VARIANTS, { id: 'emblem', labelKey: 'emblemShare.variant', defaultLabel: 'Emblema', icon: '🛡️' }]
+        : VARIANTS,
+    [showEmblemVariant],
+  );
 
   const setRef = useCallback((variant) => (el) => {
     if (el) templateRefs.current[variant] = el;
@@ -80,9 +91,9 @@ const ShareStoryButton = ({ data, style = {} }) => {
   }, [selectedVariant, data, pushToast, t]);
 
   const cycleVariant = (dir) => {
-    const idx = VARIANTS.findIndex((v) => v.id === selectedVariant);
-    const next = (idx + dir + VARIANTS.length) % VARIANTS.length;
-    setSelectedVariant(VARIANTS[next].id);
+    const idx = variants.findIndex((v) => v.id === selectedVariant);
+    const next = (idx + dir + variants.length) % variants.length;
+    setSelectedVariant(variants[next].id);
   };
 
   return (
@@ -102,7 +113,7 @@ const ShareStoryButton = ({ data, style = {} }) => {
       </Motion.button>
 
       {/* Hidden export templates */}
-      {VARIANTS.map((v) => (
+      {variants.map((v) => (
         <StoryExportTemplate key={v.id} ref={setRef(v.id)} variant={v.id} data={data} />
       ))}
 
@@ -130,7 +141,7 @@ const ShareStoryButton = ({ data, style = {} }) => {
               <div style={{
                 display: 'flex', gap: '8px',
               }}>
-                {VARIANTS.map((v) => (
+                {variants.map((v) => (
                   <Motion.button
                     key={v.id}
                     type="button"
@@ -144,7 +155,7 @@ const ShareStoryButton = ({ data, style = {} }) => {
                       border: `1.5px solid ${selectedVariant === v.id ? COLORS.charcoalBlue : COLORS.border}`,
                     }}
                   >
-                    {v.icon} {t(v.labelKey)}
+                    {v.icon} {t(v.labelKey, v.defaultLabel)}
                   </Motion.button>
                 ))}
               </div>

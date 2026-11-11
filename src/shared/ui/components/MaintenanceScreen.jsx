@@ -4,6 +4,10 @@ import { Compass, ShieldCheck } from 'lucide-react';
 import { cn } from '@shared/lib/utils/cn';
 import { useAuth } from '@app/providers/AuthContext';
 import { useToast } from '@app/providers/ToastContext';
+// FSD documented exception: MaintenanceScreen is the founder-only emergency gate
+// rendered outside the router. The operational controls live in the
+// admin-controls feature; this is the single intentional shared → feature edge,
+// and the section only mounts when the signed-in uid matches VITE_FOUNDER_UID.
 import { OperationalControlsSection } from '@features/admin-controls';
 
 const FOUNDER_UID_FALLBACK = 'FOUNDER_UID_HERE';

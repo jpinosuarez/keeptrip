@@ -76,6 +76,24 @@ export async function e2eInitStorage(page: Page) {
   });
 }
 
+/**
+ * Marks onboarding as completed for the signed-in E2E user. Belt-and-braces
+ * alongside AppModalsManager's `navigator.webdriver` guard so a `fixed inset-0`
+ * OnboardingModal can never intercept editor pointer events.
+ */
+async function markOnboardingComplete(page: Page) {
+  await page.evaluate(() => {
+    try {
+      window.sessionStorage.setItem('keeptrip_onboarding_skipped', 'true');
+      const auth = (window as any).__test_auth || (window as any).firebase?.auth?.();
+      const uid = auth?.currentUser?.uid;
+      if (uid) window.localStorage.setItem(`keeptrip_onboarded_${uid}`, 'true');
+    } catch {
+      // Storage unavailable: the webdriver guard already suppresses the modal.
+    }
+  });
+}
+
 export async function mockAuthFlow(page: Page) {
   await page.route('https://api.mapbox.com/geocoding/**', async (route) => {
     const url = new URL(route.request().url());
@@ -182,6 +200,7 @@ export async function e2ePerformLogin(page: Page) {
   
   // Robustly wait for the session to be established using native Playwright polling
   await waitForFirebaseAuthSession();
+  await markOnboardingComplete(page);
 
   // cleanup listeners
   page.removeListener('console', onConsole);
@@ -225,6 +244,7 @@ export async function signInInBrowser(page: Page, email: string, password = 'tes
   }
 
   await expect(page.getByTestId('header-login-button')).toHaveCount(0, { timeout: 30000 });
+  await markOnboardingComplete(page);
   console.log(`[E2E] Sign-in verified for ${email}`);
 }
 

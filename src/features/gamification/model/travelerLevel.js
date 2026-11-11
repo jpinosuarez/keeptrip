@@ -51,10 +51,32 @@ export const calculateTotalXP = (stats = {}) => {
  * @param {Array<Object>} photos
  * @returns {number}
  */
+const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
+
 export const calculateTripXP = (viaje, paradas = [], photos = []) => {
-  const stops = Array.isArray(paradas) ? paradas.length : 0;
+  const stopList = Array.isArray(paradas) ? paradas : [];
   const gallery = Array.isArray(photos) ? photos.length : 0;
-  return 100 + stops * 50 + gallery * 10;
+  const stops = stopList.length;
+
+  // Base value (unchanged — backwards compatible).
+  let xp = 100 + stops * 50 + gallery * 10;
+
+  // Curation bonus: full Trilogía (Mejor Sabor + Mejor Vista + Mejor Tip).
+  const highlights = viaje?.highlights;
+  const hasFullTrilogy =
+    hasText(highlights?.topFood) && hasText(highlights?.topView) && hasText(highlights?.topTip);
+  if (hasFullTrilogy) xp += 30;
+
+  // Curation bonus: documented stops + registered POIs.
+  for (const parada of stopList) {
+    if (hasText(parada?.titular) || hasText(parada?.nota) || hasText(parada?.relato)) {
+      xp += 15;
+    }
+    const places = Array.isArray(parada?.lugares) ? parada.lugares : [];
+    xp += places.length * 10;
+  }
+
+  return xp;
 };
 
 /**
@@ -110,4 +132,28 @@ export const checkLevelUp = (prevCount, newCount) => {
   const newLevel = getTravelerLevel(newCount);
   const leveledUp = newLevel.id !== prevLevel.id && newCount > prevCount;
   return { leveledUp, newLevel: leveledUp ? newLevel : null };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Level 3 Perks — Conquest Colour Themes (canonical logic lives in @shared for
+// FSD compliance; re-exported here so the gamification public API is unchanged)
+// ─────────────────────────────────────────────────────────────────────────────
+export {
+  CONQUEST_COLOR_THEMES,
+  DEFAULT_CONQUEST_COLOR,
+  CONQUEST_COLOR_UNLOCK_LEVEL,
+  CONQUEST_COLOR_UNLOCK_XP,
+  isConquestColorUnlocked,
+  resolveConquestColor,
+} from '@shared/lib/utils/conquestTheme';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Level Perks (1 → 5)
+// ─────────────────────────────────────────────────────────────────────────────
+export const LEVEL_PERKS = {
+  1: { level: 1, minXP: 0, perkKey: 'hub:perks.level1', defaultPerk: 'Mapa 3D, Emblemas de Destino y Estadísticas Base' },
+  2: { level: 2, minXP: 1001, perkKey: 'hub:perks.level2', defaultPerk: 'Insignia Destacada en Perfil y Cabecera' },
+  3: { level: 3, minXP: 3001, perkKey: 'hub:perks.level3', defaultPerk: 'Selector de Color de Conquista del Mapa (5 Temas)' },
+  4: { level: 4, minXP: 7001, perkKey: 'hub:perks.level4', defaultPerk: 'Marco Edición Coleccionista en Stories y Perfil' },
+  5: { level: 5, minXP: 15001, perkKey: 'hub:perks.level5', defaultPerk: 'Emblema Maestro Leyenda del Camino (Obsidiana y Oro)' },
 };

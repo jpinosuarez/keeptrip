@@ -134,8 +134,12 @@ function ExplorerRoute() {
         paisesVisitados={data.paisesVisitados}
         bitacora={data.bitacora}
         bitacoraData={data.bitacoraData}
+        todasLasParadas={data.todasLasParadas}
         userProfile={userProfile}
         achievementsWithProgress={gamification.achievementsWithProgress}
+        xpBreakdown={gamification.xpBreakdown}
+        countryEmblems={gamification.countryEmblems}
+        nextAchievableBadges={gamification.nextAchievableBadges}
         stats={gamification.achievementStats}
       />
     </Suspense>

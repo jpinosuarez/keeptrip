@@ -135,20 +135,20 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
   const FarthestWrapper = farthestTripId ? Link : 'div';
 
   const pillClass = (active) => cn(
-    'min-h-[36px] px-4 rounded-full text-xs font-extrabold border transition-colors cursor-pointer',
+    'shrink-0 min-h-[38px] px-4 rounded-full text-xs font-extrabold border transition-colors cursor-pointer',
     active
       ? 'bg-atomicTangerine text-white border-atomicTangerine shadow-[0_4px_20px_rgba(255,107,53,0.3)]'
       : 'bg-white text-slate-600 border-slate-200 hover:border-atomicTangerine/40 hover:text-atomicTangerine'
   );
 
   return (
-    <div className="w-full max-w-5xl mx-auto flex flex-col gap-4">
+    <div className="w-full max-w-6xl mx-auto flex flex-col gap-4">
       {/* Year segmented filter */}
       {availableYears.length > 0 && (
         <div
           role="tablist"
           aria-label={t('statsDashboard.filterLabel', 'Filtrar por año')}
-          className="flex flex-wrap gap-2"
+          className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap"
         >
           <button
             type="button"
@@ -189,7 +189,7 @@ const TravelStatsDashboard = ({ trips = [], tripData = {}, userProfile = null })
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-6xl w-full mx-auto">
         {/* ROW 1 — Left column: stacked Odometer + Farthest */}
         <div className="flex flex-col gap-4">
           {/* Odometer */}

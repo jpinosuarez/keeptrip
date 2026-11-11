@@ -11,6 +11,36 @@
     "button": "Awesome! 🎉"
   },
   "achievements": {
+    "unlockedTitle": "Achievements Unlocked",
+    "lockedTitle": "To Discover",
+    "nextGoals": "Next Goals",
+    "summaryTitle": "Expedition Summary!",
+    "summaryBody": "You unlocked {{count}} achievements at once:",
+    "unlocked": "Achievement unlocked!",
+    "first_stamp": "First Story",
+    "first_stamp_desc": "Log your first trip",
+    "five_flags": "Five Flags",
+    "five_flags_desc": "Visit 5 countries",
+    "road_warrior": "Tireless Traveler",
+    "road_warrior_desc": "Log 10 trips",
+    "continent3": "Three Continents",
+    "continent3_desc": "Set foot on 3 continents",
+    "wanderlust": "Wandering Soul",
+    "wanderlust_desc": "Visit 10 countries",
+    "storyteller": "Storyteller",
+    "storyteller_desc": "5 trips with 3+ stops",
+    "continent5": "World Citizen",
+    "continent5_desc": "Set foot on 5 continents",
+    "cartographer": "Cartographer",
+    "cartographer_desc": "Visit 25 countries",
+    "centurion": "Centurion",
+    "centurion_desc": "Log 25 trips",
+    "marathoner": "Marathoner",
+    "marathoner_desc": "Log 50 trips",
+    "world_adventurer": "Global Adventurer",
+    "world_adventurer_desc": "Visit 100 countries",
+    "legend": "Living Legend",
+    "legend_desc": "Visit 50 countries",
     "first_photo": "Photographer's Eye",
     "first_photo_desc": "Upload your first photo",
     "three_trips": "Frequent Traveler",
@@ -20,7 +50,178 @@
     "first_dates": "Timekeeper",
     "first_dates_desc": "Assign dates to an adventure",
     "local_explorer": "Hometown Hero",
-    "local_explorer_desc": "Log at least 3 domestic trips or 10 stops in your roots or base"
+    "local_explorer_desc": "Log at least 3 domestic trips or 10 stops in your roots or base",
+    "first_step": "First Step",
+    "first_step_desc": "Log your first trip",
+    "globe_trotter": "Globe Trotter",
+    "globe_trotter_desc": "Visit 5 different countries",
+    "continental_conqueror": "Continental Conqueror",
+    "continental_conqueror_desc": "Set foot on 3 different continents",
+    "detailed_chronicler": "Detailed Chronicler",
+    "detailed_chronicler_desc": "Document 3 trips with a headline, prologue or story",
+    "border_taster": "Border Taster",
+    "border_taster_desc": "Log the Best Bite on 3 trips",
+    "paparazzi": "Route Photographer",
+    "paparazzi_desc": "Upload 20 photos to your stories",
+    "corner_collector": "Corner Collector",
+    "corner_collector_desc": "Log 5 places across your stops",
+    "route_polyglot": "Route Polyglot",
+    "route_polyglot_desc": "Use 3 different modes of transport",
+    "day_escapist": "Day Escapist",
+    "day_escapist_desc": "Log a single-day getaway",
+    "nomad": "Digital Nomad",
+    "nomad_desc": "Complete a trip lasting 21+ days",
+    "tribe_traveler": "Tribe Traveler",
+    "tribe_traveler_desc": "Add a family or friends trip",
+    "dream_architect": "Dream Architect",
+    "dream_architect_desc": "Save 3 destinations to your Wishlist",
+    "milestoneTag": "Unique Milestone",
+    "milestoneCompleted": "Milestone unlocked",
+    "nextTierLabel": "Next",
+    "maxTierReached": "Legend tier complete!",
+    "progressLabel": "Progress",
+    "tiers": {
+      "bronze": "Bronze",
+      "silver": "Silver",
+      "gold": "Gold",
+      "legend": "Legend",
+      "locked": "Evolving"
+    }
+  },
+  "tabs": {
+    "ariaLabel": "Traveler Hub sections",
+    "stats": "Statistics",
+    "emblemsShort": "Emblems",
+    "badgesShort": "Badges",
+    "emblems": "Destination Emblems",
+    "badges": "Badges & Milestones"
+  },
+  "levelLabel": "Level",
+  "defaultTravelerName": "Keeptrip Explorer",
+  "hubTitle": "Your Explorer Progress",
+  "hubSubtitle": "Your travel stats, 3D emblems and route badges",
+  "nextRankHumanCopy": "{{remaining}} XP to reach {{nextTitle}} (Level {{nextLevel}})",
+  "ranks": {
+    "level1": "Rookie Explorer",
+    "level2": "Frequent Traveler",
+    "level3": "Globetrotter",
+    "level4": "Global Explorer",
+    "level5": "Legend of the Road"
+  },
+  "nextLevelProgress": "Next rank: Level {{level}} ({{remaining}} XP to go)",
+  "maxLevelReached": "You have reached the maximum Legend rank!",
+  "conquestColorSaved": "Conquest color updated",
+  "conquestColorError": "Could not save the color",
+  "celebrations": {
+    "country": {
+      "title": "New country discovered!",
+      "xp": "+500 XP"
+    }
+  },
+  "emblemShare": {
+    "visits": "Trips",
+    "cities": "Cities",
+    "variant": "Emblem"
+  },
+  "xp2": {
+    "totalLabel": "Total Experience",
+    "curationShort": "curation",
+    "breakdownBtn": "XP 2.0 Breakdown & Perks",
+    "formulaTitle": "XP 2.0 Formula (Exploration + Curation)",
+    "countriesLine": "Countries discovered (+500 XP each)",
+    "tripsLine": "Trips completed (+100 XP each)",
+    "stopsLine": "Stops and photos logged",
+    "curationLine": "Curation Bonus (Trilogy +30, Chronicles +15, POIs +10)"
+  },
+  "assistant": {
+    "title": "🎯 Next Milestone Within Reach",
+    "remainingCount": "{{count}} more to unlock",
+    "cta": "Complete"
+  },
+  "badges": {
+    "categories": {
+      "all": "All",
+      "exploration": "Global Exploration",
+      "narrative": "Documentary Depth",
+      "movement": "Style & Movement",
+      "tribeDreams": "Tribe & Dreams"
+    }
+  },
+  "emblems": {
+    "identity": {
+      "roots": "Roots",
+      "base": "Home Base",
+      "rootsAndBase": "Roots & Base"
+    },
+    "tiers": {
+      "wishlist": "In Wishlist",
+      "locked": "To Discover",
+      "explorador": "Explorer",
+      "conocedor": "Connoisseur",
+      "experto": "Route Expert",
+      "segundo_hogar": "Second Home",
+      "leyenda": "Local Legend"
+    },
+    "filters": {
+      "discovered": "Discovered",
+      "wishlist": "In Wishlist",
+      "byContinent": "By Continent",
+      "atlas": "Complete Atlas"
+    },
+    "continents": {
+      "all": "All",
+      "europe": "Europe",
+      "americas": "Americas",
+      "asia": "Asia",
+      "africa": "Africa",
+      "oceania": "Oceania"
+    },
+    "modal": {
+      "viewFront": "View chromatic front",
+      "viewBack": "Flip engraved reverse (180°)",
+      "visits": "Trips",
+      "cities": "Cities",
+      "days": "Days",
+      "citiesExplored": "Explored cities & stops",
+      "openSingleTrip": "Open trip",
+      "yourTripsInCountry": "Your trips in",
+      "viewAllFilteredTrips": "View all {{count}} filtered trips in My Trips",
+      "createTripCta": "Create trip to {{country}} (+500 XP)"
+    },
+    "empty": {
+      "wishlistTitle": "Your Wishlist is empty",
+      "wishlistDesc": "Save destinations you dream of visiting to see their Muted Teal cartographic silhouettes.",
+      "discoveredTitle": "No emblems found in this view",
+      "discoveredDesc": "Log your first adventure to unlock the 3D emblem of each explored country."
+    },
+    "searchPlaceholder": "Search country or ISO code...",
+    "tripSingular": "trip",
+    "tripPlural": "trips",
+    "citySingular": "city",
+    "cityPlural": "cities",
+    "microstateHint": "Microstate — Magnified cartographic loupe view",
+    "wishlistPrompt": "+500 XP on discovery",
+    "lockedPrompt": "Pending discovery"
+  },
+  "conquestThemes": {
+    "title": "Map Conquest Color",
+    "unlockedSub": "Level 3 perk active · Personalize your map",
+    "lockedSub": "Unlocks at Level 3 (3,001+ XP)",
+    "lockedTooltip": "Unlock at Level 3 (Globetrotter) to personalize your map color",
+    "atomicTangerine": "Atomic Tangerine",
+    "solarAmber": "Solar Amber",
+    "odysseyIndigo": "Odyssey Indigo",
+    "rubyCrimson": "Ruby Crimson",
+    "borealViolet": "Boreal Violet"
+  },
+  "perks": {
+    "roadmapTitle": "Traveler Rank Rewards",
+    "active": "Active",
+    "level1": "3D Map, Destination Emblems and Base Stats",
+    "level2": "Featured Badge on Profile and Header",
+    "level3": "Map Conquest Color Selector (5 Themes)",
+    "level4": "Collector's Edition Frame in Stories and Profile",
+    "level5": "Master Emblem: Legend of the Road (Obsidian & Gold)"
   },
   "stats": {
     "countries": "Countries",

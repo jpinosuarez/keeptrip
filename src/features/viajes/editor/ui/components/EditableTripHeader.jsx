@@ -293,7 +293,7 @@ const EditableTripHeader = ({
                   />
                 ))}
               </div>
-              <div className="absolute inset-0 bg-slate-900/40" />
+              <div className="absolute inset-0 bg-slate-900/40 pointer-events-none" />
             </div>
           )}
         </div>
@@ -350,7 +350,7 @@ const EditableTripHeader = ({
           {/* Magic Button shown when title is manually modified */}
           {!isTituloAuto && (
             <button
-              className="self-start mb-2 px-3 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white text-[0.75rem] font-bold flex items-center gap-1.5 transition-all hover:bg-white/20 active:scale-95 shadow-sm"
+              className="relative z-10 self-start mb-2 px-3 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white text-[0.75rem] font-bold flex items-center gap-1.5 transition-all hover:bg-white/20 active:scale-95 shadow-sm"
               onClick={onRegenerateTitle}
               type="button"
               aria-label={t('editor.header.regenerateTitleBtn', { defaultValue: 'Generar título automático' })}

@@ -253,15 +253,109 @@ const StampStory = ({ data, t }) => (
   </div>
 );
 
+// ── Emblem Share Variant (FSD-safe: inline SVG from data.catalogSpec) ──
+const EmblemStory = ({ data, t }) => {
+  const paletteColors =
+    (Array.isArray(data?.catalogSpec?.palette?.colors) && data.catalogSpec.palette.colors.length > 0
+      ? data.catalogSpec.palette.colors
+      : ['#FF6B35', '#FFFFFF', '#FF6B35']);
+  const svgPath =
+    data?.catalogSpec?.svgPath ||
+    data?.svgPath ||
+    'M128,32 L216,80 L216,176 L128,224 L40,176 L40,80 Z';
+  const accent = data?.catalogSpec?.palette?.accent || COLORS.atomicTangerine;
+  const discoveryCode = data?.discoveryCode || '#01';
+  const isoLabel = data?.iso3 || data?.countryCode || '';
+  const stars = Math.min(5, Math.max(0, Number(data?.stars) || 0));
+
+  return (
+    <div style={{
+      ...base,
+      backgroundColor: '#0F172A',
+      padding: '90px 72px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      color: 'white',
+      boxSizing: 'border-box',
+    }}>
+      {/* Brand + discovery badge */}
+      <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: '34px', fontWeight: '900', letterSpacing: '4px' }}>KEEPTRIP</span>
+        <span style={{ fontFamily: FONTS.mono, fontSize: '26px', fontWeight: '700', color: '#FCD34D' }}>
+          {discoveryCode} · {isoLabel}
+        </span>
+      </div>
+
+      {/* Emblem pedestal (inline SVG, no feature imports) */}
+      <div style={{
+        width: '520px',
+        height: '520px',
+        borderRadius: '50%',
+        background: '#020617',
+        border: `4px solid ${accent}99`,
+        boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <svg viewBox="0 0 256 256" width="400" height="400">
+          <defs>
+            <clipPath id="emblem-story-clip">
+              <path d={svgPath} />
+            </clipPath>
+          </defs>
+          <g clipPath="url(#emblem-story-clip)">
+            {paletteColors.map((col, idx) => {
+              const band = 256 / paletteColors.length;
+              return (
+                <rect key={idx} x="0" y={band * idx} width="256" height={band + 1} fill={col} />
+              );
+            })}
+          </g>
+          <path d={svgPath} fill="none" stroke={accent} strokeWidth="5" strokeLinejoin="round" />
+        </svg>
+      </div>
+
+      {/* Title + telemetry */}
+      <div style={{ textAlign: 'center', width: '100%' }}>
+        <h1 style={{ fontSize: '64px', fontWeight: '900', margin: '0 0 12px 0', lineHeight: 1.1 }}>
+          {data.titulo || data.countryName || isoLabel || 'Destino'}
+        </h1>
+        <p style={{ fontSize: '28px', fontWeight: '700', color: '#FCD34D', margin: '0 0 20px 0' }}>
+          {data.tierName || ''}{stars > 0 ? ` · ${'★'.repeat(stars)}` : ''}
+        </p>
+        <div style={{
+          display: 'flex',
+          gap: '40px',
+          justifyContent: 'center',
+          fontFamily: FONTS.mono,
+          fontSize: '26px',
+          opacity: 0.85,
+        }}>
+          <span>{data.visitsCount ?? 0} {t('emblemShare.visits', 'Viajes')}</span>
+          <span>{data.citiesCount ?? 0} {t('emblemShare.cities', 'Ciudades')}</span>
+        </div>
+        <p style={{ marginTop: '24px', fontSize: '22px', opacity: 0.5, letterSpacing: '3px' }}>
+          {t('branding')}
+        </p>
+      </div>
+    </div>
+  );
+};
+
 const VARIANTS = {
   classic: ClassicStory,
   stats: StatsStory,
   stamp: StampStory,
+  emblem: EmblemStory,
 };
 
 const StoryExportTemplate = forwardRef(({ variant = 'classic', data = {} }, ref) => {
   const { t } = useTranslation('share');
-  const Component = VARIANTS[variant] || ClassicStory;
+  const Component =
+    data?.templateType === 'emblem' ? EmblemStory : VARIANTS[variant] || ClassicStory;
   return (
     <div ref={ref} aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: '-9999px', pointerEvents: 'none' }}>
       <Component data={data} t={t} />

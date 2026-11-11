@@ -1,12 +1,31 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Sidebar } from '@widgets/sidebar';
 import { Header } from '@widgets/header';
 import { useUI } from '@app/providers/UIContext';
+import { DEV_MENU_EVENT, isDevMenuOpen, setDevMenuOpen } from '@shared/dev/devMenuState';
 import { cn } from '@shared/lib/utils/cn';
 
+// DEV-only: `import.meta.env.DEV` is statically replaced with `false` in
+// production, so the dynamic import (and its chunk) is dead-code-eliminated.
+const DevFloatingMenu = import.meta.env.DEV
+  ? React.lazy(() => import('@shared/dev/ui/DevFloatingMenu'))
+  : null;
+
 function AppScaffold({ sidebarCollapsed: propSidebarCollapsed, invitationsCount, content, overlays }) {
+  const { t } = useTranslation('landing');
   const { sidebarCollapsed: uiSidebarCollapsed } = useUI();
+
+  // DEV-only floating panel state, mirrored from the shared dev store so the
+  // profile bottom sheet can open the same panel.
+  const [showDevMenu, setShowDevMenu] = useState(() => isDevMenuOpen());
+  useEffect(() => {
+    const sync = () => setShowDevMenu(isDevMenuOpen());
+    window.addEventListener(DEV_MENU_EVENT, sync);
+    return () => window.removeEventListener(DEV_MENU_EVENT, sync);
+  }, []);
+
   const isCollapsed = propSidebarCollapsed !== undefined ? propSidebarCollapsed : uiSidebarCollapsed;
   const location = useLocation();
   const isMapRoute = location.pathname === '/map' || location.pathname === '/mapa';
@@ -53,13 +72,39 @@ function AppScaffold({ sidebarCollapsed: propSidebarCollapsed, invitationsCount,
         <section className={cn(
           "flex flex-col flex-1 min-w-0 min-h-0 w-full max-w-full overflow-hidden",
           isMapRoute ? "p-0 md:px-6 md:py-4" : "px-3 py-3 md:px-6 md:py-4",
-          "pb-[calc(80px+max(16px,env(safe-area-inset-bottom,0px)))] md:pb-[max(24px,env(safe-area-inset-bottom,0px))]"
+          "pb-[max(16px,env(safe-area-inset-bottom,0px))] md:pb-[max(24px,env(safe-area-inset-bottom,0px))]"
         )}>
           {content}
         </section>
       </main>
 
       {overlays}
+
+      {import.meta.env.DEV && (
+        <>
+          <button
+            type="button"
+            onClick={() => setDevMenuOpen(!showDevMenu)}
+            aria-label={t('devDock.panel.open', 'Abrir panel de desarrollo')}
+            className={cn(
+              'fixed bottom-20 left-4 md:bottom-4 md:left-4 z-[9999]',
+              'px-3 py-1.5 rounded-full bg-slate-900/90 hover:bg-slate-800 text-amber-400',
+              'border border-slate-700 shadow-lg font-mono text-xs font-bold',
+              'flex items-center gap-1.5 cursor-pointer',
+            )}
+            data-testid="dev-floating-trigger"
+          >
+            <span aria-hidden="true">🛠️</span>
+            <span>{t('devDock.panel.trigger', 'DEV')}</span>
+          </button>
+
+          {showDevMenu && (
+            <React.Suspense fallback={null}>
+              <DevFloatingMenu onClose={() => setDevMenuOpen(false)} />
+            </React.Suspense>
+          )}
+        </>
+      )}
     </div>
   );
 }

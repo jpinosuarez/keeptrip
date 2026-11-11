@@ -17,6 +17,7 @@ import { useDocumentTitle } from '@shared/lib/hooks/useDocumentTitle';
 import { OperationalMapFallback } from '@shared/ui/components';
 import { useAuth } from '@app/providers/AuthContext';
 import { getCountryISO3, getCountryCentroid } from '@shared/lib/utils/countryUtils';
+import { resolveConquestColor, CONQUEST_COLOR_UNLOCK_XP, isConquestColorUnlocked } from '@shared/lib/utils/conquestTheme';
 import { normalizeWishlistItem } from '@shared/lib/wishlist/wishlistUtils';
 import { Plus, MapPin } from 'lucide-react';
 
@@ -54,7 +55,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   const spinGlobeRef = useRef(null);
   const identityMarkersRef = useRef([]);
   const cameraTargetRef = useRef(null);
-  const { userProfile } = useAuth() || {};
+  const { userProfile, updateUserProfile } = useAuth() || {};
 
   // Granular identity slices: they change only when the geographic identity changes,
   // so the reactive map effect never re-runs on unrelated profile edits (e.g. avatar).
@@ -67,6 +68,22 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
   const residenceIso3 = profileResidenceCountry ? getCountryISO3(profileResidenceCountry) : null;
   const hasGeoIdentity = Boolean(
     profileBirthCountry || profileResidenceCountry || profileBirthCity || profileBaseCity
+  );
+
+  // Level 3 conquest colour (declarative paint; never setPaintProperty on a ref).
+  const activeConquestColor = useMemo(
+    () => resolveConquestColor(userProfile, CONQUEST_COLOR_UNLOCK_XP),
+    [userProfile],
+  );
+
+  const estimatedXP = (paises?.length || 0) * 500 + (trips?.length || 0) * 100;
+  const isConquestUnlocked = Boolean(userProfile?.conquestColor) || isConquestColorUnlocked(estimatedXP);
+
+  const handleSelectConquestColor = useCallback(
+    async (hex) => {
+      if (updateUserProfile) await updateUserProfile({ conquestColor: hex });
+    },
+    [updateUserProfile],
   );
 
   // Initial camera focus on roots/base if no trip selected
@@ -252,7 +269,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
       'fill-color': [
         'case',
         ['in', ['get', 'iso_3166_1_alpha_3'], ['literal', visitedList]],
-        COLORS.atomicTangerine,
+        activeConquestColor,
         ['==', ['get', 'iso_3166_1_alpha_3'], residenceIso3 || ''],
         COLORS.mutedTeal,
         ['==', ['get', 'iso_3166_1_alpha_3'], birthIso3 || ''],
@@ -274,7 +291,7 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
         0,
       ],
     };
-  }, [showVisited, showWishlist, listaPaises, residenceIso3, birthIso3, wishlistIso3List]);
+  }, [showVisited, showWishlist, listaPaises, residenceIso3, birthIso3, wishlistIso3List, activeConquestColor]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -690,6 +707,9 @@ function MapaView({ paises = [], paradas = [], trips = [], tripData = {} }) {
               wishlistItems={wishlistItems}
               onWishlistItemFly={handleWishlistItemFly}
               onCreateTripFromWishlist={handleCreateTripFromWishlist}
+              conquestColor={activeConquestColor}
+              isConquestColorUnlocked={isConquestUnlocked}
+              onSelectConquestColor={handleSelectConquestColor}
             />
           </>
         )}

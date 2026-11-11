@@ -30,6 +30,8 @@ const TripRosterItem = ({ trip, isActive = false, onSelect, index = 0 }) => {
   const openTripEditor = (e) => {
     e.stopPropagation();
     const params = new URLSearchParams(search);
+    params.delete('new');
+    params.delete('tab');
     params.set('editing', trip.id);
     navigate({ pathname: '/trips', search: params.toString() });
   };

@@ -55,6 +55,25 @@
     "toast": {
       "success": "Escenario «{{scenario}}» cargado con {{count}} viajes.",
       "error": "No se pudo cargar el escenario. Revisa la consola."
+    },
+    "godMode": {
+      "label": "Gamification God Mode",
+      "hint": "Desbloquea en caliente los 195 emblemas y todas las insignias sin tocar Firestore"
+    },
+    "panel": {
+      "title": "Panel de Desarrollo",
+      "trigger": "DEV",
+      "open": "Abrir panel desarrollador",
+      "close": "Cerrar panel",
+      "statusOn": "Activado",
+      "statusOff": "Desactivado",
+      "quickSwitch": "Cambiar demo",
+      "reset": "Restablecer datos reales",
+      "resetBusy": "Restableciendo...",
+      "resetDone": "Datos restablecidos.",
+      "seeded": "Demo cargada. Abriendo el panel de viajes...",
+      "error": "No se pudo completar la acción.",
+      "onlyDev": "Solo entorno DEV"
     }
   }
 }

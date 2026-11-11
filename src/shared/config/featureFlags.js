@@ -6,7 +6,7 @@ export const ENABLE_IMMERSIVE_VIEWER = isE2EImmersiveViewerEnabled;
 // modern editorial experience is the single viewer for /trips/:id.
 export const ENABLE_DOCUMENTARY_VIEWER = true;
 export const ENABLE_INVITATIONS = isE2EInvitationsEnabled;
-export const ENABLE_GAMIFICATION = false;
+export const ENABLE_GAMIFICATION = true;
 export const ENABLE_WEATHER_API = false;
 export const ENABLE_ONBOARDING = true;
 // Block 2.2: Dual-view Digital Travel Archive (Grid + List) with 5D filters.

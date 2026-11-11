@@ -135,6 +135,8 @@ const DashboardPage = ({ countriesVisited = [], log = [], logData = {}, loading 
 
   const openTripEditor = (tripId) => {
     const params = new URLSearchParams(location.search);
+    params.delete('new');
+    params.delete('tab');
     params.set('editing', tripId);
     navigate({ pathname: location.pathname, search: params.toString() });
   };

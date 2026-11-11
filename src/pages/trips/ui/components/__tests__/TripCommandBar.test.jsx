@@ -184,4 +184,12 @@ describe('TripCommandBar Component', () => {
     expect(screen.getByTestId('bottom-sheet')).toBeTruthy();
     expect(screen.getByText('Ordenar por')).toBeTruthy();
   });
+
+  it('renders a removable active country chip for a deep-linked country filter', () => {
+    renderBar({ filters: { ...baseFilters, country: 'JP' } });
+    const pill = screen.getByTestId('active-country-filter-pill');
+    expect(pill).toBeTruthy();
+    fireEvent.click(pill);
+    expect(mockOnChange).toHaveBeenCalledWith({ country: 'all' });
+  });
 });

@@ -45,30 +45,46 @@ const WelcomeBento = ({ name, isNewTraveler, onNewTrip }) => {
             {(birthCountry || residenceCountry) && (
               <div className="flex flex-wrap items-center gap-1.5">
                 {birthCountry === residenceCountry ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#45B0A8]/10 text-[#45B0A8] border border-[#45B0A8]/20 text-xs font-bold font-heading">
-                    <Home size={12} />
+                  <span
+                    style={{ backgroundColor: '#45B0A8', borderColor: '#2C3E50' }}
+                    className="inline-flex items-center gap-1.5 min-h-[44px] px-3 py-1 rounded-full text-xs font-bold font-heading text-white border-2 shadow-xs"
+                    data-testid="welcome-identity-roots-and-base"
+                  >
+                    <Heart size={12} className="fill-current text-white" />
+                    <Home size={12} className="text-white" />
                     <CountryFlag code={birthCountry} size="xs" />
                     <span>
-                      {t('onboarding.originAndResidenceLabel', 'Origen y residencia')}: {birthName}{baseCity?.name ? ` (${baseCity.name})` : ''}
+                      {t('onboarding.originAndResidenceLabel', 'Origen y residencia')}: {birthName}
+                      {baseCity?.name ? ` (${baseCity.name})` : ''}
                     </span>
                   </span>
                 ) : (
                   <>
                     {birthCountry && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#2C3E50]/10 text-[#2C3E50] border border-[#2C3E50]/20 text-xs font-bold font-heading">
-                        <Heart size={11} className="text-[#FF6B35]" />
+                      <span
+                        style={{ backgroundColor: '#2C3E50' }}
+                        className="inline-flex items-center gap-1.5 min-h-[44px] px-3 py-1 rounded-full text-xs font-bold font-heading text-white shadow-xs"
+                        data-testid="welcome-identity-roots"
+                      >
+                        <Heart size={12} className="fill-current text-white" />
                         <CountryFlag code={birthCountry} size="xs" />
                         <span>
-                          {t('onboarding.originLabel', 'Origen')}: {birthName}{userProfile?.birthCity?.name ? ` (${userProfile.birthCity.name})` : ''}
+                          {t('onboarding.originLabel', 'Origen')}: {birthName}
+                          {userProfile?.birthCity?.name ? ` (${userProfile.birthCity.name})` : ''}
                         </span>
                       </span>
                     )}
                     {residenceCountry && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#45B0A8]/10 text-[#45B0A8] border border-[#45B0A8]/20 text-xs font-bold font-heading">
-                        <Home size={11} />
+                      <span
+                        style={{ backgroundColor: '#45B0A8' }}
+                        className="inline-flex items-center gap-1.5 min-h-[44px] px-3 py-1 rounded-full text-xs font-bold font-heading text-white shadow-xs"
+                        data-testid="welcome-identity-base"
+                      >
+                        <Home size={12} className="text-white" />
                         <CountryFlag code={residenceCountry} size="xs" />
                         <span>
-                          {t('onboarding.livingInLabel', 'Vives en')}: {residenceName}{baseCity?.name ? ` (${baseCity.name})` : ''}
+                          {t('onboarding.livingInLabel', 'Vives en')}: {residenceName}
+                          {baseCity?.name ? ` (${baseCity.name})` : ''}
                         </span>
                       </span>
                     )}

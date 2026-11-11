@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useOutletContext, Outlet, useNavigate } from 'react-router-dom';
+import { useOutletContext, Outlet, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Globe, Bookmark } from 'lucide-react';
 import { useAuth, useSearch, useUI, useToast } from '@app/providers';
@@ -49,6 +49,7 @@ const TripsPage = () => {
   const { openBuscador, setViajeBorrador, setCiudadInicialBorrador } = useUI();
   const { pushToast } = useToast();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Block 2.5 — "Mis Viajes" vs "Mi Wishlist" segmented view switcher.
   const [activeTab, setActiveTab] = useState('trips');
@@ -63,6 +64,18 @@ const TripsPage = () => {
     companion: 'all',
     sort: 'recent',
   }));
+
+  // Deep-link: /trips?country=AR (from CountryEmblemModal) → filter + trips tab.
+  const countryParam = searchParams.get('country');
+
+  useEffect(() => {
+    if (!countryParam) return;
+    const normalized = normalizeCountryCode(countryParam);
+    if (normalized) {
+      setFilters((prev) => (prev.country === normalized ? prev : { ...prev, country: normalized }));
+      setActiveTab('trips');
+    }
+  }, [countryParam]);
 
   const trips = useMemo(() => data.bitacora ?? [], [data.bitacora]);
   const tripData = useMemo(() => data.bitacoraData ?? {}, [data.bitacoraData]);
@@ -136,9 +149,25 @@ const TripsPage = () => {
     navigate('/trips?new=true');
   }, [setViajeBorrador, setCiudadInicialBorrador, navigate]);
 
-  const handleFiltersChange = useCallback((patch) => {
-    setFilters((prev) => ({ ...prev, ...patch }));
-  }, []);
+  const handleFiltersChange = useCallback(
+    (patch) => {
+      setFilters((prev) => ({ ...prev, ...patch }));
+
+      // Keep the ?country= deep-link in sync with the live country filter.
+      if (patch && Object.prototype.hasOwnProperty.call(patch, 'country')) {
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev);
+            if (!patch.country || patch.country === 'all') next.delete('country');
+            else next.set('country', String(patch.country).toUpperCase());
+            return next;
+          },
+          { replace: true },
+        );
+      }
+    },
+    [setSearchParams],
+  );
 
   const handleClearFilters = useCallback(() => {
     setFilters((prev) => ({
@@ -151,8 +180,16 @@ const TripsPage = () => {
       companion: 'all',
       sort: 'recent',
     }));
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('country');
+        return next;
+      },
+      { replace: true },
+    );
     limpiarBusqueda();
-  }, [limpiarBusqueda]);
+  }, [limpiarBusqueda, setSearchParams]);
 
   // Persist the dual-view preference (default: grid for first-time visitors).
   useEffect(() => {
